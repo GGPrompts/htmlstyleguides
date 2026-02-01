@@ -1,0 +1,621 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NEON BRUTAL | Design System Style Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Monoton&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font-display: "Monoton", "Chakra Petch";
+      --font-body: "Chakra Petch", "Share Tech Mono";
+      --font-mono: "Share Tech Mono", "Chakra Petch";
+
+      --space-1: 4px;
+      --space-2: 8px;
+      --space-3: 12px;
+      --space-4: 16px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --space-7: 48px;
+      --space-8: 64px;
+
+      --radius-1: 6px;
+      --radius-2: 14px;
+      --radius-3: 24px;
+      --border-strong: 2px solid var(--ink);
+
+      --dur-fast: 180ms;
+      --dur-med: 420ms;
+      --dur-slow: 1200ms;
+
+      --ink: #eef7ff;
+      --muted: #b5c9ff;
+      --bg: #0a0c18;
+      --bg-alt: #12162b;
+      --accent: #28f3ff;
+      --accent-2: #ff3b8d;
+      --accent-3: #ffd84f;
+      --shadow: #05070f;
+      --grid: rgba(40, 243, 255, 0.12);
+      --glow: 0 0 24px rgba(40, 243, 255, 0.45);
+    }
+
+    html[data-theme="light"] {
+      --ink: #0b0c12;
+      --muted: #4a5578;
+      --bg: #f7f4ff;
+      --bg-alt: #f0ebff;
+      --accent: #7d25ff;
+      --accent-2: #ff0066;
+      --accent-3: #ffc400;
+      --shadow: #d6c9ff;
+      --grid: rgba(125, 37, 255, 0.15);
+      --glow: 0 0 18px rgba(125, 37, 255, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: var(--font-body);
+      background: radial-gradient(1100px 600px at 10% -10%, rgba(255, 59, 141, 0.35), transparent 60%),
+        radial-gradient(900px 500px at 90% 10%, rgba(40, 243, 255, 0.3), transparent 55%),
+        var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      letter-spacing: 0.4px;
+    }
+
+    .scanlines::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.03) 0px,
+        rgba(255, 255, 255, 0.03) 1px,
+        transparent 1px,
+        transparent 3px
+      );
+      pointer-events: none;
+      mix-blend-mode: soft-light;
+      opacity: 0.45;
+      z-index: 1;
+    }
+
+    .grid {
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+      background-size: 64px 64px;
+      opacity: 0.35;
+      pointer-events: none;
+      z-index: 0;
+      transform: perspective(600px) rotateX(8deg);
+      transform-origin: top;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: var(--space-8) var(--space-5) var(--space-8);
+    }
+
+    header {
+      display: grid;
+      gap: var(--space-5);
+      align-items: center;
+      margin-bottom: var(--space-7);
+    }
+
+    .hero {
+      display: grid;
+      gap: var(--space-5);
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      align-items: center;
+      background: linear-gradient(135deg, rgba(40, 243, 255, 0.12), rgba(255, 59, 141, 0.15));
+      border: var(--border-strong);
+      border-radius: var(--radius-3);
+      padding: var(--space-6);
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: -40% 20% auto -30%;
+      height: 320px;
+      width: 320px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      opacity: 0.4;
+      filter: blur(0.5px);
+      animation: orbit 10s linear infinite;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 6vw, 4.6rem);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: var(--glow);
+      margin: 0;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: var(--muted);
+      margin: 0;
+      max-width: 44ch;
+    }
+
+    .memory-orb {
+      display: grid;
+      place-items: center;
+      width: min(300px, 100%);
+      aspect-ratio: 1;
+      margin: 0 auto;
+      border-radius: 50%;
+      border: 2px dashed var(--accent);
+      background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.25), transparent 40%),
+        radial-gradient(circle at 70% 70%, rgba(255, 216, 79, 0.3), transparent 45%);
+      box-shadow: var(--glow);
+      animation: pulse 3.8s ease-in-out infinite;
+      position: relative;
+    }
+
+    .memory-orb::before {
+      content: "NEON COIN";
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      letter-spacing: 4px;
+      color: var(--accent-3);
+      text-transform: uppercase;
+    }
+
+    .memory-orb::after {
+      content: "";
+      position: absolute;
+      inset: 18% 18%;
+      border-radius: 50%;
+      border: 2px solid var(--accent-2);
+      filter: blur(0.6px);
+      animation: spin 8s linear infinite;
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      border: var(--border-strong);
+      border-radius: 999px;
+      padding: var(--space-2) var(--space-3);
+      background: var(--bg-alt);
+      color: var(--ink);
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+    }
+
+    .toggle:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--glow);
+    }
+
+    section {
+      margin-bottom: var(--space-7);
+    }
+
+    h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      text-transform: uppercase;
+      margin: 0 0 var(--space-4);
+      letter-spacing: 2px;
+    }
+
+    .token-grid {
+      display: grid;
+      gap: var(--space-4);
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .swatch {
+      border: var(--border-strong);
+      border-radius: var(--radius-2);
+      padding: var(--space-4);
+      background: var(--bg-alt);
+      display: grid;
+      gap: var(--space-2);
+      transition: transform var(--dur-fast) ease;
+    }
+
+    .swatch:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .swatch-color {
+      height: 64px;
+      border-radius: var(--radius-1);
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+    }
+
+    .swatch-label {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+    }
+
+    .spacing-scale {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .scale-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .scale-bar {
+      height: 12px;
+      background: var(--accent);
+      border-radius: 999px;
+      box-shadow: var(--glow);
+    }
+
+    .components {
+      display: grid;
+      gap: var(--space-5);
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+
+    .card {
+      border: var(--border-strong);
+      border-radius: var(--radius-2);
+      padding: var(--space-5);
+      background: linear-gradient(135deg, rgba(255, 59, 141, 0.1), rgba(40, 243, 255, 0.12));
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: -50% -50% auto auto;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 1px solid var(--accent-3);
+      opacity: 0.35;
+    }
+
+    .btn-group {
+      display: grid;
+      gap: var(--space-3);
+    }
+
+    .btn {
+      font-family: var(--font-body);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      border: var(--border-strong);
+      border-radius: 999px;
+      padding: var(--space-3) var(--space-5);
+      background: transparent;
+      color: var(--ink);
+      cursor: pointer;
+      transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease, background var(--dur-med) ease;
+    }
+
+    .btn.primary {
+      background: var(--accent);
+      color: var(--bg);
+    }
+
+    .btn.ghost {
+      background: transparent;
+      color: var(--accent);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--glow);
+    }
+
+    .input {
+      width: 100%;
+      font-family: var(--font-body);
+      padding: var(--space-3);
+      border-radius: var(--radius-1);
+      border: var(--border-strong);
+      background: var(--bg-alt);
+      color: var(--ink);
+      outline: none;
+      transition: border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+    }
+
+    .input:focus {
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 0.8rem;
+    }
+
+    .badge.alt {
+      border-color: var(--accent-3);
+      color: var(--accent-3);
+    }
+
+    .badge.soft {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .type-scale {
+      display: grid;
+      gap: var(--space-2);
+    }
+
+    .type-sample {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px dashed var(--grid);
+      padding-bottom: var(--space-2);
+    }
+
+    .type-sample span {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .footer {
+      border-top: 1px solid var(--grid);
+      padding-top: var(--space-5);
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(0.98);
+        box-shadow: var(--glow);
+      }
+      50% {
+        transform: scale(1.03);
+        box-shadow: 0 0 40px rgba(255, 59, 141, 0.5);
+      }
+    }
+
+    @keyframes orbit {
+      0% {
+        transform: rotate(0deg) translate(0, 0);
+      }
+      100% {
+        transform: rotate(360deg) translate(0, 0);
+      }
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        padding: var(--space-5);
+      }
+
+      .scale-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body class="scanlines">
+  <div class="grid"></div>
+  <div class="container">
+    <header>
+      <div class="hero">
+        <div>
+          <p class="hero-title">Neon Brutal</p>
+          <p class="hero-sub">Retro-futuristic brutalism with radiant grids, neon coins, and loud geometry. A system built to look like tomorrow's arcade still booting.</p>
+          <button class="toggle" id="themeToggle" type="button">Toggle: Dark Mode</button>
+        </div>
+        <div class="memory-orb" aria-hidden="true"></div>
+      </div>
+    </header>
+
+    <section>
+      <h2>Color Palette</h2>
+      <div class="token-grid">
+        <div class="swatch">
+          <div class="swatch-color" style="background: var(--accent);"></div>
+          <div class="swatch-label">Accent / var(--accent)</div>
+          <div class="swatch-label">HEX: <span id="accentHex">#28F3FF</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: var(--accent-2);"></div>
+          <div class="swatch-label">Accent 2 / var(--accent-2)</div>
+          <div class="swatch-label">HEX: <span id="accent2Hex">#FF3B8D</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: var(--accent-3);"></div>
+          <div class="swatch-label">Accent 3 / var(--accent-3)</div>
+          <div class="swatch-label">HEX: <span id="accent3Hex">#FFD84F</span></div>
+        </div>
+        <div class="swatch">
+          <div class="swatch-color" style="background: var(--bg);"></div>
+          <div class="swatch-label">Background / var(--bg)</div>
+          <div class="swatch-label">HEX: <span id="bgHex">#0A0C18</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Typography</h2>
+      <div class="type-scale">
+        <div class="type-sample" style="font-family: var(--font-display); font-size: 2.4rem;">
+          <div>Display / Monoton</div>
+          <span>40px</span>
+        </div>
+        <div class="type-sample" style="font-size: 1.35rem; font-weight: 600;">
+          <div>Heading / Chakra Petch 600</div>
+          <span>22px</span>
+        </div>
+        <div class="type-sample" style="font-size: 1rem;">
+          <div>Body / Chakra Petch 400</div>
+          <span>16px</span>
+        </div>
+        <div class="type-sample" style="font-family: var(--font-mono); font-size: 0.95rem;">
+          <div>Mono / Share Tech Mono</div>
+          <span>15px</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Spacing Scale</h2>
+      <div class="spacing-scale">
+        <div class="scale-row"><div>4px</div><div class="scale-bar" style="width: 40px"></div></div>
+        <div class="scale-row"><div>8px</div><div class="scale-bar" style="width: 80px"></div></div>
+        <div class="scale-row"><div>12px</div><div class="scale-bar" style="width: 120px"></div></div>
+        <div class="scale-row"><div>16px</div><div class="scale-bar" style="width: 160px"></div></div>
+        <div class="scale-row"><div>24px</div><div class="scale-bar" style="width: 240px"></div></div>
+        <div class="scale-row"><div>32px</div><div class="scale-bar" style="width: 320px"></div></div>
+        <div class="scale-row"><div>48px</div><div class="scale-bar" style="width: 360px"></div></div>
+        <div class="scale-row"><div>64px</div><div class="scale-bar" style="width: 400px"></div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Components</h2>
+      <div class="components">
+        <div class="card">
+          <h3 style="margin-top: 0;">Buttons</h3>
+          <div class="btn-group">
+            <button class="btn primary" type="button">Launch Pulse</button>
+            <button class="btn" type="button">Signal Boost</button>
+            <button class="btn ghost" type="button">Ghost Mode</button>
+          </div>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0;">Inputs</h3>
+          <label for="signal" style="font-size: 0.9rem; letter-spacing: 1px;">Signal ID</label>
+          <input id="signal" class="input" placeholder="A13-NEON" />
+          <p style="margin-top: var(--space-3); color: var(--muted);">Focused inputs glow like a boot sequence.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0;">Badges</h3>
+          <div class="badge-row">
+            <span class="badge">Arcade</span>
+            <span class="badge alt">Hyperlane</span>
+            <span class="badge soft">Beta Ready</span>
+          </div>
+          <p style="margin-top: var(--space-4); color: var(--muted);">Use for status, tags, or commemorative drops.</p>
+        </div>
+        <div class="card">
+          <h3 style="margin-top: 0;">Cards</h3>
+          <p style="margin-bottom: var(--space-4);">Cards carry luminous noise, angular borders, and orbiting rings.</p>
+          <button class="btn" type="button">Collect Token</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Motion + Tone</h2>
+      <div class="card">
+        <p style="margin-top: 0;">Motion is bold and deliberate: pulse, orbit, and scan. No subtlety. This system prefers theatrical, arcade-grade animation.</p>
+        <div class="badge-row" style="margin-top: var(--space-3);">
+          <span class="badge">Pulse 3.8s</span>
+          <span class="badge alt">Orbit 10s</span>
+          <span class="badge soft">Scanlines Always</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="footer">
+      Unforgettable feature: the NEON COIN is always pulsing in the hero, like a token you can't ignore.
+    </section>
+  </div>
+
+  <script>
+    const htmlEl = document.documentElement;
+    const toggle = document.getElementById("themeToggle");
+
+    const themeLabels = {
+      dark: "Toggle: Dark Mode",
+      light: "Toggle: Light Mode",
+    };
+
+    const colorTargets = {
+      accentHex: "--accent",
+      accent2Hex: "--accent-2",
+      accent3Hex: "--accent-3",
+      bgHex: "--bg",
+    };
+
+    function rgbToHex(rgb) {
+      const result = rgb.match(/\\d+/g);
+      if (!result) return rgb;
+      return \"#\" + result.slice(0, 3).map((value) => Number(value).toString(16).padStart(2, \"0\")).join(\"\").toUpperCase();
+    }
+
+    function updateSwatches() {
+      const styles = getComputedStyle(htmlEl);
+      Object.entries(colorTargets).forEach(([id, token]) => {
+        const value = styles.getPropertyValue(token).trim();
+        const element = document.getElementById(id);
+        if (element) element.textContent = value.startsWith(\"#\") ? value.toUpperCase() : rgbToHex(value);
+      });
+    }
+
+    function updateLabel() {
+      const theme = htmlEl.getAttribute(\"data-theme\") || \"dark\";
+      toggle.textContent = themeLabels[theme] || \"Toggle Theme\";
+    }
+
+    toggle.addEventListener(\"click\", () => {
+      const current = htmlEl.getAttribute(\"data-theme\");
+      const next = current === \"dark\" ? \"light\" : \"dark\";
+      htmlEl.setAttribute(\"data-theme\", next);
+      updateLabel();
+      updateSwatches();
+    });
+
+    updateLabel();
+    updateSwatches();
+  </script>
+</body>
+</html>

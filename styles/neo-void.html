@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO-VOID // DESIGN SYSTEM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Major+Mono+Display&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 
+         * NEO-VOID DESIGN SYSTEM
+         * Aesthetic: Cyber-Brutalist x Ethereal
+         */
+
+        :root {
+            /* Spacing Scale */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 32px;
+            --space-xl: 64px;
+            --space-xxl: 128px;
+
+            /* Light Theme (Default - "Day Core") */
+            --bg-primary: #e0e0e0;
+            --bg-secondary: #f0f0f0;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --accent-primary: #ff3300; /* Blazing Red */
+            --accent-secondary: #3300ff; /* Deep Electric Blue */
+            --border-color: #1a1a1a;
+            --grid-color: rgba(26, 26, 26, 0.1);
+            --surface-shadow: 8px 8px 0px 0px var(--border-color);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme ("Void Core") */
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a0;
+            --accent-primary: #00ff66; /* Toxic Green */
+            --accent-secondary: #ff00ff; /* Neon Magenta */
+            --border-color: #f0f0f0;
+            --grid-color: rgba(240, 240, 240, 0.1);
+            --surface-shadow: 8px 8px 0px 0px var(--accent-primary);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.5;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            overflow-x: hidden;
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Major Mono Display', monospace;
+            text-transform: uppercase;
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -1px;
+        }
+
+        h1 { font-size: clamp(3rem, 8vw, 6rem); margin-bottom: var(--space-lg); }
+        h2 { font-size: 3rem; margin-bottom: var(--space-md); border-bottom: 2px solid var(--border-color); padding-bottom: var(--space-sm); }
+        h3 { font-size: 1.5rem; margin-bottom: var(--space-sm); color: var(--accent-secondary); }
+
+        p {
+            margin-bottom: var(--space-md);
+            max-width: 65ch;
+            font-size: 1.1rem;
+        }
+
+        code {
+            font-family: 'Major Mono Display', monospace;
+            background: var(--border-color);
+            color: var(--bg-primary);
+            padding: 2px 6px;
+            font-size: 0.8em;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+            border-left: 2px solid var(--border-color);
+            border-right: 2px solid var(--border-color);
+            min-height: 100vh;
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        section {
+            margin-bottom: var(--space-xxl);
+            padding: var(--space-lg);
+            border: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        section::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--border-color);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Utility */
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--space-lg); }
+        .flex-wrap { display: flex; flex-wrap: wrap; gap: var(--space-md); }
+
+        /* Color Swatches */
+        .swatch {
+            width: 100%;
+            height: 120px;
+            border: 2px solid var(--border-color);
+            padding: var(--space-sm);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-family: 'Major Mono Display', monospace;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .swatch:hover { transform: translate(-4px, -4px); box-shadow: 4px 4px 0 var(--border-color); }
+
+        /* Component: Buttons */
+        .btn {
+            display: inline-block;
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border-color);
+            padding: var(--space-md) var(--space-lg);
+            font-family: 'Major Mono Display', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 4px 4px 0 var(--border-color);
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0 var(--accent-primary);
+            background: var(--border-color);
+            color: var(--bg-primary);
+        }
+
+        .btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: var(--bg-primary);
+            border-color: var(--border-color);
+        }
+        
+        .btn-primary:hover {
+            background: var(--border-color);
+            color: var(--accent-primary);
+            box-shadow: 6px 6px 0 var(--accent-secondary);
+        }
+
+        /* Component: Inputs */
+        .input-group {
+            margin-bottom: var(--space-md);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: var(--space-xs);
+            font-weight: bold;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: var(--space-md);
+            background: transparent;
+            border: 2px solid var(--border-color);
+            border-radius: 0;
+            font-family: 'Space Grotesk', sans-serif;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: box-shadow 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            box-shadow: 4px 4px 0 var(--accent-secondary);
+            background: var(--bg-secondary);
+        }
+
+        /* Component: Card */
+        .card {
+            border: 2px solid var(--border-color);
+            padding: var(--space-lg);
+            background: var(--bg-secondary);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::after {
+            content: "NO SIGNAL";
+            position: absolute;
+            bottom: -10px;
+            right: -10px;
+            font-size: 4rem;
+            font-family: 'Major Mono Display', monospace;
+            opacity: 0.05;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .card-title {
+            font-family: 'Major Mono Display', monospace;
+            font-size: 1.5rem;
+            margin-bottom: var(--space-sm);
+            color: var(--accent-secondary);
+        }
+
+        /* Component: Badge */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border: 1px solid var(--border-color);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-right: var(--space-xs);
+            background: var(--bg-primary);
+        }
+
+        .badge.filled {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: var(--space-md);
+            right: var(--space-md);
+            z-index: 1000;
+        }
+
+        /* UNFORGETTABLE: The Marquee Header */
+        .marquee-container {
+            width: 100%;
+            overflow: hidden;
+            border-bottom: 2px solid var(--border-color);
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            padding: var(--space-xs) 0;
+            margin-bottom: var(--space-lg);
+        }
+
+        .marquee-content {
+            white-space: nowrap;
+            display: inline-block;
+            animation: scroll 20s linear infinite;
+            font-family: 'Major Mono Display', monospace;
+            font-size: 1.2rem;
+        }
+
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Glitch Animation for Titles */
+        .glitch {
+            position: relative;
+        }
+        
+        .glitch::before, .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+        }
+        
+        .glitch::before {
+            left: 2px;
+            text-shadow: -1px 0 var(--accent-primary);
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim-2 3s infinite linear alternate-reverse;
+        }
+        
+        .glitch::after {
+            left: -2px;
+            text-shadow: -1px 0 var(--accent-secondary);
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim 2.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(11px, 9999px, 89px, 0); }
+            20% { clip: rect(86px, 9999px, 16px, 0); }
+            40% { clip: rect(32px, 9999px, 39px, 0); }
+            60% { clip: rect(65px, 9999px, 7px, 0); }
+            80% { clip: rect(9px, 9999px, 53px, 0); }
+            100% { clip: rect(44px, 9999px, 28px, 0); }
+        }
+        @keyframes glitch-anim-2 {
+            0% { clip: rect(61px, 9999px, 5px, 0); }
+            20% { clip: rect(10px, 9999px, 69px, 0); }
+            40% { clip: rect(42px, 9999px, 18px, 0); }
+            60% { clip: rect(93px, 9999px, 31px, 0); }
+            80% { clip: rect(19px, 9999px, 47px, 0); }
+            100% { clip: rect(74px, 9999px, 83px, 0); }
+        }
+
+        /* Spacing visualization */
+        .space-box {
+            background: var(--accent-primary);
+            opacity: 0.5;
+            display: inline-block;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="marquee-container">
+        <div class="marquee-content">
+            SYSTEM STATUS: ONLINE // NEO-VOID v1.0 // DO NOT STARE DIRECTLY INTO THE VOID // SYSTEM STATUS: ONLINE // NEO-VOID v1.0 // DO NOT STARE DIRECTLY INTO THE VOID // 
+        </div>
+    </div>
+
+    <div class="theme-toggle">
+        <button class="btn" id="themeSwitch">INIT_VOID_MODE</button>
+    </div>
+
+    <div class="container">
+        <header style="margin-bottom: var(--space-xxl); padding-top: var(--space-xl);">
+            <h1 class="glitch" data-text="NEO-VOID">NEO-VOID</h1>
+            <p style="font-size: 1.5rem; border-left: 4px solid var(--accent-primary); padding-left: var(--space-md);">
+                A Brutalist Design System for the Post-Digital Age.
+            </p>
+        </header>
+
+        <section id="colors">
+            <h2>01. CHROMATIC DATA</h2>
+            <div class="grid-2">
+                <div class="swatch" style="background: var(--bg-primary); color: var(--text-primary);">
+                    <span>BG_PRIMARY</span>
+                    <span class="code-val">var(--bg-primary)</span>
+                </div>
+                <div class="swatch" style="background: var(--text-primary); color: var(--bg-primary);">
+                    <span>TEXT_PRIMARY</span>
+                    <span class="code-val">var(--text-primary)</span>
+                </div>
+                <div class="swatch" style="background: var(--accent-primary); color: #fff;">
+                    <span>ACCENT_01</span>
+                    <span class="code-val">var(--accent-primary)</span>
+                </div>
+                <div class="swatch" style="background: var(--accent-secondary); color: #fff;">
+                    <span>ACCENT_02</span>
+                    <span class="code-val">var(--accent-secondary)</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="typography">
+            <h2>02. GLYPH SYSTEMS</h2>
+            <div style="margin-bottom: var(--space-lg);">
+                <p style="font-family: 'Major Mono Display', monospace; font-size: 3rem; margin: 0;">Aa Bb Cc</p>
+                <p class="badge">Major Mono Display</p>
+                <p>Used for Headings and Impact. Eccentric, monospaced, erratic casing.</p>
+            </div>
+            <div>
+                <p style="font-family: 'Space Grotesk', sans-serif; font-size: 3rem; margin: 0;">Aa Bb Cc</p>
+                <p class="badge">Space Grotesk</p>
+                <p>Used for Body. Highly readable geometric sans with quirky details.</p>
+            </div>
+        </section>
+
+        <section id="spacing">
+            <h2>03. SPATIAL RHYTHM</h2>
+            <div class="flex-wrap" style="align-items: flex-end;">
+                <div style="text-align: center;">
+                    <div class="space-box" style="width: var(--space-xs); height: 50px;"></div>
+                    <div>XS</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="space-box" style="width: var(--space-sm); height: 50px;"></div>
+                    <div>SM</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="space-box" style="width: var(--space-md); height: 50px;"></div>
+                    <div>MD</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="space-box" style="width: var(--space-lg); height: 50px;"></div>
+                    <div>LG</div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="space-box" style="width: var(--space-xl); height: 50px;"></div>
+                    <div>XL</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="components">
+            <h2>04. INTERFACE MODULES</h2>
+            
+            <h3>// BUTTONS</h3>
+            <div class="flex-wrap" style="margin-bottom: var(--space-xl);">
+                <a href="#" class="btn">Standard_Unit</a>
+                <a href="#" class="btn btn-primary">High_Priority</a>
+            </div>
+
+            <h3>// INPUTS</h3>
+            <div class="grid-2" style="margin-bottom: var(--space-xl);">
+                <div class="input-group">
+                    <label>ACCESS_CODE</label>
+                    <input type="text" placeholder="ENTER_DATA...">
+                </div>
+                <div class="input-group">
+                    <label>NEURAL_LINK</label>
+                    <input type="email" placeholder="USER@NET.VOID" value="GHOST_IN_SHELL">
+                </div>
+            </div>
+
+            <h3>// CARDS</h3>
+            <div class="grid-2">
+                <article class="card">
+                    <div class="card-title">SYSTEM_ALERT</div>
+                    <p>Anomaly detected in sector 7G. Containment protocols initiated. Please remain calm and wait for the reset.</p>
+                    <div style="margin-top: var(--space-md);">
+                        <span class="badge filled">CRITICAL</span>
+                        <span class="badge">LOG_332</span>
+                    </div>
+                </article>
+                <article class="card">
+                    <div class="card-title">USER_PROFILE</div>
+                    <p>Identity confirmed. Welcome back, operator. Your last session was terminated unexpectedly.</p>
+                    <button class="btn" style="margin-top: var(--space-md); width: 100%;">RESUME</button>
+                </article>
+            </div>
+        </section>
+
+        <footer style="text-align: center; padding: var(--space-xxl) 0; border-top: 2px solid var(--border-color);">
+            <p style="font-family: 'Major Mono Display';">END_OF_LINE</p>
+        </footer>
+    </div>
+
+    <script>
+        const toggleBtn = document.getElementById('themeSwitch');
+        const root = document.documentElement;
+        
+        toggleBtn.addEventListener('click', () => {
+            const currentTheme = root.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            root.setAttribute('data-theme', newTheme);
+            toggleBtn.textContent = newTheme === 'dark' ? 'EXIT_VOID_MODE' : 'INIT_VOID_MODE';
+            
+            // Random glitch effect on toggle
+            document.body.style.filter = 'invert(1)';
+            setTimeout(() => {
+                document.body.style.filter = 'invert(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
