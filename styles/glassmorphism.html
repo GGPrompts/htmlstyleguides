@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glassmorphism Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --radius-full: 9999px;
+
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-1: #0f0c29;
+            --bg-gradient-2: #302b63;
+            --bg-gradient-3: #24243e;
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-bg-hover: rgba(255, 255, 255, 0.12);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --accent-1: #667eea;
+            --accent-2: #764ba2;
+            --accent-3: #f093fb;
+            --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --orb-1: rgba(102, 126, 234, 0.6);
+            --orb-2: rgba(240, 147, 251, 0.5);
+            --orb-3: rgba(118, 75, 162, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-gradient-1: #e0c3fc;
+            --bg-gradient-2: #8ec5fc;
+            --bg-gradient-3: #f5f7fa;
+            --text-primary: rgba(0, 0, 0, 0.9);
+            --text-secondary: rgba(0, 0, 0, 0.65);
+            --text-muted: rgba(0, 0, 0, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-bg-hover: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            --accent-1: #667eea;
+            --accent-2: #764ba2;
+            --accent-3: #f093fb;
+            --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --orb-1: rgba(102, 126, 234, 0.5);
+            --orb-2: rgba(240, 147, 251, 0.4);
+            --orb-3: rgba(142, 197, 252, 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* Floating Orbs Background */
+        .orbs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: var(--orb-1);
+            top: -200px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: var(--orb-2);
+            top: 50%;
+            right: -150px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 400px;
+            height: 400px;
+            background: var(--orb-3);
+            bottom: -100px;
+            left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.05); }
+            50% { transform: translate(-30px, 50px) scale(0.95); }
+            75% { transform: translate(-50px, -20px) scale(1.02); }
+        }
+
+        /* Glass Effect Mixin */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-5);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: var(--space-9);
+            padding: var(--space-8);
+            border-radius: var(--radius-xl);
+        }
+
+        .header h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: var(--space-4);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: var(--space-5);
+            right: var(--space-5);
+            z-index: 100;
+        }
+
+        .theme-toggle button {
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle button:hover {
+            background: var(--glass-bg-hover);
+            transform: translateY(-2px);
+        }
+
+        /* Section */
+        .section {
+            margin-bottom: var(--space-8);
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: var(--space-5);
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-3);
+        }
+
+        /* Color Palette */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .color-swatch {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: transform var(--transition-fast);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-4px) scale(1.02);
+        }
+
+        .color-preview {
+            height: 100px;
+            display: flex;
+            align-items: flex-end;
+            padding: var(--space-3);
+        }
+
+        .color-info {
+            padding: var(--space-3);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .color-value {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        /* Typography */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        .type-specimen {
+            padding: var(--space-4);
+            border-radius: var(--radius-md);
+            background: var(--glass-bg);
+        }
+
+        .type-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .type-sample-xl { font-size: 3rem; font-weight: 700; letter-spacing: -1px; line-height: 1.1; }
+        .type-sample-lg { font-size: 2rem; font-weight: 600; letter-spacing: -0.5px; }
+        .type-sample-md { font-size: 1.25rem; font-weight: 500; }
+        .type-sample-base { font-size: 1rem; }
+        .type-sample-sm { font-size: 0.875rem; color: var(--text-secondary); }
+
+        /* Spacing */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .spacing-label {
+            width: 80px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-family: monospace;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: var(--space-2);
+            font-size: 0.75rem;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Buttons */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+
+        .btn-glass:hover {
+            background: var(--glass-bg-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent-1);
+            color: var(--accent-1);
+        }
+
+        .btn-outline:hover {
+            background: var(--accent-1);
+            color: white;
+        }
+
+        .btn-sm { padding: var(--space-2) var(--space-4); font-size: 0.8125rem; }
+        .btn-lg { padding: var(--space-4) var(--space-7); font-size: 1rem; }
+
+        /* Inputs */
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: var(--space-2);
+            color: var(--text-secondary);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-4);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .card {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            background: var(--glass-bg-hover);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: var(--space-4);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        /* Badges */
+        .badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .badge-primary {
+            background: var(--accent-gradient);
+            border: none;
+            color: white;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #10b981;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Alerts */
+        .alert {
+            padding: var(--space-5);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: var(--space-1);
+        }
+
+        .alert-message {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+        }
+
+        .alert-info {
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Progress */
+        .progress-container {
+            margin-bottom: var(--space-4);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-size: 0.875rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--glass-bg);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-full);
+            transition: width var(--transition-slow);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Avatar Stack */
+        .avatar-stack {
+            display: flex;
+            margin-bottom: var(--space-5);
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            border: 3px solid var(--bg-gradient-1);
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: white;
+            margin-left: -12px;
+            transition: transform var(--transition-fast);
+        }
+
+        .avatar:first-child {
+            margin-left: 0;
+        }
+
+        .avatar:hover {
+            transform: translateY(-4px) scale(1.1);
+            z-index: 10;
+        }
+
+        /* Toggle */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+
+        .toggle {
+            width: 52px;
+            height: 28px;
+            background: var(--glass-bg);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--glass-border);
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition-fast);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform var(--transition-fast);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .toggle.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+        }
+
+        .toggle.active::after {
+            transform: translateX(24px);
+        }
+
+        /* Slider */
+        .slider-container {
+            margin-bottom: var(--space-5);
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: var(--glass-bg);
+            border-radius: var(--radius-full);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+            transition: transform var(--transition-fast);
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: var(--space-8) var(--space-5);
+            border-radius: var(--radius-lg);
+            margin-top: var(--space-8);
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .footer a {
+            color: var(--accent-1);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-5);
+            }
+
+            .section {
+                padding: var(--space-5);
+            }
+
+            .button-grid {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div class="theme-toggle">
+        <button onclick="toggleTheme()" id="theme-btn">Light Mode</button>
+    </div>
+
+    <div class="container">
+        <header class="header glass">
+            <h1>Glassmorphism</h1>
+            <p>Frosted glass effects, soft shadows, and vibrant gradients. A design system built on transparency and depth.</p>
+        </header>
+
+        <!-- Colors -->
+        <section class="section glass">
+            <p class="section-subtitle">01 / Colors</p>
+            <h2 class="section-title">Color Palette</h2>
+            <div class="color-grid">
+                <div class="color-swatch glass">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #667eea, #764ba2);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Accent Gradient</div>
+                        <div class="color-value">#667eea → #764ba2</div>
+                    </div>
+                </div>
+                <div class="color-swatch glass">
+                    <div class="color-preview" style="background: #667eea;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Primary</div>
+                        <div class="color-value">#667eea</div>
+                    </div>
+                </div>
+                <div class="color-swatch glass">
+                    <div class="color-preview" style="background: #764ba2;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Secondary</div>
+                        <div class="color-value">#764ba2</div>
+                    </div>
+                </div>
+                <div class="color-swatch glass">
+                    <div class="color-preview" style="background: #f093fb;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Accent</div>
+                        <div class="color-value">#f093fb</div>
+                    </div>
+                </div>
+                <div class="color-swatch glass">
+                    <div class="color-preview" style="background: rgba(255,255,255,0.08); backdrop-filter: blur(10px);"></div>
+                    <div class="color-info">
+                        <div class="color-name">Glass</div>
+                        <div class="color-value">rgba(255,255,255,0.08)</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section glass">
+            <p class="section-subtitle">02 / Typography</p>
+            <h2 class="section-title">Type Scale</h2>
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <div class="type-label">Display / 48px / Bold</div>
+                    <div class="type-sample-xl">Beautiful clarity</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Heading / 32px / Semibold</div>
+                    <div class="type-sample-lg">Section heading</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Subheading / 20px / Medium</div>
+                    <div class="type-sample-md">Supporting text</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Body / 16px / Regular</div>
+                    <div class="type-sample-base">The quick brown fox jumps over the lazy dog. Inter is a carefully crafted open source typeface designed for computer screens.</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Small / 14px / Regular</div>
+                    <div class="type-sample-sm">Captions, labels, and secondary information</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section glass">
+            <p class="section-subtitle">03 / Spacing</p>
+            <h2 class="section-title">Spacing Scale</h2>
+            <div class="spacing-demo">
+                <div class="spacing-item">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 320px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-bar" style="width: 400px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Buttons -->
+        <section class="section glass">
+            <p class="section-subtitle">04 / Components</p>
+            <h2 class="section-title">Buttons</h2>
+            <p class="type-sample-sm" style="margin-bottom: var(--space-5);">Primary buttons feature gradient backgrounds with hover shine effects.</p>
+            <div class="button-grid">
+                <button class="btn btn-primary">Primary Action</button>
+                <button class="btn btn-glass">Glass Button</button>
+                <button class="btn btn-outline">Outline</button>
+            </div>
+            <div class="button-grid">
+                <button class="btn btn-primary btn-sm">Small</button>
+                <button class="btn btn-primary">Default</button>
+                <button class="btn btn-primary btn-lg">Large</button>
+            </div>
+        </section>
+
+        <!-- Inputs -->
+        <section class="section glass">
+            <p class="section-subtitle">05 / Forms</p>
+            <h2 class="section-title">Input Fields</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-5);">
+                <div class="input-group">
+                    <label class="input-label">Email Address</label>
+                    <input type="email" class="input-field" placeholder="you@example.com">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Password</label>
+                    <input type="password" class="input-field" value="secretpassword">
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Message</label>
+                <textarea class="input-field" placeholder="Type your message..."></textarea>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section glass">
+            <p class="section-subtitle">06 / Cards</p>
+            <h2 class="section-title">Card Components</h2>
+            <div class="card-grid">
+                <div class="card glass">
+                    <div class="card-icon">&#10024;</div>
+                    <h3 class="card-title">Frosted Glass</h3>
+                    <p class="card-content">Cards use backdrop blur to create depth and visual hierarchy against the gradient background.</p>
+                </div>
+                <div class="card glass">
+                    <div class="card-icon">&#9889;</div>
+                    <h3 class="card-title">Subtle Motion</h3>
+                    <p class="card-content">Hover interactions with smooth transitions create a responsive, tactile experience.</p>
+                </div>
+                <div class="card glass">
+                    <div class="card-icon">&#127912;</div>
+                    <h3 class="card-title">Vibrant Colors</h3>
+                    <p class="card-content">Gradient accents and floating orbs add energy without overwhelming the interface.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges -->
+        <section class="section glass">
+            <p class="section-subtitle">07 / Badges</p>
+            <h2 class="section-title">Status Indicators</h2>
+            <div class="badge-container">
+                <span class="badge">Default</span>
+                <span class="badge badge-primary">Primary</span>
+                <span class="badge badge-success"><span class="badge-dot"></span> Online</span>
+                <span class="badge badge-warning"><span class="badge-dot"></span> Pending</span>
+            </div>
+
+            <h3 class="section-title" style="font-size: 1.25rem; margin-top: var(--space-6);">Avatar Stack</h3>
+            <div class="avatar-stack">
+                <div class="avatar">JD</div>
+                <div class="avatar" style="background: linear-gradient(135deg, #f093fb, #f5576c);">AS</div>
+                <div class="avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">MK</div>
+                <div class="avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">+5</div>
+            </div>
+        </section>
+
+        <!-- Alerts -->
+        <section class="section glass">
+            <p class="section-subtitle">08 / Feedback</p>
+            <h2 class="section-title">Alerts</h2>
+            <div class="alert alert-info glass">
+                <span class="alert-icon">&#8505;</span>
+                <div class="alert-content">
+                    <div class="alert-title">Information</div>
+                    <div class="alert-message">Glass effects work best on colorful or gradient backgrounds.</div>
+                </div>
+            </div>
+            <div class="alert alert-success glass">
+                <span class="alert-icon">&#10004;</span>
+                <div class="alert-content">
+                    <div class="alert-title">Success</div>
+                    <div class="alert-message">Your changes have been saved successfully.</div>
+                </div>
+            </div>
+            <div class="alert alert-warning glass">
+                <span class="alert-icon">&#9888;</span>
+                <div class="alert-content">
+                    <div class="alert-title">Warning</div>
+                    <div class="alert-message">Backdrop-filter has limited support in some browsers.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress & Controls -->
+        <section class="section glass">
+            <p class="section-subtitle">09 / Controls</p>
+            <h2 class="section-title">Progress & Toggles</h2>
+
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>Upload Progress</span>
+                    <span>73%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 73%;"></div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>Storage Used</span>
+                    <span>45%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 45%;"></div>
+                </div>
+            </div>
+
+            <h3 class="section-title" style="font-size: 1.25rem; margin-top: var(--space-6);">Toggles</h3>
+            <div class="toggle-container">
+                <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                <span>Enable notifications</span>
+            </div>
+            <div class="toggle-container">
+                <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                <span>Dark mode</span>
+            </div>
+
+            <h3 class="section-title" style="font-size: 1.25rem; margin-top: var(--space-6);">Slider</h3>
+            <div class="slider-container">
+                <input type="range" class="slider" min="0" max="100" value="60">
+            </div>
+        </section>
+
+        <footer class="footer glass">
+            <p>Glassmorphism Design System</p>
+            <p style="margin-top: var(--space-2);">Built with frosted glass effects and gradient backgrounds</p>
+        </footer>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.getElementById('theme-btn');
+
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.setAttribute('data-theme', 'light');
+                btn.textContent = 'Dark Mode';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                btn.textContent = 'Light Mode';
+            }
+        }
+    </script>
+</body>
+</html>

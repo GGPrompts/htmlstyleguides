@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Deco Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poiret+One&family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: 'Poiret One', cursive;
+            --font-body: 'Josefin Sans', sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --black: #0d0d0d;
+            --charcoal: #1a1a1a;
+            --gold: #d4af37;
+            --gold-light: #f4d03f;
+            --gold-dark: #a67c00;
+            --cream: #f5f0e1;
+            --ivory: #fffff0;
+            --teal: #008080;
+            --burgundy: #800020;
+
+            --text-primary: var(--cream);
+            --text-secondary: rgba(245, 240, 225, 0.7);
+            --bg-primary: var(--black);
+            --bg-secondary: var(--charcoal);
+            --accent: var(--gold);
+
+            --border-gold: 2px solid var(--gold);
+            --shadow-gold: 0 0 20px rgba(212, 175, 55, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 300;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            letter-spacing: 0.02em;
+        }
+
+        /* Geometric Pattern Background */
+        .pattern-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    var(--gold) 0,
+                    var(--gold) 1px,
+                    transparent 0,
+                    transparent 50%
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    var(--gold) 0,
+                    var(--gold) 1px,
+                    transparent 0,
+                    transparent 50%
+                );
+            background-size: 60px 60px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: var(--space-9) var(--space-6);
+            margin-bottom: var(--space-8);
+            position: relative;
+        }
+
+        .header::before,
+        .header::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .header::before { top: 0; }
+        .header::after { bottom: 0; }
+
+        .header-ornament {
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: var(--space-4);
+            letter-spacing: 0.5em;
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--gold);
+            text-shadow: var(--shadow-gold);
+            margin-bottom: var(--space-4);
+        }
+
+        .header p {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        /* Decorative Border Frame */
+        .frame {
+            position: relative;
+            padding: var(--space-6);
+            margin-bottom: var(--space-8);
+        }
+
+        .frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 1px solid var(--gold);
+            pointer-events: none;
+        }
+
+        .frame::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid var(--gold);
+            pointer-events: none;
+        }
+
+        /* Corner Ornaments */
+        .corner-ornaments {
+            position: absolute;
+            top: -12px;
+            left: -12px;
+            right: -12px;
+            bottom: -12px;
+            pointer-events: none;
+        }
+
+        .corner {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--gold);
+        }
+
+        .corner-tl { top: 0; left: 0; border-right: none; border-bottom: none; }
+        .corner-tr { top: 0; right: 0; border-left: none; border-bottom: none; }
+        .corner-bl { bottom: 0; left: 0; border-right: none; border-top: none; }
+        .corner-br { bottom: 0; right: 0; border-left: none; border-top: none; }
+
+        /* Section */
+        .section {
+            margin-bottom: var(--space-9);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: var(--gold);
+            opacity: 0.3;
+            margin-bottom: var(--space-2);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-line {
+            width: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 0 auto;
+        }
+
+        /* Color Palette */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .color-swatch {
+            text-align: center;
+            padding: var(--space-5);
+            border: 1px solid var(--gold);
+            position: relative;
+        }
+
+        .color-swatch::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            pointer-events: none;
+        }
+
+        .color-preview {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-4);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+
+        /* Typography */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .type-specimen {
+            text-align: center;
+            padding: var(--space-5);
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+        }
+
+        .type-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--gold);
+            margin-bottom: var(--space-3);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            letter-spacing: 0.15em;
+            color: var(--gold);
+        }
+
+        .type-heading {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .type-subheading {
+            font-family: var(--font-body);
+            font-size: 1.5rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .type-body {
+            font-size: 1rem;
+            max-width: 60ch;
+            margin: 0 auto;
+        }
+
+        /* Buttons */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-5);
+            margin-bottom: var(--space-6);
+        }
+
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: var(--space-4) var(--space-7);
+            border: 1px solid var(--gold);
+            background: transparent;
+            color: var(--gold);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--gold);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--black);
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn-filled {
+            background: var(--gold);
+            color: var(--black);
+        }
+
+        .btn-filled::before {
+            background: var(--black);
+        }
+
+        .btn-filled:hover {
+            color: var(--gold);
+        }
+
+        .btn-diamond {
+            clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%);
+            padding: var(--space-4) var(--space-8);
+        }
+
+        /* Inputs */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: var(--space-2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            background: transparent;
+            border: 1px solid var(--gold);
+            color: var(--cream);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            box-shadow: var(--shadow-gold);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-secondary);
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .card {
+            padding: var(--space-6);
+            border: 1px solid var(--gold);
+            position: relative;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-gold);
+        }
+
+        .card:hover::before {
+            border-color: var(--gold);
+        }
+
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-4);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            letter-spacing: 0.1em;
+            color: var(--gold);
+            margin-bottom: var(--space-3);
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            margin: var(--space-8) 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .divider span {
+            font-size: 1.5rem;
+            color: var(--gold);
+        }
+
+        /* Badges */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-4);
+        }
+
+        .badge {
+            font-size: 0.6875rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: var(--space-2) var(--space-4);
+            border: 1px solid var(--gold);
+            color: var(--gold);
+        }
+
+        .badge-filled {
+            background: var(--gold);
+            color: var(--black);
+        }
+
+        .badge-diamond {
+            clip-path: polygon(8% 0%, 92% 0%, 100% 50%, 92% 100%, 8% 100%, 0% 50%);
+            padding: var(--space-2) var(--space-5);
+        }
+
+        /* Spacing */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .spacing-label {
+            width: 60px;
+            font-size: 0.875rem;
+            color: var(--gold);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 20px;
+            background: linear-gradient(90deg, var(--gold-dark), var(--gold), var(--gold-light));
+            clip-path: polygon(0 50%, 8px 0, 100% 0, 100% 100%, 8px 100%);
+        }
+
+        /* Geometric Decorations */
+        .geo-fan {
+            width: 120px;
+            height: 60px;
+            margin: 0 auto var(--space-6);
+            position: relative;
+        }
+
+        .geo-fan::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 60px;
+            border-top-left-radius: 60px;
+            border-top-right-radius: 60px;
+            border: 2px solid var(--gold);
+            border-bottom: none;
+        }
+
+        .geo-fan::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 40px;
+            border-top-left-radius: 40px;
+            border-top-right-radius: 40px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            border-bottom: none;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: var(--space-8) var(--space-6);
+            margin-top: var(--space-9);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            letter-spacing: 0.3em;
+            color: var(--gold);
+            margin-bottom: var(--space-4);
+        }
+
+        .footer p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-5);
+            }
+
+            .header h1 {
+                letter-spacing: 0.15em;
+            }
+
+            .frame {
+                padding: var(--space-5);
+            }
+
+            .button-grid {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pattern-bg"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-ornament">◇ ◆ ◇</div>
+            <h1>Art Deco</h1>
+            <p>A Design System Inspired by the Roaring Twenties</p>
+        </header>
+
+        <!-- Colors -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">I</div>
+                <h2 class="section-title">Color Palette</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="frame">
+                <div class="corner-ornaments">
+                    <div class="corner corner-tl"></div>
+                    <div class="corner corner-tr"></div>
+                    <div class="corner corner-bl"></div>
+                    <div class="corner corner-br"></div>
+                </div>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: var(--gold);"></div>
+                        <p class="color-name">Gold</p>
+                        <p class="color-value">#D4AF37</p>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: var(--black);"></div>
+                        <p class="color-name">Noir</p>
+                        <p class="color-value">#0D0D0D</p>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: var(--cream);"></div>
+                        <p class="color-name">Cream</p>
+                        <p class="color-value">#F5F0E1</p>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: var(--teal);"></div>
+                        <p class="color-name">Teal</p>
+                        <p class="color-value">#008080</p>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: var(--burgundy);"></div>
+                        <p class="color-name">Burgundy</p>
+                        <p class="color-value">#800020</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">II</div>
+                <h2 class="section-title">Typography</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <p class="type-label">Display / Poiret One</p>
+                    <p class="type-display">GATSBY</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Heading</p>
+                    <p class="type-heading">The Jazz Age</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Subheading / Josefin Sans</p>
+                    <p class="type-subheading">Elegance in Motion</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Body</p>
+                    <p class="type-body">Art Deco emerged in the 1920s and 30s, characterized by bold geometric forms, rich colors, and lavish ornamentation. This design movement celebrated modernity, luxury, and technological progress.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">III</div>
+                <h2 class="section-title">Spacing</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-item">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 320px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider"><span>◆</span></div>
+
+        <!-- Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">IV</div>
+                <h2 class="section-title">Buttons</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="geo-fan"></div>
+
+            <div class="button-grid">
+                <button class="btn">Standard</button>
+                <button class="btn btn-filled">Filled</button>
+                <button class="btn btn-diamond">Diamond</button>
+            </div>
+        </section>
+
+        <!-- Inputs -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">V</div>
+                <h2 class="section-title">Form Elements</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="frame">
+                <div class="corner-ornaments">
+                    <div class="corner corner-tl"></div>
+                    <div class="corner corner-tr"></div>
+                    <div class="corner corner-bl"></div>
+                    <div class="corner corner-br"></div>
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label class="input-label">Your Name</label>
+                        <input type="text" class="input-field" placeholder="Enter your name...">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Email Address</label>
+                        <input type="email" class="input-field" placeholder="you@example.com">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Your Message</label>
+                    <textarea class="input-field" placeholder="Write something elegant..."></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">VI</div>
+                <h2 class="section-title">Cards</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">◈</div>
+                    <h3 class="card-title">Geometry</h3>
+                    <p class="card-content">Bold geometric shapes and symmetrical patterns define the visual language of Art Deco design.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">✦</div>
+                    <h3 class="card-title">Luxury</h3>
+                    <p class="card-content">Rich materials like gold, marble, and lacquer convey opulence and sophisticated taste.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">⬡</div>
+                    <h3 class="card-title">Modernity</h3>
+                    <p class="card-content">Celebrating the machine age with streamlined forms and industrial influences.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">VII</div>
+                <h2 class="section-title">Badges</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="badge-row">
+                <span class="badge">Classic</span>
+                <span class="badge badge-filled">Premium</span>
+                <span class="badge badge-diamond">Exclusive</span>
+            </div>
+        </section>
+
+        <div class="divider"><span>◇ ◆ ◇</span></div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-logo">◇ Art Deco ◇</p>
+            <p>A celebration of glamour, geometry, and golden elegance</p>
+        </footer>
+    </div>
+</body>
+</html>

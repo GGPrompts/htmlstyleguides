@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiss Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-sans: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+            --space-10: 128px;
+
+            --black: #000000;
+            --white: #ffffff;
+            --gray-50: #fafafa;
+            --gray-100: #f5f5f5;
+            --gray-200: #e5e5e5;
+            --gray-300: #d4d4d4;
+            --gray-400: #a3a3a3;
+            --gray-500: #737373;
+            --gray-600: #525252;
+            --gray-700: #404040;
+            --gray-800: #262626;
+            --gray-900: #171717;
+            --red: #ff0000;
+
+            --text-primary: var(--black);
+            --text-secondary: var(--gray-600);
+            --text-muted: var(--gray-400);
+            --bg-primary: var(--white);
+            --bg-secondary: var(--gray-50);
+            --border-color: var(--gray-200);
+            --accent: var(--red);
+
+            --transition-fast: 0.1s ease;
+            --transition-base: 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Grid System */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: var(--space-5);
+        }
+
+        .col-12 { grid-column: span 12; }
+        .col-8 { grid-column: span 8; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+
+        @media (max-width: 768px) {
+            .col-8, .col-6, .col-4, .col-3 {
+                grid-column: span 12;
+            }
+        }
+
+        /* Typography */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            margin-bottom: var(--space-6);
+        }
+
+        h2 {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-5);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: var(--space-4);
+        }
+
+        p {
+            margin-bottom: var(--space-4);
+            max-width: 65ch;
+        }
+
+        .lead {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+        .uppercase {
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Header */
+        .header {
+            padding: var(--space-10) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .header h1 {
+            margin-bottom: 0;
+        }
+
+        .header-meta {
+            text-align: right;
+        }
+
+        /* Section */
+        .section {
+            padding: var(--space-9) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-7);
+        }
+
+        .section-number {
+            font-size: 0.875rem;
+            color: var(--accent);
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+        }
+
+        /* Color Blocks */
+        .color-block {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: var(--space-4);
+            transition: transform var(--transition-base);
+        }
+
+        .color-block:hover {
+            transform: scale(1.02);
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .color-value {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            font-family: monospace;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-sans);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 2px solid var(--black);
+            background: transparent;
+            color: var(--black);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn:hover {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .btn-primary {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--black);
+        }
+
+        .btn-accent {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-accent:hover {
+            background: var(--accent);
+            color: var(--white);
+        }
+
+        .btn-sm {
+            padding: var(--space-2) var(--space-4);
+            font-size: 0.75rem;
+        }
+
+        .btn-lg {
+            padding: var(--space-4) var(--space-7);
+            font-size: 1rem;
+        }
+
+        .button-row {
+            display: flex;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-5);
+        }
+
+        /* Input */
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-3) 0;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            border: none;
+            border-bottom: 2px solid var(--black);
+            background: transparent;
+            transition: border-color var(--transition-fast);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea.input-field {
+            resize: vertical;
+            min-height: 120px;
+            border: 2px solid var(--black);
+            padding: var(--space-3);
+        }
+
+        /* Cards */
+        .card {
+            border: 1px solid var(--border-color);
+            padding: var(--space-6);
+            transition: all var(--transition-base);
+        }
+
+        .card:hover {
+            border-color: var(--black);
+        }
+
+        .card-number {
+            font-size: 4rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--accent);
+            margin-bottom: var(--space-4);
+        }
+
+        .card h3 {
+            margin-bottom: var(--space-3);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        /* Table */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: var(--space-4);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table th {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+
+        .table tr:hover td {
+            background: var(--bg-secondary);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-1) var(--space-3);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 1px solid currentColor;
+        }
+
+        .badge-black {
+            background: var(--black);
+            color: var(--white);
+            border-color: var(--black);
+        }
+
+        .badge-red {
+            color: var(--accent);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+        }
+
+        /* Spacing Demo */
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+            margin-bottom: var(--space-3);
+        }
+
+        .spacing-label {
+            width: 80px;
+            font-size: 0.875rem;
+            font-family: monospace;
+        }
+
+        .spacing-bar {
+            height: 32px;
+            background: var(--black);
+        }
+
+        .spacing-value {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            width: 50px;
+        }
+
+        /* Type Scale */
+        .type-row {
+            display: flex;
+            align-items: baseline;
+            border-bottom: 1px solid var(--border-color);
+            padding: var(--space-4) 0;
+        }
+
+        .type-meta {
+            width: 200px;
+            flex-shrink: 0;
+        }
+
+        .type-size {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .type-specs {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: var(--space-7) 0;
+        }
+
+        /* Red Block Accent */
+        .red-block {
+            width: 64px;
+            height: 64px;
+            background: var(--accent);
+            margin-bottom: var(--space-5);
+        }
+
+        /* Footer */
+        .footer {
+            padding: var(--space-8) 0;
+            text-align: center;
+        }
+
+        .footer p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin: 0 auto;
+        }
+
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-0 { margin-bottom: 0; }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-6 { margin-top: var(--space-6); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <p class="uppercase" style="color: var(--accent); margin-bottom: var(--space-2);">Design System</p>
+                    <h1>Swiss</h1>
+                </div>
+                <div class="header-meta">
+                    <p class="small" style="color: var(--text-secondary); margin-bottom: 0;">Clean grids.<br>Maximum clarity.<br>No decoration.</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Colors -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">01</p>
+                <h2>Color</h2>
+                <p class="lead">A minimal palette focused on black, white, and a single accent color.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-3">
+                    <div class="color-block" style="background: var(--black); color: var(--white);">
+                        <span class="color-name">Black</span>
+                        <span class="color-value">#000000</span>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="color-block" style="background: var(--white); border: 1px solid var(--border-color);">
+                        <span class="color-name">White</span>
+                        <span class="color-value">#FFFFFF</span>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="color-block" style="background: var(--accent); color: var(--white);">
+                        <span class="color-name">Red</span>
+                        <span class="color-value">#FF0000</span>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="color-block" style="background: var(--gray-200);">
+                        <span class="color-name">Gray</span>
+                        <span class="color-value">#E5E5E5</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">02</p>
+                <h2>Typography</h2>
+                <p class="lead">Inter. Clean, functional, optimized for screens. No serifs, no nonsense.</p>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Display</p>
+                    <p class="type-specs">96px / Bold / -2%</p>
+                </div>
+                <div style="font-size: 4rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1;">Aa</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">H1</p>
+                    <p class="type-specs">48px / Bold / -2%</p>
+                </div>
+                <div style="font-size: 3rem; font-weight: 700; letter-spacing: -0.02em;">Heading One</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">H2</p>
+                    <p class="type-specs">40px / Bold / -2%</p>
+                </div>
+                <div style="font-size: 2.5rem; font-weight: 700; letter-spacing: -0.02em;">Heading Two</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">H3</p>
+                    <p class="type-specs">24px / Bold / -1%</p>
+                </div>
+                <div style="font-size: 1.5rem; font-weight: 700; letter-spacing: -0.01em;">Heading Three</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Body</p>
+                    <p class="type-specs">16px / Regular / 0%</p>
+                </div>
+                <div>The quick brown fox jumps over the lazy dog. Typography is the art and technique of arranging type.</div>
+            </div>
+
+            <div class="type-row" style="border-bottom: none;">
+                <div class="type-meta">
+                    <p class="type-size">Small</p>
+                    <p class="type-specs">14px / Regular / 0%</p>
+                </div>
+                <div style="font-size: 0.875rem;">Captions and secondary information use a smaller size.</div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">03</p>
+                <h2>Spacing</h2>
+                <p class="lead">A mathematical scale based on 4px increments. Consistent rhythm across all elements.</p>
+            </div>
+
+            <div class="spacing-row">
+                <span class="spacing-label">4px</span>
+                <div class="spacing-bar" style="width: 16px;"></div>
+                <span class="spacing-value">xs</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">8px</span>
+                <div class="spacing-bar" style="width: 32px;"></div>
+                <span class="spacing-value">sm</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">16px</span>
+                <div class="spacing-bar" style="width: 64px;"></div>
+                <span class="spacing-value">md</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">24px</span>
+                <div class="spacing-bar" style="width: 96px;"></div>
+                <span class="spacing-value">lg</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">32px</span>
+                <div class="spacing-bar" style="width: 128px;"></div>
+                <span class="spacing-value">xl</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">48px</span>
+                <div class="spacing-bar" style="width: 192px;"></div>
+                <span class="spacing-value">2xl</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">64px</span>
+                <div class="spacing-bar" style="width: 256px;"></div>
+                <span class="spacing-value">3xl</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">96px</span>
+                <div class="spacing-bar" style="width: 320px;"></div>
+                <span class="spacing-value">4xl</span>
+            </div>
+        </section>
+
+        <!-- Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">04</p>
+                <h2>Buttons</h2>
+                <p class="lead">Simple, rectangular, no rounded corners. Form follows function.</p>
+            </div>
+
+            <div class="button-row">
+                <button class="btn">Default</button>
+                <button class="btn btn-primary">Primary</button>
+                <button class="btn btn-accent">Accent</button>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-sm">Small</button>
+                <button class="btn">Medium</button>
+                <button class="btn btn-lg">Large</button>
+            </div>
+        </section>
+
+        <!-- Inputs -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">05</p>
+                <h2>Forms</h2>
+                <p class="lead">Underline inputs emphasize content over chrome. Clean and direct.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Name</label>
+                        <input type="text" class="input-field" placeholder="Enter your name">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Email</label>
+                        <input type="email" class="input-field" placeholder="you@example.com">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="input-group">
+                        <label class="input-label">Message</label>
+                        <textarea class="input-field" placeholder="Your message..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">06</p>
+                <h2>Cards</h2>
+                <p class="lead">Content containers with minimal borders. Numbers add visual hierarchy.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-number">01</div>
+                        <h3>Grid System</h3>
+                        <p>12-column grid provides flexible, consistent layouts across all screen sizes.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-number">02</div>
+                        <h3>Typography</h3>
+                        <p>A clear hierarchy using weight and size, not color or decoration.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-number">03</div>
+                        <h3>Whitespace</h3>
+                        <p>Generous spacing lets content breathe and improves readability.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Table -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">07</p>
+                <h2>Data Table</h2>
+                <p class="lead">Clean rows, clear headers, minimal lines. Information first.</p>
+            </div>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Status</th>
+                        <th>Version</th>
+                        <th class="text-right">Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Button</td>
+                        <td><span class="badge badge-black">Ready</span></td>
+                        <td>1.0.0</td>
+                        <td class="text-right">2.4kb</td>
+                    </tr>
+                    <tr>
+                        <td>Input</td>
+                        <td><span class="badge badge-black">Ready</span></td>
+                        <td>1.0.0</td>
+                        <td class="text-right">1.8kb</td>
+                    </tr>
+                    <tr>
+                        <td>Card</td>
+                        <td><span class="badge badge-red">Beta</span></td>
+                        <td>0.9.0</td>
+                        <td class="text-right">3.2kb</td>
+                    </tr>
+                    <tr>
+                        <td>Modal</td>
+                        <td><span class="badge">Planned</span></td>
+                        <td>—</td>
+                        <td class="text-right">—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- Badges -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">08</p>
+                <h2>Badges</h2>
+                <p class="lead">Status indicators. Rectangular, uppercase, compact.</p>
+            </div>
+
+            <div class="badge-row">
+                <span class="badge">Default</span>
+                <span class="badge badge-black">Active</span>
+                <span class="badge badge-red">Important</span>
+            </div>
+        </section>
+
+        <!-- Principles -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">09</p>
+                <h2>Principles</h2>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="red-block"></div>
+                    <h3>Objectivity</h3>
+                    <p>Design should present information clearly without subjective interpretation or unnecessary embellishment.</p>
+                </div>
+                <div class="col-6">
+                    <div class="red-block"></div>
+                    <h3>Reduction</h3>
+                    <p>Remove everything that doesn't serve a purpose. What remains gains power through clarity.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Swiss Design System — Clarity through simplicity</p>
+        </footer>
+    </div>
+</body>
+</html>
