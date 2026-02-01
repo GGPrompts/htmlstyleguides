@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlas Console Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Spline+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: "Space Grotesk", sans-serif;
+            --font-body: "Spline Sans", sans-serif;
+            --font-mono: "IBM Plex Mono", monospace;
+
+            --space-0: 2px;
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-xl: 28px;
+
+            --ease-snappy: cubic-bezier(0.3, 0.8, 0.2, 1);
+            --dur-fast: 140ms;
+            --dur-base: 300ms;
+
+            --ink: #17212b;
+            --ink-soft: #2f3a45;
+            --muted: #62707c;
+            --surface: #ffffff;
+            --surface-alt: #f4f6f0;
+            --surface-strong: #ecf0e7;
+            --canvas: #f7f5ef;
+            --line: rgba(23, 33, 43, 0.12);
+            --line-strong: rgba(23, 33, 43, 0.2);
+
+            --teal: #1a7f79;
+            --moss: #5f8b5a;
+            --amber: #d8a357;
+            --clay: #c86b4b;
+            --navy: #1c3d5a;
+
+            --shadow-soft: 0 18px 36px rgba(23, 33, 43, 0.14);
+            --shadow-cut: 0 2px 0 rgba(23, 33, 43, 0.55);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 15px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--ink);
+            background:
+                linear-gradient(0deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)),
+                radial-gradient(900px 600px at 10% -10%, rgba(26, 127, 121, 0.14), transparent 55%),
+                radial-gradient(800px 500px at 90% -10%, rgba(216, 163, 87, 0.12), transparent 60%),
+                var(--canvas);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .grid-noise {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(90deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(23, 33, 43, 0.04) 1px, transparent 1px);
+            background-size: 120px 120px;
+            opacity: 0.5;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .wrap {
+            position: relative;
+            z-index: 1;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: var(--space-6) var(--space-5) var(--space-8);
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            background: var(--surface);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-family: var(--font-display);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .brand-mark {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, var(--teal), var(--moss));
+            box-shadow: var(--shadow-cut);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+        }
+
+        .search {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: var(--surface-alt);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 0.45rem 0.9rem;
+            min-width: 220px;
+        }
+
+        .search input {
+            border: none;
+            background: transparent;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            width: 100%;
+            color: var(--ink);
+        }
+
+        .search input:focus {
+            outline: none;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr) 260px;
+            gap: var(--space-4);
+        }
+
+        .rail,
+        .sidebar,
+        .main {
+            display: grid;
+            gap: var(--space-4);
+            align-content: start;
+        }
+
+        .panel {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-4);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .panel.compact {
+            padding: var(--space-3);
+        }
+
+        .panel-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .nav {
+            display: grid;
+            gap: var(--space-2);
+            font-size: 0.9rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.4rem 0.6rem;
+            border-radius: var(--radius-sm);
+            color: var(--ink-soft);
+            transition: background var(--dur-fast) var(--ease-snappy);
+        }
+
+        .nav-item.active {
+            background: rgba(26, 127, 121, 0.16);
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        .nav-item:hover {
+            background: rgba(26, 127, 121, 0.1);
+        }
+
+        .nav-sub {
+            margin-left: var(--space-3);
+            display: grid;
+            gap: var(--space-1);
+            font-size: 0.85rem;
+        }
+
+        .nav-sub a {
+            color: var(--muted);
+            text-decoration: none;
+        }
+
+        .nav-sub a:hover {
+            color: var(--ink);
+        }
+
+        .headline {
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .headline h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 3vw, 3rem);
+            line-height: 1.05;
+        }
+
+        .headline p {
+            color: var(--muted);
+            max-width: 60ch;
+        }
+
+        .tabs {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .tab.active {
+            background: var(--teal);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-3);
+        }
+
+        .kpi {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-3);
+        }
+
+        .kpi .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            color: var(--muted);
+        }
+
+        .kpi .value {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--ink);
+        }
+
+        .kpi .trend {
+            font-size: 0.8rem;
+            color: var(--moss);
+        }
+
+        .kpi.down .trend {
+            color: var(--clay);
+        }
+
+        .data-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: var(--space-3);
+        }
+
+        .metric-card {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-3);
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .metric-card h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+        }
+
+        .spark {
+            height: 38px;
+            border-radius: var(--radius-sm);
+            background:
+                linear-gradient(90deg, rgba(26, 127, 121, 0.2) 0 12%, transparent 12% 20%, rgba(26, 127, 121, 0.3) 20% 32%, transparent 32% 38%, rgba(26, 127, 121, 0.25) 38% 52%, transparent 52% 60%, rgba(26, 127, 121, 0.35) 60% 78%, transparent 78% 86%, rgba(26, 127, 121, 0.3) 86% 100%),
+                linear-gradient(180deg, rgba(26, 127, 121, 0.12), transparent 70%);
+            border: 1px solid var(--line);
+        }
+
+        .spark.orange {
+            background:
+                linear-gradient(90deg, rgba(200, 107, 75, 0.25) 0 18%, transparent 18% 28%, rgba(200, 107, 75, 0.35) 28% 45%, transparent 45% 52%, rgba(200, 107, 75, 0.3) 52% 70%, transparent 70% 80%, rgba(200, 107, 75, 0.4) 80% 100%),
+                linear-gradient(180deg, rgba(200, 107, 75, 0.12), transparent 70%);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            background: var(--surface-alt);
+            border: 1px solid var(--line);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.55rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .table th {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            background: var(--surface-strong);
+        }
+
+        .table tr:hover {
+            background: rgba(26, 127, 121, 0.08);
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--teal);
+        }
+
+        .dot.warn { background: var(--amber); }
+        .dot.alert { background: var(--clay); }
+
+        .alert {
+            display: grid;
+            gap: var(--space-1);
+            padding: var(--space-3);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            background: rgba(26, 127, 121, 0.1);
+        }
+
+        .alert.warn { background: rgba(216, 163, 87, 0.18); }
+        .alert.alerting { background: rgba(200, 107, 75, 0.18); }
+
+        .alert-title {
+            font-weight: 600;
+        }
+
+        .mono {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--ink-soft);
+        }
+
+        .stack {
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.45rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid var(--line-strong);
+            background: var(--surface-alt);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform var(--dur-fast) var(--ease-snappy), box-shadow var(--dur-fast) var(--ease-snappy);
+            box-shadow: var(--shadow-cut);
+        }
+
+        .btn.primary {
+            background: var(--teal);
+            color: #fff;
+            border-color: transparent;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(23, 33, 43, 0.16);
+        }
+
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .filter {
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface);
+            font-size: 0.75rem;
+        }
+
+        .filter.active {
+            background: rgba(26, 127, 121, 0.16);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
+        .timeline {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 12px 1fr;
+            gap: var(--space-2);
+            align-items: start;
+        }
+
+        .timeline-line {
+            width: 2px;
+            height: 100%;
+            background: var(--line-strong);
+            margin: 6px auto 0;
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--teal);
+            margin: 2px auto 0;
+        }
+
+        .timeline-content {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-3);
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.85rem;
+            margin-top: var(--space-6);
+        }
+
+        @media (max-width: 1100px) {
+            .layout {
+                grid-template-columns: 200px minmax(0, 1fr);
+            }
+
+            .rail {
+                grid-column: 1 / -1;
+                grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            }
+        }
+
+        @media (max-width: 860px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            }
+        }
+
+        @media (max-width: 600px) {
+            .topbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search {
+                min-width: 0;
+                width: 100%;
+            }
+
+            .data-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-noise"></div>
+
+    <div class="wrap">
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-mark"></span>
+                Atlas Console
+            </div>
+            <div class="search">
+                <span class="mono">/</span>
+                <input type="text" placeholder="Search dossiers, teams, regions">
+            </div>
+            <div class="topbar-actions">
+                <span class="chip">Live Sync</span>
+                <button class="btn primary">New Brief</button>
+                <button class="btn">Export</button>
+            </div>
+        </header>
+
+        <div class="layout">
+            <aside class="sidebar">
+                <div class="panel compact">
+                    <div class="panel-title">Navigation</div>
+                    <nav class="nav">
+                        <div class="nav-item active">Overview <span class="mono">01</span></div>
+                        <div class="nav-item">Intake <span class="mono">04</span></div>
+                        <div class="nav-item">Operations <span class="mono">09</span></div>
+                        <div class="nav-item">Signals <span class="mono">12</span></div>
+                        <div class="nav-item">Archive <span class="mono">38</span></div>
+                    </nav>
+                    <div class="nav-sub">
+                        <a href="#">Data Sources</a>
+                        <a href="#">Priority Index</a>
+                        <a href="#">Action Logs</a>
+                    </div>
+                </div>
+
+                <div class="panel compact">
+                    <div class="panel-title">Filters</div>
+                    <div class="filter-row">
+                        <span class="filter active">Active</span>
+                        <span class="filter">Paused</span>
+                        <span class="filter">Escalated</span>
+                        <span class="filter">Review</span>
+                        <span class="filter">Archived</span>
+                    </div>
+                </div>
+
+                <div class="panel compact">
+                    <div class="panel-title">Queue</div>
+                    <div class="stack">
+                        <div class="status"><span class="dot"></span> 12 tasks ready</div>
+                        <div class="status"><span class="dot warn"></span> 4 waiting review</div>
+                        <div class="status"><span class="dot alert"></span> 2 overdue</div>
+                    </div>
+                </div>
+            </aside>
+
+            <main class="main">
+                <div class="panel">
+                    <div class="headline">
+                        <h1>Dense information, calm layout.</h1>
+                        <p>Atlas Console is built for operations teams that need to see everything at once. Compact typography, layered panels, and tight grids keep the signal high.</p>
+                    </div>
+                    <div class="tabs" style="margin-top: var(--space-4);">
+                        <span class="tab active">Dashboard</span>
+                        <span class="tab">Incidents</span>
+                        <span class="tab">Resources</span>
+                        <span class="tab">Reports</span>
+                        <span class="tab">Assignments</span>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">Key performance</div>
+                    <div class="kpi-grid">
+                        <div class="kpi">
+                            <div class="label">Active dossiers</div>
+                            <div class="value">128</div>
+                            <div class="trend">+6% since last week</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="label">Median response</div>
+                            <div class="value">14m</div>
+                            <div class="trend">-2m improvement</div>
+                        </div>
+                        <div class="kpi down">
+                            <div class="label">Escalations</div>
+                            <div class="value">7</div>
+                            <div class="trend">+1 from baseline</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="label">Coverage</div>
+                            <div class="value">94%</div>
+                            <div class="trend">Stable</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">Signal density</div>
+                    <div class="data-grid">
+                        <div class="metric-card">
+                            <h3>Alerts per hour</h3>
+                            <div class="spark"></div>
+                            <div class="mono">Peak: 118 · Avg: 62</div>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Escalation velocity</h3>
+                            <div class="spark orange"></div>
+                            <div class="mono">Spike at 14:20</div>
+                        </div>
+                        <div class="metric-card">
+                            <h3>Regional coverage</h3>
+                            <div class="spark"></div>
+                            <div class="mono">North 92 · East 89</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">Active entries</div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Case</th>
+                                <th>Priority</th>
+                                <th>Owner</th>
+                                <th>ETA</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Transit backlog A-14</td>
+                                <td>High</td>
+                                <td>Ops East</td>
+                                <td>14:30</td>
+                                <td><span class="status"><span class="dot warn"></span> Reviewing</span></td>
+                            </tr>
+                            <tr>
+                                <td>Rural outreach 5C</td>
+                                <td>Medium</td>
+                                <td>Ops West</td>
+                                <td>15:10</td>
+                                <td><span class="status"><span class="dot"></span> In progress</span></td>
+                            </tr>
+                            <tr>
+                                <td>Vendor audit 2F</td>
+                                <td>Low</td>
+                                <td>Compliance</td>
+                                <td>17:45</td>
+                                <td><span class="status"><span class="dot"></span> On track</span></td>
+                            </tr>
+                            <tr>
+                                <td>Network scan 19A</td>
+                                <td>Critical</td>
+                                <td>Security</td>
+                                <td>18:05</td>
+                                <td><span class="status"><span class="dot alert"></span> Escalated</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+
+            <aside class="rail">
+                <div class="panel">
+                    <div class="panel-title">Guidelines</div>
+                    <div class="stack">
+                        <div class="alert">
+                            <div class="alert-title">Compact headers</div>
+                            <p>Keep top bars between 48-60px tall. Dense tables sit beneath without extra padding.</p>
+                        </div>
+                        <div class="alert warn">
+                            <div class="alert-title">Navigation depth</div>
+                            <p>Two levels max. Reveal more on demand with drawers, not nested mega menus.</p>
+                        </div>
+                        <div class="alert alerting">
+                            <div class="alert-title">Critical states</div>
+                            <p>Use clay for escalations and reserve amber for warnings.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-title">Timeline</div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div>
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-line"></div>
+                            </div>
+                            <div class="timeline-content">
+                                <strong>08:40</strong>
+                                <p>Shift check-in completed. Coverage steady.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div>
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-line"></div>
+                            </div>
+                            <div class="timeline-content">
+                                <strong>12:05</strong>
+                                <p>Incident 2F escalated. Regional team notified.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div>
+                                <div class="timeline-dot"></div>
+                            </div>
+                            <div class="timeline-content">
+                                <strong>14:30</strong>
+                                <p>New intake batch queued. Review window open.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel compact">
+                    <div class="panel-title">Quick actions</div>
+                    <div class="stack">
+                        <button class="btn primary">Assign lead</button>
+                        <button class="btn">Open incident map</button>
+                        <button class="btn">Download report</button>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer class="footer">
+            Atlas Console is designed for dense information systems that demand clarity, speed, and compact structure.
+        </footer>
+    </div>
+</body>
+</html>

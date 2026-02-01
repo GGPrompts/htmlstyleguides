@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verdant Grove Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Karla:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: "Cormorant Garamond", serif;
+            --font-body: "Karla", sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --radius-sm: 10px;
+            --radius-md: 18px;
+            --radius-lg: 28px;
+            --radius-xl: 40px;
+
+            --ease-soft: cubic-bezier(0.17, 0.76, 0.28, 1);
+            --ease-float: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --dur-fast: 160ms;
+            --dur-base: 420ms;
+            --dur-slow: 900ms;
+
+            --forest: #123526;
+            --moss: #315c45;
+            --fern: #4f8a6e;
+            --sage: #a6c1ae;
+            --mist: #eff6ef;
+            --river: #6fa7a4;
+            --sun: #f0d8a8;
+            --bark: #4a3f35;
+
+            --ink: #1f2a24;
+            --ink-soft: #3c4a41;
+            --muted: #6f7f74;
+            --surface: #ffffff;
+            --surface-alt: #f4f8f3;
+            --line: rgba(31, 42, 36, 0.14);
+
+            --shadow-soft: 0 18px 44px rgba(18, 53, 38, 0.16);
+            --shadow-cut: 0 3px 0 rgba(18, 53, 38, 0.5);
+            --shadow-lift: 0 24px 56px rgba(18, 53, 38, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--ink);
+            background:
+                radial-gradient(900px 600px at -10% 0%, rgba(111, 167, 164, 0.22), transparent 60%),
+                radial-gradient(800px 500px at 110% 10%, rgba(79, 138, 110, 0.18), transparent 60%),
+                linear-gradient(180deg, #f4fbf4 0%, #e8f1e8 55%, #dfe9e1 100%);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 70vmax;
+            height: 70vmax;
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0.22;
+            pointer-events: none;
+            filter: blur(0.5px);
+        }
+
+        body::before {
+            top: -30vmax;
+            right: -20vmax;
+            background: radial-gradient(circle, rgba(166, 193, 174, 0.55), transparent 70%);
+            animation: drift 22s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            bottom: -35vmax;
+            left: -15vmax;
+            background: radial-gradient(circle, rgba(111, 167, 164, 0.45), transparent 70%);
+            animation: drift 26s ease-in-out infinite alternate;
+        }
+
+        .canopy {
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle at 12% 18%, rgba(79, 138, 110, 0.24) 0 10px, transparent 10px),
+                radial-gradient(circle at 75% 28%, rgba(166, 193, 174, 0.3) 0 8px, transparent 8px),
+                radial-gradient(circle at 40% 65%, rgba(111, 167, 164, 0.26) 0 9px, transparent 9px),
+                radial-gradient(circle at 80% 70%, rgba(240, 216, 168, 0.2) 0 6px, transparent 6px);
+            background-size: 260px 260px, 240px 240px, 300px 300px, 280px 280px;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+            animation: sway 28s ease-in-out infinite;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6) var(--space-9);
+        }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 7vw, 5rem);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+        }
+
+        h3 {
+            font-size: 1.45rem;
+        }
+
+        p {
+            color: var(--muted);
+            max-width: 65ch;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.32em;
+            font-size: 0.75rem;
+            color: var(--fern);
+            margin-bottom: var(--space-3);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-7);
+            align-items: center;
+            margin-bottom: var(--space-8);
+        }
+
+        .hero-copy {
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .lead {
+            font-size: 1.1rem;
+            color: var(--ink-soft);
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .hero-panel {
+            position: relative;
+            border-radius: var(--radius-xl);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .hero-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(135deg, rgba(166, 193, 174, 0.18), transparent 40%),
+                linear-gradient(320deg, rgba(111, 167, 164, 0.16), transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-panel > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .token-grid {
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .token {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px dashed var(--line);
+            padding: var(--space-4);
+        }
+
+        .token-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted);
+        }
+
+        .token-value {
+            display: block;
+            margin-top: var(--space-2);
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .section {
+            position: relative;
+            padding: var(--space-7);
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
+            margin-bottom: var(--space-8);
+            overflow: hidden;
+        }
+
+        .section::after {
+            content: "";
+            position: absolute;
+            top: -24px;
+            right: -24px;
+            width: 120px;
+            height: 120px;
+            border-radius: 28px;
+            border: 2px solid rgba(31, 42, 36, 0.08);
+            transform: rotate(18deg);
+        }
+
+        .section-head {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: var(--space-6);
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+        }
+
+        .badge.grove { background: rgba(79, 138, 110, 0.2); }
+        .badge.river { background: rgba(111, 167, 164, 0.18); }
+        .badge.sun { background: rgba(240, 216, 168, 0.25); }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .card {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-5);
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--dur-base) var(--ease-soft), box-shadow var(--dur-base) var(--ease-soft);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, transparent 100%);
+            transform: translateX(-120%);
+            opacity: 0;
+            transition: transform var(--dur-base) var(--ease-soft), opacity var(--dur-base) var(--ease-soft);
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .card:hover::before {
+            transform: translateX(120%);
+            opacity: 1;
+        }
+
+        .card h3 {
+            margin-bottom: var(--space-3);
+        }
+
+        .swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .swatch {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-3);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+
+        .swatch.light {
+            color: var(--ink);
+        }
+
+        .swatch.dark {
+            color: #fff;
+        }
+
+        .swatch span {
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .type-sample {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-5);
+            background: var(--surface-alt);
+        }
+
+        .type-sample .sample-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .type-sample h4 {
+            font-size: 1.9rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .stack {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted);
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 0.8rem 1.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--dur-fast) var(--ease-soft), box-shadow var(--dur-fast) var(--ease-soft);
+            box-shadow: var(--shadow-cut);
+        }
+
+        .btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            transform: translateX(-120%);
+            transition: transform var(--dur-base) var(--ease-soft);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .btn:hover::after {
+            transform: translateX(120%);
+        }
+
+        .btn-primary {
+            background: var(--fern);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .btn-secondary {
+            background: var(--river);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-style: dashed;
+        }
+
+        .input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--ink);
+            transition: border var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+        }
+
+        .input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--fern);
+            box-shadow: 0 0 0 3px rgba(79, 138, 110, 0.2);
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: 0.95rem;
+        }
+
+        .toggle input {
+            display: none;
+        }
+
+        .toggle-track {
+            width: 48px;
+            height: 28px;
+            border-radius: 999px;
+            background: var(--surface-alt);
+            border: 1px solid var(--line);
+            position: relative;
+            transition: background var(--dur-base) var(--ease-soft);
+        }
+
+        .toggle-track::after {
+            content: "";
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform var(--dur-base) var(--ease-soft);
+            box-shadow: 0 2px 8px rgba(18, 53, 38, 0.2);
+        }
+
+        .toggle input:checked + .toggle-track {
+            background: var(--fern);
+        }
+
+        .toggle input:checked + .toggle-track::after {
+            transform: translateX(20px);
+        }
+
+        .badge-row .badge.pulse {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-row .badge.pulse::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            animation: ripple 3.2s ease-out infinite;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .surface {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-5);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .surface .meta {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--muted);
+            margin-bottom: var(--space-2);
+        }
+
+        .surface h4 {
+            font-size: 1.4rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-3);
+            margin-top: var(--space-3);
+        }
+
+        .stat {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-3);
+            text-align: center;
+        }
+
+        .stat .value {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            color: var(--ink);
+        }
+
+        .stat .label {
+            color: var(--muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--line);
+        }
+
+        th {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.7rem;
+            background: rgba(18, 53, 38, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(166, 193, 174, 0.2);
+        }
+
+        .alerts {
+            display: grid;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+        }
+
+        .alert {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-4);
+            background: rgba(111, 167, 164, 0.14);
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .alert.warn { background: rgba(240, 216, 168, 0.32); }
+        .alert.good { background: rgba(79, 138, 110, 0.2); }
+
+        .alert-title {
+            font-weight: 600;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            animation: fadeUp var(--dur-slow) var(--ease-soft) forwards;
+            animation-delay: var(--delay, 0s);
+        }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @keyframes drift {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            100% { transform: translate3d(36px, -28px, 0) scale(1.05); }
+        }
+
+        @keyframes sway {
+            0%, 100% { background-position: 0 0, 0 0, 0 0, 0 0; }
+            50% { background-position: 120px 60px, -80px 40px, 60px 120px, -60px 80px; }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        @keyframes fadeUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 900px) {
+            .section {
+                padding: var(--space-6);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                padding: var(--space-7) var(--space-4) var(--space-8);
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="canopy"></div>
+
+    <div class="page">
+        <header class="hero">
+            <div class="hero-copy reveal" style="--delay: 0.05s;">
+                <div class="eyebrow">Verdant Grove</div>
+                <h1>Soft-green systems for calm, restorative experiences.</h1>
+                <p class="lead">A nature-forward design system that blends gentle motion, organic textures, and breathable spacing for focused work.</p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary">Plant a Project</button>
+                    <button class="btn btn-secondary">Open Field Notes</button>
+                    <button class="btn btn-ghost">Explore Tokens</button>
+                </div>
+                <div class="hero-meta">
+                    <span class="pill">Soft gradients</span>
+                    <span class="pill">Leafy textures</span>
+                    <span class="pill">Low contrast</span>
+                </div>
+            </div>
+            <div class="hero-panel reveal" style="--delay: 0.18s;">
+                <div class="eyebrow">System balance</div>
+                <div class="token-grid">
+                    <div class="token">
+                        <span class="token-label">Spacing</span>
+                        <span class="token-value">4 / 8 / 16 / 32 / 64</span>
+                    </div>
+                    <div class="token">
+                        <span class="token-label">Radius</span>
+                        <span class="token-value">10 / 18 / 28 / 40</span>
+                    </div>
+                    <div class="token">
+                        <span class="token-label">Motion</span>
+                        <span class="token-value">Soft ease · 420ms</span>
+                    </div>
+                    <div class="token">
+                        <span class="token-label">Type</span>
+                        <span class="token-value">Cormorant + Karla</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="section reveal" style="--delay: 0.08s;">
+            <div class="section-head">
+                <div>
+                    <h2>Design principles</h2>
+                    <p>Verdant Grove prioritizes calm and clarity. Create soft layers, keep lines light, and use motion like a breeze.</p>
+                </div>
+                <div class="badge-row">
+                    <span class="badge grove">Grounded</span>
+                    <span class="badge river">Flowing</span>
+                    <span class="badge sun">Warmth</span>
+                </div>
+            </div>
+            <div class="card-grid">
+                <article class="card reveal" style="--delay: 0.12s;">
+                    <h3>Breathing space</h3>
+                    <p>Use generous padding and wide line length to keep interfaces relaxed.</p>
+                </article>
+                <article class="card reveal" style="--delay: 0.18s;">
+                    <h3>Natural contrast</h3>
+                    <p>Balance soft greens with crisp ink text to preserve readability.</p>
+                </article>
+                <article class="card reveal" style="--delay: 0.24s;">
+                    <h3>Gentle cues</h3>
+                    <p>Animations should feel like subtle wind, not sudden bursts.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section reveal" style="--delay: 0.1s;">
+            <div class="section-head">
+                <div>
+                    <h2>Color palette</h2>
+                    <p>Soft greens form the base. Accent with river blue and warm sunlight for emphasis.</p>
+                </div>
+            </div>
+            <div class="swatch-grid">
+                <div class="swatch light" style="background: #eff6ef;">
+                    <span>Mist</span>
+                    <span>#eff6ef</span>
+                </div>
+                <div class="swatch light" style="background: #f4f8f3;">
+                    <span>Surface</span>
+                    <span>#f4f8f3</span>
+                </div>
+                <div class="swatch dark" style="background: #4f8a6e;">
+                    <span>Fern</span>
+                    <span>#4f8a6e</span>
+                </div>
+                <div class="swatch dark" style="background: #315c45;">
+                    <span>Moss</span>
+                    <span>#315c45</span>
+                </div>
+                <div class="swatch dark" style="background: #6fa7a4;">
+                    <span>River</span>
+                    <span>#6fa7a4</span>
+                </div>
+                <div class="swatch light" style="background: #f0d8a8;">
+                    <span>Sun</span>
+                    <span>#f0d8a8</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal" style="--delay: 0.12s;">
+            <div class="section-head">
+                <div>
+                    <h2>Typography</h2>
+                    <p>Cormorant Garamond delivers organic elegance. Karla keeps UI copy clean and efficient.</p>
+                </div>
+            </div>
+            <div class="type-grid">
+                <div class="type-sample">
+                    <div class="sample-title">Display</div>
+                    <h4>Cormorant Headline</h4>
+                    <p>Use for hero lines, section titles, and editorial callouts.</p>
+                </div>
+                <div class="type-sample">
+                    <div class="sample-title">Body</div>
+                    <p>Karla keeps interfaces readable and modern without breaking the natural tone.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal" style="--delay: 0.12s;">
+            <div class="section-head">
+                <div>
+                    <h2>Components</h2>
+                    <p>Buttons, inputs, toggles, and badges are soft-edged with light motion cues.</p>
+                </div>
+            </div>
+            <div class="component-grid">
+                <div class="stack">
+                    <div class="label">Buttons</div>
+                    <button class="btn btn-primary">Primary Action</button>
+                    <button class="btn btn-secondary">Secondary</button>
+                    <button class="btn btn-ghost">Ghost Action</button>
+                </div>
+                <div class="stack">
+                    <div class="label">Inputs</div>
+                    <input class="input" type="text" placeholder="Forest trail name">
+                    <select>
+                        <option>Morning shade</option>
+                        <option>Midday light</option>
+                        <option>Evening glow</option>
+                    </select>
+                    <textarea rows="3" placeholder="Add a gentle note"></textarea>
+                </div>
+                <div class="stack">
+                    <div class="label">Toggles</div>
+                    <label class="toggle">
+                        <input type="checkbox" checked>
+                        <span class="toggle-track"></span>
+                        <span>Ambient motion</span>
+                    </label>
+                    <label class="toggle">
+                        <input type="checkbox">
+                        <span class="toggle-track"></span>
+                        <span>Show nature cues</span>
+                    </label>
+                </div>
+                <div class="stack">
+                    <div class="label">Badges</div>
+                    <div class="badge-row">
+                        <span class="badge pulse">Active</span>
+                        <span class="badge grove">Stable</span>
+                        <span class="badge river">Flow</span>
+                        <span class="badge sun">Warm</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal" style="--delay: 0.12s;">
+            <div class="section-head">
+                <div>
+                    <h2>Surface layouts</h2>
+                    <p>Layer softly colored panels with minimal borders for dashboards and planning views.</p>
+                </div>
+            </div>
+            <div class="layout-grid">
+                <div class="surface">
+                    <div class="meta">Meadow board</div>
+                    <h4>Growth Plan</h4>
+                    <p>Track initiatives with calm spacing and clear, low-contrast groupings.</p>
+                    <div class="stat-row">
+                        <div class="stat">
+                            <div class="value">9</div>
+                            <div class="label">Projects</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">4</div>
+                            <div class="label">In bloom</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">6d</div>
+                            <div class="label">Next Review</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="surface">
+                    <div class="meta">Canopy view</div>
+                    <h4>Wellness Cycle</h4>
+                    <p>Use river accents to highlight daily rituals and soft gradients for milestones.</p>
+                    <div class="stat-row">
+                        <div class="stat">
+                            <div class="value">78%</div>
+                            <div class="label">On track</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">12</div>
+                            <div class="label">Habits</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">3</div>
+                            <div class="label">Notes</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal" style="--delay: 0.12s;">
+            <div class="section-head">
+                <div>
+                    <h2>Data and alerts</h2>
+                    <p>Use soft backgrounds for table rows and gentle alert panels for status updates.</p>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Trail</th>
+                        <th>Status</th>
+                        <th>Lead</th>
+                        <th>Review</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Habitat research</td>
+                        <td>Collecting</td>
+                        <td>Field team</td>
+                        <td>May 02</td>
+                    </tr>
+                    <tr>
+                        <td>Wellness guide</td>
+                        <td>Approved</td>
+                        <td>Editorial</td>
+                        <td>May 10</td>
+                    </tr>
+                    <tr>
+                        <td>Trail markers</td>
+                        <td>Draft</td>
+                        <td>Design</td>
+                        <td>May 18</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="alerts">
+                <div class="alert good">
+                    <div class="alert-title">Healthy cadence</div>
+                    <p>Daily check-ins are steady and aligned with the motion guidelines.</p>
+                </div>
+                <div class="alert">
+                    <div class="alert-title">Needs focus</div>
+                    <p>Reduce visual clutter on the review screen to keep attention calm.</p>
+                </div>
+                <div class="alert warn">
+                    <div class="alert-title">Gentle reminder</div>
+                    <p>Two milestones need updated notes before the next meeting.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer reveal" style="--delay: 0.2s;">
+            Verdant Grove supports soft-green interfaces with calm motion and restorative pacing.
+        </footer>
+    </div>
+</body>
+</html>

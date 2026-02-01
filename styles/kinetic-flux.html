@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinetic Flux Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: "Syne", sans-serif;
+            --font-body: "Work Sans", sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --radius-sm: 10px;
+            --radius-md: 18px;
+            --radius-lg: 28px;
+            --radius-xl: 40px;
+
+            --ease-fluid: cubic-bezier(0.16, 0.84, 0.44, 1);
+            --ease-snap: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --dur-fast: 180ms;
+            --dur-base: 420ms;
+            --dur-slow: 900ms;
+
+            --ink: #0a0f1f;
+            --ink-soft: #2c3450;
+            --muted: #68708c;
+            --canvas: #f4f6fb;
+            --surface: #ffffff;
+            --surface-alt: #eef1f9;
+            --line: rgba(10, 15, 31, 0.15);
+
+            --accent: #7dff5a;
+            --accent-2: #2bb3ff;
+            --accent-3: #ff8a2b;
+            --accent-4: #ff3b5c;
+
+            --shadow-soft: 0 18px 40px rgba(10, 15, 31, 0.14);
+            --shadow-cut: 0 3px 0 rgba(10, 15, 31, 0.7);
+            --shadow-float: 0 28px 60px rgba(10, 15, 31, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--ink);
+            background:
+                radial-gradient(900px 600px at -10% 10%, rgba(43, 179, 255, 0.22), transparent 60%),
+                radial-gradient(800px 500px at 110% -10%, rgba(125, 255, 90, 0.16), transparent 60%),
+                radial-gradient(700px 500px at 50% 120%, rgba(255, 138, 43, 0.18), transparent 60%),
+                var(--canvas);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 60vmax;
+            height: 60vmax;
+            border-radius: 50%;
+            z-index: 0;
+            filter: blur(0.5px);
+            opacity: 0.22;
+            pointer-events: none;
+        }
+
+        body::before {
+            top: -25vmax;
+            right: -15vmax;
+            background: radial-gradient(circle, rgba(125, 255, 90, 0.55), transparent 70%);
+            animation: drift 18s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            bottom: -30vmax;
+            left: -15vmax;
+            background: radial-gradient(circle, rgba(43, 179, 255, 0.5), transparent 70%);
+            animation: drift 22s ease-in-out infinite alternate;
+        }
+
+        .flow-lines {
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(120deg, rgba(10, 15, 31, 0.05) 0 1px, transparent 1px),
+                linear-gradient(120deg, rgba(10, 15, 31, 0.03) 0 1px, transparent 1px),
+                linear-gradient(30deg, rgba(255, 255, 255, 0.7) 0 2px, transparent 2px);
+            background-size: 120px 120px, 60px 60px, 240px 240px;
+            opacity: 0.45;
+            mix-blend-mode: multiply;
+            pointer-events: none;
+            z-index: 0;
+            animation: pan 22s linear infinite;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6) var(--space-9);
+        }
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 7vw, 5.2rem);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+        }
+
+        h3 {
+            font-size: 1.45rem;
+        }
+
+        p {
+            color: var(--muted);
+            max-width: 65ch;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            font-size: 0.75rem;
+            color: var(--accent-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-7);
+            align-items: center;
+            margin-bottom: var(--space-8);
+        }
+
+        .hero-copy {
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .lead {
+            font-size: 1.1rem;
+            color: var(--ink-soft);
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.4rem 0.9rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+        }
+
+        .motion-dashboard {
+            position: relative;
+            border-radius: var(--radius-xl);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            padding: var(--space-6);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .motion-dashboard::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(120deg, rgba(125, 255, 90, 0.12), transparent 35%),
+                linear-gradient(320deg, rgba(43, 179, 255, 0.12), transparent 45%);
+            pointer-events: none;
+        }
+
+        .motion-dashboard > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .motion-grid {
+            display: grid;
+            gap: var(--space-4);
+        }
+
+        .meter {
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .meter-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--muted);
+        }
+
+        .meter-track {
+            height: 10px;
+            border-radius: 999px;
+            background: var(--surface-alt);
+            border: 1px solid var(--line);
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .meter-fill.alt {
+            background: linear-gradient(90deg, var(--accent-3), var(--accent-4));
+            animation-delay: 0.6s;
+        }
+
+        .section {
+            position: relative;
+            padding: var(--space-7);
+            border-radius: var(--radius-lg);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            box-shadow: var(--shadow-soft);
+            margin-bottom: var(--space-8);
+            overflow: hidden;
+        }
+
+        .section::after {
+            content: "";
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 120px;
+            height: 120px;
+            border-radius: 24px;
+            border: 2px solid rgba(10, 15, 31, 0.08);
+            transform: rotate(12deg);
+        }
+
+        .section-head {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: var(--space-6);
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+        }
+
+        .badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+        }
+
+        .badge.fast { background: rgba(125, 255, 90, 0.2); }
+        .badge.soft { background: rgba(43, 179, 255, 0.18); }
+        .badge.snap { background: rgba(255, 138, 43, 0.2); }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .card {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-5);
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--dur-base) var(--ease-fluid), box-shadow var(--dur-base) var(--ease-fluid);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.6) 50%, transparent 100%);
+            transform: translateX(-120%);
+            opacity: 0;
+            transition: transform var(--dur-base) var(--ease-fluid), opacity var(--dur-base) var(--ease-fluid);
+        }
+
+        .card:hover {
+            transform: translateY(-6px) rotate(-0.2deg);
+            box-shadow: var(--shadow-float);
+        }
+
+        .card:hover::before {
+            transform: translateX(120%);
+            opacity: 1;
+        }
+
+        .card h3 {
+            margin-bottom: var(--space-3);
+        }
+
+        .swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .swatch {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-3);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            font-weight: 600;
+        }
+
+        .swatch.light {
+            color: var(--ink);
+        }
+
+        .swatch.dark {
+            color: #fff;
+        }
+
+        .swatch span {
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .type-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .type-sample {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-5);
+            background: var(--surface-alt);
+        }
+
+        .type-sample .sample-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .type-sample h4 {
+            font-size: 1.9rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .stack {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--muted);
+        }
+
+        .btn {
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 0.8rem 1.6rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--dur-fast) var(--ease-fluid), box-shadow var(--dur-fast) var(--ease-fluid);
+            box-shadow: var(--shadow-cut);
+        }
+
+        .btn::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+            transform: translateX(-120%);
+            transition: transform var(--dur-base) var(--ease-fluid);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: var(--shadow-float);
+        }
+
+        .btn:hover::after {
+            transform: translateX(120%);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: transparent;
+        }
+
+        .btn-secondary {
+            background: var(--accent-2);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-style: dashed;
+        }
+
+        .input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--ink);
+            transition: border var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+        }
+
+        .input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--accent-2);
+            box-shadow: 0 0 0 3px rgba(43, 179, 255, 0.2);
+        }
+
+        .toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: 0.95rem;
+        }
+
+        .toggle input {
+            display: none;
+        }
+
+        .toggle-track {
+            width: 48px;
+            height: 28px;
+            border-radius: 999px;
+            background: var(--surface-alt);
+            border: 1px solid var(--line);
+            position: relative;
+            transition: background var(--dur-base) var(--ease-fluid);
+        }
+
+        .toggle-track::after {
+            content: "";
+            width: 22px;
+            height: 22px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform var(--dur-base) var(--ease-fluid);
+            box-shadow: 0 2px 8px rgba(10, 15, 31, 0.2);
+        }
+
+        .toggle input:checked + .toggle-track {
+            background: var(--accent-2);
+        }
+
+        .toggle input:checked + .toggle-track::after {
+            transform: translateX(20px);
+        }
+
+        .badge-row .badge.pulse {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge-row .badge.pulse::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            animation: ripple 2.8s ease-out infinite;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .surface {
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-5);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .surface .meta {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            color: var(--muted);
+            margin-bottom: var(--space-2);
+        }
+
+        .surface h4 {
+            font-size: 1.4rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-3);
+            margin-top: var(--space-3);
+        }
+
+        .stat {
+            background: var(--surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-3);
+            text-align: center;
+        }
+
+        .stat .value {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            color: var(--ink);
+        }
+
+        .stat .label {
+            color: var(--muted);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: var(--surface-alt);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--line);
+        }
+
+        th {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-size: 0.7rem;
+            background: rgba(10, 15, 31, 0.05);
+        }
+
+        tr:hover {
+            background: rgba(125, 255, 90, 0.12);
+        }
+
+        .alerts {
+            display: grid;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+        }
+
+        .alert {
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            padding: var(--space-4);
+            background: rgba(43, 179, 255, 0.1);
+            display: grid;
+            gap: var(--space-2);
+        }
+
+        .alert.warn { background: rgba(255, 138, 43, 0.18); }
+        .alert.good { background: rgba(125, 255, 90, 0.2); }
+
+        .alert-title {
+            font-weight: 600;
+        }
+
+        .motion-row {
+            display: grid;
+            gap: var(--space-3);
+        }
+
+        .motion-chip {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-4);
+            padding: var(--space-3) var(--space-4);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--line);
+            background: var(--surface-alt);
+        }
+
+        .motion-chip strong {
+            font-weight: 600;
+        }
+
+        .motion-chip span {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(18px);
+            transition: opacity var(--dur-slow) var(--ease-fluid), transform var(--dur-slow) var(--ease-fluid);
+        }
+
+        .reveal.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .stagger > * {
+            transition-delay: 0.05s;
+        }
+
+        .stagger > *:nth-child(2) { transition-delay: 0.12s; }
+        .stagger > *:nth-child(3) { transition-delay: 0.19s; }
+        .stagger > *:nth-child(4) { transition-delay: 0.26s; }
+        .stagger > *:nth-child(5) { transition-delay: 0.33s; }
+        .stagger > *:nth-child(6) { transition-delay: 0.4s; }
+
+        .footer {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        @keyframes drift {
+            0% { transform: translate3d(0, 0, 0) scale(1); }
+            100% { transform: translate3d(40px, -30px, 0) scale(1.05); }
+        }
+
+        @keyframes pan {
+            0% { background-position: 0 0, 0 0, 0 0; }
+            100% { background-position: 240px 240px, 120px 120px, -240px 240px; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { width: 60%; }
+            50% { width: 90%; }
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(1); opacity: 0.7; }
+            100% { transform: scale(1.6); opacity: 0; }
+        }
+
+        @media (max-width: 900px) {
+            .section {
+                padding: var(--space-6);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                padding: var(--space-7) var(--space-4) var(--space-8);
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation: none !important;
+                transition: none !important;
+            }
+
+            .reveal {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="flow-lines"></div>
+
+    <div class="page">
+        <header class="hero">
+            <div class="hero-copy reveal">
+                <div class="eyebrow">Kinetic Flux</div>
+                <h1>Motion-first UI for high-energy product teams.</h1>
+                <p class="lead">Build interfaces that feel alive: spatial depth, elastic transitions, and movement that guides attention without overwhelming it.</p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary">Launch Experience</button>
+                    <button class="btn btn-secondary">Preview Motion</button>
+                    <button class="btn btn-ghost">Read Guidelines</button>
+                </div>
+                <div class="hero-meta">
+                    <span class="chip">Fluid easing</span>
+                    <span class="chip">Layered depth</span>
+                    <span class="chip">High tempo</span>
+                </div>
+            </div>
+            <div class="motion-dashboard reveal">
+                <div class="eyebrow">Motion cadence</div>
+                <div class="motion-grid">
+                    <div class="meter">
+                        <div class="meter-label">Attention pulse</div>
+                        <div class="meter-track">
+                            <div class="meter-fill"></div>
+                        </div>
+                    </div>
+                    <div class="meter">
+                        <div class="meter-label">Navigation flow</div>
+                        <div class="meter-track">
+                            <div class="meter-fill alt"></div>
+                        </div>
+                    </div>
+                    <div class="motion-row">
+                        <div class="motion-chip">
+                            <strong>Fast</strong>
+                            <span>180ms · ease-fluid</span>
+                        </div>
+                        <div class="motion-chip">
+                            <strong>Base</strong>
+                            <span>420ms · ease-fluid</span>
+                        </div>
+                        <div class="motion-chip">
+                            <strong>Slow</strong>
+                            <span>900ms · ease-snap</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="section reveal">
+            <div class="section-head">
+                <div>
+                    <h2>Motion principles</h2>
+                    <p>Kinetic Flux uses velocity to signal hierarchy. Large elements accelerate slowly, micro-actions snap with speed.</p>
+                </div>
+                <div class="badge-row">
+                    <span class="badge fast">Velocity</span>
+                    <span class="badge soft">Continuity</span>
+                    <span class="badge snap">Punch</span>
+                </div>
+            </div>
+            <div class="card-grid stagger">
+                <article class="card reveal">
+                    <h3>Directional focus</h3>
+                    <p>Animate along the axis of the layout to lead the eye through the content.</p>
+                </article>
+                <article class="card reveal">
+                    <h3>Elastic feedback</h3>
+                    <p>Use overshoot on critical actions to make interactions feel responsive and intentional.</p>
+                </article>
+                <article class="card reveal">
+                    <h3>Rhythmic pacing</h3>
+                    <p>Stagger reveals in 120ms increments to create a smooth, readable cadence.</p>
+                </article>
+            </div>
+        </section>
+
+        <section class="section reveal">
+            <div class="section-head">
+                <div>
+                    <h2>Color palette</h2>
+                    <p>Electric accents over a clean base. Use chartreuse for primary actions, cyan for navigation, and orange for warnings.</p>
+                </div>
+            </div>
+            <div class="swatch-grid stagger">
+                <div class="swatch light" style="background: #f4f6fb;">
+                    <span>Canvas</span>
+                    <span>#f4f6fb</span>
+                </div>
+                <div class="swatch light" style="background: #ffffff;">
+                    <span>Surface</span>
+                    <span>#ffffff</span>
+                </div>
+                <div class="swatch dark" style="background: #7dff5a;">
+                    <span>Accent</span>
+                    <span>#7dff5a</span>
+                </div>
+                <div class="swatch dark" style="background: #2bb3ff;">
+                    <span>Accent 2</span>
+                    <span>#2bb3ff</span>
+                </div>
+                <div class="swatch dark" style="background: #ff8a2b;">
+                    <span>Accent 3</span>
+                    <span>#ff8a2b</span>
+                </div>
+                <div class="swatch dark" style="background: #ff3b5c;">
+                    <span>Accent 4</span>
+                    <span>#ff3b5c</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal">
+            <div class="section-head">
+                <div>
+                    <h2>Typography</h2>
+                    <p>Syne delivers kinetic headlines while Work Sans keeps supporting text crisp and efficient.</p>
+                </div>
+            </div>
+            <div class="type-grid stagger">
+                <div class="type-sample">
+                    <div class="sample-title">Display</div>
+                    <h4>Syne Headline</h4>
+                    <p>Use for hero statements, section titles, and callouts that need energy.</p>
+                </div>
+                <div class="type-sample">
+                    <div class="sample-title">Body</div>
+                    <p>Work Sans keeps UI text legible while supporting kinetic transitions and dense layouts.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal">
+            <div class="section-head">
+                <div>
+                    <h2>Components</h2>
+                    <p>Buttons and inputs feel fast, with glossy sweep effects and snap toggles.</p>
+                </div>
+            </div>
+            <div class="component-grid stagger">
+                <div class="stack">
+                    <div class="label">Buttons</div>
+                    <button class="btn btn-primary">Primary Launch</button>
+                    <button class="btn btn-secondary">Secondary Pulse</button>
+                    <button class="btn btn-ghost">Ghost Action</button>
+                </div>
+                <div class="stack">
+                    <div class="label">Inputs</div>
+                    <input class="input" type="text" placeholder="Enter sprint name">
+                    <select>
+                        <option>Momentum track</option>
+                        <option>Velocity track</option>
+                        <option>Launch track</option>
+                    </select>
+                    <textarea rows="3" placeholder="Add a short motion brief"></textarea>
+                </div>
+                <div class="stack">
+                    <div class="label">Toggles</div>
+                    <label class="toggle">
+                        <input type="checkbox" checked>
+                        <span class="toggle-track"></span>
+                        <span>Enable motion hints</span>
+                    </label>
+                    <label class="toggle">
+                        <input type="checkbox">
+                        <span class="toggle-track"></span>
+                        <span>Loop background flow</span>
+                    </label>
+                </div>
+                <div class="stack">
+                    <div class="label">Badges</div>
+                    <div class="badge-row">
+                        <span class="badge pulse">Live</span>
+                        <span class="badge fast">Fast</span>
+                        <span class="badge soft">Smooth</span>
+                        <span class="badge snap">Snap</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal">
+            <div class="section-head">
+                <div>
+                    <h2>Surface layouts</h2>
+                    <p>Combine cards with bright motion cues to show progress at a glance.</p>
+                </div>
+            </div>
+            <div class="layout-grid stagger">
+                <div class="surface">
+                    <div class="meta">Launch board</div>
+                    <h4>Velocity Sprint</h4>
+                    <p>Momentum-driven sprint with rapid iteration loops and live testing windows.</p>
+                    <div class="stat-row">
+                        <div class="stat">
+                            <div class="value">18</div>
+                            <div class="label">Tasks</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">5</div>
+                            <div class="label">Streams</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">2d</div>
+                            <div class="label">Next Demo</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="surface">
+                    <div class="meta">Motion metrics</div>
+                    <h4>Experience Pulse</h4>
+                    <p>Track key engagement moments and refine transitions where attention drops.</p>
+                    <div class="stat-row">
+                        <div class="stat">
+                            <div class="value">92%</div>
+                            <div class="label">Flow</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">1.4s</div>
+                            <div class="label">Avg Load</div>
+                        </div>
+                        <div class="stat">
+                            <div class="value">6</div>
+                            <div class="label">Hotspots</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section reveal">
+            <div class="section-head">
+                <div>
+                    <h2>Data and alerts</h2>
+                    <p>Keep status views fast and scannable. Motion cues reinforce urgency without hijacking focus.</p>
+                </div>
+            </div>
+            <table class="reveal">
+                <thead>
+                    <tr>
+                        <th>Module</th>
+                        <th>Status</th>
+                        <th>Owner</th>
+                        <th>ETA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Motion system</td>
+                        <td>Iterating</td>
+                        <td>Design</td>
+                        <td>Apr 03</td>
+                    </tr>
+                    <tr>
+                        <td>Interaction lab</td>
+                        <td>Live</td>
+                        <td>R&D</td>
+                        <td>Apr 08</td>
+                    </tr>
+                    <tr>
+                        <td>Launch microsite</td>
+                        <td>Queued</td>
+                        <td>Marketing</td>
+                        <td>Apr 14</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="alerts stagger">
+                <div class="alert good reveal">
+                    <div class="alert-title">Smoothness verified</div>
+                    <p>All primary transitions remain under 500ms for a high-tempo feel.</p>
+                </div>
+                <div class="alert reveal">
+                    <div class="alert-title">Motion audit</div>
+                    <p>Review onboarding steps for over-animated elements. Reduce where needed.</p>
+                </div>
+                <div class="alert warn reveal">
+                    <div class="alert-title">Attention spike</div>
+                    <p>CTA bounce overshoots on small screens. Tune to 0.92 scale.</p>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer reveal">
+            Kinetic Flux is built for teams that want motion to clarify, guide, and energize every interface.
+        </footer>
+    </div>
+
+    <script>
+        const revealElements = document.querySelectorAll('.reveal');
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.18 }
+        );
+
+        revealElements.forEach((element) => observer.observe(element));
+    </script>
+</body>
+</html>
