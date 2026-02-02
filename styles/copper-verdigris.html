@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Copper & Verdigris Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           COPPER & VERDIGRIS DESIGN SYSTEM
+           ============================================
+           Oxidized metal patina aesthetic.
+           The beautiful green-blue patina that forms
+           on aged copper over decades of weathering.
+           Think: Statue of Liberty, copper rooftops,
+           antique brass hardware, aged bronze.
+           ============================================ */
+
+        :root {
+            /* COPPER TONES */
+            --copper-bright: #B87333;
+            --copper-polished: #DA8A67;
+            --copper-aged: #8B5A2B;
+            --copper-burnished: #6D4423;
+            --copper-dark: #4A2F1A;
+
+            /* VERDIGRIS PATINA */
+            --verdigris-light: #7EC8C8;
+            --verdigris: #43B3AE;
+            --verdigris-deep: #2D8A85;
+            --patina-teal: #3D9A95;
+            --patina-blue: #4A9B96;
+
+            /* BRONZE & DARK METALS */
+            --bronze-dark: #3D2B1F;
+            --bronze-shadow: #2A1D14;
+            --antique-bronze: #524336;
+            --metal-black: #1C1410;
+
+            /* HIGHLIGHT & ACCENT */
+            --copper-highlight: #E6A86E;
+            --patina-highlight: #8FD4D0;
+            --cream-aged: #F5EDE3;
+            --parchment: #FDF6EC;
+
+            /* FONT FAMILIES */
+            --font-display: 'Cormorant Garamond', serif;
+            --font-body: 'Raleway', sans-serif;
+
+            /* SPACING SCALE */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* SEMANTIC COLORS */
+            --text-primary: var(--cream-aged);
+            --text-secondary: rgba(245, 237, 227, 0.7);
+            --text-muted: rgba(245, 237, 227, 0.5);
+            --bg-primary: var(--bronze-shadow);
+            --bg-secondary: var(--bronze-dark);
+            --accent-warm: var(--copper-bright);
+            --accent-cool: var(--verdigris);
+
+            /* EFFECTS */
+            --shadow-copper: 0 4px 20px rgba(184, 115, 51, 0.3);
+            --shadow-patina: 0 4px 20px rgba(67, 179, 174, 0.25);
+            --shadow-deep: 0 8px 32px rgba(28, 20, 16, 0.6);
+            --glow-copper: 0 0 30px rgba(184, 115, 51, 0.4);
+            --glow-verdigris: 0 0 30px rgba(67, 179, 174, 0.3);
+
+            /* METALLIC GRADIENTS */
+            --gradient-copper: linear-gradient(135deg, var(--copper-aged), var(--copper-bright), var(--copper-polished), var(--copper-bright), var(--copper-aged));
+            --gradient-verdigris: linear-gradient(135deg, var(--verdigris-deep), var(--verdigris), var(--verdigris-light), var(--verdigris), var(--verdigris-deep));
+            --gradient-patina-blend: linear-gradient(180deg, var(--copper-aged) 0%, var(--copper-burnished) 30%, var(--verdigris-deep) 60%, var(--verdigris) 100%);
+            --gradient-metal-sheen: linear-gradient(110deg, transparent 20%, rgba(255,255,255,0.1) 40%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 60%, transparent 80%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+        }
+
+        /* Oxidation Pattern Background */
+        .patina-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 10% 20%, rgba(67, 179, 174, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 80%, rgba(67, 179, 174, 0.06) 0%, transparent 40%),
+                radial-gradient(ellipse at 50% 50%, rgba(184, 115, 51, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 30% 70%, rgba(45, 138, 133, 0.07) 0%, transparent 45%),
+                radial-gradient(ellipse at 70% 30%, rgba(143, 212, 208, 0.04) 0%, transparent 35%);
+        }
+
+        /* Metal Texture Overlay */
+        .metal-texture {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6);
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        .header {
+            text-align: center;
+            padding: var(--space-9) var(--space-6);
+            margin-bottom: var(--space-8);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 3px;
+            background: var(--gradient-patina-blend);
+            border-radius: 2px;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--verdigris), var(--copper-bright), var(--verdigris), transparent);
+        }
+
+        .header-ornament {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .header-ornament .line {
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--copper-bright));
+        }
+
+        .header-ornament .line:last-child {
+            background: linear-gradient(90deg, var(--copper-bright), transparent);
+        }
+
+        .header-ornament .symbol {
+            font-size: 1.5rem;
+            background: var(--gradient-copper);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            font-weight: 600;
+            font-style: italic;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-4);
+            background: linear-gradient(135deg, var(--copper-polished), var(--copper-bright), var(--verdigris-light), var(--verdigris), var(--copper-bright));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 8s ease-in-out infinite;
+            text-shadow: 0 0 60px rgba(184, 115, 51, 0.3);
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .header .subtitle {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .header .tagline {
+            margin-top: var(--space-4);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--verdigris);
+            opacity: 0.8;
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
+        .section {
+            margin-bottom: var(--space-9);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            font-weight: 400;
+            background: var(--gradient-verdigris);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0.4;
+            margin-bottom: var(--space-2);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--copper-bright);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-line {
+            width: 120px;
+            height: 2px;
+            margin: 0 auto;
+            background: linear-gradient(90deg, transparent, var(--verdigris), var(--copper-bright), var(--verdigris), transparent);
+            position: relative;
+        }
+
+        .section-line::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: var(--copper-bright);
+            border-radius: 50%;
+            box-shadow: var(--glow-copper);
+        }
+
+        /* ============================================
+           COLOR PALETTE
+           ============================================ */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .color-swatch {
+            text-align: center;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: var(--space-5);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .color-swatch::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-patina-blend);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-deep);
+        }
+
+        .color-preview {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto var(--space-4);
+            border-radius: 50%;
+            position: relative;
+            box-shadow:
+                inset 0 -4px 8px rgba(0,0,0,0.3),
+                inset 0 4px 8px rgba(255,255,255,0.1),
+                0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .color-preview::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 30%;
+            height: 20%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+            border-radius: 50%;
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-family: monospace;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           TYPOGRAPHY
+           ============================================ */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .type-specimen {
+            text-align: center;
+            padding: var(--space-6);
+            background: linear-gradient(135deg, var(--bg-secondary), rgba(67, 179, 174, 0.05));
+            border-left: 3px solid var(--verdigris);
+            border-radius: 0 8px 8px 0;
+            position: relative;
+        }
+
+        .type-specimen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--gradient-patina-blend);
+        }
+
+        .type-label {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--verdigris);
+            margin-bottom: var(--space-3);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 700;
+            font-style: italic;
+            letter-spacing: 0.05em;
+            background: var(--gradient-copper);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .type-heading {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 600;
+            color: var(--copper-polished);
+            letter-spacing: 0.03em;
+        }
+
+        .type-subheading {
+            font-family: var(--font-body);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--verdigris-light);
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            max-width: 65ch;
+            margin: 0 auto;
+        }
+
+        /* ============================================
+           SPACING
+           ============================================ */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            background: var(--bg-secondary);
+            padding: var(--space-6);
+            border-radius: 8px;
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .spacing-label {
+            width: 70px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: var(--verdigris);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spacing-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-metal-sheen);
+        }
+
+        .spacing-bar.copper {
+            background: var(--gradient-copper);
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.1);
+        }
+
+        .spacing-bar.verdigris {
+            background: var(--gradient-verdigris);
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.1);
+        }
+
+        .spacing-bar.patina {
+            background: var(--gradient-patina-blend);
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.1);
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-5);
+            margin-bottom: var(--space-6);
+        }
+
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: var(--space-4) var(--space-7);
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+            border-radius: 4px;
+        }
+
+        /* Copper Button */
+        .btn-copper {
+            background: var(--gradient-copper);
+            color: var(--bronze-shadow);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                inset 0 -2px 4px rgba(0,0,0,0.2),
+                0 4px 12px rgba(184, 115, 51, 0.4);
+        }
+
+        .btn-copper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn-copper:hover {
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -2px 4px rgba(0,0,0,0.2),
+                0 6px 20px rgba(184, 115, 51, 0.5),
+                var(--glow-copper);
+            transform: translateY(-2px);
+        }
+
+        .btn-copper:hover::before {
+            left: 100%;
+        }
+
+        /* Verdigris Button */
+        .btn-verdigris {
+            background: var(--gradient-verdigris);
+            color: var(--bronze-shadow);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                inset 0 -2px 4px rgba(0,0,0,0.2),
+                0 4px 12px rgba(67, 179, 174, 0.4);
+        }
+
+        .btn-verdigris::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn-verdigris:hover {
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.3),
+                inset 0 -2px 4px rgba(0,0,0,0.2),
+                0 6px 20px rgba(67, 179, 174, 0.5),
+                var(--glow-verdigris);
+            transform: translateY(-2px);
+        }
+
+        .btn-verdigris:hover::before {
+            left: 100%;
+        }
+
+        /* Patina Button (Outline) */
+        .btn-patina {
+            background: transparent;
+            color: var(--copper-bright);
+            border: 2px solid;
+            border-image: var(--gradient-patina-blend) 1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .btn-patina::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-patina-blend);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .btn-patina:hover {
+            color: var(--cream-aged);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 179, 174, 0.3);
+        }
+
+        .btn-patina:hover::before {
+            opacity: 1;
+        }
+
+        /* ============================================
+           FORM INPUTS
+           ============================================ */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--verdigris);
+            margin-bottom: var(--space-2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            border: 1px solid var(--copper-aged);
+            border-radius: 4px;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--verdigris);
+            box-shadow:
+                inset 0 2px 4px rgba(0,0,0,0.2),
+                0 0 0 3px rgba(67, 179, 174, 0.2),
+                var(--glow-verdigris);
+        }
+
+        textarea.input-field {
+            min-height: 140px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .form-container {
+            background: var(--bg-secondary);
+            padding: var(--space-6);
+            border-radius: 8px;
+            border: 1px solid rgba(184, 115, 51, 0.2);
+            position: relative;
+        }
+
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-patina-blend);
+            border-radius: 8px 8px 0 0;
+        }
+
+        /* ============================================
+           CARDS
+           ============================================ */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-copper);
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-deep), var(--glow-copper);
+        }
+
+        /* Card Variant: Copper */
+        .card-copper::before {
+            background: var(--gradient-copper);
+        }
+
+        .card-copper:hover {
+            box-shadow: var(--shadow-deep), var(--shadow-copper);
+        }
+
+        /* Card Variant: Verdigris */
+        .card-verdigris::before {
+            background: var(--gradient-verdigris);
+        }
+
+        .card-verdigris:hover {
+            box-shadow: var(--shadow-deep), var(--shadow-patina);
+        }
+
+        /* Card Variant: Patina Blend */
+        .card-patina::before {
+            background: var(--gradient-patina-blend);
+            height: 100%;
+            width: 4px;
+            opacity: 0.6;
+        }
+
+        .card-patina:hover {
+            box-shadow: var(--shadow-deep);
+        }
+
+        .card-header {
+            padding: var(--space-5) var(--space-5) var(--space-3);
+            position: relative;
+        }
+
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: var(--space-3);
+            position: relative;
+        }
+
+        .card-icon.copper-icon {
+            background: var(--gradient-copper);
+            box-shadow:
+                inset 0 -2px 4px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.1),
+                0 4px 12px rgba(184, 115, 51, 0.3);
+        }
+
+        .card-icon.verdigris-icon {
+            background: var(--gradient-verdigris);
+            box-shadow:
+                inset 0 -2px 4px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.1),
+                0 4px 12px rgba(67, 179, 174, 0.3);
+        }
+
+        .card-icon.patina-icon {
+            background: var(--gradient-patina-blend);
+            box-shadow:
+                inset 0 -2px 4px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.1),
+                0 4px 12px rgba(67, 179, 174, 0.2);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--copper-polished);
+            margin-bottom: var(--space-2);
+        }
+
+        .card-body {
+            padding: 0 var(--space-5) var(--space-5);
+        }
+
+        .card-content {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card-footer {
+            padding: var(--space-4) var(--space-5);
+            border-top: 1px solid rgba(184, 115, 51, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-link {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--verdigris);
+            transition: color 0.3s ease;
+        }
+
+        .card-link:hover {
+            color: var(--verdigris-light);
+        }
+
+        /* ============================================
+           BADGES
+           ============================================ */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-4);
+        }
+
+        .badge {
+            font-family: var(--font-body);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: var(--space-2) var(--space-4);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-metal-sheen);
+            pointer-events: none;
+        }
+
+        .badge-copper {
+            background: var(--gradient-copper);
+            color: var(--bronze-shadow);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                inset 0 -1px 2px rgba(0,0,0,0.2);
+        }
+
+        .badge-verdigris {
+            background: var(--gradient-verdigris);
+            color: var(--bronze-shadow);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.2),
+                inset 0 -1px 2px rgba(0,0,0,0.2);
+        }
+
+        .badge-patina {
+            background: var(--gradient-patina-blend);
+            color: var(--cream-aged);
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.15),
+                inset 0 -1px 2px rgba(0,0,0,0.2);
+        }
+
+        .badge-outline {
+            background: transparent;
+            color: var(--copper-bright);
+            border: 1px solid var(--copper-bright);
+            box-shadow: none;
+        }
+
+        .badge-outline::after {
+            display: none;
+        }
+
+        /* ============================================
+           DIVIDERS
+           ============================================ */
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-5);
+            margin: var(--space-8) 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            max-width: 200px;
+        }
+
+        .divider::before {
+            background: linear-gradient(90deg, transparent, var(--copper-bright));
+        }
+
+        .divider::after {
+            background: linear-gradient(90deg, var(--verdigris), transparent);
+        }
+
+        .divider-symbol {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gradient-patina-blend);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow:
+                inset 0 -2px 4px rgba(0,0,0,0.3),
+                inset 0 2px 4px rgba(255,255,255,0.1),
+                0 4px 12px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .divider-symbol::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            width: 12px;
+            height: 8px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.3), transparent);
+            border-radius: 50%;
+        }
+
+        .divider-symbol span {
+            font-size: 1rem;
+            color: var(--cream-aged);
+        }
+
+        /* ============================================
+           DECORATIVE ELEMENTS
+           ============================================ */
+        .patina-accent {
+            width: 100%;
+            height: 120px;
+            margin: var(--space-7) 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .patina-plate {
+            width: 200px;
+            height: 80px;
+            background: var(--gradient-patina-blend);
+            border-radius: 8px;
+            position: relative;
+            box-shadow:
+                inset 0 -4px 8px rgba(0,0,0,0.3),
+                inset 0 4px 8px rgba(255,255,255,0.1),
+                0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .patina-plate::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-metal-sheen);
+            border-radius: 8px;
+        }
+
+        .patina-plate::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            width: 40px;
+            height: 20px;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+            border-radius: 50%;
+        }
+
+        /* Oxidation spots decoration */
+        .oxidation-pattern {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .oxidation-spot {
+            position: absolute;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--verdigris) 0%, transparent 70%);
+            opacity: 0.3;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            text-align: center;
+            padding: var(--space-8) var(--space-6);
+            margin-top: var(--space-9);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--copper-bright), var(--verdigris), var(--copper-bright), transparent);
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 600;
+            font-style: italic;
+            margin-bottom: var(--space-4);
+            background: linear-gradient(135deg, var(--copper-polished), var(--verdigris-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .footer-text {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+        }
+
+        .footer-ornament {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+        }
+
+        .footer-ornament .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .footer-ornament .dot:nth-child(1) { background: var(--copper-aged); }
+        .footer-ornament .dot:nth-child(2) { background: var(--copper-bright); }
+        .footer-ornament .dot:nth-child(3) { background: var(--verdigris-deep); }
+        .footer-ornament .dot:nth-child(4) { background: var(--verdigris); }
+        .footer-ornament .dot:nth-child(5) { background: var(--verdigris-light); }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-5);
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .type-display {
+                font-size: 2.5rem;
+            }
+
+            .type-heading {
+                font-size: 1.75rem;
+            }
+
+            .button-grid {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .spacing-bar {
+                max-width: 200px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header-ornament .line {
+                width: 30px;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            }
+
+            .badge-row {
+                gap: var(--space-2);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="patina-bg"></div>
+    <div class="metal-texture"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-ornament">
+                <span class="line"></span>
+                <span class="symbol">&#9670;</span>
+                <span class="line"></span>
+            </div>
+            <h1>Copper & Verdigris</h1>
+            <p class="subtitle">A Design System of Oxidized Elegance</p>
+            <p class="tagline">Where time transforms metal into art</p>
+        </header>
+
+        <!-- Color Palette -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">I</div>
+                <h2 class="section-title">Color Palette</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #8B5A2B, #B87333, #DA8A67, #B87333, #8B5A2B);"></div>
+                    <p class="color-name">Bright Copper</p>
+                    <p class="color-value">#B87333</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #4A2F1A, #6D4423, #8B5A2B, #6D4423, #4A2F1A);"></div>
+                    <p class="color-name">Aged Copper</p>
+                    <p class="color-value">#8B5A2B</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #2D8A85, #43B3AE, #7EC8C8, #43B3AE, #2D8A85);"></div>
+                    <p class="color-name">Verdigris</p>
+                    <p class="color-value">#43B3AE</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #1C5250, #2D8A85, #3D9A95, #2D8A85, #1C5250);"></div>
+                    <p class="color-name">Deep Patina</p>
+                    <p class="color-value">#2D8A85</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #1C1410, #2A1D14, #3D2B1F, #2A1D14, #1C1410);"></div>
+                    <p class="color-name">Dark Bronze</p>
+                    <p class="color-value">#2A1D14</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">II</div>
+                <h2 class="section-title">Typography</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <p class="type-label">Display / Cormorant Garamond</p>
+                    <p class="type-display">Patina</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Heading</p>
+                    <p class="type-heading">The Art of Oxidation</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Subheading / Raleway</p>
+                    <p class="type-subheading">Weathered Beauty</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Body</p>
+                    <p class="type-body">Verdigris is the natural patina that forms when copper, brass, or bronze is weathered over time. This beautiful blue-green coating is actually a form of copper carbonate that protects the underlying metal from further corrosion, creating an enduring testament to the passage of time.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">III</div>
+                <h2 class="section-title">Spacing Scale</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-item">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar copper" style="width: 40px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar verdigris" style="width: 64px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar copper" style="width: 120px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar patina" style="width: 180px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar verdigris" style="width: 240px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar copper" style="width: 320px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-bar patina" style="width: 400px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <div class="divider">
+            <div class="divider-symbol"><span>&#9670;</span></div>
+        </div>
+
+        <!-- Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">IV</div>
+                <h2 class="section-title">Buttons</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="patina-accent">
+                <div class="patina-plate"></div>
+            </div>
+
+            <div class="button-grid">
+                <button class="btn btn-copper">Copper Primary</button>
+                <button class="btn btn-verdigris">Verdigris Secondary</button>
+                <button class="btn btn-patina">Patina Outline</button>
+            </div>
+        </section>
+
+        <!-- Form Inputs -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">V</div>
+                <h2 class="section-title">Form Elements</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="form-container">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label class="input-label">Full Name</label>
+                        <input type="text" class="input-field" placeholder="Enter your name...">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Email Address</label>
+                        <input type="email" class="input-field" placeholder="you@example.com">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Your Message</label>
+                    <textarea class="input-field" placeholder="Share your thoughts on the patina of time..."></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">VI</div>
+                <h2 class="section-title">Cards</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card card-copper">
+                    <div class="card-header">
+                        <div class="card-icon copper-icon">
+                            <span>&#9670;</span>
+                        </div>
+                        <h3 class="card-title">Fresh Copper</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-content">Newly forged copper gleams with a bright, rosy-orange warmth. Its reflective surface catches light beautifully, promising years of graceful transformation ahead.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="card-link">Explore &rarr;</a>
+                        <span class="badge badge-copper">New</span>
+                    </div>
+                </div>
+
+                <div class="card card-verdigris">
+                    <div class="card-header">
+                        <div class="card-icon verdigris-icon">
+                            <span>&#9674;</span>
+                        </div>
+                        <h3 class="card-title">Full Patina</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-content">Years of weathering produce the characteristic blue-green verdigris. Like the Statue of Liberty, this oxidation tells a story of endurance and timeless beauty.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="card-link">Discover &rarr;</a>
+                        <span class="badge badge-verdigris">Aged</span>
+                    </div>
+                </div>
+
+                <div class="card card-patina">
+                    <div class="card-header">
+                        <div class="card-icon patina-icon">
+                            <span>&#10070;</span>
+                        </div>
+                        <h3 class="card-title">In Transition</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-content">The most beautiful stage captures both worlds - warm copper tones bleeding into cool verdigris patches, creating an organic tapestry of color and texture.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="card-link">Learn More &rarr;</a>
+                        <span class="badge badge-patina">Evolving</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">VII</div>
+                <h2 class="section-title">Badges</h2>
+                <div class="section-line"></div>
+            </div>
+
+            <div class="badge-row">
+                <span class="badge badge-copper">Copper</span>
+                <span class="badge badge-verdigris">Verdigris</span>
+                <span class="badge badge-patina">Patina</span>
+                <span class="badge badge-outline">Antique</span>
+            </div>
+        </section>
+
+        <div class="divider">
+            <div class="divider-symbol"><span>&#10070;</span></div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-logo">Copper & Verdigris</p>
+            <p class="footer-text">A celebration of time's transformative touch on metal</p>
+            <p class="footer-text" style="font-size: 0.8125rem; color: var(--text-muted);">Where oxidation becomes ornamentation</p>
+            <div class="footer-ornament">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

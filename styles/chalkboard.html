@@ -1,0 +1,1711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chalkboard Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Kalam:wght@300;400;700&family=Architects+Daughter&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Chalkboard Colors */
+            --board-dark: #1a2a1a;
+            --board-green: #2d4a3e;
+            --board-green-light: #3d5a4e;
+            --board-frame: #5c4033;
+            --board-frame-light: #7a5a43;
+            --board-frame-dark: #3d2a1f;
+
+            /* Chalk Colors */
+            --chalk-white: #f5f5f0;
+            --chalk-white-faded: rgba(245, 245, 240, 0.7);
+            --chalk-white-ghost: rgba(245, 245, 240, 0.3);
+            --chalk-yellow: #f7e98e;
+            --chalk-yellow-faded: rgba(247, 233, 142, 0.7);
+            --chalk-pink: #f4a5c0;
+            --chalk-pink-faded: rgba(244, 165, 192, 0.7);
+            --chalk-blue: #87ceeb;
+            --chalk-blue-faded: rgba(135, 206, 235, 0.7);
+            --chalk-orange: #ffb366;
+            --chalk-green: #90ee90;
+
+            /* Fonts */
+            --font-display: 'Permanent Marker', cursive;
+            --font-heading: 'Kalam', cursive;
+            --font-body: 'Architects Daughter', cursive;
+
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* Chalk texture effects */
+            --chalk-dust: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+
+            /* Transitions */
+            --transition-fast: 0.15s ease-out;
+            --transition-base: 0.25s ease-out;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--chalk-white);
+            background-color: var(--board-green);
+            background-image:
+                var(--chalk-dust),
+                radial-gradient(ellipse at 30% 20%, var(--board-green-light) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, var(--board-green-light) 0%, transparent 40%),
+                linear-gradient(180deg, var(--board-dark) 0%, var(--board-green) 5%, var(--board-green) 95%, var(--board-dark) 100%);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+
+        /* Wooden frame border */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 20px solid var(--board-frame);
+            border-image: linear-gradient(
+                135deg,
+                var(--board-frame-light) 0%,
+                var(--board-frame) 25%,
+                var(--board-frame-dark) 50%,
+                var(--board-frame) 75%,
+                var(--board-frame-light) 100%
+            ) 1;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Chalk tray at bottom */
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: 0;
+            left: 20px;
+            right: 20px;
+            height: 15px;
+            background: linear-gradient(
+                to bottom,
+                var(--board-frame-dark) 0%,
+                var(--board-frame) 30%,
+                var(--board-frame-light) 100%
+            );
+            z-index: 1001;
+            box-shadow:
+                inset 0 2px 4px rgba(0,0,0,0.3),
+                0 -2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6);
+            padding-bottom: var(--space-9);
+        }
+
+        /* Chalk dust texture overlay */
+        .chalk-dust-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--chalk-dust);
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.5;
+        }
+
+        /* Chalk text effect */
+        .chalk-text {
+            text-shadow:
+                0 0 5px rgba(245, 245, 240, 0.5),
+                0 0 10px rgba(245, 245, 240, 0.2);
+            filter: url(#chalk-texture);
+        }
+
+        /* Smudge effect class */
+        .smudged {
+            position: relative;
+        }
+
+        .smudged::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(45, 74, 62, 0.6) 0%,
+                transparent 70%
+            );
+            filter: blur(8px);
+            z-index: -1;
+        }
+
+        /* Erased area effect */
+        .erased-area {
+            background: linear-gradient(
+                135deg,
+                rgba(45, 74, 62, 0.8) 0%,
+                rgba(61, 90, 78, 0.6) 50%,
+                rgba(45, 74, 62, 0.7) 100%
+            );
+            border-radius: 10px 15px 8px 12px;
+            padding: var(--space-4);
+            position: relative;
+        }
+
+        .erased-area::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--chalk-dust);
+            opacity: 0.3;
+            border-radius: inherit;
+        }
+
+        /* ========================================
+           HEADER
+           ======================================== */
+
+        .header {
+            text-align: center;
+            padding: var(--space-8) var(--space-4);
+            margin-bottom: var(--space-7);
+            position: relative;
+        }
+
+        .header-title {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 6rem);
+            color: var(--chalk-white);
+            line-height: 1.1;
+            margin-bottom: var(--space-4);
+            text-shadow:
+                2px 2px 0 rgba(0,0,0,0.3),
+                0 0 20px rgba(245, 245, 240, 0.3);
+            letter-spacing: 0.05em;
+            position: relative;
+        }
+
+        /* Chalk underline */
+        .header-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 4px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 4'%3E%3Cpath d='M0 2 Q10 0 20 2 T40 2 T60 2 T80 2 T100 2 T120 2 T140 2 T160 2 T180 2 T200 2' stroke='%23f5f5f0' stroke-width='3' fill='none' stroke-linecap='round' opacity='0.8'/%3E%3C/svg%3E") repeat-x;
+            background-size: auto 100%;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--chalk-yellow);
+            font-weight: 300;
+            margin-top: var(--space-5);
+            text-shadow: 0 0 10px rgba(247, 233, 142, 0.3);
+        }
+
+        /* Doodle decorations */
+        .header-doodles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .doodle {
+            position: absolute;
+            opacity: 0.4;
+        }
+
+        .doodle-star {
+            width: 30px;
+            height: 30px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath d='M15 2 L17 11 L26 11 L19 17 L22 26 L15 21 L8 26 L11 17 L4 11 L13 11 Z' stroke='%23f7e98e' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat center;
+        }
+
+        .doodle-spiral {
+            width: 40px;
+            height: 40px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M20 20 Q20 15 25 15 Q30 15 30 20 Q30 27 20 27 Q10 27 10 18 Q10 8 22 8 Q35 8 35 22' stroke='%23f4a5c0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E") no-repeat center;
+        }
+
+        .doodle-arrow {
+            width: 50px;
+            height: 20px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 50 20'%3E%3Cpath d='M5 10 Q15 8 25 10 T45 10 M38 5 L45 10 L38 15' stroke='%2387ceeb' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat center;
+        }
+
+        .doodle-circle {
+            width: 25px;
+            height: 25px;
+            border: 2px solid var(--chalk-white-faded);
+            border-radius: 50%;
+            background: transparent;
+        }
+
+        /* ========================================
+           SECTIONS
+           ======================================== */
+
+        .section {
+            margin-bottom: var(--space-8);
+            padding-bottom: var(--space-7);
+            position: relative;
+        }
+
+        /* Chalk divider line */
+        .section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 5%;
+            width: 90%;
+            height: 2px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 2'%3E%3Cpath d='M0 1 Q50 0 100 1 T200 1 T300 1 T400 1' stroke='%23f5f5f0' stroke-width='1.5' fill='none' opacity='0.3'/%3E%3C/svg%3E") repeat-x;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-6);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            color: var(--chalk-pink);
+            opacity: 0.8;
+            margin-bottom: var(--space-2);
+            display: inline-block;
+            position: relative;
+        }
+
+        /* Circle around section number */
+        .section-number::before {
+            content: '';
+            position: absolute;
+            inset: -8px -12px;
+            border: 2px solid var(--chalk-pink-faded);
+            border-radius: 50% 45% 55% 48%;
+            transform: rotate(-5deg);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--chalk-white);
+            margin-bottom: var(--space-3);
+            text-shadow:
+                2px 2px 0 rgba(0,0,0,0.2),
+                0 0 15px rgba(245, 245, 240, 0.2);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-lead {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            color: var(--chalk-white-faded);
+            max-width: 60ch;
+            line-height: 1.6;
+        }
+
+        /* Grid layouts */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-6);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-5);
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-4);
+        }
+
+        .grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-4);
+        }
+
+        @media (max-width: 900px) {
+            .grid-5 {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4, .grid-5 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           01 - COLORS
+           ======================================== */
+
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-5);
+            justify-content: center;
+        }
+
+        .color-swatch {
+            text-align: center;
+            width: 140px;
+        }
+
+        .color-preview {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto var(--space-3);
+            border-radius: 50%;
+            position: relative;
+            box-shadow:
+                0 4px 15px rgba(0,0,0,0.3),
+                inset 0 -3px 10px rgba(0,0,0,0.2),
+                inset 0 3px 10px rgba(255,255,255,0.1);
+        }
+
+        /* Chalk stick appearance */
+        .color-preview::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: rotate(-30deg);
+        }
+
+        /* Chalk dust under swatch */
+        .color-preview::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 10px;
+            background: radial-gradient(
+                ellipse at center,
+                currentColor 0%,
+                transparent 70%
+            );
+            opacity: 0.4;
+            filter: blur(3px);
+        }
+
+        .color-name {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: var(--chalk-white);
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--chalk-white-faded);
+        }
+
+        /* ========================================
+           02 - TYPOGRAPHY
+           ======================================== */
+
+        .type-specimen {
+            margin-bottom: var(--space-5);
+            padding: var(--space-5);
+            background: rgba(0,0,0,0.15);
+            border-radius: 8px;
+            border: 1px dashed var(--chalk-white-ghost);
+        }
+
+        .type-row {
+            padding: var(--space-4) 0;
+            border-bottom: 1px dashed var(--chalk-white-ghost);
+        }
+
+        .type-row:last-child {
+            border-bottom: none;
+        }
+
+        .type-meta {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            color: var(--chalk-yellow);
+            margin-bottom: var(--space-2);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--chalk-white);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+
+        .type-h1 {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--chalk-white);
+        }
+
+        .type-h2 {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            color: var(--chalk-white);
+            font-weight: 700;
+        }
+
+        .type-h3 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--chalk-yellow);
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            color: var(--chalk-white-faded);
+            line-height: 1.7;
+        }
+
+        .type-small {
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            color: var(--chalk-white-ghost);
+        }
+
+        /* Font showcase cards */
+        .font-showcase {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-5);
+            margin-top: var(--space-6);
+        }
+
+        @media (max-width: 768px) {
+            .font-showcase {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .font-card {
+            background: rgba(0,0,0,0.2);
+            padding: var(--space-5);
+            border: 2px solid var(--chalk-white-ghost);
+            border-radius: 8px;
+            text-align: center;
+            transition: all var(--transition-base);
+        }
+
+        .font-card:hover {
+            border-color: var(--chalk-white-faded);
+            background: rgba(0,0,0,0.25);
+        }
+
+        .font-preview {
+            font-size: 2.5rem;
+            margin-bottom: var(--space-3);
+            color: var(--chalk-white);
+        }
+
+        .font-name {
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            color: var(--chalk-yellow);
+        }
+
+        /* ========================================
+           03 - SPACING
+           ======================================== */
+
+        .spacing-scale {
+            background: rgba(0,0,0,0.15);
+            padding: var(--space-5);
+            border-radius: 8px;
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-3);
+            padding: var(--space-2) 0;
+        }
+
+        .spacing-label {
+            width: 60px;
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            color: var(--chalk-white);
+        }
+
+        .spacing-bar {
+            height: 20px;
+            background: linear-gradient(
+                to right,
+                var(--chalk-blue) 0%,
+                var(--chalk-blue-faded) 100%
+            );
+            border-radius: 4px;
+            position: relative;
+            box-shadow:
+                0 2px 4px rgba(0,0,0,0.2),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+
+        /* Chalk texture on bars */
+        .spacing-bar::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--chalk-dust);
+            opacity: 0.3;
+            border-radius: inherit;
+        }
+
+        .spacing-value {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--chalk-white-faded);
+            width: 50px;
+        }
+
+        /* ========================================
+           04 - BUTTONS
+           ======================================== */
+
+        .button-showcase {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .btn {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            padding: var(--space-3) var(--space-6);
+            border: 2px solid var(--chalk-white);
+            background: transparent;
+            color: var(--chalk-white);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            border-radius: 6px;
+        }
+
+        /* Chalk outline effect */
+        .btn::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border: 2px solid var(--chalk-white-ghost);
+            border-radius: 8px;
+            transform: rotate(1deg);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+
+        .btn:hover {
+            background: rgba(245, 245, 240, 0.1);
+            text-shadow: 0 0 10px rgba(245, 245, 240, 0.5);
+            box-shadow: 0 0 20px rgba(245, 245, 240, 0.2);
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        /* Filled chalk button */
+        .btn-filled {
+            background: var(--chalk-white);
+            color: var(--board-green);
+            border-color: var(--chalk-white);
+        }
+
+        .btn-filled:hover {
+            background: var(--chalk-white-faded);
+            color: var(--board-dark);
+        }
+
+        /* Colored buttons */
+        .btn-yellow {
+            border-color: var(--chalk-yellow);
+            color: var(--chalk-yellow);
+        }
+
+        .btn-yellow:hover {
+            background: rgba(247, 233, 142, 0.15);
+            box-shadow: 0 0 20px rgba(247, 233, 142, 0.3);
+        }
+
+        .btn-pink {
+            border-color: var(--chalk-pink);
+            color: var(--chalk-pink);
+        }
+
+        .btn-pink:hover {
+            background: rgba(244, 165, 192, 0.15);
+            box-shadow: 0 0 20px rgba(244, 165, 192, 0.3);
+        }
+
+        .btn-blue {
+            border-color: var(--chalk-blue);
+            color: var(--chalk-blue);
+        }
+
+        .btn-blue:hover {
+            background: rgba(135, 206, 235, 0.15);
+            box-shadow: 0 0 20px rgba(135, 206, 235, 0.3);
+        }
+
+        /* Dashed outline button */
+        .btn-dashed {
+            border-style: dashed;
+            border-width: 2px;
+        }
+
+        /* Size variants */
+        .btn-sm {
+            padding: var(--space-2) var(--space-4);
+            font-size: 0.95rem;
+        }
+
+        .btn-lg {
+            padding: var(--space-4) var(--space-8);
+            font-size: 1.25rem;
+        }
+
+        /* ========================================
+           05 - FORM ELEMENTS
+           ======================================== */
+
+        .form-section {
+            background: rgba(0,0,0,0.15);
+            padding: var(--space-6);
+            border-radius: 8px;
+            border: 1px dashed var(--chalk-white-ghost);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            color: var(--chalk-yellow);
+            margin-bottom: var(--space-2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--chalk-white);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--chalk-white-faded);
+            transition: all var(--transition-fast);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-bottom-color: var(--chalk-white);
+            background: rgba(245, 245, 240, 0.05);
+        }
+
+        .input-field::placeholder {
+            color: var(--chalk-white-ghost);
+            font-style: italic;
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+            border: 2px solid var(--chalk-white-faded);
+            border-radius: 6px;
+            padding: var(--space-4);
+        }
+
+        textarea.input-field:focus {
+            border-color: var(--chalk-white);
+        }
+
+        /* Checkbox styling */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-3);
+            cursor: pointer;
+        }
+
+        .checkbox-input {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--chalk-white-faded);
+            border-radius: 4px;
+            background: transparent;
+            position: relative;
+            transition: all var(--transition-fast);
+        }
+
+        .checkbox-input:checked + .checkbox-custom {
+            border-color: var(--chalk-blue);
+            background: rgba(135, 206, 235, 0.2);
+        }
+
+        .checkbox-input:checked + .checkbox-custom::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 1px;
+            width: 6px;
+            height: 12px;
+            border: solid var(--chalk-blue);
+            border-width: 0 3px 3px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-label {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--chalk-white-faded);
+        }
+
+        /* ========================================
+           06 - CARDS
+           ======================================== */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-5);
+        }
+
+        @media (max-width: 900px) {
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: rgba(0,0,0,0.2);
+            border: 2px solid var(--chalk-white-faded);
+            border-radius: 8px;
+            padding: var(--space-5);
+            position: relative;
+            transition: all var(--transition-base);
+        }
+
+        .card:hover {
+            border-color: var(--chalk-white);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        /* Chalk corner decoration */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border-top: 2px solid var(--chalk-yellow-faded);
+            border-right: 2px solid var(--chalk-yellow-faded);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 20px;
+            height: 20px;
+            border-bottom: 2px solid var(--chalk-yellow-faded);
+            border-left: 2px solid var(--chalk-yellow-faded);
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.4rem;
+            color: var(--chalk-white);
+            margin-bottom: var(--space-3);
+            font-weight: 700;
+        }
+
+        .card-text {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--chalk-white-faded);
+            line-height: 1.6;
+            margin-bottom: var(--space-3);
+        }
+
+        .card-meta {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--chalk-white-ghost);
+        }
+
+        /* Card variants */
+        .card-yellow {
+            border-color: var(--chalk-yellow-faded);
+        }
+
+        .card-yellow:hover {
+            border-color: var(--chalk-yellow);
+        }
+
+        .card-yellow .card-title {
+            color: var(--chalk-yellow);
+        }
+
+        .card-pink {
+            border-color: var(--chalk-pink-faded);
+        }
+
+        .card-pink:hover {
+            border-color: var(--chalk-pink);
+        }
+
+        .card-pink .card-title {
+            color: var(--chalk-pink);
+        }
+
+        .card-blue {
+            border-color: var(--chalk-blue-faded);
+        }
+
+        .card-blue:hover {
+            border-color: var(--chalk-blue);
+        }
+
+        .card-blue .card-title {
+            color: var(--chalk-blue);
+        }
+
+        /* ========================================
+           07 - BADGES
+           ======================================== */
+
+        .badge-showcase {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+        }
+
+        .badge {
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            padding: var(--space-1) var(--space-3);
+            border: 2px solid var(--chalk-white);
+            border-radius: 20px;
+            color: var(--chalk-white);
+            display: inline-block;
+            position: relative;
+        }
+
+        /* Chalk dust effect on badges */
+        .badge::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--chalk-dust);
+            opacity: 0.2;
+            border-radius: inherit;
+        }
+
+        .badge-filled {
+            background: var(--chalk-white);
+            color: var(--board-green);
+        }
+
+        .badge-yellow {
+            border-color: var(--chalk-yellow);
+            color: var(--chalk-yellow);
+        }
+
+        .badge-yellow.badge-filled {
+            background: var(--chalk-yellow);
+            color: var(--board-green);
+        }
+
+        .badge-pink {
+            border-color: var(--chalk-pink);
+            color: var(--chalk-pink);
+        }
+
+        .badge-pink.badge-filled {
+            background: var(--chalk-pink);
+            color: var(--board-green);
+        }
+
+        .badge-blue {
+            border-color: var(--chalk-blue);
+            color: var(--chalk-blue);
+        }
+
+        .badge-blue.badge-filled {
+            background: var(--chalk-blue);
+            color: var(--board-green);
+        }
+
+        .badge-orange {
+            border-color: var(--chalk-orange);
+            color: var(--chalk-orange);
+        }
+
+        .badge-green {
+            border-color: var(--chalk-green);
+            color: var(--chalk-green);
+        }
+
+        /* Square badge variant */
+        .badge-square {
+            border-radius: 4px;
+        }
+
+        /* ========================================
+           DECORATIVE ELEMENTS
+           ======================================== */
+
+        /* Chalk drawing box */
+        .chalk-box {
+            border: 3px solid var(--chalk-white-faded);
+            border-radius: 10px 15px 8px 12px;
+            padding: var(--space-5);
+            position: relative;
+            margin: var(--space-5) 0;
+        }
+
+        .chalk-box::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border: 1px dashed var(--chalk-white-ghost);
+            border-radius: inherit;
+        }
+
+        /* Chalk list */
+        .chalk-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .chalk-list li {
+            position: relative;
+            padding-left: var(--space-6);
+            margin-bottom: var(--space-3);
+            font-family: var(--font-body);
+            color: var(--chalk-white-faded);
+        }
+
+        .chalk-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 20px;
+            height: 2px;
+            background: var(--chalk-yellow);
+        }
+
+        /* Chalk arrow */
+        .chalk-arrow {
+            display: inline-block;
+            margin: 0 var(--space-2);
+        }
+
+        /* Quote block */
+        .chalk-quote {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            color: var(--chalk-white);
+            padding: var(--space-5) var(--space-6);
+            border-left: 4px solid var(--chalk-yellow);
+            margin: var(--space-6) 0;
+            position: relative;
+            font-style: italic;
+        }
+
+        .chalk-quote::before {
+            content: '"';
+            font-family: var(--font-display);
+            font-size: 4rem;
+            position: absolute;
+            top: -10px;
+            left: var(--space-2);
+            color: var(--chalk-yellow-faded);
+            line-height: 1;
+        }
+
+        .chalk-quote cite {
+            display: block;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--chalk-white-faded);
+            margin-top: var(--space-3);
+            font-style: normal;
+        }
+
+        /* Math/equation style */
+        .chalk-equation {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--chalk-white);
+            text-align: center;
+            padding: var(--space-5);
+            background: rgba(0,0,0,0.15);
+            border-radius: 8px;
+            margin: var(--space-5) 0;
+        }
+
+        /* Tally marks */
+        .tally-marks {
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-end;
+        }
+
+        .tally-group {
+            display: flex;
+            gap: 4px;
+            position: relative;
+        }
+
+        .tally-mark {
+            width: 4px;
+            height: 30px;
+            background: var(--chalk-white);
+            border-radius: 2px;
+        }
+
+        .tally-mark.diagonal {
+            position: absolute;
+            width: 40px;
+            height: 4px;
+            top: 50%;
+            left: -5px;
+            transform: rotate(-20deg);
+        }
+
+        /* ========================================
+           FOOTER
+           ======================================== */
+
+        .footer {
+            text-align: center;
+            padding: var(--space-8) 0;
+            margin-top: var(--space-8);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 3'%3E%3Cpath d='M0 1.5 Q25 0 50 1.5 T100 1.5 T150 1.5 T200 1.5' stroke='%23f5f5f0' stroke-width='2' fill='none' opacity='0.4'/%3E%3C/svg%3E") repeat-x;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            color: var(--chalk-white);
+            margin-bottom: var(--space-3);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+        }
+
+        .footer-text {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: var(--chalk-white-faded);
+            margin-bottom: var(--space-4);
+        }
+
+        .footer-doodles {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-5);
+            margin-top: var(--space-5);
+        }
+
+        /* SVG Filters */
+        .svg-filters {
+            position: absolute;
+            width: 0;
+            height: 0;
+        }
+
+        /* Utility classes */
+        .text-yellow { color: var(--chalk-yellow); }
+        .text-pink { color: var(--chalk-pink); }
+        .text-blue { color: var(--chalk-blue); }
+        .text-faded { color: var(--chalk-white-faded); }
+        .text-center { text-align: center; }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-6 { margin-top: var(--space-6); }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mb-6 { margin-bottom: var(--space-6); }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-6) var(--space-4);
+            }
+
+            body::before {
+                border-width: 12px;
+            }
+
+            .header-title {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .type-display {
+                font-size: 2.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- SVG Filters for chalk texture -->
+    <svg class="svg-filters">
+        <defs>
+            <filter id="chalk-texture" x="-10%" y="-10%" width="120%" height="120%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- Chalk dust overlay -->
+    <div class="chalk-dust-overlay"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-doodles">
+                <span class="doodle doodle-star" style="top: 20px; left: 10%;"></span>
+                <span class="doodle doodle-spiral" style="top: 30px; right: 15%;"></span>
+                <span class="doodle doodle-arrow" style="bottom: 40px; left: 5%;"></span>
+                <span class="doodle doodle-circle" style="bottom: 20px; right: 8%;"></span>
+                <span class="doodle doodle-star" style="top: 50%; left: 3%;"></span>
+            </div>
+            <h1 class="header-title">Chalkboard</h1>
+            <p class="header-subtitle">A design system written in chalk and classroom nostalgia</p>
+        </header>
+
+        <!-- 01 - Colors -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">I</p>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-lead">Classic chalk colors on slate green - from pure white to vibrant pastels, each with that distinctive dusty texture.</p>
+            </div>
+
+            <div class="color-palette">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--chalk-white); color: var(--chalk-white);"></div>
+                    <p class="color-name">Chalk White</p>
+                    <p class="color-value">#F5F5F0</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--chalk-yellow); color: var(--chalk-yellow);"></div>
+                    <p class="color-name">Chalk Yellow</p>
+                    <p class="color-value">#F7E98E</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--chalk-pink); color: var(--chalk-pink);"></div>
+                    <p class="color-name">Chalk Pink</p>
+                    <p class="color-value">#F4A5C0</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--chalk-blue); color: var(--chalk-blue);"></div>
+                    <p class="color-name">Chalk Blue</p>
+                    <p class="color-value">#87CEEB</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--chalk-orange); color: var(--chalk-orange);"></div>
+                    <p class="color-name">Chalk Orange</p>
+                    <p class="color-value">#FFB366</p>
+                </div>
+            </div>
+
+            <div class="chalk-box mt-6">
+                <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-3);">Board Colors</h3>
+                <div class="grid-3">
+                    <div style="text-align: center;">
+                        <div style="width: 60px; height: 60px; background: var(--board-green); border-radius: 50%; margin: 0 auto var(--space-2); border: 2px solid var(--chalk-white-faded);"></div>
+                        <p class="type-small">Board Green<br>#2D4A3E</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 60px; height: 60px; background: var(--board-dark); border-radius: 50%; margin: 0 auto var(--space-2); border: 2px solid var(--chalk-white-faded);"></div>
+                        <p class="type-small">Board Dark<br>#1A2A1A</p>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="width: 60px; height: 60px; background: var(--board-frame); border-radius: 50%; margin: 0 auto var(--space-2); border: 2px solid var(--chalk-white-faded);"></div>
+                        <p class="type-small">Wood Frame<br>#5C4033</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02 - Typography -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">II</p>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-lead">Hand-lettered fonts that capture the imperfect beauty of chalk writing - from bold display to casual notes.</p>
+            </div>
+
+            <div class="font-showcase">
+                <div class="font-card">
+                    <div class="font-preview" style="font-family: var(--font-display);">Aa Bb Cc</div>
+                    <p class="font-name">Permanent Marker - Display</p>
+                </div>
+                <div class="font-card">
+                    <div class="font-preview" style="font-family: var(--font-heading);">Aa Bb Cc</div>
+                    <p class="font-name">Kalam - Headings</p>
+                </div>
+                <div class="font-card">
+                    <div class="font-preview" style="font-family: var(--font-body);">Aa Bb Cc</div>
+                    <p class="font-name">Architects Daughter - Body</p>
+                </div>
+            </div>
+
+            <div class="type-specimen mt-6">
+                <div class="type-row">
+                    <p class="type-meta">Display / Permanent Marker / 64px</p>
+                    <p class="type-display">Lesson One</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Heading 1 / Permanent Marker / 40px</p>
+                    <p class="type-h1">Today's Assignment</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Heading 2 / Kalam Bold / 32px</p>
+                    <p class="type-h2">Chapter Notes</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Heading 3 / Kalam / 24px</p>
+                    <p class="type-h3 text-yellow">Important Points</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Body / Architects Daughter / 17px</p>
+                    <p class="type-body">The quick brown fox jumps over the lazy dog. Every letter flows with that distinctive chalk texture, slightly imperfect yet perfectly readable.</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Small / Architects Daughter / 14px</p>
+                    <p class="type-small">Fine print appears here in a lighter, more subtle chalk tone.</p>
+                </div>
+            </div>
+
+            <div class="chalk-quote">
+                "Education is not the filling of a pail, but the lighting of a fire."
+                <cite>- William Butler Yeats</cite>
+            </div>
+        </section>
+
+        <!-- 03 - Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">III</p>
+                <h2 class="section-title">Spacing Scale</h2>
+                <p class="section-lead">A consistent spacing system measured in chalk strokes - keeping everything properly aligned on the board.</p>
+            </div>
+
+            <div class="spacing-scale">
+                <div class="spacing-row">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">xs</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">sm</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">12px</span>
+                    <div class="spacing-bar" style="width: 48px;"></div>
+                    <span class="spacing-value">md</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">base</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 96px;"></div>
+                    <span class="spacing-value">lg</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                    <span class="spacing-value">xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                    <span class="spacing-value">2xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                    <span class="spacing-value">3xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">96px</span>
+                    <div class="spacing-bar" style="width: 320px;"></div>
+                    <span class="spacing-value">4xl</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04 - Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">IV</p>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-lead">Interactive elements drawn in chalk - from outlined to filled, each with that satisfying dusty glow on hover.</p>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Outlined Buttons</h3>
+            <div class="button-showcase">
+                <button class="btn">Default</button>
+                <button class="btn btn-yellow">Yellow</button>
+                <button class="btn btn-pink">Pink</button>
+                <button class="btn btn-blue">Blue</button>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Filled Button</h3>
+            <div class="button-showcase">
+                <button class="btn btn-filled">Filled White</button>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Dashed Outline</h3>
+            <div class="button-showcase">
+                <button class="btn btn-dashed">Dashed</button>
+                <button class="btn btn-dashed btn-yellow">Dashed Yellow</button>
+                <button class="btn btn-dashed btn-pink">Dashed Pink</button>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Sizes</h3>
+            <div class="button-showcase">
+                <button class="btn btn-sm">Small</button>
+                <button class="btn">Medium</button>
+                <button class="btn btn-lg">Large</button>
+            </div>
+        </section>
+
+        <!-- 05 - Form Elements -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">V</p>
+                <h2 class="section-title">Form Inputs</h2>
+                <p class="section-lead">Input fields that feel like writing on the board - simple underlines that glow when focused.</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-section">
+                    <div class="input-group">
+                        <label class="input-label">Your Name</label>
+                        <input type="text" class="input-field" placeholder="Write here...">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Email Address</label>
+                        <input type="email" class="input-field" placeholder="student@school.edu">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Subject</label>
+                        <input type="text" class="input-field" placeholder="Today's topic...">
+                    </div>
+                </div>
+                <div class="form-section">
+                    <div class="input-group">
+                        <label class="input-label">Your Message</label>
+                        <textarea class="input-field" placeholder="Write your notes here..."></textarea>
+                    </div>
+                    <label class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input" checked>
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">I completed my homework</span>
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input">
+                        <span class="checkbox-custom"></span>
+                        <span class="checkbox-label">Send me study reminders</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06 - Cards -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">VI</p>
+                <h2 class="section-title">Cards</h2>
+                <p class="section-lead">Content containers with chalk borders and corner decorations - like notes pinned to the classroom board.</p>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <h3 class="card-title">Lesson Notes</h3>
+                    <p class="card-text">Basic card with white chalk border. Perfect for general content and announcements.</p>
+                    <p class="card-meta">Posted today</p>
+                </div>
+                <div class="card card-yellow">
+                    <h3 class="card-title">Important!</h3>
+                    <p class="card-text">Yellow bordered card draws attention to important information that students should not miss.</p>
+                    <p class="card-meta">Due tomorrow</p>
+                </div>
+                <div class="card card-pink">
+                    <h3 class="card-title">Pop Quiz</h3>
+                    <p class="card-text">Pink bordered card for special announcements, events, or surprise activities.</p>
+                    <p class="card-meta">Friday afternoon</p>
+                </div>
+            </div>
+
+            <div class="card-grid mt-6">
+                <div class="card card-blue">
+                    <h3 class="card-title">Extra Credit</h3>
+                    <p class="card-text">Blue bordered card for optional content, bonus materials, or helpful resources.</p>
+                    <p class="card-meta">Optional</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Study Tips</h3>
+                    <ul class="chalk-list">
+                        <li>Review notes daily</li>
+                        <li>Practice problems</li>
+                        <li>Ask questions</li>
+                        <li>Form study groups</li>
+                    </ul>
+                </div>
+                <div class="card card-yellow">
+                    <h3 class="card-title">Class Schedule</h3>
+                    <p class="card-text">Monday: Intro<br>Wednesday: Practice<br>Friday: Review</p>
+                    <p class="card-meta">Room 204</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 07 - Badges -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">VII</p>
+                <h2 class="section-title">Badges</h2>
+                <p class="section-lead">Small labels and tags in various chalk colors - for status indicators, categories, and quick markers.</p>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Outlined Badges</h3>
+            <div class="badge-showcase">
+                <span class="badge">Default</span>
+                <span class="badge badge-yellow">Highlight</span>
+                <span class="badge badge-pink">New</span>
+                <span class="badge badge-blue">Info</span>
+                <span class="badge badge-orange">Warning</span>
+                <span class="badge badge-green">Success</span>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Filled Badges</h3>
+            <div class="badge-showcase">
+                <span class="badge badge-filled">White</span>
+                <span class="badge badge-yellow badge-filled">Yellow</span>
+                <span class="badge badge-pink badge-filled">Pink</span>
+                <span class="badge badge-blue badge-filled">Blue</span>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Square Badges</h3>
+            <div class="badge-showcase">
+                <span class="badge badge-square">Grade A</span>
+                <span class="badge badge-square badge-yellow">Grade B</span>
+                <span class="badge badge-square badge-pink">Grade C</span>
+                <span class="badge badge-square badge-blue">Pass</span>
+            </div>
+
+            <div class="chalk-box mt-6">
+                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--chalk-white); margin-bottom: var(--space-3);">Badge Usage Examples</h3>
+                <p class="type-body mb-4">
+                    Mark important items with <span class="badge badge-yellow" style="font-size: 0.8rem;">Highlight</span> badges,
+                    show completion with <span class="badge badge-green" style="font-size: 0.8rem;">Success</span>,
+                    or indicate new content with <span class="badge badge-pink" style="font-size: 0.8rem;">New</span>.
+                </p>
+            </div>
+        </section>
+
+        <!-- 08 - Decorative Elements -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">VIII</p>
+                <h2 class="section-title">Extra Elements</h2>
+                <p class="section-lead">Additional chalk decorations and components for building complete classroom-themed interfaces.</p>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Chalk Equation Style</h3>
+            <div class="chalk-equation">
+                E = mc<sup>2</sup>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin-bottom: var(--space-4);">Tally Counter</h3>
+            <div class="chalk-box">
+                <div class="tally-marks">
+                    <div class="tally-group">
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark diagonal"></div>
+                    </div>
+                    <div class="tally-group">
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark diagonal"></div>
+                    </div>
+                    <div class="tally-group">
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                        <div class="tally-mark"></div>
+                    </div>
+                    <span style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--chalk-yellow); margin-left: var(--space-4);">= 13</span>
+                </div>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin: var(--space-6) 0 var(--space-4);">Chalk List</h3>
+            <div class="grid-2">
+                <ul class="chalk-list">
+                    <li>First item on the list</li>
+                    <li>Second item follows</li>
+                    <li>Third item here</li>
+                    <li>And finally the fourth</li>
+                </ul>
+                <ul class="chalk-list">
+                    <li style="color: var(--chalk-yellow);">Highlighted list item</li>
+                    <li style="color: var(--chalk-pink);">Pink colored item</li>
+                    <li style="color: var(--chalk-blue);">Blue colored item</li>
+                    <li>Regular chalk item</li>
+                </ul>
+            </div>
+
+            <h3 style="font-family: var(--font-heading); font-size: 1.2rem; color: var(--chalk-yellow); margin: var(--space-6) 0 var(--space-4);">Doodle Decorations</h3>
+            <div class="chalk-box" style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: var(--space-4);">
+                <div style="text-align: center;">
+                    <span class="doodle-star" style="position: static; display: inline-block; opacity: 1;"></span>
+                    <p class="type-small mt-4">Star</p>
+                </div>
+                <div style="text-align: center;">
+                    <span class="doodle-spiral" style="position: static; display: inline-block; opacity: 1;"></span>
+                    <p class="type-small mt-4">Spiral</p>
+                </div>
+                <div style="text-align: center;">
+                    <span class="doodle-arrow" style="position: static; display: inline-block; opacity: 1;"></span>
+                    <p class="type-small mt-4">Arrow</p>
+                </div>
+                <div style="text-align: center;">
+                    <span class="doodle-circle" style="position: static; display: inline-block; opacity: 1;"></span>
+                    <p class="type-small mt-4">Circle</p>
+                </div>
+            </div>
+
+            <div class="erased-area mt-6">
+                <h3 style="font-family: var(--font-heading); font-size: 1.1rem; color: var(--chalk-white-faded); margin-bottom: var(--space-3);">Erased Area Effect</h3>
+                <p class="type-body text-faded">This area simulates where chalk has been partially erased, creating a subtle background for secondary content or dismissed notices.</p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-logo">Chalkboard</p>
+            <p class="footer-text">A design system for classroom nostalgia and hand-lettered charm</p>
+            <div class="footer-doodles">
+                <span class="doodle-star" style="position: static; display: inline-block; opacity: 0.6;"></span>
+                <span class="doodle-spiral" style="position: static; display: inline-block; opacity: 0.6;"></span>
+                <span class="doodle-star" style="position: static; display: inline-block; opacity: 0.6;"></span>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

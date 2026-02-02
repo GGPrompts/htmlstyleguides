@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CONCRETE BRUTALIST | Architectural Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           CONCRETE BRUTALIST DESIGN SYSTEM
+           ============================================
+           Inspired by architectural brutalism.
+           Raw concrete. Exposed structure.
+           Monumental. Heavy. Uncompromising.
+           Form boards and aggregate textures.
+           ============================================ */
+
+        :root {
+            /* CONCRETE PALETTE */
+            --concrete-light: #C4C4BC;
+            --concrete-base: #8A897C;
+            --concrete-mid: #6B6A5E;
+            --concrete-dark: #4A4A42;
+            --concrete-shadow: #2D2D28;
+
+            /* ACCENT: Construction Safety */
+            --safety-orange: #E85D04;
+            --safety-yellow: #F4A100;
+            --rust: #8B4513;
+            --steel: #71797E;
+
+            /* NEUTRALS */
+            --off-white: #F5F5F0;
+            --charcoal: #1C1C1A;
+
+            /* TYPOGRAPHY */
+            --font-display: 'Bebas Neue', sans-serif;
+            --font-heading: 'Oswald', sans-serif;
+            --font-body: 'IBM Plex Sans', sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+
+            /* SPACING SCALE - Heavy, architectural proportions */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 32px;
+            --space-xl: 48px;
+            --space-xxl: 80px;
+            --space-massive: 120px;
+
+            /* BORDERS */
+            --border-thin: 1px solid var(--concrete-dark);
+            --border-medium: 2px solid var(--concrete-dark);
+            --border-heavy: 4px solid var(--concrete-shadow);
+            --border-massive: 8px solid var(--concrete-shadow);
+
+            /* SHADOWS - Heavy, structural */
+            --shadow-shallow: 4px 4px 0 var(--concrete-shadow);
+            --shadow-deep: 8px 8px 0 var(--concrete-shadow);
+            --shadow-massive: 16px 16px 0 var(--concrete-shadow);
+
+            /* CONCRETE TEXTURE (SVG noise pattern) */
+            --noise-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* RESET */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--charcoal);
+            background-color: var(--concrete-light);
+            background-image: var(--noise-texture);
+            background-blend-mode: overlay;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           CONCRETE TEXTURE UTILITIES
+           ============================================ */
+
+        .concrete-texture {
+            position: relative;
+            background-color: var(--concrete-base);
+        }
+
+        .concrete-texture::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .aggregate-texture {
+            background-image:
+                radial-gradient(circle at 20% 30%, var(--concrete-mid) 1px, transparent 1px),
+                radial-gradient(circle at 60% 70%, var(--concrete-dark) 1px, transparent 1px),
+                radial-gradient(circle at 80% 20%, var(--concrete-mid) 2px, transparent 2px),
+                radial-gradient(circle at 40% 80%, var(--concrete-shadow) 1px, transparent 1px),
+                radial-gradient(circle at 10% 60%, var(--concrete-dark) 1px, transparent 1px);
+            background-size: 100px 100px;
+        }
+
+        /* Form board lines texture */
+        .formboard-texture {
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 60px,
+                rgba(0, 0, 0, 0.08) 60px,
+                rgba(0, 0, 0, 0.08) 62px
+            );
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+
+        .page-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: var(--concrete-light);
+            position: relative;
+        }
+
+        .container {
+            padding: var(--space-lg) var(--space-xl);
+        }
+
+        .section {
+            padding: var(--space-xxl) var(--space-xl);
+            border-bottom: var(--border-heavy);
+            position: relative;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-xl);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 5rem;
+            line-height: 0.8;
+            color: var(--concrete-shadow);
+            opacity: 0.3;
+            display: block;
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 3rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--charcoal);
+            margin: 0;
+        }
+
+        .section-description {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            color: var(--concrete-dark);
+            margin-top: var(--space-md);
+            max-width: 700px;
+            line-height: 1.7;
+        }
+
+        /* ============================================
+           HEADER - Monumental
+           ============================================ */
+
+        .site-header {
+            background-color: var(--concrete-shadow);
+            color: var(--off-white);
+            padding: var(--space-massive) var(--space-xl) var(--space-xxl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .site-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.12;
+            pointer-events: none;
+        }
+
+        .site-header::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 80px,
+                rgba(255, 255, 255, 0.03) 80px,
+                rgba(255, 255, 255, 0.03) 82px
+            );
+            pointer-events: none;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .site-header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(4rem, 12vw, 10rem);
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin: 0;
+            line-height: 0.9;
+        }
+
+        .site-header .tagline {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-top: var(--space-lg);
+            color: var(--concrete-base);
+        }
+
+        .site-header .version {
+            display: inline-block;
+            margin-top: var(--space-xl);
+            padding: var(--space-sm) var(--space-md);
+            background-color: var(--safety-orange);
+            color: var(--off-white);
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+        }
+
+        .header-accent {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--safety-orange) 0,
+                var(--safety-orange) 40px,
+                var(--safety-yellow) 40px,
+                var(--safety-yellow) 80px
+            );
+        }
+
+        /* ============================================
+           NAVIGATION
+           ============================================ */
+
+        .nav-bar {
+            background-color: var(--concrete-dark);
+            padding: var(--space-md) var(--space-xl);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: var(--border-medium);
+        }
+
+        .nav-bar a {
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--concrete-light);
+            padding: var(--space-sm) var(--space-md);
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .nav-bar a:hover {
+            color: var(--off-white);
+            background-color: var(--concrete-shadow);
+            border-color: var(--safety-orange);
+        }
+
+        /* ============================================
+           01. COLOR PALETTE
+           ============================================ */
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .color-swatch {
+            aspect-ratio: 4/3;
+            position: relative;
+            border: var(--border-heavy);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            overflow: hidden;
+        }
+
+        .color-swatch::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .color-swatch-info {
+            position: relative;
+            z-index: 1;
+            padding: var(--space-md);
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%);
+        }
+
+        .color-swatch-name {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--off-white);
+            display: block;
+        }
+
+        .color-swatch-value {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--concrete-light);
+            margin-top: var(--space-xs);
+            display: block;
+        }
+
+        .color-swatch-large {
+            grid-column: span 2;
+            aspect-ratio: 2/1;
+        }
+
+        @media (max-width: 768px) {
+            .color-swatch-large {
+                grid-column: span 1;
+                aspect-ratio: 4/3;
+            }
+        }
+
+        /* ============================================
+           02. TYPOGRAPHY
+           ============================================ */
+
+        .type-specimen {
+            margin-bottom: var(--space-xl);
+            background-color: var(--off-white);
+            border: var(--border-heavy);
+            box-shadow: var(--shadow-deep);
+        }
+
+        .type-specimen-header {
+            background-color: var(--concrete-dark);
+            color: var(--off-white);
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .type-specimen-body {
+            padding: var(--space-xl);
+            position: relative;
+        }
+
+        .type-specimen-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.05;
+            pointer-events: none;
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 6rem;
+            line-height: 1;
+            letter-spacing: 0.1em;
+            color: var(--charcoal);
+        }
+
+        .type-heading {
+            font-family: var(--font-heading);
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1.1;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--charcoal);
+        }
+
+        .type-subheading {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--concrete-dark);
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--charcoal);
+        }
+
+        .type-meta {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--concrete-mid);
+            margin-top: var(--space-md);
+            padding-top: var(--space-md);
+            border-top: var(--border-thin);
+        }
+
+        /* Type scale demonstration */
+        .type-scale {
+            border: var(--border-heavy);
+            background-color: var(--off-white);
+        }
+
+        .type-scale-row {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            border-bottom: var(--border-thin);
+            align-items: center;
+        }
+
+        .type-scale-row:last-child {
+            border-bottom: none;
+        }
+
+        .type-scale-label {
+            padding: var(--space-md);
+            background-color: var(--concrete-base);
+            font-family: var(--font-mono);
+            font-size: 0.625rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--off-white);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .type-scale-label span {
+            display: block;
+            opacity: 0.6;
+            margin-top: var(--space-xs);
+        }
+
+        .type-scale-sample {
+            padding: var(--space-lg);
+        }
+
+        /* ============================================
+           03. SPACING
+           ============================================ */
+
+        .spacing-demo {
+            background-color: var(--off-white);
+            border: var(--border-heavy);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            padding: var(--space-md) var(--space-lg);
+            border-bottom: var(--border-thin);
+        }
+
+        .spacing-row:last-child {
+            border-bottom: none;
+        }
+
+        .spacing-label {
+            width: 100px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--concrete-dark);
+            flex-shrink: 0;
+        }
+
+        .spacing-bar {
+            height: 32px;
+            background-color: var(--concrete-dark);
+            position: relative;
+        }
+
+        .spacing-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.2;
+        }
+
+        .spacing-value {
+            margin-left: var(--space-md);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--concrete-mid);
+        }
+
+        /* ============================================
+           04. BUTTONS
+           ============================================ */
+
+        .btn {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: var(--space-md) var(--space-xl);
+            border: var(--border-heavy);
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: all 0.15s ease;
+            background-color: var(--concrete-base);
+            color: var(--charcoal);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: var(--shadow-shallow);
+        }
+
+        .btn:active {
+            transform: translate(0, 0);
+            box-shadow: none;
+        }
+
+        /* Primary Button - Heavy concrete slab */
+        .btn-primary {
+            background-color: var(--concrete-shadow);
+            color: var(--off-white);
+            box-shadow: var(--shadow-shallow);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-deep);
+        }
+
+        /* Secondary Button - Exposed aggregate */
+        .btn-secondary {
+            background-color: var(--concrete-mid);
+            color: var(--off-white);
+        }
+
+        /* Accent Button - Safety orange */
+        .btn-accent {
+            background-color: var(--safety-orange);
+            color: var(--off-white);
+            border-color: var(--charcoal);
+        }
+
+        .btn-accent:hover {
+            background-color: var(--safety-yellow);
+            color: var(--charcoal);
+        }
+
+        /* Outline Button */
+        .btn-outline {
+            background-color: transparent;
+            border-style: dashed;
+            color: var(--concrete-shadow);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--concrete-dark);
+            color: var(--off-white);
+            border-style: solid;
+        }
+
+        /* Button sizes */
+        .btn-small {
+            font-size: 0.75rem;
+            padding: var(--space-sm) var(--space-md);
+            border-width: 2px;
+        }
+
+        .btn-large {
+            font-size: 1.25rem;
+            padding: var(--space-lg) var(--space-xxl);
+            border-width: 6px;
+        }
+
+        .btn-massive {
+            font-size: 1.5rem;
+            padding: var(--space-xl) var(--space-xxl);
+            border-width: 8px;
+            box-shadow: var(--shadow-deep);
+        }
+
+        .btn-massive:hover {
+            box-shadow: var(--shadow-massive);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        /* ============================================
+           05. FORM INPUTS
+           ============================================ */
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--charcoal);
+            margin-bottom: var(--space-sm);
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            width: 100%;
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            padding: var(--space-md);
+            border: var(--border-heavy);
+            background-color: var(--off-white);
+            color: var(--charcoal);
+            transition: all 0.2s ease;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--safety-orange);
+            box-shadow: var(--shadow-shallow);
+        }
+
+        .form-textarea {
+            min-height: 160px;
+            resize: vertical;
+        }
+
+        .form-hint {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--concrete-mid);
+            margin-top: var(--space-sm);
+        }
+
+        .form-input-wrapper {
+            position: relative;
+        }
+
+        .form-input-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Input with construction aesthetic */
+        .form-input-heavy {
+            border-width: 6px;
+            background-color: var(--concrete-light);
+            font-weight: 500;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        /* ============================================
+           06. CARDS
+           ============================================ */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .card {
+            background-color: var(--concrete-base);
+            border: var(--border-heavy);
+            box-shadow: var(--shadow-deep);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .card-header {
+            padding: var(--space-lg);
+            background-color: var(--concrete-dark);
+            color: var(--off-white);
+            position: relative;
+        }
+
+        .card-header-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .card-body {
+            padding: var(--space-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-body p {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--charcoal);
+            margin: 0;
+        }
+
+        .card-footer {
+            padding: var(--space-md) var(--space-lg);
+            background-color: var(--concrete-mid);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--off-white);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Card Variants */
+        .card-monolith {
+            background-color: var(--concrete-shadow);
+            box-shadow: var(--shadow-massive);
+        }
+
+        .card-monolith .card-body p {
+            color: var(--concrete-light);
+        }
+
+        .card-monolith .card-header {
+            background-color: var(--charcoal);
+        }
+
+        .card-exposed {
+            background-color: var(--off-white);
+            border-style: dashed;
+        }
+
+        .card-exposed::before {
+            opacity: 0.08;
+        }
+
+        .card-accent {
+            border-color: var(--safety-orange);
+            border-width: 6px;
+        }
+
+        .card-accent .card-header {
+            background-color: var(--safety-orange);
+        }
+
+        /* Form board texture on card */
+        .card-formboard {
+            background-image: repeating-linear-gradient(
+                0deg,
+                var(--concrete-base),
+                var(--concrete-base) 40px,
+                var(--concrete-mid) 40px,
+                var(--concrete-mid) 42px
+            );
+        }
+
+        .card-formboard::before {
+            background-image: var(--noise-texture);
+            opacity: 0.1;
+        }
+
+        /* ============================================
+           07. BADGES
+           ============================================ */
+
+        .badge {
+            display: inline-block;
+            font-family: var(--font-heading);
+            font-size: 0.625rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: var(--space-xs) var(--space-md);
+            border: 2px solid var(--charcoal);
+            position: relative;
+        }
+
+        .badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .badge-concrete {
+            background-color: var(--concrete-base);
+            color: var(--charcoal);
+        }
+
+        .badge-dark {
+            background-color: var(--concrete-shadow);
+            color: var(--off-white);
+            border-color: var(--concrete-shadow);
+        }
+
+        .badge-safety {
+            background-color: var(--safety-orange);
+            color: var(--off-white);
+            border-color: var(--safety-orange);
+        }
+
+        .badge-warning {
+            background-color: var(--safety-yellow);
+            color: var(--charcoal);
+            border-color: var(--charcoal);
+        }
+
+        .badge-outline {
+            background-color: transparent;
+            border-style: dashed;
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-lg);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .site-footer {
+            background-color: var(--charcoal);
+            color: var(--concrete-light);
+            padding: var(--space-xxl) var(--space-xl);
+            position: relative;
+            text-align: center;
+        }
+
+        .site-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--off-white);
+            margin-bottom: var(--space-md);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-text {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            color: var(--concrete-mid);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-links {
+            margin-top: var(--space-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-links a {
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--concrete-base);
+            text-decoration: none;
+            margin: 0 var(--space-md);
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--off-white);
+            border-color: var(--safety-orange);
+        }
+
+        .footer-accent {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--safety-orange) 0,
+                var(--safety-orange) 40px,
+                var(--safety-yellow) 40px,
+                var(--safety-yellow) 80px
+            );
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .u-text-center { text-align: center; }
+        .u-text-right { text-align: right; }
+
+        .u-margin-bottom-lg { margin-bottom: var(--space-lg); }
+        .u-margin-bottom-xl { margin-bottom: var(--space-xl); }
+
+        /* Horizontal rule - construction beam */
+        hr {
+            border: none;
+            height: 8px;
+            background-color: var(--concrete-dark);
+            margin: var(--space-xl) 0;
+            position: relative;
+        }
+
+        hr::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.2;
+        }
+
+        hr.thin {
+            height: 2px;
+        }
+
+        hr.accent {
+            background-color: var(--safety-orange);
+        }
+
+        /* Blockquote - Monumental */
+        blockquote {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 500;
+            line-height: 1.4;
+            color: var(--charcoal);
+            padding: var(--space-xl);
+            margin: var(--space-xl) 0;
+            background-color: var(--concrete-base);
+            border-left: 8px solid var(--concrete-shadow);
+            position: relative;
+        }
+
+        blockquote::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        blockquote cite {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            font-weight: 400;
+            color: var(--concrete-dark);
+            margin-top: var(--space-md);
+        }
+
+        /* Info boxes */
+        .notice-box {
+            padding: var(--space-lg);
+            border: var(--border-heavy);
+            margin: var(--space-lg) 0;
+            position: relative;
+        }
+
+        .notice-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: var(--noise-texture);
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+        .notice-box-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .notice-box-warning {
+            background-color: var(--safety-yellow);
+            border-color: var(--charcoal);
+        }
+
+        .notice-box-info {
+            background-color: var(--concrete-base);
+        }
+
+        .notice-box-label {
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-sm);
+        }
+
+        /* Construction marker */
+        .construction-marker {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: repeating-linear-gradient(
+                45deg,
+                var(--safety-yellow),
+                var(--safety-yellow) 4px,
+                var(--charcoal) 4px,
+                var(--charcoal) 8px
+            );
+            margin-right: var(--space-sm);
+            vertical-align: middle;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="page-wrapper">
+        <!-- ============================================
+             HEADER
+             ============================================ -->
+        <header class="site-header">
+            <div class="header-content">
+                <h1>CONCRETE<br>BRUTALIST</h1>
+                <p class="tagline">Raw Materials. Massive Forms. Honest Architecture.</p>
+                <span class="version">DESIGN SYSTEM v1.0 | ARCHITECTURAL BRUTALISM</span>
+            </div>
+            <div class="header-accent"></div>
+        </header>
+
+        <!-- ============================================
+             NAVIGATION
+             ============================================ -->
+        <nav class="nav-bar">
+            <a href="#colors">01.Palette</a>
+            <a href="#typography">02.Typography</a>
+            <a href="#spacing">03.Spacing</a>
+            <a href="#buttons">04.Buttons</a>
+            <a href="#forms">05.Forms</a>
+            <a href="#cards">06.Cards</a>
+            <a href="#badges">07.Badges</a>
+        </nav>
+
+        <!-- ============================================
+             INTRODUCTION
+             ============================================ -->
+        <section class="section">
+            <div class="notice-box notice-box-warning">
+                <div class="notice-box-content">
+                    <p class="notice-box-label"><span class="construction-marker"></span>Design Philosophy</p>
+                    <p class="type-body">
+                        Concrete Brutalist draws inspiration from the architectural movement that celebrated raw materials, exposed structure, and monumental forms. This design system embraces the honesty of concrete - its texture, weight, and unapologetic presence. Every element is built to feel substantial, permanent, and structurally sound.
+                    </p>
+                </div>
+            </div>
+
+            <blockquote>
+                "Brutalism is about being raw and honest, celebrating the material used and the building's function rather than trying to disguise them."
+                <cite>- The Brutalist Philosophy</cite>
+            </blockquote>
+        </section>
+
+        <!-- ============================================
+             01. COLOR PALETTE
+             ============================================ -->
+        <section class="section" id="colors">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-description">
+                    A palette derived from raw concrete - from light aggregate surfaces to deep shadow. Accented with construction safety colors that punctuate the monochromatic mass.
+                </p>
+            </div>
+
+            <h3 class="type-subheading u-margin-bottom-lg">Concrete Tones</h3>
+
+            <div class="color-grid u-margin-bottom-xl">
+                <div class="color-swatch color-swatch-large" style="background-color: var(--concrete-light);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Concrete Light</span>
+                        <span class="color-swatch-value">#C4C4BC</span>
+                    </div>
+                </div>
+                <div class="color-swatch color-swatch-large" style="background-color: var(--concrete-shadow);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Concrete Shadow</span>
+                        <span class="color-swatch-value">#2D2D28</span>
+                    </div>
+                </div>
+                <div class="color-swatch" style="background-color: var(--concrete-base);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Concrete Base</span>
+                        <span class="color-swatch-value">#8A897C</span>
+                    </div>
+                </div>
+                <div class="color-swatch" style="background-color: var(--concrete-mid);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Concrete Mid</span>
+                        <span class="color-swatch-value">#6B6A5E</span>
+                    </div>
+                </div>
+                <div class="color-swatch" style="background-color: var(--concrete-dark);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Concrete Dark</span>
+                        <span class="color-swatch-value">#4A4A42</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="type-subheading u-margin-bottom-lg">Accent Colors</h3>
+
+            <div class="color-grid">
+                <div class="color-swatch" style="background-color: var(--safety-orange);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Safety Orange</span>
+                        <span class="color-swatch-value">#E85D04</span>
+                    </div>
+                </div>
+                <div class="color-swatch" style="background-color: var(--safety-yellow);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Safety Yellow</span>
+                        <span class="color-swatch-value">#F4A100</span>
+                    </div>
+                </div>
+                <div class="color-swatch" style="background-color: var(--rust);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Rust</span>
+                        <span class="color-swatch-value">#8B4513</span>
+                    </div>
+                </div>
+                <div class="color-swatch" style="background-color: var(--steel);">
+                    <div class="color-swatch-info">
+                        <span class="color-swatch-name">Steel</span>
+                        <span class="color-swatch-value">#71797E</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notice-box notice-box-info" style="margin-top: var(--space-xl);">
+                <div class="notice-box-content">
+                    <p class="notice-box-label">Material Note</p>
+                    <p class="type-body">
+                        All colors include a noise texture overlay to simulate the aggregate and variation found in poured concrete. The slight warm undertones reference the natural color of cement and sand mixtures.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             02. TYPOGRAPHY
+             ============================================ -->
+        <section class="section" id="typography">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-description">
+                    Heavy, condensed display type for monumental presence. Industrial sans-serif for functional text. Typography that feels carved into concrete, not printed on paper.
+                </p>
+            </div>
+
+            <h3 class="type-subheading u-margin-bottom-lg">Font Families</h3>
+
+            <div class="type-specimen">
+                <div class="type-specimen-header">Display: Bebas Neue</div>
+                <div class="type-specimen-body">
+                    <p class="type-display">MONUMENTAL</p>
+                    <p class="type-body" style="margin-top: var(--space-lg);">
+                        Bebas Neue is a condensed sans-serif with a powerful, industrial presence. Its tall, narrow letterforms command attention like the vertical pillars of brutalist architecture.
+                    </p>
+                    <p class="type-meta">Display headings | Hero text | Section markers | 4-10rem</p>
+                </div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-specimen-header">Heading: Oswald</div>
+                <div class="type-specimen-body">
+                    <p class="type-heading">STRUCTURAL FORMS</p>
+                    <p class="type-body" style="margin-top: var(--space-lg);">
+                        Oswald provides a robust, condensed alternative for headings and UI elements. It carries weight without overwhelming, functioning as the structural beams of the type system.
+                    </p>
+                    <p class="type-meta">Section titles | UI labels | Navigation | 1-3rem</p>
+                </div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-specimen-header">Subheading: Oswald Medium</div>
+                <div class="type-specimen-body">
+                    <p class="type-subheading">EXPOSED AGGREGATE SURFACE</p>
+                    <p class="type-body" style="margin-top: var(--space-lg);">
+                        A lighter weight for secondary headings and labels. Maintains the industrial character while stepping back from primary content.
+                    </p>
+                    <p class="type-meta">Subheadings | Labels | Emphasis | 1-1.5rem</p>
+                </div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-specimen-header">Body: IBM Plex Sans</div>
+                <div class="type-specimen-body">
+                    <p class="type-body">
+                        IBM Plex Sans brings clarity and functionality to body text. Its open letterforms and neutral character ensure readability across long passages while maintaining the utilitarian spirit of brutalist design. The typeface was designed for technical documentation and interfaces - perfect for the honest, function-first approach.
+                    </p>
+                    <p class="type-meta">Paragraphs | Descriptions | Interface text | 0.875-1.125rem</p>
+                </div>
+            </div>
+
+            <hr class="thin">
+
+            <h3 class="type-subheading u-margin-bottom-lg">Type Scale</h3>
+
+            <div class="type-scale">
+                <div class="type-scale-row">
+                    <div class="type-scale-label">
+                        DISPLAY
+                        <span>6rem / 96px</span>
+                    </div>
+                    <div class="type-scale-sample">
+                        <span class="type-display" style="font-size: 4rem;">BRUTAL</span>
+                    </div>
+                </div>
+                <div class="type-scale-row">
+                    <div class="type-scale-label">
+                        H1
+                        <span>3rem / 48px</span>
+                    </div>
+                    <div class="type-scale-sample">
+                        <span class="type-heading" style="font-size: 2.5rem;">Heading One</span>
+                    </div>
+                </div>
+                <div class="type-scale-row">
+                    <div class="type-scale-label">
+                        H2
+                        <span>2rem / 32px</span>
+                    </div>
+                    <div class="type-scale-sample">
+                        <span class="type-heading" style="font-size: 2rem;">Heading Two</span>
+                    </div>
+                </div>
+                <div class="type-scale-row">
+                    <div class="type-scale-label">
+                        H3
+                        <span>1.5rem / 24px</span>
+                    </div>
+                    <div class="type-scale-sample">
+                        <span class="type-subheading">Heading Three</span>
+                    </div>
+                </div>
+                <div class="type-scale-row">
+                    <div class="type-scale-label">
+                        BODY
+                        <span>1rem / 16px</span>
+                    </div>
+                    <div class="type-scale-sample">
+                        <span class="type-body">Body text for paragraphs and general content.</span>
+                    </div>
+                </div>
+                <div class="type-scale-row">
+                    <div class="type-scale-label">
+                        SMALL
+                        <span>0.875rem / 14px</span>
+                    </div>
+                    <div class="type-scale-sample">
+                        <span class="type-body" style="font-size: 0.875rem;">Small text for captions and metadata.</span>
+                    </div>
+                </div>
+                <div class="type-scale-row">
+                    <div class="type-scale-label">
+                        MONO
+                        <span>0.75rem / 12px</span>
+                    </div>
+                    <div class="type-scale-sample">
+                        <span style="font-family: var(--font-mono); font-size: 0.75rem;">MONOSPACE FOR CODE AND DATA | IBM PLEX MONO</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             03. SPACING
+             ============================================ -->
+        <section class="section" id="spacing">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2 class="section-title">Spacing Scale</h2>
+                <p class="section-description">
+                    Generous, architectural spacing that gives elements room to breathe while maintaining structural relationships. Based on a 4px unit, scaling up to massive proportions.
+                </p>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xs</span>
+                    <div class="spacing-bar" style="width: 4px;"></div>
+                    <span class="spacing-value">4px - Fine detail</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-sm</span>
+                    <div class="spacing-bar" style="width: 8px;"></div>
+                    <span class="spacing-value">8px - Tight spacing</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-md</span>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">16px - Standard</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-lg</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">32px - Comfortable</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xl</span>
+                    <div class="spacing-bar" style="width: 48px;"></div>
+                    <span class="spacing-value">48px - Section padding</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xxl</span>
+                    <div class="spacing-bar" style="width: 80px;"></div>
+                    <span class="spacing-value">80px - Major divisions</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-massive</span>
+                    <div class="spacing-bar" style="width: 120px;"></div>
+                    <span class="spacing-value">120px - Monumental</span>
+                </div>
+            </div>
+
+            <hr class="thin">
+
+            <h3 class="type-subheading u-margin-bottom-lg">Spacing in Context</h3>
+
+            <div class="grid-3">
+                <div style="padding: var(--space-md); background: var(--concrete-mid); border: var(--border-heavy);">
+                    <div style="background: var(--off-white); padding: var(--space-md);">
+                        <p class="type-body" style="margin: 0;">Standard (16px)</p>
+                    </div>
+                </div>
+                <div style="padding: var(--space-lg); background: var(--concrete-mid); border: var(--border-heavy);">
+                    <div style="background: var(--off-white); padding: var(--space-md);">
+                        <p class="type-body" style="margin: 0;">Comfortable (32px)</p>
+                    </div>
+                </div>
+                <div style="padding: var(--space-xl); background: var(--concrete-mid); border: var(--border-heavy);">
+                    <div style="background: var(--off-white); padding: var(--space-md);">
+                        <p class="type-body" style="margin: 0;">Section (48px)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. BUTTONS
+             ============================================ -->
+        <section class="section" id="buttons">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-description">
+                    Heavy, blocky buttons that feel like pressing concrete slabs. No rounded corners - every edge is deliberate and structural. Buttons cast shadows like architectural elements.
+                </p>
+            </div>
+
+            <h3 class="type-subheading u-margin-bottom-lg">Button Variants</h3>
+
+            <div class="button-row">
+                <button class="btn btn-primary">Primary Action</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-accent">Accent</button>
+                <button class="btn btn-outline">Outline</button>
+            </div>
+
+            <h3 class="type-subheading u-margin-bottom-lg">Button Sizes</h3>
+
+            <div class="button-row">
+                <button class="btn btn-primary btn-small">Small</button>
+                <button class="btn btn-primary">Standard</button>
+                <button class="btn btn-primary btn-large">Large</button>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary btn-massive">Massive Button</button>
+            </div>
+
+            <div class="notice-box notice-box-info">
+                <div class="notice-box-content">
+                    <p class="notice-box-label">Interaction States</p>
+                    <p class="type-body">
+                        Buttons shift position on hover, creating a sense of physical movement. The shadow grows deeper, suggesting the button is lifting from the surface. On click, the button returns to its base position as if pressed into the concrete.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             05. FORM INPUTS
+             ============================================ -->
+        <section class="section" id="forms">
+            <div class="section-header">
+                <span class="section-number">05</span>
+                <h2 class="section-title">Form Inputs</h2>
+                <p class="section-description">
+                    Utilitarian form elements with heavy borders and monospace typography. Industrial and functional, like control panels on construction equipment.
+                </p>
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Project Name</label>
+                    <input type="text" class="form-input" placeholder="Enter project identifier">
+                    <p class="form-hint">Alphanumeric characters only</p>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Location Code</label>
+                    <input type="text" class="form-input form-input-heavy" placeholder="SITE-001">
+                    <p class="form-hint">Heavy input variant</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Project Description</label>
+                <textarea class="form-textarea" placeholder="Describe the structural requirements, materials, and specifications for this project..."></textarea>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary">Submit Specification</button>
+                <button class="btn btn-outline">Clear Form</button>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. CARDS
+             ============================================ -->
+        <section class="section" id="cards">
+            <div class="section-header">
+                <span class="section-number">06</span>
+                <h2 class="section-title">Cards</h2>
+                <p class="section-description">
+                    Content blocks that feel like cast concrete modules. Each card casts a heavy shadow, establishing its presence in the spatial hierarchy. Variations include form board textures and exposed aggregate surfaces.
+                </p>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-header-title">Standard Module</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>The default card component with concrete texture overlay. Cast shadow establishes depth and hierarchy within the layout grid.</p>
+                    </div>
+                    <div class="card-footer">MODULE-001 | STANDARD</div>
+                </div>
+
+                <div class="card card-monolith">
+                    <div class="card-header">
+                        <h3 class="card-header-title">Monolith</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>A darker, heavier variant for primary content. The deep shadow and dark surface command attention like a brutalist tower.</p>
+                    </div>
+                    <div class="card-footer">MODULE-002 | MONOLITH</div>
+                </div>
+
+                <div class="card card-formboard">
+                    <div class="card-header">
+                        <h3 class="card-header-title">Form Board</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Textured with horizontal lines that reference the wooden form boards used to cast concrete. A subtle nod to the construction process.</p>
+                    </div>
+                    <div class="card-footer">MODULE-003 | FORMBOARD</div>
+                </div>
+
+                <div class="card card-exposed">
+                    <div class="card-header">
+                        <h3 class="card-header-title">Exposed Structure</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Dashed borders reveal the underlying structure, like a building with exposed beams and utilities. Lighter weight for secondary content.</p>
+                    </div>
+                    <div class="card-footer">MODULE-004 | EXPOSED</div>
+                </div>
+
+                <div class="card card-accent">
+                    <div class="card-header">
+                        <h3 class="card-header-title">Safety Accent</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>Orange borders and header for important notices and calls to action. The safety color demands attention within the gray mass.</p>
+                    </div>
+                    <div class="card-footer">MODULE-005 | ACCENT</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             07. BADGES
+             ============================================ -->
+        <section class="section" id="badges">
+            <div class="section-header">
+                <span class="section-number">07</span>
+                <h2 class="section-title">Badges</h2>
+                <p class="section-description">
+                    Small, utilitarian labels for status and categorization. Like the painted markers and stenciled text found on construction sites and industrial equipment.
+                </p>
+            </div>
+
+            <h3 class="type-subheading u-margin-bottom-lg">Badge Variants</h3>
+
+            <div class="badge-row">
+                <span class="badge badge-concrete">Concrete</span>
+                <span class="badge badge-dark">Dark</span>
+                <span class="badge badge-safety">Safety</span>
+                <span class="badge badge-warning">Warning</span>
+                <span class="badge badge-outline">Outline</span>
+            </div>
+
+            <h3 class="type-subheading u-margin-bottom-lg">Badges in Context</h3>
+
+            <div class="card" style="max-width: 500px;">
+                <div class="card-header">
+                    <h3 class="card-header-title">Project Status</h3>
+                </div>
+                <div class="card-body">
+                    <p style="margin-bottom: var(--space-md);">
+                        <span class="badge badge-safety">Active</span>
+                        <span class="badge badge-dark">Phase 2</span>
+                        <span class="badge badge-warning">Review Required</span>
+                    </p>
+                    <p>Current project requires structural review before proceeding to phase 3. All material specifications have been approved.</p>
+                </div>
+                <div class="card-footer">
+                    <span class="badge badge-outline">Concrete</span>
+                    <span class="badge badge-outline">Steel</span>
+                    <span class="badge badge-outline">Glass</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             FOOTER
+             ============================================ -->
+        <footer class="site-footer">
+            <div class="footer-accent"></div>
+            <p class="footer-title">Concrete Brutalist</p>
+            <p class="footer-text">
+                Raw concrete. Exposed structure. Uncompromising design.<br>
+                A celebration of material honesty and monumental form.
+            </p>
+            <div class="footer-links">
+                <a href="#">Documentation</a>
+                <a href="#">Source</a>
+                <a href="#">License: MIT</a>
+            </div>
+            <p class="footer-text" style="margin-top: var(--space-xl); opacity: 0.6; font-size: 0.75rem;">
+                Self-contained HTML. No build process. View source to see everything.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

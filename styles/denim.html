@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Denim Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           DENIM DESIGN SYSTEM
+           ============================================
+           Workwear aesthetic. Americana heritage.
+           Indigo blues, copper rivets, orange thread.
+           Stitching details and fabric textures.
+           ============================================ */
+
+        :root {
+            /* DENIM PALETTE - Blues */
+            --raw-denim: #1a2a3a;
+            --dark-indigo: #2c3e50;
+            --classic-indigo: #3d5a80;
+            --medium-wash: #5b7fa3;
+            --light-wash: #8fadc8;
+            --stonewash: #b8cfe0;
+            --bleached: #dce8f1;
+
+            /* ACCENT COLORS */
+            --thread-orange: #d97706;
+            --thread-gold: #f59e0b;
+            --copper-rivet: #b87333;
+            --copper-bright: #cd7f32;
+            --copper-dark: #8b5a2b;
+            --leather-brown: #6b4423;
+            --leather-tan: #a67c52;
+            --leather-light: #c9a86c;
+
+            /* SELVAGE EDGE */
+            --selvage-red: #dc2626;
+            --selvage-white: #fafafa;
+
+            /* NEUTRALS */
+            --white-cotton: #fefefe;
+            --off-white: #f8f6f3;
+            --cream: #f5f0e8;
+            --gray-thread: #6b7280;
+            --charcoal: #374151;
+
+            /* TYPOGRAPHY */
+            --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+            --font-heading: 'Barlow', 'Helvetica Neue', sans-serif;
+            --font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+
+            /* SPACING */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 16px;
+            --space-4: 24px;
+            --space-5: 32px;
+            --space-6: 48px;
+            --space-7: 64px;
+            --space-8: 96px;
+            --space-9: 128px;
+
+            /* BORDERS & STITCHING */
+            --stitch-width: 2px;
+            --stitch-gap: 6px;
+            --rivet-size: 10px;
+
+            /* TRANSITIONS */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+            --transition-slow: 0.4s ease;
+
+            /* SHADOWS */
+            --shadow-soft: 0 2px 8px rgba(26, 42, 58, 0.12);
+            --shadow-medium: 0 4px 16px rgba(26, 42, 58, 0.18);
+            --shadow-hard: 0 8px 32px rgba(26, 42, 58, 0.24);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        /* Denim Fabric Texture Background */
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.65;
+            color: var(--charcoal);
+            background-color: var(--stonewash);
+            -webkit-font-smoothing: antialiased;
+            /* Woven fabric texture pattern */
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(61, 90, 128, 0.03) 1px,
+                    rgba(61, 90, 128, 0.03) 2px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(61, 90, 128, 0.03) 1px,
+                    rgba(61, 90, 128, 0.03) 2px
+                ),
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(61, 90, 128, 0.02) 2px,
+                    rgba(61, 90, 128, 0.02) 3px
+                );
+            background-attachment: fixed;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-5);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: var(--space-5);
+        }
+
+        .col-12 { grid-column: span 12; }
+        .col-8 { grid-column: span 8; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+
+        @media (max-width: 768px) {
+            .col-8, .col-6, .col-4, .col-3 {
+                grid-column: span 12;
+            }
+        }
+
+        /* ============================================
+           STITCHING EFFECTS
+           ============================================ */
+
+        .stitch-border {
+            border: var(--stitch-width) dashed var(--thread-orange);
+        }
+
+        .stitch-top {
+            border-top: var(--stitch-width) dashed var(--thread-orange);
+        }
+
+        .stitch-bottom {
+            border-bottom: var(--stitch-width) dashed var(--thread-orange);
+        }
+
+        /* Double stitch effect */
+        .double-stitch {
+            position: relative;
+        }
+
+        .double-stitch::before,
+        .double-stitch::after {
+            content: '';
+            position: absolute;
+            left: var(--space-3);
+            right: var(--space-3);
+            height: 0;
+            border-top: var(--stitch-width) dashed var(--thread-orange);
+        }
+
+        .double-stitch::before {
+            top: var(--space-2);
+        }
+
+        .double-stitch::after {
+            bottom: var(--space-2);
+        }
+
+        /* Rivet decoration */
+        .rivet {
+            display: inline-block;
+            width: var(--rivet-size);
+            height: var(--rivet-size);
+            background: radial-gradient(circle at 30% 30%, var(--copper-bright), var(--copper-rivet) 50%, var(--copper-dark));
+            border-radius: 50%;
+            box-shadow:
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .rivet-large {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Corner rivets */
+        .riveted {
+            position: relative;
+        }
+
+        .riveted::before,
+        .riveted::after {
+            content: '';
+            position: absolute;
+            width: var(--rivet-size);
+            height: var(--rivet-size);
+            background: radial-gradient(circle at 30% 30%, var(--copper-bright), var(--copper-rivet) 50%, var(--copper-dark));
+            border-radius: 50%;
+            box-shadow:
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .riveted::before {
+            top: var(--space-3);
+            left: var(--space-3);
+        }
+
+        .riveted::after {
+            top: var(--space-3);
+            right: var(--space-3);
+        }
+
+        /* Selvage edge accent */
+        .selvage-edge {
+            position: relative;
+        }
+
+        .selvage-edge::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 6px;
+            background: repeating-linear-gradient(
+                0deg,
+                var(--selvage-red) 0px,
+                var(--selvage-red) 3px,
+                var(--selvage-white) 3px,
+                var(--selvage-white) 6px
+            );
+        }
+
+        /* ============================================
+           TYPOGRAPHY
+           ============================================ */
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--raw-denim);
+        }
+
+        h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-5);
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            margin-bottom: var(--space-4);
+        }
+
+        h3 {
+            font-size: 1.375rem;
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+        }
+
+        h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+        }
+
+        p {
+            margin-bottom: var(--space-3);
+            max-width: 65ch;
+        }
+
+        .lead {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: var(--dark-indigo);
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+        .uppercase {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 600;
+        }
+
+        .display {
+            font-family: var(--font-display);
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+
+        .header {
+            background: linear-gradient(180deg, var(--dark-indigo) 0%, var(--raw-denim) 100%);
+            color: var(--white-cotton);
+            padding: var(--space-8) 0 var(--space-7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Denim texture overlay for header */
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(255, 255, 255, 0.02) 1px,
+                    rgba(255, 255, 255, 0.02) 2px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(255, 255, 255, 0.02) 1px,
+                    rgba(255, 255, 255, 0.02) 2px
+                );
+            pointer-events: none;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .header-label {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-2) var(--space-4);
+            background: var(--leather-brown);
+            color: var(--cream);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: var(--space-5);
+            border-radius: 2px;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            color: var(--white-cotton);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: var(--space-4);
+        }
+
+        .header-tagline {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            color: var(--light-wash);
+            max-width: 500px;
+            margin: 0 auto var(--space-6);
+        }
+
+        /* Decorative stitching line */
+        .header-stitch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            margin-top: var(--space-5);
+        }
+
+        .header-stitch-line {
+            width: 100px;
+            height: 0;
+            border-top: 2px dashed var(--thread-orange);
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
+
+        .section {
+            padding: var(--space-8) 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+        }
+
+        .section-number {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            background: var(--classic-indigo);
+            color: var(--white-cotton);
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 50%;
+            margin-bottom: var(--space-3);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .section-header h2 {
+            color: var(--dark-indigo);
+        }
+
+        .section-header .lead {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Section divider with stitching */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            margin: var(--space-7) 0;
+        }
+
+        .section-divider-line {
+            flex: 1;
+            max-width: 200px;
+            height: 0;
+            border-top: 2px dashed var(--thread-gold);
+        }
+
+        /* ============================================
+           COLOR PALETTE
+           ============================================ */
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-3);
+        }
+
+        @media (max-width: 768px) {
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .color-block {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: var(--space-3);
+            position: relative;
+            border-radius: 4px;
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+            box-shadow: var(--shadow-soft);
+            /* Fabric texture */
+            background-size: cover;
+        }
+
+        .color-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(255, 255, 255, 0.03) 1px,
+                    rgba(255, 255, 255, 0.03) 2px
+                );
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .color-block:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .color-name {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            opacity: 0.85;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           TYPOGRAPHY SHOWCASE
+           ============================================ */
+
+        .type-showcase {
+            background: var(--white-cotton);
+            padding: var(--space-6);
+            border-radius: 4px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .type-row {
+            display: flex;
+            align-items: baseline;
+            gap: var(--space-5);
+            padding: var(--space-5) 0;
+            border-bottom: 1px solid var(--stonewash);
+        }
+
+        .type-row:last-child {
+            border-bottom: none;
+        }
+
+        .type-meta {
+            width: 160px;
+            flex-shrink: 0;
+        }
+
+        .type-name {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--thread-orange);
+            margin-bottom: var(--space-1);
+        }
+
+        .type-specs {
+            font-size: 0.75rem;
+            color: var(--gray-thread);
+        }
+
+        .type-sample {
+            flex: 1;
+            color: var(--raw-denim);
+        }
+
+        @media (max-width: 768px) {
+            .type-row {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+
+            .type-meta {
+                width: 100%;
+            }
+        }
+
+        /* ============================================
+           SPACING SCALE
+           ============================================ */
+
+        .spacing-demo {
+            background: var(--white-cotton);
+            padding: var(--space-6);
+            border-radius: 4px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-3);
+        }
+
+        .spacing-label {
+            width: 80px;
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--dark-indigo);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: linear-gradient(90deg, var(--classic-indigo), var(--medium-wash));
+            border-radius: 2px;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* Stitching on spacing bar */
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 8px;
+            right: 8px;
+            height: 0;
+            border-top: 1px dashed var(--thread-gold);
+            transform: translateY(-50%);
+            opacity: 0.6;
+        }
+
+        .spacing-value {
+            font-size: 0.75rem;
+            color: var(--gray-thread);
+            width: 50px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        /* Primary - Raw denim with stitching */
+        .btn-primary {
+            background: var(--dark-indigo);
+            color: var(--white-cotton);
+            box-shadow:
+                var(--shadow-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px dashed var(--thread-orange);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .btn-primary:hover {
+            background: var(--classic-indigo);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* Secondary - Light wash with contrast stitching */
+        .btn-secondary {
+            background: var(--medium-wash);
+            color: var(--raw-denim);
+            box-shadow:
+                var(--shadow-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px dashed var(--dark-indigo);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-wash);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Outline - Leather patch style */
+        .btn-outline {
+            background: var(--leather-tan);
+            color: var(--cream);
+            box-shadow:
+                var(--shadow-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-outline::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid var(--leather-light);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .btn-outline:hover {
+            background: var(--leather-brown);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Button sizes */
+        .btn-sm {
+            padding: var(--space-2) var(--space-4);
+            font-size: 0.75rem;
+        }
+
+        .btn-sm::before {
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+        }
+
+        .btn-lg {
+            padding: var(--space-4) var(--space-6);
+            font-size: 1rem;
+        }
+
+        .btn-lg::before {
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: var(--space-5);
+        }
+
+        /* Button with rivets */
+        .btn-riveted {
+            padding-left: var(--space-6);
+            padding-right: var(--space-6);
+        }
+
+        .btn-riveted .rivet {
+            width: 8px;
+            height: 8px;
+        }
+
+        /* ============================================
+           FORM INPUTS
+           ============================================ */
+
+        .form-container {
+            background: var(--white-cotton);
+            padding: var(--space-6);
+            border-radius: 4px;
+            box-shadow: var(--shadow-soft);
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Corner rivets on form */
+        .form-container::before,
+        .form-container::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle at 30% 30%, var(--copper-bright), var(--copper-rivet) 50%, var(--copper-dark));
+            border-radius: 50%;
+            box-shadow:
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-container::before {
+            top: var(--space-3);
+            left: var(--space-3);
+        }
+
+        .form-container::after {
+            top: var(--space-3);
+            right: var(--space-3);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-4);
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--dark-indigo);
+            margin-bottom: var(--space-2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--charcoal);
+            background: var(--bleached);
+            border: 2px solid var(--medium-wash);
+            border-radius: 4px;
+            transition: all var(--transition-base);
+            /* Denim-like inset */
+            box-shadow: inset 0 2px 4px rgba(26, 42, 58, 0.08);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--classic-indigo);
+            background: var(--white-cotton);
+            box-shadow:
+                inset 0 2px 4px rgba(26, 42, 58, 0.05),
+                0 0 0 3px rgba(61, 90, 128, 0.15);
+        }
+
+        .input-field::placeholder {
+            color: var(--gray-thread);
+        }
+
+        textarea.input-field {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+
+        /* Stitched input variant */
+        .input-stitched {
+            position: relative;
+        }
+
+        .input-stitched::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            left: 12px;
+            right: 12px;
+            height: 0;
+            border-top: 1px dashed var(--thread-orange);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* ============================================
+           CARDS - Pocket Inspired
+           ============================================ */
+
+        .card {
+            background: var(--white-cotton);
+            border-radius: 6px;
+            padding: var(--space-5);
+            position: relative;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        /* Pocket-style card */
+        .card-pocket {
+            padding-top: var(--space-6);
+            border: 2px solid var(--medium-wash);
+        }
+
+        /* Pocket top stitch */
+        .card-pocket::before {
+            content: '';
+            position: absolute;
+            top: var(--space-4);
+            left: var(--space-3);
+            right: var(--space-3);
+            height: 0;
+            border-top: 2px dashed var(--thread-orange);
+        }
+
+        /* Corner rivets */
+        .card-pocket::after {
+            content: '';
+            position: absolute;
+            top: calc(var(--space-4) - 5px);
+            left: var(--space-4);
+            width: 10px;
+            height: 10px;
+            background: radial-gradient(circle at 30% 30%, var(--copper-bright), var(--copper-rivet) 50%, var(--copper-dark));
+            border-radius: 50%;
+            box-shadow:
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.2),
+                /* Second rivet */
+                calc(100% - var(--space-4) - var(--space-4) - 10px) 0 0 0 var(--copper-rivet);
+        }
+
+        .card h3 {
+            color: var(--dark-indigo);
+            margin-bottom: var(--space-3);
+        }
+
+        .card p {
+            color: var(--charcoal);
+            margin-bottom: 0;
+        }
+
+        /* Selvage card variant */
+        .card-selvage {
+            border-left: 6px solid transparent;
+            background-image:
+                linear-gradient(var(--white-cotton), var(--white-cotton)),
+                repeating-linear-gradient(
+                    0deg,
+                    var(--selvage-red) 0px,
+                    var(--selvage-red) 4px,
+                    var(--selvage-white) 4px,
+                    var(--selvage-white) 8px
+                );
+            background-origin: padding-box, border-box;
+            background-clip: padding-box, border-box;
+        }
+
+        /* Leather patch card */
+        .card-patch {
+            background: linear-gradient(135deg, var(--leather-tan) 0%, var(--leather-brown) 100%);
+            color: var(--cream);
+            box-shadow:
+                var(--shadow-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-patch::before {
+            content: '';
+            position: absolute;
+            top: var(--space-3);
+            left: var(--space-3);
+            right: var(--space-3);
+            bottom: var(--space-3);
+            border: 1px solid var(--leather-light);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .card-patch h3 {
+            color: var(--cream);
+        }
+
+        .card-patch p {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--classic-indigo);
+            color: var(--white-cotton);
+            border-radius: 50%;
+            margin-bottom: var(--space-4);
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .card-patch .card-icon {
+            background: rgba(255, 255, 255, 0.15);
+            color: var(--cream);
+        }
+
+        /* ============================================
+           BADGES - Patch/Label Inspired
+           ============================================ */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-1) var(--space-3);
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 3px;
+            position: relative;
+        }
+
+        /* Stitched badge */
+        .badge-stitched {
+            background: var(--classic-indigo);
+            color: var(--white-cotton);
+            padding: var(--space-2) var(--space-4);
+        }
+
+        .badge-stitched::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+            border: 1px dashed var(--thread-orange);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        /* Leather badge */
+        .badge-leather {
+            background: var(--leather-brown);
+            color: var(--cream);
+            padding: var(--space-2) var(--space-4);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Woven label badge */
+        .badge-label {
+            background: var(--selvage-red);
+            color: var(--white-cotton);
+            padding: var(--space-2) var(--space-4);
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* Copper rivet badge */
+        .badge-copper {
+            background: linear-gradient(135deg, var(--copper-bright), var(--copper-rivet));
+            color: var(--raw-denim);
+            padding: var(--space-2) var(--space-4);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                var(--shadow-soft);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            background: var(--raw-denim);
+            color: var(--stonewash);
+            padding: var(--space-8) 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Denim texture */
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(255, 255, 255, 0.015) 1px,
+                    rgba(255, 255, 255, 0.015) 2px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    transparent,
+                    transparent 1px,
+                    rgba(255, 255, 255, 0.015) 1px,
+                    rgba(255, 255, 255, 0.015) 2px
+                );
+            pointer-events: none;
+        }
+
+        /* Stitching at top */
+        .footer::after {
+            content: '';
+            position: absolute;
+            top: var(--space-4);
+            left: var(--space-5);
+            right: var(--space-5);
+            height: 0;
+            border-top: 2px dashed var(--thread-orange);
+        }
+
+        .footer-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding-top: var(--space-4);
+        }
+
+        .footer-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 80px;
+            height: 80px;
+            background: var(--leather-brown);
+            border-radius: 4px;
+            margin-bottom: var(--space-5);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 8px rgba(0, 0, 0, 0.2),
+                var(--shadow-medium);
+            position: relative;
+        }
+
+        .footer-logo::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px solid var(--leather-light);
+            border-radius: 2px;
+        }
+
+        .footer-logo span {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--cream);
+        }
+
+        .footer h3 {
+            color: var(--white-cotton);
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-3);
+        }
+
+        .footer p {
+            color: var(--light-wash);
+            max-width: 400px;
+            margin: 0 auto var(--space-5);
+        }
+
+        .footer-tagline {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--medium-wash);
+        }
+
+        /* Rivet decoration in footer */
+        .footer-rivets {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-4);
+            margin-top: var(--space-6);
+        }
+
+        /* ============================================
+           UTILITIES
+           ============================================ */
+
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-indigo { color: var(--classic-indigo); }
+        .text-copper { color: var(--copper-rivet); }
+        .text-leather { color: var(--leather-brown); }
+        .bg-white { background: var(--white-cotton); }
+        .bg-denim { background: var(--classic-indigo); }
+        .mb-0 { margin-bottom: 0; }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-6 { margin-top: var(--space-6); }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 var(--space-4);
+            }
+
+            .header {
+                padding: var(--space-6) 0;
+            }
+
+            .section {
+                padding: var(--space-6) 0;
+            }
+
+            .spacing-row {
+                gap: var(--space-3);
+            }
+
+            .spacing-label {
+                width: 60px;
+                font-size: 0.75rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <span class="header-label">
+                    <span class="rivet"></span>
+                    Design System
+                    <span class="rivet"></span>
+                </span>
+                <h1>Denim</h1>
+                <p class="header-tagline">Workwear-inspired design with authentic stitching details, copper rivets, and the timeless appeal of classic American denim.</p>
+                <div class="header-stitch">
+                    <span class="header-stitch-line"></span>
+                    <span class="rivet rivet-large"></span>
+                    <span class="header-stitch-line"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Color Palette -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">1</div>
+                <h2>Color Palette</h2>
+                <p class="lead">A spectrum of indigo washes from raw to stonewashed, accented with warm copper and leather tones.</p>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-block" style="background: var(--raw-denim); color: var(--white-cotton);">
+                    <span class="color-name">Raw Denim</span>
+                    <span class="color-value">#1A2A3A</span>
+                </div>
+                <div class="color-block" style="background: var(--classic-indigo); color: var(--white-cotton);">
+                    <span class="color-name">Classic Indigo</span>
+                    <span class="color-value">#3D5A80</span>
+                </div>
+                <div class="color-block" style="background: var(--medium-wash); color: var(--white-cotton);">
+                    <span class="color-name">Medium Wash</span>
+                    <span class="color-value">#5B7FA3</span>
+                </div>
+                <div class="color-block" style="background: var(--stonewash); color: var(--dark-indigo);">
+                    <span class="color-name">Stonewash</span>
+                    <span class="color-value">#B8CFE0</span>
+                </div>
+                <div class="color-block" style="background: var(--copper-rivet); color: var(--cream);">
+                    <span class="color-name">Copper Rivet</span>
+                    <span class="color-value">#B87333</span>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <div class="section-divider-line"></div>
+                <span class="rivet"></span>
+                <div class="section-divider-line"></div>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-block" style="background: var(--thread-orange); color: var(--white-cotton);">
+                    <span class="color-name">Thread Orange</span>
+                    <span class="color-value">#D97706</span>
+                </div>
+                <div class="color-block" style="background: var(--leather-brown); color: var(--cream);">
+                    <span class="color-name">Leather Brown</span>
+                    <span class="color-value">#6B4423</span>
+                </div>
+                <div class="color-block" style="background: var(--leather-tan); color: var(--raw-denim);">
+                    <span class="color-name">Leather Tan</span>
+                    <span class="color-value">#A67C52</span>
+                </div>
+                <div class="color-block" style="background: var(--selvage-red); color: var(--white-cotton);">
+                    <span class="color-name">Selvage Red</span>
+                    <span class="color-value">#DC2626</span>
+                </div>
+                <div class="color-block" style="background: var(--white-cotton); color: var(--dark-indigo); border: 1px solid var(--stonewash);">
+                    <span class="color-name">White Cotton</span>
+                    <span class="color-value">#FEFEFE</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">2</div>
+                <h2>Typography</h2>
+                <p class="lead">Utility-inspired typefaces that balance industrial strength with comfortable readability.</p>
+            </div>
+
+            <div class="type-showcase">
+                <div class="type-row">
+                    <div class="type-meta">
+                        <p class="type-name">Display</p>
+                        <p class="type-specs">Barlow Condensed / 80px</p>
+                    </div>
+                    <div class="type-sample">
+                        <span style="font-family: var(--font-display); font-size: 4rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;">Aa</span>
+                    </div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <p class="type-name">Heading</p>
+                        <p class="type-specs">Barlow / 32px / Bold</p>
+                    </div>
+                    <div class="type-sample">
+                        <span style="font-family: var(--font-heading); font-size: 2rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em;">Built to Last</span>
+                    </div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <p class="type-name">Subheading</p>
+                        <p class="type-specs">Barlow / 22px / SemiBold</p>
+                    </div>
+                    <div class="type-sample">
+                        <span style="font-family: var(--font-heading); font-size: 1.375rem; font-weight: 600;">Authentic American Workwear</span>
+                    </div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <p class="type-name">Body</p>
+                        <p class="type-specs">Source Sans 3 / 16px</p>
+                    </div>
+                    <div class="type-sample">
+                        <span style="font-family: var(--font-body); font-size: 1rem; line-height: 1.65;">The quick brown fox jumps over the lazy dog. Denim has been a staple of American workwear since the Gold Rush era, valued for its durability and timeless style.</span>
+                    </div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <p class="type-name">Label</p>
+                        <p class="type-specs">Barlow / 12px / SemiBold</p>
+                    </div>
+                    <div class="type-sample">
+                        <span style="font-family: var(--font-heading); font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;">Premium Quality Since 1873</span>
+                    </div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <p class="type-name">Caption</p>
+                        <p class="type-specs">Source Sans 3 / 14px</p>
+                    </div>
+                    <div class="type-sample">
+                        <span style="font-family: var(--font-body); font-size: 0.875rem; color: var(--gray-thread);">100% cotton selvedge denim, 14oz weight</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">3</div>
+                <h2>Spacing Scale</h2>
+                <p class="lead">A consistent spacing system built for sturdy, well-structured layouts.</p>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-row">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">xs</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">sm</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">md</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 96px;"></div>
+                    <span class="spacing-value">lg</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                    <span class="spacing-value">xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                    <span class="spacing-value">2xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                    <span class="spacing-value">3xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">96px</span>
+                    <div class="spacing-bar" style="width: 320px;"></div>
+                    <span class="spacing-value">4xl</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">4</div>
+                <h2>Buttons</h2>
+                <p class="lead">Sturdy, tactile buttons with authentic stitching details and material finishes.</p>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary">Raw Denim</button>
+                <button class="btn btn-secondary">Light Wash</button>
+                <button class="btn btn-outline">Leather Patch</button>
+            </div>
+
+            <div class="section-divider">
+                <div class="section-divider-line"></div>
+                <span class="rivet"></span>
+                <div class="section-divider-line"></div>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary btn-sm">Small</button>
+                <button class="btn btn-primary">Medium</button>
+                <button class="btn btn-primary btn-lg">Large</button>
+            </div>
+
+            <div class="section-divider">
+                <div class="section-divider-line"></div>
+                <span class="rivet"></span>
+                <div class="section-divider-line"></div>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary btn-riveted">
+                    <span class="rivet"></span>
+                    With Rivets
+                    <span class="rivet"></span>
+                </button>
+            </div>
+
+            <p class="text-center small mt-6" style="color: var(--gray-thread); max-width: 450px; margin-left: auto; margin-right: auto;">
+                Buttons feature stitched borders that mimic the iconic contrast stitching found on classic denim garments.
+            </p>
+        </section>
+
+        <!-- Forms -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">5</div>
+                <h2>Form Inputs</h2>
+                <p class="lead">Clean, workwear-inspired form elements with subtle denim texturing.</p>
+            </div>
+
+            <div class="form-container">
+                <div class="grid">
+                    <div class="col-6">
+                        <div class="input-group">
+                            <label class="input-label">First Name</label>
+                            <input type="text" class="input-field" placeholder="John">
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="input-group">
+                            <label class="input-label">Last Name</label>
+                            <input type="text" class="input-field" placeholder="Strauss">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="input-group">
+                            <label class="input-label">Email Address</label>
+                            <input type="email" class="input-field" placeholder="john@example.com">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="input-group">
+                            <label class="input-label">Your Message</label>
+                            <textarea class="input-field" placeholder="Tell us about your project..."></textarea>
+                        </div>
+                    </div>
+                    <div class="col-12 text-center">
+                        <button class="btn btn-primary btn-lg">Submit Request</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">6</div>
+                <h2>Cards</h2>
+                <p class="lead">Pocket-inspired containers with stitching, rivets, and authentic material finishes.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-4">
+                    <div class="card card-pocket">
+                        <div class="card-icon">01</div>
+                        <h3>Pocket Card</h3>
+                        <p>Inspired by the classic five-pocket design, complete with contrast stitching and reinforced corners.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-selvage">
+                        <div class="card-icon">02</div>
+                        <h3>Selvage Card</h3>
+                        <p>Features the distinctive red-and-white selvage edge detail that marks premium selvedge denim.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-patch">
+                        <div class="card-icon">03</div>
+                        <h3>Leather Patch</h3>
+                        <p>Styled after the iconic leather patch found on the waistband of authentic denim jeans.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-divider">
+                <div class="section-divider-line"></div>
+                <span class="rivet"></span>
+                <div class="section-divider-line"></div>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="card card-pocket">
+                        <h3>Durability</h3>
+                        <p>Built to withstand daily wear and tear, just like the workwear that inspired this design system. Quality materials and construction ensure longevity.</p>
+                        <div class="mt-4">
+                            <span class="badge badge-stitched">Premium</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card card-pocket">
+                        <h3>Heritage</h3>
+                        <p>Drawing from over 150 years of American denim history, these patterns honor the craft of workwear while adapting to modern design needs.</p>
+                        <div class="mt-4">
+                            <span class="badge badge-leather">Est. 1873</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">7</div>
+                <h2>Badges</h2>
+                <p class="lead">Label and patch-inspired status indicators with authentic material styling.</p>
+            </div>
+
+            <div class="badge-row mb-4">
+                <span class="badge badge-stitched">Stitched Label</span>
+                <span class="badge badge-leather">Leather Patch</span>
+                <span class="badge badge-label">Woven Label</span>
+                <span class="badge badge-copper">Copper Tag</span>
+            </div>
+
+            <div class="section-divider">
+                <div class="section-divider-line"></div>
+                <span class="rivet"></span>
+                <div class="section-divider-line"></div>
+            </div>
+
+            <p class="text-center uppercase small mb-4" style="color: var(--gray-thread);">Usage Examples</p>
+
+            <div class="badge-row">
+                <span class="badge badge-stitched">New Arrival</span>
+                <span class="badge badge-leather">Classic Fit</span>
+                <span class="badge badge-label">Limited Edition</span>
+                <span class="badge badge-copper">Made in USA</span>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span>D</span>
+                </div>
+                <h3>Denim Design System</h3>
+                <p>Built tough. Designed authentic. A tribute to the enduring spirit of American workwear craftsmanship.</p>
+                <p class="footer-tagline">Quality Never Goes Out of Style</p>
+                <div class="footer-rivets">
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
