@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Nouveau Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Typography */
+            --font-display: 'Cinzel Decorative', serif;
+            --font-heading: 'Playfair Display', Georgia, serif;
+            --font-body: 'Cormorant Garamond', Georgia, serif;
+
+            /* Spacing Scale */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+            --space-10: 128px;
+
+            /* Art Nouveau Palette - Mucha Inspired */
+            --sage: #8B9F7C;
+            --sage-light: #A8B89A;
+            --sage-dark: #5D7050;
+            --sage-wash: rgba(139, 159, 124, 0.15);
+
+            --dusty-rose: #C4A4A4;
+            --dusty-rose-light: #D9C4C4;
+            --dusty-rose-dark: #A07878;
+            --dusty-rose-wash: rgba(196, 164, 164, 0.2);
+
+            --gold: #C9A227;
+            --gold-light: #E0C35C;
+            --gold-dark: #9A7B1A;
+            --gold-wash: rgba(201, 162, 39, 0.15);
+
+            --ivory: #F5F0E6;
+            --ivory-warm: #EDE5D8;
+            --cream: #FFFEF5;
+
+            --burgundy: #6B2D3C;
+            --burgundy-light: #8B4D5C;
+            --burgundy-dark: #4A1E2A;
+            --burgundy-wash: rgba(107, 45, 60, 0.12);
+
+            --teal: #4A7C7C;
+            --teal-light: #6A9C9C;
+            --teal-dark: #2A5C5C;
+            --teal-wash: rgba(74, 124, 124, 0.15);
+
+            /* Text Colors */
+            --text-primary: #2D2A26;
+            --text-secondary: #524F4A;
+            --text-muted: #7A7672;
+            --text-light: #A8A5A0;
+            --text-on-dark: var(--ivory);
+
+            /* Shadows & Effects */
+            --shadow-soft: rgba(45, 42, 38, 0.08);
+            --shadow-medium: rgba(45, 42, 38, 0.15);
+            --shadow-warm: rgba(201, 162, 39, 0.2);
+
+            /* Transitions */
+            --transition-slow: 0.5s ease;
+            --transition-base: 0.3s ease;
+            --transition-fast: 0.15s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--ivory);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Organic Flowing Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+            background-image:
+                radial-gradient(ellipse at 0% 20%, var(--sage-wash) 0%, transparent 40%),
+                radial-gradient(ellipse at 100% 80%, var(--dusty-rose-wash) 0%, transparent 35%),
+                radial-gradient(ellipse at 50% 100%, var(--gold-wash) 0%, transparent 30%);
+        }
+
+        /* SVG Vine Border Decorations */
+        .vine-border {
+            position: absolute;
+            width: 60px;
+            height: 100%;
+            top: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .vine-border-left {
+            left: 0;
+            background:
+                repeating-linear-gradient(
+                    180deg,
+                    transparent 0px,
+                    transparent 80px,
+                    var(--sage-wash) 80px,
+                    var(--sage-wash) 82px
+                ),
+                linear-gradient(90deg, var(--sage-wash) 0%, transparent 100%);
+        }
+
+        .vine-border-right {
+            right: 0;
+            background:
+                repeating-linear-gradient(
+                    180deg,
+                    transparent 0px,
+                    transparent 80px,
+                    var(--dusty-rose-wash) 80px,
+                    var(--dusty-rose-wash) 82px
+                ),
+                linear-gradient(270deg, var(--dusty-rose-wash) 0%, transparent 100%);
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 0 var(--space-7);
+        }
+
+        /* Ornamental Dividers */
+        .ornament {
+            text-align: center;
+            padding: var(--space-5) 0;
+            color: var(--gold);
+            font-size: 1.5rem;
+            letter-spacing: 0.5em;
+            position: relative;
+        }
+
+        .ornament::before,
+        .ornament::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 120px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .ornament::before {
+            right: calc(50% + 60px);
+        }
+
+        .ornament::after {
+            left: calc(50% + 60px);
+        }
+
+        /* Floral Corner Decorations */
+        .floral-corner {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            opacity: 0.6;
+        }
+
+        .floral-corner::before,
+        .floral-corner::after {
+            content: '';
+            position: absolute;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+        }
+
+        .floral-corner::before {
+            width: 40px;
+            height: 40px;
+            top: 0;
+            left: 0;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        .floral-corner::after {
+            width: 30px;
+            height: 30px;
+            top: 15px;
+            left: 15px;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        .floral-tl { top: 0; left: 0; }
+        .floral-tr { top: 0; right: 0; transform: scaleX(-1); }
+        .floral-bl { bottom: 0; left: 0; transform: scaleY(-1); }
+        .floral-br { bottom: 0; right: 0; transform: scale(-1); }
+
+        /* Header */
+        .header {
+            padding: var(--space-10) 0 var(--space-9);
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 50% 30%, var(--gold-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 70%, var(--sage-wash) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 70%, var(--dusty-rose-wash) 0%, transparent 40%);
+            filter: blur(30px);
+            z-index: -1;
+        }
+
+        .header-ornament {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--gold);
+            letter-spacing: 0.3em;
+            margin-bottom: var(--space-4);
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-4);
+            text-shadow: 2px 2px 4px var(--shadow-soft);
+            line-height: 1.2;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        .header-flourish {
+            margin-top: var(--space-6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .flourish-line {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            border-radius: 50%;
+        }
+
+        .flourish-flower {
+            width: 20px;
+            height: 20px;
+            position: relative;
+        }
+
+        .flourish-flower::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+            transform: rotate(45deg);
+        }
+
+        .flourish-flower::after {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: var(--burgundy);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Section */
+        .section {
+            padding: var(--space-8) 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+            position: relative;
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--gold);
+            letter-spacing: 0.3em;
+            margin-bottom: var(--space-2);
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 50ch;
+            margin: 0 auto;
+        }
+
+        /* Curved Frame */
+        .curved-frame {
+            position: relative;
+            padding: var(--space-6);
+            background: linear-gradient(145deg, var(--cream) 0%, var(--ivory-warm) 100%);
+            border-radius: 50% 50% 45% 45% / 5% 5% 5% 5%;
+            box-shadow:
+                0 4px 20px var(--shadow-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .curved-frame::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            border: 2px solid var(--gold);
+            border-radius: inherit;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Color Palette */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-4);
+        }
+
+        @media (max-width: 768px) {
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .color-swatch {
+            text-align: center;
+            padding: var(--space-5) var(--space-3);
+            position: relative;
+            background: var(--cream);
+            border-radius: 50% 50% 45% 45% / 30% 30% 15% 15%;
+            box-shadow: 0 4px 15px var(--shadow-soft);
+            transition: transform var(--transition-base);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-4px);
+        }
+
+        .color-preview {
+            width: 70px;
+            height: 90px;
+            margin: 0 auto var(--space-4);
+            border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+            position: relative;
+            box-shadow:
+                0 4px 12px var(--shadow-medium),
+                inset 0 -8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-preview::before {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Typography Display */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .type-specimen {
+            padding: var(--space-5);
+            border-bottom: 1px solid var(--gold-wash);
+            position: relative;
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+        }
+
+        .type-label {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--gold-dark);
+            margin-bottom: var(--space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .type-label::before {
+            content: '';
+            width: 20px;
+            height: 1px;
+            background: var(--gold);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            color: var(--burgundy);
+            line-height: 1.1;
+        }
+
+        .type-heading {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            font-weight: 500;
+            color: var(--burgundy);
+            line-height: 1.2;
+        }
+
+        .type-subheading {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 400;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            line-height: 1.8;
+            max-width: 60ch;
+        }
+
+        /* Spacing Scale */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .spacing-label {
+            width: 80px;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: linear-gradient(135deg, var(--sage) 0%, var(--sage-light) 50%, var(--sage) 100%);
+            border-radius: 50% 50% 45% 45% / 80% 80% 50% 50%;
+            position: relative;
+            box-shadow: 0 2px 8px var(--shadow-soft);
+        }
+
+        .spacing-bar::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            left: 10%;
+            width: 25%;
+            height: 35%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            filter: blur(2px);
+        }
+
+        .spacing-value {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-style: italic;
+            color: var(--text-muted);
+            width: 40px;
+        }
+
+        /* Buttons with Organic Shapes */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-5);
+            margin-bottom: var(--space-6);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-6);
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, var(--burgundy) 0%, var(--burgundy-light) 50%, var(--burgundy) 100%);
+            color: var(--text-on-dark);
+            box-shadow:
+                0 4px 15px var(--burgundy-wash),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left var(--transition-slow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 25px var(--burgundy-wash),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, var(--sage) 0%, var(--sage-light) 50%, var(--sage) 100%);
+            color: var(--cream);
+            box-shadow:
+                0 4px 15px var(--sage-wash),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 8px 25px var(--sage-wash),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--burgundy);
+            border: 2px solid var(--burgundy);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: var(--burgundy-wash);
+            transform: translateY(-2px);
+        }
+
+        /* Leaf-shaped button */
+        .btn-leaf {
+            border-radius: 50% 0 50% 0;
+            padding: var(--space-3) var(--space-7);
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-5);
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-group.full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .input-group.full-width {
+                grid-column: span 1;
+            }
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 0.95rem;
+            font-weight: 500;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-2);
+            padding-left: var(--space-3);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: linear-gradient(180deg, var(--cream) 0%, var(--ivory) 100%);
+            border: 2px solid var(--sage-wash);
+            border-radius: 50% 50% 45% 45% / 15% 15% 10% 10%;
+            box-shadow: inset 0 2px 6px var(--shadow-soft);
+            transition: all var(--transition-base);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow:
+                inset 0 2px 6px var(--shadow-soft),
+                0 0 0 3px var(--gold-wash);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        textarea.input-field {
+            min-height: 140px;
+            resize: vertical;
+            border-radius: 20% 20% 15% 15% / 8% 8% 5% 5%;
+        }
+
+        /* Cards with Organic Frames */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-5);
+        }
+
+        @media (max-width: 900px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: linear-gradient(160deg, var(--cream) 0%, var(--ivory-warm) 100%);
+            padding: var(--space-6);
+            position: relative;
+            text-align: center;
+            transition: all var(--transition-base);
+            border-radius: 50% 50% 45% 45% / 8% 8% 5% 5%;
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--sage), var(--gold), var(--dusty-rose));
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse, var(--gold-wash) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 35px var(--shadow-medium);
+        }
+
+        .card:hover::after {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto var(--space-4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--gold);
+            background: linear-gradient(145deg, var(--gold-wash), transparent);
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-content {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Decorative Vine Divider */
+        .vine-divider {
+            height: 40px;
+            position: relative;
+            margin: var(--space-7) 0;
+        }
+
+        .vine-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--sage-wash) 15%,
+                var(--sage) 30%,
+                var(--gold) 50%,
+                var(--dusty-rose) 70%,
+                var(--dusty-rose-wash) 85%,
+                transparent 100%
+            );
+            border-radius: 50%;
+        }
+
+        .vine-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px;
+            height: 16px;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+            border: 2px solid var(--cream);
+            box-shadow: 0 2px 8px var(--shadow-warm);
+        }
+
+        /* Curl Decorations */
+        .curl-left,
+        .curl-right {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .curl-left {
+            left: calc(10% - 15px);
+            border-left: 2px solid var(--sage);
+            border-top: 2px solid var(--sage);
+            border-radius: 50% 0 0 0;
+        }
+
+        .curl-right {
+            right: calc(10% - 15px);
+            border-right: 2px solid var(--dusty-rose);
+            border-top: 2px solid var(--dusty-rose);
+            border-radius: 0 50% 0 0;
+        }
+
+        /* Badges */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-4);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            border-radius: 50% 50% 45% 45% / 80% 80% 60% 60%;
+            position: relative;
+        }
+
+        .badge-sage {
+            background: linear-gradient(135deg, var(--sage-wash), var(--sage-light));
+            color: var(--sage-dark);
+            border: 1px solid var(--sage);
+        }
+
+        .badge-rose {
+            background: linear-gradient(135deg, var(--dusty-rose-wash), var(--dusty-rose-light));
+            color: var(--dusty-rose-dark);
+            border: 1px solid var(--dusty-rose);
+        }
+
+        .badge-gold {
+            background: linear-gradient(135deg, var(--gold-wash), var(--gold-light));
+            color: var(--gold-dark);
+            border: 1px solid var(--gold);
+        }
+
+        .badge-burgundy {
+            background: linear-gradient(135deg, var(--burgundy), var(--burgundy-light));
+            color: var(--cream);
+            border: 1px solid var(--burgundy);
+        }
+
+        /* Petal decoration on badges */
+        .badge::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 8px;
+            height: 8px;
+            background: inherit;
+            border-radius: 50% 0 50% 0;
+            border: inherit;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        /* Quote Block */
+        .quote-block {
+            padding: var(--space-7);
+            position: relative;
+            text-align: center;
+            margin: var(--space-6) 0;
+        }
+
+        .quote-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 100%;
+            background:
+                radial-gradient(ellipse at 30% 20%, var(--dusty-rose-wash) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 80%, var(--sage-wash) 0%, transparent 40%);
+            filter: blur(20px);
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .quote-block blockquote {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-style: italic;
+            font-weight: 400;
+            color: var(--burgundy);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .quote-block cite {
+            display: block;
+            margin-top: var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-style: normal;
+            color: var(--text-muted);
+        }
+
+        .quote-mark {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--gold);
+            line-height: 1;
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        .footer {
+            padding: var(--space-9) 0 var(--space-8);
+            text-align: center;
+            position: relative;
+        }
+
+        .footer-ornament {
+            margin-bottom: var(--space-5);
+        }
+
+        .footer-flower {
+            width: 50px;
+            height: 50px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .footer-flower::before,
+        .footer-flower::after {
+            content: '';
+            position: absolute;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+        }
+
+        .footer-flower::before {
+            width: 24px;
+            height: 24px;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .footer-flower::after {
+            width: 24px;
+            height: 24px;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%) rotate(90deg);
+        }
+
+        .footer-petal-left,
+        .footer-petal-right {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--dusty-rose);
+            border-radius: 50% 0 50% 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .footer-petal-left {
+            left: 0;
+            transform: translateY(-50%) rotate(-45deg);
+        }
+
+        .footer-petal-right {
+            right: 0;
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        .footer-center {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: var(--sage);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            letter-spacing: 0.15em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-3);
+        }
+
+        .footer p {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .footer-vines {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-2);
+            margin-top: var(--space-5);
+        }
+
+        .footer-leaf {
+            width: 12px;
+            height: 16px;
+            background: var(--sage);
+            border-radius: 50% 0 50% 0;
+            opacity: 0.6;
+        }
+
+        .footer-leaf:nth-child(2) { transform: rotate(30deg); background: var(--gold); }
+        .footer-leaf:nth-child(3) { transform: rotate(-15deg); background: var(--dusty-rose); }
+        .footer-leaf:nth-child(4) { transform: rotate(45deg); background: var(--sage); }
+        .footer-leaf:nth-child(5) { transform: rotate(-30deg); background: var(--gold); }
+
+        /* Utility Classes */
+        .text-center { text-align: center; }
+        .mt-6 { margin-top: var(--space-6); }
+        .mb-6 { margin-bottom: var(--space-6); }
+
+        /* Decorative Frame for Sections */
+        .ornate-frame {
+            position: relative;
+            padding: var(--space-7);
+            background: var(--cream);
+            border: 1px solid var(--gold-wash);
+            box-shadow: 0 4px 25px var(--shadow-soft);
+        }
+
+        .ornate-frame::before,
+        .ornate-frame::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--gold);
+            opacity: 0.6;
+        }
+
+        .ornate-frame::before {
+            top: -8px;
+            left: -8px;
+            border-right: none;
+            border-bottom: none;
+            border-top-left-radius: 20px;
+        }
+
+        .ornate-frame::after {
+            bottom: -8px;
+            right: -8px;
+            border-left: none;
+            border-top: none;
+            border-bottom-right-radius: 20px;
+        }
+
+        /* Flowing Curve Accents */
+        .curve-accent {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--gold-wash);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .curve-accent-tl {
+            top: -100px;
+            left: -100px;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        .curve-accent-br {
+            bottom: -100px;
+            right: -100px;
+            border-left-color: transparent;
+            border-top-color: transparent;
+        }
+
+        /* Whiplash Curve Decoration */
+        .whiplash {
+            position: relative;
+            padding-left: var(--space-7);
+        }
+
+        .whiplash::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: linear-gradient(
+                180deg,
+                var(--sage) 0%,
+                var(--gold) 30%,
+                var(--dusty-rose) 60%,
+                var(--burgundy) 100%
+            );
+            border-radius: 50%;
+        }
+
+        .whiplash::after {
+            content: '';
+            position: absolute;
+            left: -4px;
+            top: -8px;
+            width: 12px;
+            height: 12px;
+            background: var(--sage);
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(-45deg);
+        }
+
+        /* Nature Bullet Points */
+        .nature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nature-list li {
+            padding: var(--space-3) 0 var(--space-3) var(--space-6);
+            position: relative;
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+        }
+
+        .nature-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, var(--sage), var(--gold));
+            border-radius: 50% 0 50% 0;
+        }
+
+        .nature-list li:nth-child(2)::before {
+            background: linear-gradient(135deg, var(--gold), var(--dusty-rose));
+        }
+
+        .nature-list li:nth-child(3)::before {
+            background: linear-gradient(135deg, var(--dusty-rose), var(--burgundy));
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 var(--space-5);
+            }
+
+            .header h1 {
+                letter-spacing: 0.08em;
+            }
+
+            .button-grid {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .vine-border {
+                display: none;
+            }
+
+            .ornate-frame {
+                padding: var(--space-5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="vine-border vine-border-left"></div>
+    <div class="vine-border vine-border-right"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-ornament">~ Art Nouveau ~</div>
+            <h1>Art Nouveau</h1>
+            <p class="header-subtitle">A Design System Inspired by the Belle Epoque</p>
+            <div class="header-flourish">
+                <div class="flourish-line"></div>
+                <div class="flourish-flower"></div>
+                <div class="flourish-line"></div>
+            </div>
+        </header>
+
+        <div class="ornament">~</div>
+
+        <!-- Color Palette -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section I</p>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-subtitle">Muted natural tones drawn from botanical gardens, precious metals, and the soft light of Parisian ateliers</p>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(145deg, var(--sage) 0%, var(--sage-light) 100%);"></div>
+                    <p class="color-name">Sage</p>
+                    <p class="color-value">#8B9F7C</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(145deg, var(--dusty-rose) 0%, var(--dusty-rose-light) 100%);"></div>
+                    <p class="color-name">Dusty Rose</p>
+                    <p class="color-value">#C4A4A4</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(145deg, var(--gold) 0%, var(--gold-light) 100%);"></div>
+                    <p class="color-name">Gold</p>
+                    <p class="color-value">#C9A227</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(145deg, var(--ivory) 0%, var(--cream) 100%); border: 1px solid var(--sage-wash);"></div>
+                    <p class="color-name">Ivory</p>
+                    <p class="color-value">#F5F0E6</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(145deg, var(--burgundy) 0%, var(--burgundy-light) 100%);"></div>
+                    <p class="color-name">Burgundy</p>
+                    <p class="color-value">#6B2D3C</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="vine-divider">
+            <div class="curl-left"></div>
+            <div class="curl-right"></div>
+        </div>
+
+        <!-- Typography -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section II</p>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-subtitle">Elegant letterforms that echo the flowing lines and feminine grace of the Art Nouveau movement</p>
+            </div>
+
+            <div class="curved-frame">
+                <div class="type-scale">
+                    <div class="type-specimen">
+                        <p class="type-label">Display / Cinzel Decorative</p>
+                        <p class="type-display">Mucha</p>
+                    </div>
+                    <div class="type-specimen">
+                        <p class="type-label">Heading / Playfair Display</p>
+                        <p class="type-heading">The Flowering Path</p>
+                    </div>
+                    <div class="type-specimen">
+                        <p class="type-label">Subheading / Playfair Display Italic</p>
+                        <p class="type-subheading">Nature as the supreme ornament</p>
+                    </div>
+                    <div class="type-specimen">
+                        <p class="type-label">Body / Cormorant Garamond</p>
+                        <p class="type-body">Art Nouveau emerged at the turn of the century as a revolutionary movement that sought to break free from the rigid constraints of academic art. Drawing inspiration from the organic forms of nature, artists created flowing, sinuous designs that celebrated the beauty of flowers, vines, and the feminine form.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="vine-divider">
+            <div class="curl-left"></div>
+            <div class="curl-right"></div>
+        </div>
+
+        <!-- Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section III</p>
+                <h2 class="section-title">Spacing</h2>
+                <p class="section-subtitle">Harmonious intervals that allow designs to breathe like a garden in spring</p>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-row">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 24px;"></div>
+                    <span class="spacing-value">xs</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 48px; background: linear-gradient(135deg, var(--dusty-rose) 0%, var(--dusty-rose-light) 100%);"></div>
+                    <span class="spacing-value">sm</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 96px; background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);"></div>
+                    <span class="spacing-value">md</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 144px;"></div>
+                    <span class="spacing-value">lg</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 192px; background: linear-gradient(135deg, var(--burgundy) 0%, var(--burgundy-light) 100%);"></div>
+                    <span class="spacing-value">xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 256px; background: linear-gradient(135deg, var(--teal) 0%, var(--teal-light) 100%);"></div>
+                    <span class="spacing-value">2xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-bar" style="width: 320px; background: linear-gradient(90deg, var(--sage), var(--gold), var(--dusty-rose));"></div>
+                    <span class="spacing-value">3xl</span>
+                </div>
+            </div>
+        </section>
+
+        <div class="ornament">~</div>
+
+        <!-- Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section IV</p>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-subtitle">Interactive elements shaped like petals and leaves, inviting gentle interaction</p>
+            </div>
+
+            <div class="button-grid">
+                <button class="btn btn-primary">Primary Action</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-outline">Outlined</button>
+            </div>
+
+            <div class="button-grid">
+                <button class="btn btn-primary btn-leaf">Leaf Shape</button>
+                <button class="btn btn-secondary btn-leaf">Botanical</button>
+                <button class="btn btn-outline btn-leaf">Nature</button>
+            </div>
+
+            <div class="quote-block">
+                <p class="quote-mark">"</p>
+                <blockquote>The line is a force which, like all elemental forces, is active; put several of these forces together, to oppose or complement each other, and you have a harmony.</blockquote>
+                <cite>- Henry van de Velde</cite>
+            </div>
+        </section>
+
+        <div class="vine-divider">
+            <div class="curl-left"></div>
+            <div class="curl-right"></div>
+        </div>
+
+        <!-- Form Elements -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section V</p>
+                <h2 class="section-title">Form Elements</h2>
+                <p class="section-subtitle">Input fields with organic curves and delicate borders, echoing the frames of Mucha's posters</p>
+            </div>
+
+            <div class="ornate-frame">
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label class="input-label">Your Name</label>
+                        <input type="text" class="input-field" placeholder="Enter your name...">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Email Address</label>
+                        <input type="email" class="input-field" placeholder="you@example.com">
+                    </div>
+                    <div class="input-group full-width">
+                        <label class="input-label">Your Message</label>
+                        <textarea class="input-field" placeholder="Share your thoughts, like petals scattered on the wind..."></textarea>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="vine-divider">
+            <div class="curl-left"></div>
+            <div class="curl-right"></div>
+        </div>
+
+        <!-- Cards -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section VI</p>
+                <h2 class="section-title">Cards</h2>
+                <p class="section-subtitle">Content vessels adorned with organic frames and subtle botanical flourishes</p>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">~</div>
+                    <h3 class="card-title">Organic Forms</h3>
+                    <p class="card-content">Sinuous curves and flowing lines inspired by plant stems, flower petals, and the graceful movement of vines.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">*</div>
+                    <h3 class="card-title">Floral Motifs</h3>
+                    <p class="card-content">Irises, lilies, orchids, and wisteria rendered with delicate precision, celebrating nature's ephemeral beauty.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">+</div>
+                    <h3 class="card-title">Feminine Grace</h3>
+                    <p class="card-content">Elongated figures with flowing hair and draped fabrics, embodying the idealized beauty of the Belle Epoque.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="ornament">~</div>
+
+        <!-- Badges -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section VII</p>
+                <h2 class="section-title">Badges</h2>
+                <p class="section-subtitle">Small ornamental labels shaped like leaves and petals</p>
+            </div>
+
+            <div class="badge-row">
+                <span class="badge badge-sage">Botanical</span>
+                <span class="badge badge-rose">Floral</span>
+                <span class="badge badge-gold">Gilded</span>
+                <span class="badge badge-burgundy">Featured</span>
+            </div>
+
+            <div class="mt-6">
+                <div class="whiplash">
+                    <ul class="nature-list">
+                        <li>Badges feature organic curves reminiscent of flower buds</li>
+                        <li>Petal-shaped decorations add visual interest</li>
+                        <li>Colors drawn from the natural world create harmony</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <div class="vine-divider">
+            <div class="curl-left"></div>
+            <div class="curl-right"></div>
+        </div>
+
+        <!-- Design Principles -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section VIII</p>
+                <h2 class="section-title">Design Principles</h2>
+                <p class="section-subtitle">The philosophy of Art Nouveau - unity of art and nature</p>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">1</div>
+                    <h3 class="card-title">Whiplash Curves</h3>
+                    <p class="card-content">The signature "whiplash" curve embodies dynamic energy frozen in elegant motion, like a tendril reaching toward light.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">2</div>
+                    <h3 class="card-title">Total Design</h3>
+                    <p class="card-content">Every element harmonizes - from architecture to furniture to typography - creating immersive aesthetic experiences.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon">3</div>
+                    <h3 class="card-title">Natural Asymmetry</h3>
+                    <p class="card-content">Rejecting rigid symmetry in favor of organic balance, as found in the spiral of a seashell or the unfurling of a fern.</p>
+                </div>
+            </div>
+
+            <div class="quote-block mt-6">
+                <p class="quote-mark">"</p>
+                <blockquote>I want to see every form organically living again. The line is the living expression of what is dying.</blockquote>
+                <cite>- Alphonse Mucha</cite>
+            </div>
+        </section>
+
+        <div class="ornament">~</div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-ornament">
+                <div class="footer-flower">
+                    <div class="footer-petal-left"></div>
+                    <div class="footer-petal-right"></div>
+                    <div class="footer-center"></div>
+                </div>
+            </div>
+            <h3 class="footer-title">Art Nouveau</h3>
+            <p>Where nature and art embrace in eternal spring</p>
+            <div class="footer-vines">
+                <div class="footer-leaf"></div>
+                <div class="footer-leaf"></div>
+                <div class="footer-leaf"></div>
+                <div class="footer-leaf"></div>
+                <div class="footer-leaf"></div>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

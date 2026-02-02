@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streamline Moderne Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Typography */
+            --font-display: 'Quicksand', sans-serif;
+            --font-body: 'Raleway', sans-serif;
+
+            /* Streamline Moderne Color Palette */
+            --cream: #F5F0E6;
+            --cream-light: #FAF8F3;
+            --silver: #C0C0C0;
+            --chrome: #E8E8E8;
+            --chrome-dark: #A8A8A8;
+            --navy: #1A2A4A;
+            --navy-deep: #0F1A2E;
+            --burgundy: #6B2D3D;
+            --burgundy-light: #8A3D4F;
+            --mint: #7EBDB4;
+            --mint-light: #A5D4CD;
+            --mint-dark: #5A9A91;
+
+            /* Semantic Colors */
+            --text-primary: var(--cream);
+            --text-secondary: rgba(245, 240, 230, 0.75);
+            --text-muted: rgba(245, 240, 230, 0.5);
+            --bg-primary: var(--navy-deep);
+            --bg-secondary: var(--navy);
+            --accent-primary: var(--chrome);
+            --accent-secondary: var(--mint);
+            --accent-tertiary: var(--burgundy);
+
+            /* Spacing Scale */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+            --space-10: 128px;
+
+            /* Border Radius - Streamlined curves */
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 40px;
+            --radius-pill: 100px;
+            --radius-teardrop: 50% 50% 50% 0%;
+
+            /* Shadows */
+            --shadow-chrome: 0 2px 8px rgba(192, 192, 192, 0.15),
+                             0 4px 16px rgba(192, 192, 192, 0.1);
+            --shadow-glow: 0 0 20px rgba(192, 192, 192, 0.2);
+            --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+            /* Transitions */
+            --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-fast: 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Speed Lines Background */
+        .speed-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .speed-lines::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 80px,
+                    rgba(192, 192, 192, 0.03) 80px,
+                    rgba(192, 192, 192, 0.03) 81px
+                );
+        }
+
+        .speed-lines::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: -50%;
+            width: 200%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(192, 192, 192, 0.1) 20%,
+                rgba(192, 192, 192, 0.05) 50%,
+                transparent 100%
+            );
+            transform: rotate(-2deg);
+            animation: speedLine1 20s linear infinite;
+        }
+
+        @keyframes speedLine1 {
+            0% { transform: translateX(-10%) rotate(-2deg); }
+            100% { transform: translateX(10%) rotate(-2deg); }
+        }
+
+        /* Accent speed lines */
+        .speed-accent {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(126, 189, 180, 0.2),
+                transparent
+            );
+            pointer-events: none;
+        }
+
+        .speed-accent:nth-child(1) {
+            top: 35%;
+            left: 0;
+            width: 60%;
+        }
+
+        .speed-accent:nth-child(2) {
+            top: 55%;
+            right: 0;
+            width: 70%;
+        }
+
+        .speed-accent:nth-child(3) {
+            top: 75%;
+            left: 10%;
+            width: 40%;
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        /* Header */
+        .header {
+            padding: var(--space-10) 0 var(--space-9);
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--chrome-dark) 20%,
+                var(--chrome) 50%,
+                var(--chrome-dark) 80%,
+                transparent
+            );
+            border-radius: var(--radius-pill);
+        }
+
+        /* Decorative horizontal lines */
+        .header-lines {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        .header-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(192, 192, 192, 0.15) 15%,
+                rgba(192, 192, 192, 0.15) 85%,
+                transparent
+            );
+        }
+
+        .header-line:nth-child(1) { top: -60px; }
+        .header-line:nth-child(2) { top: -30px; }
+        .header-line:nth-child(3) { bottom: -30px; }
+        .header-line:nth-child(4) { bottom: -60px; }
+
+        .header-emblem {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+            color: var(--chrome);
+        }
+
+        .porthole {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--chrome);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .porthole::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 4px;
+            height: 4px;
+            background: var(--mint);
+            border-radius: 50%;
+        }
+
+        .header-wing {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--chrome));
+            border-radius: var(--radius-pill);
+        }
+
+        .header-wing.left {
+            background: linear-gradient(270deg, transparent, var(--chrome));
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--chrome);
+            margin-bottom: var(--space-4);
+            text-shadow: 0 0 40px rgba(192, 192, 192, 0.3);
+        }
+
+        .header-subtitle {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        /* Section */
+        .section {
+            padding: var(--space-9) 0;
+            position: relative;
+        }
+
+        .section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--chrome-dark) 30%,
+                var(--chrome-dark) 70%,
+                transparent
+            );
+        }
+
+        .section:last-of-type::after {
+            display: none;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--mint);
+            margin-bottom: var(--space-2);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--chrome);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+        }
+
+        .section-line::before,
+        .section-line::after {
+            content: '';
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--chrome-dark));
+            border-radius: var(--radius-pill);
+        }
+
+        .section-line::after {
+            background: linear-gradient(270deg, transparent, var(--chrome-dark));
+        }
+
+        .section-line .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--mint);
+            border-radius: 50%;
+        }
+
+        /* Color Palette */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-4);
+        }
+
+        @media (max-width: 768px) {
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .color-swatch {
+            text-align: center;
+            padding: var(--space-5);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border: 1px solid rgba(192, 192, 192, 0.1);
+            transition: all var(--transition-smooth);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-chrome);
+        }
+
+        .color-preview {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-4);
+            border-radius: 50%;
+            border: 3px solid rgba(192, 192, 192, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Chrome reflection effect */
+        .color-preview::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.2),
+                transparent
+            );
+            border-radius: 50% 50% 0 0;
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-size: 0.75rem;
+            font-family: monospace;
+            color: var(--text-muted);
+        }
+
+        /* Typography */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-6);
+        }
+
+        .type-specimen {
+            padding: var(--space-6);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            border-left: 4px solid var(--mint);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .type-specimen::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100%;
+            background: linear-gradient(270deg,
+                rgba(126, 189, 180, 0.05),
+                transparent
+            );
+            pointer-events: none;
+        }
+
+        .type-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--mint);
+            margin-bottom: var(--space-3);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--chrome);
+            line-height: 1.2;
+        }
+
+        .type-heading {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-primary);
+        }
+
+        .type-subheading {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            max-width: 60ch;
+        }
+
+        /* Spacing */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            padding: var(--space-6);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .spacing-label {
+            width: 60px;
+            font-family: monospace;
+            font-size: 0.875rem;
+            color: var(--mint);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: linear-gradient(90deg,
+                var(--chrome-dark),
+                var(--chrome),
+                var(--chrome-dark)
+            );
+            border-radius: var(--radius-pill);
+            position: relative;
+            box-shadow: var(--shadow-inset);
+        }
+
+        /* Aerodynamic teardrop end */
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 12px solid transparent;
+            border-bottom: 12px solid transparent;
+            border-left: 12px solid var(--chrome-dark);
+        }
+
+        .spacing-value {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-left: var(--space-4);
+        }
+
+        /* Buttons */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-5);
+            margin-bottom: var(--space-6);
+        }
+
+        .btn {
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: var(--space-4) var(--space-7);
+            border: none;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-smooth);
+        }
+
+        /* Chrome/Silver Button */
+        .btn-chrome {
+            background: linear-gradient(180deg,
+                var(--chrome) 0%,
+                var(--silver) 50%,
+                var(--chrome-dark) 100%
+            );
+            color: var(--navy-deep);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
+
+        .btn-chrome:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 6px 20px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5),
+                0 0 20px rgba(192, 192, 192, 0.3);
+        }
+
+        /* Mint Button */
+        .btn-mint {
+            background: linear-gradient(180deg,
+                var(--mint-light) 0%,
+                var(--mint) 50%,
+                var(--mint-dark) 100%
+            );
+            color: var(--navy-deep);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-mint:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 6px 20px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                0 0 20px rgba(126, 189, 180, 0.3);
+        }
+
+        /* Burgundy Button */
+        .btn-burgundy {
+            background: linear-gradient(180deg,
+                var(--burgundy-light) 0%,
+                var(--burgundy) 50%,
+                #4A1D2A 100%
+            );
+            color: var(--cream);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-burgundy:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 6px 20px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25),
+                0 0 20px rgba(107, 45, 61, 0.4);
+        }
+
+        /* Form Elements */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-6);
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--mint);
+            margin-bottom: var(--space-2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-4) var(--space-5);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+            border: 2px solid rgba(192, 192, 192, 0.2);
+            border-radius: var(--radius-pill);
+            transition: all var(--transition-smooth);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--mint);
+            box-shadow: 0 0 0 4px rgba(126, 189, 180, 0.15);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea.input-field {
+            border-radius: var(--radius-lg);
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-6);
+        }
+
+        @media (max-width: 768px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            padding: var(--space-6);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(192, 192, 192, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-smooth);
+        }
+
+        /* Streamlined top accent */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--chrome-dark),
+                var(--chrome),
+                var(--chrome-dark)
+            );
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        /* Speed line accents */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(270deg,
+                rgba(126, 189, 180, 0.3),
+                transparent
+            );
+            transform: translateY(-50%);
+            transition: all var(--transition-smooth);
+        }
+
+        .card:hover {
+            transform: translateY(-8px) translateX(4px);
+            box-shadow:
+                -8px 12px 30px rgba(0, 0, 0, 0.4),
+                0 0 20px rgba(192, 192, 192, 0.1);
+        }
+
+        .card:hover::after {
+            width: 150px;
+        }
+
+        .card-porthole {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--chrome);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-5);
+            background: linear-gradient(135deg,
+                rgba(192, 192, 192, 0.1),
+                transparent
+            );
+            box-shadow: var(--shadow-inset);
+        }
+
+        .card-porthole-inner {
+            width: 24px;
+            height: 24px;
+            background: var(--mint);
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--chrome);
+            margin-bottom: var(--space-3);
+        }
+
+        .card-content {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Badges */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-4);
+        }
+
+        .badge {
+            font-family: var(--font-display);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-pill);
+            transition: all var(--transition-fast);
+        }
+
+        .badge-chrome {
+            background: linear-gradient(180deg, var(--chrome), var(--silver));
+            color: var(--navy-deep);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .badge-mint {
+            background: var(--mint);
+            color: var(--navy-deep);
+        }
+
+        .badge-burgundy {
+            background: var(--burgundy);
+            color: var(--cream);
+        }
+
+        .badge-outline {
+            background: transparent;
+            border: 2px solid var(--chrome);
+            color: var(--chrome);
+        }
+
+        .badge:hover {
+            transform: scale(1.05);
+        }
+
+        /* Divider */
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-5);
+            margin: var(--space-8) 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--chrome-dark), transparent);
+            border-radius: var(--radius-pill);
+        }
+
+        .divider-emblem {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .divider-emblem .wing {
+            width: 30px;
+            height: 2px;
+            background: var(--chrome);
+            border-radius: var(--radius-pill);
+        }
+
+        .divider-emblem .center {
+            width: 8px;
+            height: 8px;
+            background: var(--mint);
+            border-radius: 50%;
+            border: 2px solid var(--chrome);
+        }
+
+        /* Ocean Liner / Train Reference Elements */
+        .liner-accent {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            padding: var(--space-6);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-6);
+        }
+
+        .liner-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .liner-funnel {
+            width: 24px;
+            height: 40px;
+            background: linear-gradient(180deg,
+                var(--burgundy-light),
+                var(--burgundy)
+            );
+            border-radius: 4px 4px 0 0;
+            position: relative;
+        }
+
+        .liner-funnel::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 4px;
+            right: 4px;
+            height: 3px;
+            background: var(--cream);
+            border-radius: 2px;
+        }
+
+        .liner-funnel::after {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 4px;
+            right: 4px;
+            height: 3px;
+            background: var(--cream);
+            border-radius: 2px;
+        }
+
+        .liner-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .portholes-row {
+            display: flex;
+            gap: var(--space-3);
+        }
+
+        .porthole-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--chrome);
+            border-radius: 50%;
+            background: rgba(126, 189, 180, 0.2);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: var(--space-9) var(--space-6);
+            position: relative;
+            margin-top: var(--space-8);
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 3px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--chrome-dark) 20%,
+                var(--chrome) 50%,
+                var(--chrome-dark) 80%,
+                transparent
+            );
+            border-radius: var(--radius-pill);
+        }
+
+        .footer-emblem {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .footer-wing {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--chrome));
+            border-radius: var(--radius-pill);
+        }
+
+        .footer-wing.right {
+            background: linear-gradient(270deg, transparent, var(--chrome));
+        }
+
+        .footer-circle {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--chrome);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .footer-circle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: var(--mint);
+            border-radius: 50%;
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--chrome);
+            margin-bottom: var(--space-3);
+        }
+
+        .footer p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        .footer-date {
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--mint);
+        }
+
+        /* Streamlined horizontal decorative element */
+        .streamline-deco {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            margin: var(--space-6) 0;
+        }
+
+        .streamline-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--chrome-dark),
+                var(--chrome)
+            );
+            border-radius: var(--radius-pill);
+        }
+
+        .streamline-bar.short { width: 20px; }
+        .streamline-bar.medium { width: 40px; }
+        .streamline-bar.long { width: 80px; }
+
+        .streamline-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--mint);
+            border-radius: 50%;
+        }
+
+        /* Teardrop shape decorator */
+        .teardrop {
+            width: 60px;
+            height: 30px;
+            background: linear-gradient(90deg,
+                var(--chrome),
+                var(--silver)
+            );
+            border-radius: 50px 50px 50px 0;
+            transform: rotate(-45deg);
+            position: relative;
+            box-shadow: var(--shadow-chrome);
+        }
+
+        .teardrop::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            width: 15px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: rotate(45deg);
+        }
+
+        /* Aerodynamic showcase box */
+        .aero-showcase {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-7);
+            padding: var(--space-7);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--space-6);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .aero-showcase::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(192, 192, 192, 0.02) 20px,
+                    rgba(192, 192, 192, 0.02) 21px
+                );
+            pointer-events: none;
+        }
+
+        .aero-train {
+            display: flex;
+            align-items: center;
+        }
+
+        .train-nose {
+            width: 60px;
+            height: 40px;
+            background: linear-gradient(180deg,
+                var(--chrome),
+                var(--silver),
+                var(--chrome-dark)
+            );
+            border-radius: 0 40px 40px 0;
+            position: relative;
+            box-shadow: var(--shadow-chrome);
+        }
+
+        .train-nose::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 10px;
+            width: 8px;
+            height: 8px;
+            background: var(--mint);
+            border-radius: 50%;
+            box-shadow: 0 8px 0 var(--mint);
+        }
+
+        .train-body {
+            width: 120px;
+            height: 40px;
+            background: linear-gradient(180deg,
+                var(--chrome),
+                var(--silver),
+                var(--chrome-dark)
+            );
+            position: relative;
+            margin-left: -2px;
+        }
+
+        .train-body::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            right: 10px;
+            height: 2px;
+            background: var(--burgundy);
+            transform: translateY(-50%);
+        }
+
+        .train-body::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            width: 12px;
+            height: 12px;
+            background: rgba(126, 189, 180, 0.3);
+            border: 2px solid var(--chrome-dark);
+            border-radius: 50%;
+            box-shadow:
+                25px 0 0 rgba(126, 189, 180, 0.3),
+                50px 0 0 rgba(126, 189, 180, 0.3),
+                75px 0 0 rgba(126, 189, 180, 0.3);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 var(--space-4);
+            }
+
+            .header h1 {
+                letter-spacing: 0.08em;
+            }
+
+            .button-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 280px;
+            }
+
+            .aero-showcase {
+                flex-direction: column;
+                gap: var(--space-5);
+            }
+
+            .aero-train {
+                transform: scale(0.8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Speed Lines Background -->
+    <div class="speed-lines">
+        <div class="speed-accent"></div>
+        <div class="speed-accent"></div>
+        <div class="speed-accent"></div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-lines">
+                <div class="header-line"></div>
+                <div class="header-line"></div>
+                <div class="header-line"></div>
+                <div class="header-line"></div>
+            </div>
+            <div class="header-emblem">
+                <span class="header-wing left"></span>
+                <span class="porthole"></span>
+                <span class="porthole"></span>
+                <span class="porthole"></span>
+                <span class="header-wing"></span>
+            </div>
+            <h1>Streamline Moderne</h1>
+            <p class="header-subtitle">The Age of Speed and Elegance</p>
+        </header>
+
+        <!-- Color Palette -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section I</p>
+                <h2 class="section-title">Color Palette</h2>
+                <div class="section-line">
+                    <span class="dot"></span>
+                </div>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #E8E8E8, #C0C0C0);"></div>
+                    <p class="color-name">Chrome</p>
+                    <p class="color-value">#C0C0C0</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #F5F0E6, #E8E0D0);"></div>
+                    <p class="color-name">Cream</p>
+                    <p class="color-value">#F5F0E6</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #1A2A4A, #0F1A2E);"></div>
+                    <p class="color-name">Navy</p>
+                    <p class="color-value">#1A2A4A</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #8A3D4F, #6B2D3D);"></div>
+                    <p class="color-name">Burgundy</p>
+                    <p class="color-value">#6B2D3D</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(135deg, #A5D4CD, #7EBDB4);"></div>
+                    <p class="color-name">Mint</p>
+                    <p class="color-value">#7EBDB4</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section II</p>
+                <h2 class="section-title">Typography</h2>
+                <div class="section-line">
+                    <span class="dot"></span>
+                </div>
+            </div>
+
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <p class="type-label">Display / Quicksand Bold</p>
+                    <p class="type-display">VELOCITY</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Heading / Quicksand Semibold</p>
+                    <p class="type-heading">The Future in Motion</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Subheading / Quicksand Medium</p>
+                    <p class="type-subheading">Aerodynamic Elegance</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Body / Raleway Regular</p>
+                    <p class="type-body">Streamline Moderne emerged in the 1930s as a sleeker evolution of Art Deco. Inspired by aerodynamics, ocean liners, and locomotives, this style emphasized horizontal lines, rounded corners, and the promise of speed. It represented optimism during the Great Depression, suggesting progress and a brighter tomorrow.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section III</p>
+                <h2 class="section-title">Spacing Scale</h2>
+                <div class="section-line">
+                    <span class="dot"></span>
+                </div>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-item">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 40px;"></div>
+                    <span class="spacing-value">space-1</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">space-2</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 120px;"></div>
+                    <span class="spacing-value">space-4</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 180px;"></div>
+                    <span class="spacing-value">space-5</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 240px;"></div>
+                    <span class="spacing-value">space-6</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 320px;"></div>
+                    <span class="spacing-value">space-7</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Aerodynamic Showcase -->
+        <div class="divider">
+            <div class="divider-line"></div>
+            <div class="divider-emblem">
+                <span class="wing"></span>
+                <span class="center"></span>
+                <span class="wing"></span>
+            </div>
+            <div class="divider-line"></div>
+        </div>
+
+        <div class="aero-showcase">
+            <div class="liner-stack">
+                <div class="liner-funnel"></div>
+                <p class="liner-label">Ocean Liner</p>
+            </div>
+            <div class="portholes-row">
+                <span class="porthole-small"></span>
+                <span class="porthole-small"></span>
+                <span class="porthole-small"></span>
+                <span class="porthole-small"></span>
+                <span class="porthole-small"></span>
+            </div>
+            <div class="aero-train">
+                <div class="train-body"></div>
+                <div class="train-nose"></div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section IV</p>
+                <h2 class="section-title">Buttons</h2>
+                <div class="section-line">
+                    <span class="dot"></span>
+                </div>
+            </div>
+
+            <div class="streamline-deco">
+                <span class="streamline-bar short"></span>
+                <span class="streamline-bar medium"></span>
+                <span class="streamline-dot"></span>
+                <span class="streamline-bar long"></span>
+                <span class="streamline-bar medium"></span>
+                <span class="streamline-bar short"></span>
+            </div>
+
+            <div class="button-grid">
+                <button class="btn btn-chrome">Chrome Action</button>
+                <button class="btn btn-mint">Mint Accent</button>
+                <button class="btn btn-burgundy">Burgundy Class</button>
+            </div>
+        </section>
+
+        <!-- Form Inputs -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section V</p>
+                <h2 class="section-title">Form Elements</h2>
+                <div class="section-line">
+                    <span class="dot"></span>
+                </div>
+            </div>
+
+            <div class="form-grid">
+                <div class="input-group">
+                    <label class="input-label">Passenger Name</label>
+                    <input type="text" class="input-field" placeholder="Enter your name...">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Destination</label>
+                    <input type="text" class="input-field" placeholder="Where are you headed?">
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Travel Notes</label>
+                <textarea class="input-field" placeholder="Share your journey details..."></textarea>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section VI</p>
+                <h2 class="section-title">Cards</h2>
+                <div class="section-line">
+                    <span class="dot"></span>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-porthole">
+                        <div class="card-porthole-inner"></div>
+                    </div>
+                    <h3 class="card-title">Aerodynamics</h3>
+                    <p class="card-content">Sleek curves and horizontal lines reduce drag, whether on locomotives, automobiles, or architecture. Form follows the flow of air.</p>
+                </div>
+                <div class="card">
+                    <div class="card-porthole">
+                        <div class="card-porthole-inner"></div>
+                    </div>
+                    <h3 class="card-title">Ocean Liners</h3>
+                    <p class="card-content">The great ships of the era inspired design everywhere, from their porthole windows to their streamlined funnels and elegant interiors.</p>
+                </div>
+                <div class="card">
+                    <div class="card-porthole">
+                        <div class="card-porthole-inner"></div>
+                    </div>
+                    <h3 class="card-title">Chrome Dreams</h3>
+                    <p class="card-content">Polished metal surfaces reflected the optimism of the machine age. Chrome became synonymous with modernity and progress.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section VII</p>
+                <h2 class="section-title">Badges</h2>
+                <div class="section-line">
+                    <span class="dot"></span>
+                </div>
+            </div>
+
+            <div class="badge-row">
+                <span class="badge badge-chrome">First Class</span>
+                <span class="badge badge-mint">Express</span>
+                <span class="badge badge-burgundy">Limited Edition</span>
+                <span class="badge badge-outline">Streamlined</span>
+            </div>
+        </section>
+
+        <div class="divider">
+            <div class="divider-line"></div>
+            <div class="divider-emblem">
+                <span class="wing"></span>
+                <span class="center"></span>
+                <span class="wing"></span>
+            </div>
+            <div class="divider-line"></div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-emblem">
+                <span class="footer-wing"></span>
+                <span class="footer-circle"></span>
+                <span class="footer-wing right"></span>
+            </div>
+            <p class="footer-title">Streamline Moderne</p>
+            <p>A design movement celebrating speed, progress, and the machine age</p>
+            <p class="footer-date">1930 - 1950</p>
+        </footer>
+    </div>
+</body>
+</html>

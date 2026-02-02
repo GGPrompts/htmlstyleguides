@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Knolling Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Typography */
+            --font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            --font-mono: 'IBM Plex Mono', 'SF Mono', Monaco, monospace;
+
+            /* Spacing Scale - Precise 8px grid */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 16px;
+            --space-4: 24px;
+            --space-5: 32px;
+            --space-6: 48px;
+            --space-7: 64px;
+            --space-8: 96px;
+            --space-9: 128px;
+
+            /* Core Colors - Neutral surface palette */
+            --surface-white: #FFFFFF;
+            --surface-paper: #FAFAF8;
+            --surface-kraft: #F5F3EE;
+            --surface-linen: #EDEBE6;
+            --surface-concrete: #E5E3DE;
+
+            /* Object shadows and depth */
+            --shadow-light: #D8D6D1;
+            --shadow-medium: #C4C2BD;
+            --shadow-dark: #9E9C97;
+
+            /* Text colors */
+            --ink-black: #1A1918;
+            --ink-dark: #2D2C2A;
+            --ink-medium: #5C5A56;
+            --ink-light: #8A8884;
+            --ink-muted: #B5B3AE;
+
+            /* Accent - single pop of color */
+            --accent-rust: #C4572A;
+            --accent-rust-light: #D97B52;
+            --accent-rust-dark: #9E4520;
+
+            /* Secondary accents (muted) */
+            --accent-slate: #5B6B73;
+            --accent-olive: #6B7355;
+            --accent-clay: #8B7355;
+
+            /* Semantic */
+            --text-primary: var(--ink-black);
+            --text-secondary: var(--ink-medium);
+            --text-muted: var(--ink-light);
+            --bg-primary: var(--surface-paper);
+            --bg-surface: var(--surface-white);
+            --border-color: var(--shadow-light);
+            --accent: var(--accent-rust);
+
+            /* Object shadows - key to the flat-lay look */
+            --shadow-object:
+                0 1px 1px rgba(0, 0, 0, 0.04),
+                0 2px 4px rgba(0, 0, 0, 0.04),
+                0 4px 8px rgba(0, 0, 0, 0.04);
+            --shadow-object-hover:
+                0 2px 2px rgba(0, 0, 0, 0.04),
+                0 4px 8px rgba(0, 0, 0, 0.06),
+                0 8px 16px rgba(0, 0, 0, 0.06);
+            --shadow-object-lifted:
+                0 4px 4px rgba(0, 0, 0, 0.04),
+                0 8px 16px rgba(0, 0, 0, 0.08),
+                0 16px 32px rgba(0, 0, 0, 0.08);
+
+            /* Transitions */
+            --transition-fast: 0.1s ease;
+            --transition-base: 0.2s ease;
+            --transition-slow: 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Grid background pattern - subtle measurement grid */
+        .grid-background {
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+            background-size: 8px 8px;
+        }
+
+        .grid-background-large {
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+                linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
+            background-size: 64px 64px, 64px 64px, 8px 8px, 8px 8px;
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        /* Strict grid system */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: var(--space-4);
+        }
+
+        .col-12 { grid-column: span 12; }
+        .col-8 { grid-column: span 8; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 var(--space-4);
+            }
+            .grid {
+                gap: var(--space-3);
+            }
+            .col-8, .col-6, .col-4, .col-3 {
+                grid-column: span 12;
+            }
+        }
+
+        /* Typography - precise, measured */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-sans);
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+        }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--space-4);
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            margin-bottom: var(--space-4);
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            margin-bottom: var(--space-3);
+        }
+
+        h4 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+        }
+
+        p {
+            margin-bottom: var(--space-3);
+            max-width: 60ch;
+            color: var(--text-secondary);
+        }
+
+        .lead {
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+        .mono {
+            font-family: var(--font-mono);
+        }
+
+        .label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        /* Header - clean, aligned */
+        .header {
+            padding: var(--space-8) 0;
+            background: var(--surface-kraft);
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+            background-size: 8px 8px;
+            pointer-events: none;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            position: relative;
+        }
+
+        .header h1 {
+            margin-bottom: var(--space-2);
+        }
+
+        .header-tagline {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+            max-width: 40ch;
+        }
+
+        .header-meta {
+            text-align: right;
+        }
+
+        .header-object {
+            width: 64px;
+            height: 64px;
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-bottom: var(--space-3);
+            box-shadow: var(--shadow-object);
+        }
+
+        .header-object svg {
+            width: 32px;
+            height: 32px;
+            color: var(--accent);
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-5);
+            }
+            .header-meta {
+                text-align: left;
+            }
+            .header-object {
+                margin-left: 0;
+            }
+        }
+
+        /* Section */
+        .section {
+            padding: var(--space-8) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-6);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: var(--space-3);
+            box-shadow: var(--shadow-object);
+        }
+
+        /* Color Blocks - like paint swatches laid flat */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: var(--space-3);
+        }
+
+        @media (max-width: 768px) {
+            .color-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .color-block {
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-object);
+            transition: all var(--transition-base);
+        }
+
+        .color-block:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-object-hover);
+        }
+
+        .color-swatch {
+            aspect-ratio: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .color-info {
+            padding: var(--space-3);
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-family: var(--font-mono);
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+        }
+
+        /* Object - base class for flat-lay items */
+        .object {
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-object);
+            transition: all var(--transition-base);
+        }
+
+        .object:hover {
+            box-shadow: var(--shadow-object-hover);
+        }
+
+        .object-lifted {
+            box-shadow: var(--shadow-object-lifted);
+        }
+
+        /* Buttons - like small tools or objects */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-sans);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid var(--border-color);
+            background: var(--surface-white);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-object);
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-object-hover);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow:
+                0 1px 1px rgba(0, 0, 0, 0.04),
+                0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent-rust-dark);
+            color: var(--surface-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-rust-dark);
+        }
+
+        .btn-dark {
+            background: var(--ink-black);
+            border-color: var(--ink-black);
+            color: var(--surface-white);
+        }
+
+        .btn-dark:hover {
+            background: var(--ink-dark);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .btn-ghost:hover {
+            background: var(--surface-linen);
+            box-shadow: none;
+        }
+
+        .btn-sm {
+            padding: var(--space-1) var(--space-3);
+            font-size: 0.75rem;
+        }
+
+        .btn-lg {
+            padding: var(--space-3) var(--space-5);
+            font-size: 1rem;
+        }
+
+        .button-row {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-4);
+        }
+
+        /* Inputs - clean rectangles */
+        .input-group {
+            margin-bottom: var(--space-4);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            margin-bottom: var(--space-2);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-2) var(--space-3);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-object);
+            transition: all var(--transition-fast);
+        }
+
+        .input-field:hover {
+            border-color: var(--shadow-medium);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: var(--shadow-object), 0 0 0 2px rgba(196, 87, 42, 0.1);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        textarea.input-field {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.6;
+        }
+
+        /* Cards - objects laid flat on surface */
+        .card {
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            padding: var(--space-5);
+            box-shadow: var(--shadow-object);
+            transition: all var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-object-hover);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: var(--space-3);
+        }
+
+        .card-number {
+            font-family: var(--font-mono);
+            font-size: 0.6875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            background: var(--surface-kraft);
+            padding: var(--space-1) var(--space-2);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--surface-kraft);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-3);
+        }
+
+        .card-icon svg {
+            width: 24px;
+            height: 24px;
+            color: var(--accent);
+        }
+
+        .card h3 {
+            margin-bottom: var(--space-2);
+        }
+
+        .card p {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin-bottom: 0;
+        }
+
+        .card-kraft {
+            background: var(--surface-kraft);
+        }
+
+        .card-linen {
+            background: var(--surface-linen);
+        }
+
+        /* Badges - like small labels */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-1) var(--space-2);
+            font-family: var(--font-mono);
+            font-size: 0.625rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .badge-accent {
+            background: var(--accent);
+            border-color: var(--accent-rust-dark);
+            color: var(--surface-white);
+        }
+
+        .badge-dark {
+            background: var(--ink-black);
+            border-color: var(--ink-black);
+            color: var(--surface-white);
+        }
+
+        .badge-kraft {
+            background: var(--surface-kraft);
+            border-color: var(--shadow-light);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+        }
+
+        /* Spacing visualization - ruler-like */
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-2);
+            padding: var(--space-2) 0;
+        }
+
+        .spacing-label {
+            width: 64px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-object);
+            position: relative;
+        }
+
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 7px,
+                var(--border-color) 7px,
+                var(--border-color) 8px
+            );
+        }
+
+        .spacing-value {
+            font-family: var(--font-mono);
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            width: 56px;
+        }
+
+        /* Type scale - precise measurements */
+        .type-row {
+            display: flex;
+            align-items: baseline;
+            padding: var(--space-4) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .type-row:last-child {
+            border-bottom: none;
+        }
+
+        .type-meta {
+            width: 160px;
+            flex-shrink: 0;
+        }
+
+        .type-size {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .type-specs {
+            font-family: var(--font-mono);
+            font-size: 0.625rem;
+            color: var(--text-muted);
+        }
+
+        .type-sample {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        /* Arrangement grid - the knolling showcase */
+        .arrangement {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-3);
+            padding: var(--space-5);
+            background: var(--surface-kraft);
+            border: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            .arrangement {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .arrangement-item {
+            aspect-ratio: 1;
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-object);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3);
+            transition: all var(--transition-base);
+        }
+
+        .arrangement-item:hover {
+            transform: rotate(0deg) scale(1.02);
+            box-shadow: var(--shadow-object-hover);
+        }
+
+        .arrangement-item svg {
+            width: 32px;
+            height: 32px;
+            color: var(--ink-medium);
+            margin-bottom: var(--space-2);
+        }
+
+        .arrangement-item span {
+            font-family: var(--font-mono);
+            font-size: 0.625rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: var(--space-5) 0;
+        }
+
+        /* Ruler accent */
+        .ruler {
+            height: 8px;
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            margin-bottom: var(--space-4);
+            position: relative;
+            box-shadow: var(--shadow-object);
+        }
+
+        .ruler::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 7px,
+                var(--border-color) 7px,
+                var(--border-color) 8px
+            );
+        }
+
+        /* Specification block */
+        .spec-block {
+            background: var(--surface-white);
+            border: 1px solid var(--border-color);
+            padding: var(--space-4);
+            box-shadow: var(--shadow-object);
+            margin-bottom: var(--space-3);
+        }
+
+        .spec-row {
+            display: flex;
+            justify-content: space-between;
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .spec-row:last-child {
+            border-bottom: none;
+        }
+
+        .spec-key {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .spec-value {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-primary);
+        }
+
+        /* Footer */
+        .footer {
+            padding: var(--space-7) 0;
+            background: var(--surface-kraft);
+            text-align: center;
+            margin-top: var(--space-8);
+            border-top: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+            background-size: 8px 8px;
+            pointer-events: none;
+        }
+
+        .footer-content {
+            position: relative;
+        }
+
+        .footer-brand {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin: 0 auto;
+        }
+
+        /* Utilities */
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-3 { margin-bottom: var(--space-3); }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mb-5 { margin-bottom: var(--space-5); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-5 { margin-top: var(--space-5); }
+
+        /* Selection */
+        ::selection {
+            background: var(--accent);
+            color: var(--surface-white);
+        }
+
+        /* Scrollbar - minimal */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--surface-kraft);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--shadow-medium);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--shadow-dark);
+        }
+    </style>
+</head>
+<body class="grid-background">
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <p class="label" style="margin-bottom: var(--space-2); color: var(--accent);">Design System</p>
+                    <h1>Knolling</h1>
+                    <p class="header-tagline">Precise arrangement. 90-degree angles. Objects organized at perfect right angles on a flat surface.</p>
+                </div>
+                <div class="header-meta">
+                    <div class="header-object">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <p class="small" style="color: var(--text-muted); margin-bottom: 0;">
+                        Everything aligned.<br>
+                        Nothing at random.<br>
+                        Satisfying order.
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Colors -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">01</div>
+                <h2>Color Palette</h2>
+                <p class="lead">A neutral surface palette inspired by photography backdrops. Kraft paper, linen, and concrete surfaces provide the canvas. One rust accent for emphasis.</p>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-block">
+                    <div class="color-swatch" style="background: var(--surface-white);"></div>
+                    <div class="color-info">
+                        <span class="color-name">White</span>
+                        <span class="color-value">#FFFFFF</span>
+                    </div>
+                </div>
+                <div class="color-block">
+                    <div class="color-swatch" style="background: var(--surface-kraft);"></div>
+                    <div class="color-info">
+                        <span class="color-name">Kraft</span>
+                        <span class="color-value">#F5F3EE</span>
+                    </div>
+                </div>
+                <div class="color-block">
+                    <div class="color-swatch" style="background: var(--shadow-medium);"></div>
+                    <div class="color-info">
+                        <span class="color-name">Shadow</span>
+                        <span class="color-value">#C4C2BD</span>
+                    </div>
+                </div>
+                <div class="color-block">
+                    <div class="color-swatch" style="background: var(--ink-black); color: var(--surface-white);"></div>
+                    <div class="color-info">
+                        <span class="color-name">Ink</span>
+                        <span class="color-value">#1A1918</span>
+                    </div>
+                </div>
+                <div class="color-block">
+                    <div class="color-swatch" style="background: var(--accent); color: var(--surface-white);"></div>
+                    <div class="color-info">
+                        <span class="color-name">Rust</span>
+                        <span class="color-value">#C4572A</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">02</div>
+                <h2>Typography</h2>
+                <p class="lead">IBM Plex Sans delivers precision and clarity. The monospace variant for technical details. Clean, engineered letterforms that align with the grid.</p>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Display</p>
+                    <p class="type-specs">48px / 700</p>
+                </div>
+                <div class="type-sample" style="font-size: 3rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1;">Aa</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Heading</p>
+                    <p class="type-specs">28px / 600</p>
+                </div>
+                <div class="type-sample" style="font-size: 1.75rem; font-weight: 600; letter-spacing: -0.01em;">Organized</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Subheading</p>
+                    <p class="type-specs">20px / 600</p>
+                </div>
+                <div class="type-sample" style="font-size: 1.25rem; font-weight: 600;">Precise Alignment</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Body</p>
+                    <p class="type-specs">16px / 400</p>
+                </div>
+                <div class="type-sample">Objects arranged at 90-degree angles create visual harmony. Every element has its place in the composition.</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Small</p>
+                    <p class="type-specs">14px / 400</p>
+                </div>
+                <div class="type-sample" style="font-size: 0.875rem;">Secondary information and captions maintain the same precision.</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Mono</p>
+                    <p class="type-specs">13px / 500</p>
+                </div>
+                <div class="type-sample" style="font-family: var(--font-mono); font-size: 0.8125rem; font-weight: 500;">grid: 8px | spacing: 24px | angle: 90deg</div>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta">
+                    <p class="type-size">Label</p>
+                    <p class="type-specs">11px / 600 / UC</p>
+                </div>
+                <div class="type-sample label" style="margin-bottom: 0;">Specification Label</div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">03</div>
+                <h2>Spacing Scale</h2>
+                <p class="lead">Built on an 8-pixel grid. Precise increments ensure every element aligns. Spacing is measured, not guessed.</p>
+            </div>
+
+            <div class="ruler" style="width: 50%; max-width: 400px;"></div>
+
+            <div class="spacing-row">
+                <span class="spacing-label">4px</span>
+                <div class="spacing-bar" style="width: 16px;"></div>
+                <span class="spacing-value">space-1</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">8px</span>
+                <div class="spacing-bar" style="width: 32px;"></div>
+                <span class="spacing-value">space-2</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">16px</span>
+                <div class="spacing-bar" style="width: 64px;"></div>
+                <span class="spacing-value">space-3</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">24px</span>
+                <div class="spacing-bar" style="width: 96px;"></div>
+                <span class="spacing-value">space-4</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">32px</span>
+                <div class="spacing-bar" style="width: 128px;"></div>
+                <span class="spacing-value">space-5</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">48px</span>
+                <div class="spacing-bar" style="width: 192px;"></div>
+                <span class="spacing-value">space-6</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">64px</span>
+                <div class="spacing-bar" style="width: 256px;"></div>
+                <span class="spacing-value">space-7</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">96px</span>
+                <div class="spacing-bar" style="width: 320px;"></div>
+                <span class="spacing-value">space-8</span>
+            </div>
+
+            <div class="spec-block mt-5" style="max-width: 400px;">
+                <div class="spec-row">
+                    <span class="spec-key">Base unit</span>
+                    <span class="spec-value">8px</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-key">Grid columns</span>
+                    <span class="spec-value">12</span>
+                </div>
+                <div class="spec-row">
+                    <span class="spec-key">Alignment</span>
+                    <span class="spec-value">90 degrees</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">04</div>
+                <h2>Buttons</h2>
+                <p class="lead">Buttons appear as small objects on the surface. Sharp corners, subtle shadows. They lift slightly on hover, like picking up a tool.</p>
+            </div>
+
+            <h4 class="mb-3">Variants</h4>
+            <div class="button-row">
+                <button class="btn">Default</button>
+                <button class="btn btn-primary">Primary</button>
+                <button class="btn btn-dark">Dark</button>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-ghost">Ghost</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <h4 class="mb-3">Sizes</h4>
+            <div class="button-row">
+                <button class="btn btn-sm">Small</button>
+                <button class="btn">Default</button>
+                <button class="btn btn-lg">Large</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <h4 class="mb-3">With Icons</h4>
+            <div class="button-row">
+                <button class="btn btn-primary">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                    </svg>
+                    Arrange
+                </button>
+                <button class="btn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="21" y1="10" x2="3" y2="10"></line>
+                        <line x1="21" y1="6" x2="3" y2="6"></line>
+                        <line x1="21" y1="14" x2="3" y2="14"></line>
+                        <line x1="21" y1="18" x2="3" y2="18"></line>
+                    </svg>
+                    Align
+                </button>
+                <button class="btn btn-dark">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Add Item
+                </button>
+            </div>
+        </section>
+
+        <!-- Forms -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">05</div>
+                <h2>Form Inputs</h2>
+                <p class="lead">Input fields as clean rectangles. No rounded corners, no decoration. The shadow grounds them on the surface like index cards or paper forms.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Item Name</label>
+                        <input type="text" class="input-field" placeholder="Enter item name">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Category</label>
+                        <input type="text" class="input-field" placeholder="e.g., Tools, Electronics">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <label class="input-label">Quantity</label>
+                        <input type="number" class="input-field" placeholder="0">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <label class="input-label">Width (mm)</label>
+                        <input type="number" class="input-field" placeholder="0">
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="input-group">
+                        <label class="input-label">Height (mm)</label>
+                        <input type="number" class="input-field" placeholder="0">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="input-group">
+                        <label class="input-label">Notes</label>
+                        <textarea class="input-field" placeholder="Additional details about the arrangement..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row mt-4">
+                <button class="btn btn-primary">Save Item</button>
+                <button class="btn">Cancel</button>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">06</div>
+                <h2>Cards</h2>
+                <p class="lead">Cards are objects laid flat on the work surface. They cast subtle shadows and lift on hover. Like index cards, notes, or photographs arranged in a grid.</p>
+            </div>
+
+            <div class="grid mb-5">
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="3" width="18" height="18" rx="0" ry="0"></rect>
+                                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                                    <line x1="9" y1="21" x2="9" y2="9"></line>
+                                </svg>
+                            </div>
+                            <span class="card-number">001</span>
+                        </div>
+                        <h3>Grid System</h3>
+                        <p>Everything aligns to the 8px base grid. Columns, gutters, and margins follow mathematical precision.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-kraft">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--surface-white);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                </svg>
+                            </div>
+                            <span class="card-number">002</span>
+                        </div>
+                        <h3>Alignment</h3>
+                        <p>90-degree angles only. No rotation, no skew. Horizontal and vertical lines create order.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-linen">
+                        <div class="card-header">
+                            <div class="card-icon" style="background: var(--surface-white);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                            </div>
+                            <span class="card-number">003</span>
+                        </div>
+                        <h3>Negative Space</h3>
+                        <p>The space between objects matters as much as the objects themselves. Breathing room creates clarity.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mb-3">Arrangement Display</h4>
+            <div class="arrangement">
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                    </svg>
+                    <span>Tool</span>
+                </div>
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="0" ry="0"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <span>Device</span>
+                </div>
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    <span>Book</span>
+                </div>
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Clock</span>
+                </div>
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                        <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>
+                    <span>Arrow</span>
+                </div>
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="0" ry="0"></rect>
+                        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                        <polyline points="21 15 16 10 5 21"></polyline>
+                    </svg>
+                    <span>Image</span>
+                </div>
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                    <span>Stack</span>
+                </div>
+                <div class="arrangement-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    <span>Box</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">07</div>
+                <h2>Badges</h2>
+                <p class="lead">Small labels for categorization and status. Like tiny stickers or tags placed precisely in the composition.</p>
+            </div>
+
+            <h4 class="mb-3">Variants</h4>
+            <div class="badge-row mb-5">
+                <span class="badge">Default</span>
+                <span class="badge badge-accent">Accent</span>
+                <span class="badge badge-dark">Dark</span>
+                <span class="badge badge-kraft">Kraft</span>
+            </div>
+
+            <h4 class="mb-3">Usage Examples</h4>
+            <div class="badge-row mb-4">
+                <span class="badge">Category</span>
+                <span class="badge badge-accent">New</span>
+                <span class="badge badge-dark">v1.0</span>
+            </div>
+
+            <div class="badge-row">
+                <span class="badge">8px grid</span>
+                <span class="badge">90 deg</span>
+                <span class="badge">Aligned</span>
+                <span class="badge badge-accent">Organized</span>
+            </div>
+        </section>
+
+        <!-- Principles -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">08</div>
+                <h2>Principles</h2>
+                <p class="lead">The philosophy behind knolling: organize, align, photograph. These rules guide every design decision.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="spec-block">
+                        <h4 style="margin-bottom: var(--space-3);">Right Angles Only</h4>
+                        <p class="mb-0" style="font-size: 0.875rem;">Every element sits at exactly 90 degrees. No rotation, no diagonal placement. This creates visual harmony and allows the eye to scan naturally.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="spec-block">
+                        <h4 style="margin-bottom: var(--space-3);">Parallel Edges</h4>
+                        <p class="mb-0" style="font-size: 0.875rem;">Objects align with each other. Edges run parallel. Groups form natural rows and columns. The grid is visible even when not drawn.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="spec-block">
+                        <h4 style="margin-bottom: var(--space-3);">Consistent Spacing</h4>
+                        <p class="mb-0" style="font-size: 0.875rem;">The gap between objects is uniform. Negative space becomes a design element. Breathing room separates and organizes.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="spec-block">
+                        <h4 style="margin-bottom: var(--space-3);">Flat Perspective</h4>
+                        <p class="mb-0" style="font-size: 0.875rem;">A top-down view. Objects appear as flat shapes with subtle shadows. No vanishing points, no perspective distortion. Pure geometry.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5">
+                <div class="ruler"></div>
+                <p class="small" style="color: var(--text-muted); text-align: center;">
+                    Knolling was named by Andrew Kromelow while working as a janitor at Frank Gehry's furniture fabrication shop. The term comes from Knoll, the furniture company whose products Kromelow would arrange at right angles.
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p class="footer-brand">Knolling Design System</p>
+                <p>Arrange. Align. Admire.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frutiger Aero Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Typography */
+            --font-sans: 'Source Sans Pro', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+
+            /* Frutiger Aero Colors - Sky, Nature, Corporate Optimism */
+            --sky-blue: #3a9fd5;
+            --sky-blue-light: #7ec8f0;
+            --sky-blue-dark: #1a6fa5;
+            --grass-green: #7cb342;
+            --grass-green-light: #a5d66a;
+            --grass-green-dark: #558b2f;
+            --sunrise-orange: #f5a623;
+            --sunrise-orange-light: #ffc866;
+            --cloud-white: #ffffff;
+            --soft-gray: #e8eef3;
+            --text-dark: #1a3a4a;
+            --text-medium: #4a6a7a;
+            --text-light: #6a8a9a;
+
+            /* Glass Effects */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-bg-strong: rgba(255, 255, 255, 0.88);
+            --glass-border: rgba(255, 255, 255, 0.9);
+            --glass-border-subtle: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px rgba(0, 80, 140, 0.15);
+            --glass-shadow-strong: 0 12px 48px rgba(0, 80, 140, 0.2);
+
+            /* Glossy Gradients */
+            --gloss-highlight: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(255, 255, 255, 0.1) 51%,
+                rgba(255, 255, 255, 0.3) 100%);
+            --aurora-gradient: linear-gradient(135deg,
+                #7ec8f0 0%,
+                #3a9fd5 25%,
+                #7cb342 50%,
+                #a5d66a 75%,
+                #7ec8f0 100%);
+            --sky-gradient: linear-gradient(180deg,
+                #1a6fa5 0%,
+                #3a9fd5 30%,
+                #7ec8f0 60%,
+                #c5e8f7 100%);
+            --button-gloss: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.6) 0%,
+                rgba(255, 255, 255, 0.2) 49%,
+                rgba(255, 255, 255, 0) 50%,
+                rgba(255, 255, 255, 0.1) 100%);
+
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* Border Radius - Soft, Bubbly */
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+            --transition-slow: 0.4s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background - Sky and Nature Scene */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--sky-gradient);
+            overflow: hidden;
+        }
+
+        /* Floating Clouds */
+        .clouds {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .cloud {
+            position: absolute;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 255, 255, 0.6) 40%,
+                rgba(255, 255, 255, 0) 70%);
+            border-radius: 50%;
+            animation: float-cloud 60s linear infinite;
+        }
+
+        .cloud-1 {
+            width: 400px;
+            height: 150px;
+            top: 10%;
+            left: -200px;
+            animation-duration: 80s;
+        }
+
+        .cloud-2 {
+            width: 300px;
+            height: 120px;
+            top: 25%;
+            left: -150px;
+            animation-delay: -20s;
+            animation-duration: 90s;
+        }
+
+        .cloud-3 {
+            width: 350px;
+            height: 130px;
+            top: 5%;
+            left: -175px;
+            animation-delay: -40s;
+            animation-duration: 100s;
+        }
+
+        @keyframes float-cloud {
+            from { transform: translateX(0); }
+            to { transform: translateX(calc(100vw + 400px)); }
+        }
+
+        /* Grass/Hills at Bottom */
+        .hills {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(124, 179, 66, 0.3) 30%,
+                rgba(124, 179, 66, 0.6) 60%,
+                var(--grass-green) 100%);
+        }
+
+        .hills::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: -10%;
+            width: 60%;
+            height: 180px;
+            background: radial-gradient(ellipse at bottom,
+                var(--grass-green-light) 0%,
+                transparent 70%);
+            border-radius: 50% 50% 0 0;
+        }
+
+        .hills::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: -10%;
+            width: 70%;
+            height: 160px;
+            background: radial-gradient(ellipse at bottom,
+                var(--grass-green) 0%,
+                transparent 70%);
+            border-radius: 50% 50% 0 0;
+        }
+
+        /* Aurora/Light Rays */
+        .aurora {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60%;
+            background: linear-gradient(135deg,
+                rgba(126, 200, 240, 0.2) 0%,
+                rgba(58, 159, 213, 0.1) 30%,
+                rgba(124, 179, 66, 0.1) 60%,
+                rgba(245, 166, 35, 0.15) 100%);
+            animation: aurora-shift 15s ease-in-out infinite alternate;
+        }
+
+        @keyframes aurora-shift {
+            0% { opacity: 0.6; transform: scale(1); }
+            100% { opacity: 0.8; transform: scale(1.05); }
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-5);
+        }
+
+        /* Aero Glass Panel */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-xl);
+            box-shadow:
+                var(--glass-shadow),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.05);
+        }
+
+        .glass-panel-strong {
+            background: var(--glass-bg-strong);
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: var(--space-8);
+            margin-bottom: var(--space-8);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(255, 255, 255, 0.1) 100%);
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+            pointer-events: none;
+        }
+
+        .header h1 {
+            position: relative;
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: var(--space-4);
+            background: linear-gradient(180deg, var(--sky-blue-dark) 0%, var(--sky-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
+        }
+
+        .header p {
+            position: relative;
+            font-size: 1.125rem;
+            color: var(--text-medium);
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: var(--space-8);
+            padding: var(--space-6);
+        }
+
+        .section-subtitle {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--sky-blue);
+            margin-bottom: var(--space-2);
+        }
+
+        .section-title {
+            font-size: 1.625rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: var(--space-5);
+        }
+
+        .section-description {
+            font-size: 0.9375rem;
+            color: var(--text-medium);
+            margin-bottom: var(--space-5);
+        }
+
+        /* Color Palette */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .color-swatch {
+            text-align: center;
+            transition: transform var(--transition-fast);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-4px);
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 80px;
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-3);
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                inset 0 2px 4px rgba(255, 255, 255, 0.4);
+        }
+
+        .color-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(255, 255, 255, 0.1) 100%);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        .color-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-dark);
+            margin-bottom: var(--space-1);
+        }
+
+        .color-value {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        /* Typography */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+        }
+
+        .type-specimen {
+            padding: var(--space-5);
+            border-radius: var(--radius-lg);
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid var(--glass-border-subtle);
+        }
+
+        .type-label {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-light);
+            margin-bottom: var(--space-2);
+        }
+
+        .type-display {
+            font-size: 2.75rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            color: var(--text-dark);
+            line-height: 1.2;
+        }
+
+        .type-heading {
+            font-size: 1.875rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            line-height: 1.3;
+        }
+
+        .type-subheading {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-medium);
+        }
+
+        .type-body {
+            font-size: 1rem;
+            color: var(--text-medium);
+            line-height: 1.6;
+        }
+
+        .type-small {
+            font-size: 0.875rem;
+            color: var(--text-light);
+        }
+
+        /* Spacing Scale */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .spacing-label {
+            width: 70px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-light);
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+
+        .spacing-bar {
+            height: 28px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(180deg, var(--sky-blue-light) 0%, var(--sky-blue) 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow:
+                0 2px 6px rgba(58, 159, 213, 0.3),
+                inset 0 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .spacing-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(255, 255, 255, 0.1) 100%);
+        }
+
+        /* Buttons - Glossy Bubble Style */
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-6);
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-fast);
+        }
+
+        /* Glossy overlay for all buttons */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.6) 0%,
+                rgba(255, 255, 255, 0.2) 100%);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            pointer-events: none;
+        }
+
+        /* Primary Button - Blue Aero */
+        .btn-primary {
+            background: linear-gradient(180deg, var(--sky-blue-light) 0%, var(--sky-blue) 50%, var(--sky-blue-dark) 100%);
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.3) inset,
+                0 -1px 0 rgba(0, 0, 0, 0.1) inset,
+                0 4px 12px rgba(58, 159, 213, 0.4),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--sky-blue-dark);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(180deg, #8ed0f5 0%, #4aaee0 50%, var(--sky-blue) 100%);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.4) inset,
+                0 -1px 0 rgba(0, 0, 0, 0.1) inset,
+                0 6px 20px rgba(58, 159, 213, 0.5),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            background: linear-gradient(180deg, var(--sky-blue) 0%, var(--sky-blue-dark) 50%, #145a85 100%);
+            box-shadow:
+                0 -1px 0 rgba(255, 255, 255, 0.2) inset,
+                0 1px 0 rgba(0, 0, 0, 0.2) inset,
+                0 2px 4px rgba(58, 159, 213, 0.3);
+        }
+
+        /* Secondary Button - Green Nature */
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--grass-green-light) 0%, var(--grass-green) 50%, var(--grass-green-dark) 100%);
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.3) inset,
+                0 -1px 0 rgba(0, 0, 0, 0.1) inset,
+                0 4px 12px rgba(124, 179, 66, 0.4),
+                0 1px 2px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--grass-green-dark);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(180deg, #b5e07a 0%, #8cc952 50%, var(--grass-green) 100%);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.4) inset,
+                0 -1px 0 rgba(0, 0, 0, 0.1) inset,
+                0 6px 20px rgba(124, 179, 66, 0.5),
+                0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary:active {
+            transform: translateY(0);
+            background: linear-gradient(180deg, var(--grass-green) 0%, var(--grass-green-dark) 50%, #3d6b1f 100%);
+        }
+
+        /* Glass Button - Aero Glass */
+        .btn-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            color: var(--text-dark);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.8) inset,
+                0 -1px 0 rgba(0, 0, 0, 0.05) inset,
+                0 4px 12px rgba(0, 0, 0, 0.1),
+                0 1px 2px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow:
+                0 1px 0 rgba(255, 255, 255, 0.9) inset,
+                0 -1px 0 rgba(0, 0, 0, 0.05) inset,
+                0 6px 20px rgba(0, 0, 0, 0.15),
+                0 2px 4px rgba(0, 0, 0, 0.05);
+            transform: translateY(-1px);
+        }
+
+        .btn-glass:active {
+            transform: translateY(0);
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn-sm { padding: var(--space-2) var(--space-4); font-size: 0.8125rem; }
+        .btn-lg { padding: var(--space-4) var(--space-7); font-size: 1rem; }
+
+        /* Form Inputs - Aero Glass Style */
+        .input-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-4);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+            color: var(--text-medium);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            color: var(--text-dark);
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            border-radius: var(--radius-md);
+            box-shadow:
+                inset 0 1px 3px rgba(0, 0, 0, 0.08),
+                inset 0 1px 1px rgba(0, 0, 0, 0.05),
+                0 1px 0 rgba(255, 255, 255, 0.8);
+            transition: all var(--transition-fast);
+        }
+
+        .input-field:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-color: var(--sky-blue);
+            box-shadow:
+                inset 0 1px 3px rgba(0, 0, 0, 0.08),
+                0 0 0 3px rgba(58, 159, 213, 0.25),
+                0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-light);
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Cards - Translucent Glass Effect */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .card {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.4) 0%,
+                rgba(255, 255, 255, 0.1) 100%);
+            pointer-events: none;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--glass-shadow-strong);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .card-icon {
+            position: relative;
+            width: 56px;
+            height: 56px;
+            margin-bottom: var(--space-4);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            overflow: hidden;
+        }
+
+        .card-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(255, 255, 255, 0.1) 100%);
+        }
+
+        .card-icon.sky {
+            background: linear-gradient(180deg, var(--sky-blue-light) 0%, var(--sky-blue) 100%);
+            box-shadow: 0 4px 12px rgba(58, 159, 213, 0.4);
+        }
+
+        .card-icon.nature {
+            background: linear-gradient(180deg, var(--grass-green-light) 0%, var(--grass-green) 100%);
+            box-shadow: 0 4px 12px rgba(124, 179, 66, 0.4);
+        }
+
+        .card-icon.sunrise {
+            background: linear-gradient(180deg, var(--sunrise-orange-light) 0%, var(--sunrise-orange) 100%);
+            box-shadow: 0 4px 12px rgba(245, 166, 35, 0.4);
+        }
+
+        .card-title {
+            position: relative;
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: var(--space-2);
+        }
+
+        .card-content {
+            position: relative;
+            font-size: 0.9375rem;
+            color: var(--text-medium);
+            line-height: 1.6;
+        }
+
+        /* Badges */
+        .badge-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(255, 255, 255, 0.1) 100%);
+            pointer-events: none;
+        }
+
+        .badge-default {
+            background: var(--glass-bg-strong);
+            color: var(--text-medium);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .badge-primary {
+            background: linear-gradient(180deg, var(--sky-blue-light) 0%, var(--sky-blue) 100%);
+            color: white;
+            border: 1px solid var(--sky-blue);
+            box-shadow: 0 2px 6px rgba(58, 159, 213, 0.3);
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge-success {
+            background: linear-gradient(180deg, var(--grass-green-light) 0%, var(--grass-green) 100%);
+            color: white;
+            border: 1px solid var(--grass-green);
+            box-shadow: 0 2px 6px rgba(124, 179, 66, 0.3);
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge-warning {
+            background: linear-gradient(180deg, var(--sunrise-orange-light) 0%, var(--sunrise-orange) 100%);
+            color: white;
+            border: 1px solid var(--sunrise-orange);
+            box-shadow: 0 2px 6px rgba(245, 166, 35, 0.3);
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+            box-shadow: 0 0 6px currentColor;
+        }
+
+        /* Decorative Orbs - Vista/Win7 Style */
+        .orb {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .orb::before {
+            content: '';
+            position: absolute;
+            top: 5%;
+            left: 15%;
+            width: 50%;
+            height: 35%;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 100%);
+            border-radius: 50%;
+        }
+
+        .orb-blue {
+            background: radial-gradient(ellipse at 30% 30%,
+                var(--sky-blue-light) 0%,
+                var(--sky-blue) 50%,
+                var(--sky-blue-dark) 100%);
+            box-shadow:
+                0 4px 20px rgba(58, 159, 213, 0.5),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .orb-green {
+            background: radial-gradient(ellipse at 30% 30%,
+                var(--grass-green-light) 0%,
+                var(--grass-green) 50%,
+                var(--grass-green-dark) 100%);
+            box-shadow:
+                0 4px 20px rgba(124, 179, 66, 0.5),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .orb-orange {
+            background: radial-gradient(ellipse at 30% 30%,
+                var(--sunrise-orange-light) 0%,
+                var(--sunrise-orange) 50%,
+                #d48a15 100%);
+            box-shadow:
+                0 4px 20px rgba(245, 166, 35, 0.5),
+                inset 0 -4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .orb-row {
+            display: flex;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* Progress Bars */
+        .progress-container {
+            margin-bottom: var(--space-5);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-medium);
+        }
+
+        .progress-bar {
+            height: 22px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--glass-border);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            padding: 3px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: var(--radius-full);
+            background: linear-gradient(180deg, var(--sky-blue-light) 0%, var(--sky-blue) 100%);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(58, 159, 213, 0.3);
+        }
+
+        .progress-fill::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg,
+                rgba(255, 255, 255, 0.5) 0%,
+                rgba(255, 255, 255, 0.1) 100%);
+        }
+
+        .progress-fill.green {
+            background: linear-gradient(180deg, var(--grass-green-light) 0%, var(--grass-green) 100%);
+            box-shadow: 0 1px 2px rgba(124, 179, 66, 0.3);
+        }
+
+        /* Toggle Switch - Aero Style */
+        .toggle-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-4);
+        }
+
+        .toggle {
+            width: 52px;
+            height: 26px;
+            border-radius: var(--radius-full);
+            background: rgba(255, 255, 255, 0.7);
+            border: 1px solid var(--glass-border);
+            box-shadow:
+                inset 0 2px 4px rgba(0, 0, 0, 0.1),
+                0 1px 0 rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            position: relative;
+            transition: all var(--transition-fast);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #f8f8f8 0%, #e0e0e0 100%);
+            box-shadow:
+                0 2px 4px rgba(0, 0, 0, 0.2),
+                inset 0 1px 2px rgba(255, 255, 255, 0.8);
+            transition: all var(--transition-fast);
+        }
+
+        .toggle.active {
+            background: linear-gradient(180deg, var(--sky-blue-light) 0%, var(--sky-blue) 100%);
+            border-color: var(--sky-blue);
+        }
+
+        .toggle.active::after {
+            left: 28px;
+            background: linear-gradient(180deg, #ffffff 0%, #f0f0f0 100%);
+        }
+
+        .toggle-label {
+            font-size: 0.9375rem;
+            color: var(--text-medium);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: var(--space-7);
+            margin-top: var(--space-8);
+        }
+
+        .footer-logo {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto var(--space-4);
+            border-radius: 50%;
+            background: linear-gradient(180deg, var(--sky-blue-light) 0%, var(--sky-blue) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(58, 159, 213, 0.4);
+        }
+
+        .footer-logo::before {
+            content: '';
+            position: absolute;
+            top: 5%;
+            left: 15%;
+            width: 50%;
+            height: 35%;
+            background: radial-gradient(ellipse at center,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(255, 255, 255, 0.4) 50%,
+                transparent 100%);
+            border-radius: 50%;
+        }
+
+        .footer-logo span {
+            position: relative;
+            font-size: 1.5rem;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .footer p {
+            color: var(--text-medium);
+            font-size: 0.9375rem;
+        }
+
+        .footer-subtitle {
+            font-size: 0.8125rem;
+            color: var(--text-light);
+            margin-top: var(--space-2);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-5);
+            }
+
+            .section {
+                padding: var(--space-5);
+            }
+
+            .header {
+                padding: var(--space-6);
+            }
+
+            .button-grid {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .hills {
+                height: 120px;
+            }
+        }
+
+        /* Animations */
+        @keyframes gentle-pulse {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 1; }
+        }
+
+        .badge-dot {
+            animation: gentle-pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="background">
+        <div class="aurora"></div>
+        <div class="clouds">
+            <div class="cloud cloud-1"></div>
+            <div class="cloud cloud-2"></div>
+            <div class="cloud cloud-3"></div>
+        </div>
+        <div class="hills"></div>
+    </div>
+
+    <div class="container">
+        <header class="header glass-panel">
+            <h1>Frutiger Aero</h1>
+            <p>The glossy, optimistic design era of 2004-2013. Translucent glass, nature imagery, and friendly corporate aesthetics from Windows Vista to early iOS.</p>
+        </header>
+
+        <!-- Colors -->
+        <section class="section glass-panel">
+            <p class="section-subtitle">01 / Colors</p>
+            <h2 class="section-title">Color Palette</h2>
+            <p class="section-description">Sky blues, grass greens, and warm oranges evoke nature, optimism, and approachability.</p>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(180deg, #7ec8f0 0%, #3a9fd5 100%);"></div>
+                    <p class="color-name">Sky Blue</p>
+                    <p class="color-value">#3A9FD5</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(180deg, #a5d66a 0%, #7cb342 100%);"></div>
+                    <p class="color-name">Grass Green</p>
+                    <p class="color-value">#7CB342</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: linear-gradient(180deg, #ffc866 0%, #f5a623 100%);"></div>
+                    <p class="color-name">Sunrise Orange</p>
+                    <p class="color-value">#F5A623</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(10px);"></div>
+                    <p class="color-name">Aero Glass</p>
+                    <p class="color-value">rgba(255,255,255,0.75)</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #1a3a4a;"></div>
+                    <p class="color-name">Text Dark</p>
+                    <p class="color-value">#1A3A4A</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Typography -->
+        <section class="section glass-panel">
+            <p class="section-subtitle">02 / Typography</p>
+            <h2 class="section-title">Type Scale</h2>
+            <p class="section-description">Source Sans Pro provides the clean, friendly, humanist aesthetic reminiscent of Segoe UI and Frutiger.</p>
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <p class="type-label">Display / 44px / Bold</p>
+                    <p class="type-display">Connected Experiences</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Heading / 30px / Semibold</p>
+                    <p class="type-heading">Discover New Possibilities</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Subheading / 20px / Semibold</p>
+                    <p class="type-subheading">Designed for the way you live</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Body / 16px / Regular</p>
+                    <p class="type-body">Source Sans Pro embodies the friendly, approachable spirit of the Frutiger Aero era. Its clean letterforms and open counters make text highly readable while maintaining warmth.</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Small / 14px / Regular</p>
+                    <p class="type-small">Captions, labels, and supporting information</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spacing -->
+        <section class="section glass-panel">
+            <p class="section-subtitle">03 / Spacing</p>
+            <h2 class="section-title">Spacing Scale</h2>
+            <p class="section-description">Generous spacing creates breathing room and reinforces the light, airy aesthetic.</p>
+            <div class="spacing-demo">
+                <div class="spacing-item">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 320px;"></div>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-bar" style="width: 400px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Buttons -->
+        <section class="section glass-panel">
+            <p class="section-subtitle">04 / Components</p>
+            <h2 class="section-title">Buttons</h2>
+            <p class="section-description">Glossy, bubble-like buttons with gradient shines and soft shadows. The signature Aero look.</p>
+            <div class="button-grid">
+                <button class="btn btn-primary">Primary Action</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-glass">Glass Button</button>
+            </div>
+            <div class="button-grid">
+                <button class="btn btn-primary btn-sm">Small</button>
+                <button class="btn btn-primary">Default</button>
+                <button class="btn btn-primary btn-lg">Large</button>
+            </div>
+
+            <h3 style="font-size: 1rem; margin: var(--space-6) 0 var(--space-4); color: var(--text-medium);">Decorative Orbs</h3>
+            <p class="section-description">Glossy orb elements characteristic of Vista/Win7 iconography.</p>
+            <div class="orb-row">
+                <div class="orb orb-blue"></div>
+                <div class="orb orb-green"></div>
+                <div class="orb orb-orange"></div>
+            </div>
+        </section>
+
+        <!-- Form Inputs -->
+        <section class="section glass-panel">
+            <p class="section-subtitle">05 / Forms</p>
+            <h2 class="section-title">Input Fields</h2>
+            <p class="section-description">Soft inset styling with Aero glass transparency.</p>
+            <div class="input-grid">
+                <div class="input-group">
+                    <label class="input-label">Email Address</label>
+                    <input type="email" class="input-field" placeholder="you@example.com">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Password</label>
+                    <input type="password" class="input-field" value="password123">
+                </div>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Message</label>
+                <textarea class="input-field" placeholder="Share your thoughts..."></textarea>
+            </div>
+
+            <h3 style="font-size: 1rem; margin: var(--space-6) 0 var(--space-4); color: var(--text-medium);">Toggle Switches</h3>
+            <div class="toggle-row">
+                <div class="toggle active" onclick="this.classList.toggle('active')"></div>
+                <span class="toggle-label">Enable Aero effects</span>
+            </div>
+            <div class="toggle-row">
+                <div class="toggle" onclick="this.classList.toggle('active')"></div>
+                <span class="toggle-label">Show desktop gadgets</span>
+            </div>
+        </section>
+
+        <!-- Cards -->
+        <section class="section glass-panel">
+            <p class="section-subtitle">06 / Cards</p>
+            <h2 class="section-title">Card Components</h2>
+            <p class="section-description">Translucent glass panels with glossy icon accents.</p>
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon sky">
+                        <span style="position: relative;">&#9729;</span>
+                    </div>
+                    <h3 class="card-title">Cloud Connected</h3>
+                    <p class="card-content">Seamless synchronization across all your devices. Your world, always within reach, powered by the cloud.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon nature">
+                        <span style="position: relative;">&#9752;</span>
+                    </div>
+                    <h3 class="card-title">Nature Inspired</h3>
+                    <p class="card-content">Organic curves and natural imagery create calm, approachable interfaces that feel alive and welcoming.</p>
+                </div>
+                <div class="card">
+                    <div class="card-icon sunrise">
+                        <span style="position: relative;">&#9728;</span>
+                    </div>
+                    <h3 class="card-title">Bright Future</h3>
+                    <p class="card-content">Corporate optimism meets technological progress. Every interaction radiates possibility and warmth.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Badges -->
+        <section class="section glass-panel">
+            <p class="section-subtitle">07 / Badges</p>
+            <h2 class="section-title">Status Indicators</h2>
+            <p class="section-description">Glossy pill-shaped badges with characteristic shine.</p>
+            <div class="badge-container">
+                <span class="badge badge-default">Default</span>
+                <span class="badge badge-primary">Premium</span>
+                <span class="badge badge-success"><span class="badge-dot"></span>Online</span>
+                <span class="badge badge-warning"><span class="badge-dot"></span>Updating</span>
+            </div>
+
+            <h3 style="font-size: 1rem; margin: var(--space-6) 0 var(--space-4); color: var(--text-medium);">Progress Indicators</h3>
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>Windows Update</span>
+                    <span>73%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 73%;"></div>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span>System Optimization</span>
+                    <span>45%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill green" style="width: 45%;"></div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer glass-panel">
+            <div class="footer-logo">
+                <span>FA</span>
+            </div>
+            <p>Frutiger Aero Design System</p>
+            <p class="footer-subtitle">The glossy, optimistic aesthetic of 2004-2013</p>
+        </footer>
+    </div>
+
+    <script>
+        // Optional: Add subtle parallax to clouds
+        document.addEventListener('mousemove', (e) => {
+            const clouds = document.querySelectorAll('.cloud');
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+
+            clouds.forEach((cloud, i) => {
+                const speed = (i + 1) * 5;
+                cloud.style.transform = `translateX(${x * speed}px) translateY(${y * speed}px)`;
+            });
+        });
+    </script>
+</body>
+</html>
