@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Morrison Case — A Noir Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Oswald:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-typewriter: 'Courier Prime', 'Courier New', monospace;
+            --font-headline: 'Playfair Display', Georgia, serif;
+            --font-condensed: 'Oswald', 'Arial Narrow', sans-serif;
+
+            --noir-black: #0a0a0a;
+            --noir-charcoal: #141414;
+            --noir-dark: #1a1a1a;
+            --noir-shadow: #222222;
+            --noir-gray: #333333;
+            --noir-mid: #4a4a4a;
+            --noir-light: #6a6a6a;
+            --noir-pale: #8a8a8a;
+            --noir-silver: #b0b0b0;
+            --noir-white: #e8e8e8;
+            --noir-pure-white: #f5f5f5;
+
+            --blood-red: #8b0000;
+            --blood-bright: #b22222;
+            --cigarette-ember: #ff4500;
+            --cigarette-glow: #ff6b35;
+            --whiskey-amber: #d4a574;
+            --gold-badge: #c9a227;
+            --lipstick-red: #c41e3a;
+            --neon-blue: #4a9eff;
+
+            --text-primary: var(--noir-white);
+            --text-secondary: var(--noir-silver);
+            --text-muted: var(--noir-pale);
+            --text-faded: var(--noir-light);
+            --bg-primary: var(--noir-black);
+            --bg-secondary: var(--noir-charcoal);
+            --bg-elevated: var(--noir-dark);
+            --border-color: var(--noir-gray);
+            --border-subtle: var(--noir-shadow);
+
+            --shadow-dramatic: 0 20px 60px rgba(0, 0, 0, 0.8);
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.6);
+            --shadow-glow-red: 0 0 30px rgba(139, 0, 0, 0.3);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-typewriter);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Film Grain */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Vignette */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, transparent 40%, rgba(0, 0, 0, 0.7) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* ═══════════════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════════════ */
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ═══════════════════════════════════════════
+           TITLE SCREEN
+        ═══════════════════════════════════════════ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2rem;
+            padding: 6px 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--gold-badge);
+            color: var(--gold-badge);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-headline);
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+            text-shadow: 4px 4px 0 var(--noir-shadow), 8px 8px 20px rgba(0, 0, 0, 0.8);
+        }
+
+        .title-subtitle {
+            font-family: var(--font-condensed);
+            font-size: 1.25rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--blood-bright);
+            margin-bottom: 3rem;
+        }
+
+        .title-tagline {
+            font-style: italic;
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 500px;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 48px;
+            font-family: var(--font-typewriter);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border: 2px solid var(--blood-red);
+            background: transparent;
+            color: var(--blood-bright);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--blood-red);
+            transition: left 0.25s ease;
+            z-index: -1;
+        }
+
+        .title-start:hover {
+            color: var(--noir-white);
+            border-color: var(--blood-bright);
+        }
+
+        .title-start:hover::before { left: 0; }
+
+        .title-credits {
+            margin-top: 4rem;
+            font-size: 0.7rem;
+            color: var(--text-faded);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE CONTAINER
+        ═══════════════════════════════════════════ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 2rem;
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        /* Header bar */
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .scene-case-number {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--blood-red);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .scene-clue-count {
+            font-size: 0.7rem;
+            color: var(--gold-badge);
+            letter-spacing: 0.1em;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE TYPES
+        ═══════════════════════════════════════════ */
+
+        /* --- Narration (typewriter paper) --- */
+        .scene-narration {
+            background: var(--noir-pure-white);
+            color: var(--noir-black);
+            padding: 2.5rem 2.5rem 2.5rem 3.5rem;
+            position: relative;
+            font-family: var(--font-typewriter);
+            line-height: 2;
+            box-shadow: var(--shadow-card);
+            margin-bottom: 2rem;
+        }
+
+        .scene-narration::before {
+            content: '';
+            position: absolute;
+            left: 2rem;
+            top: 0; bottom: 0;
+            width: 1px;
+            background: var(--blood-bright);
+            opacity: 0.5;
+        }
+
+        .scene-narration::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent 0px, transparent 31px,
+                rgba(74, 158, 255, 0.08) 31px, rgba(74, 158, 255, 0.08) 32px
+            );
+            pointer-events: none;
+        }
+
+        .scene-narration .scene-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .scene-narration .scene-text p {
+            margin-bottom: 1rem;
+        }
+
+        .scene-narration .scene-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* --- Newspaper --- */
+        .scene-newspaper {
+            background: var(--noir-pale);
+            color: var(--noir-black);
+            padding: 2rem;
+            position: relative;
+            transform: rotate(-0.5deg);
+            box-shadow: var(--shadow-card);
+            margin-bottom: 2rem;
+        }
+
+        .scene-newspaper::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent, transparent 1px,
+                rgba(0, 0, 0, 0.03) 1px, rgba(0, 0, 0, 0.03) 2px
+            );
+            pointer-events: none;
+        }
+
+        .scene-newspaper .newspaper-masthead {
+            font-family: var(--font-typewriter);
+            font-size: 0.65rem;
+            color: var(--noir-mid);
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.1em;
+        }
+
+        .scene-newspaper .newspaper-headline {
+            font-family: var(--font-condensed);
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            line-height: 1.1;
+            margin-bottom: 1rem;
+        }
+
+        .scene-newspaper .scene-text {
+            font-family: var(--font-typewriter);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            column-count: 2;
+            column-gap: 1.5rem;
+        }
+
+        .scene-newspaper .scene-text p {
+            margin-bottom: 0.75rem;
+        }
+
+        @media (max-width: 600px) {
+            .scene-newspaper .scene-text { column-count: 1; }
+        }
+
+        /* --- Case File --- */
+        .scene-casefile {
+            background: var(--bg-secondary);
+            border: none;
+            padding: 2rem;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .scene-casefile::before {
+            content: 'CONFIDENTIAL';
+            position: absolute;
+            top: 1rem; right: 1rem;
+            font-family: var(--font-typewriter);
+            font-size: 0.6rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            color: var(--blood-red);
+            padding: 4px 8px;
+            border: 1px solid var(--blood-red);
+            transform: rotate(3deg);
+        }
+
+        .scene-casefile::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: repeating-linear-gradient(
+                90deg,
+                var(--noir-gray) 0px, var(--noir-gray) 10px,
+                transparent 10px, transparent 20px
+            );
+        }
+
+        .scene-casefile .casefile-header {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .scene-casefile .casefile-id {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+            margin-bottom: 0.25rem;
+        }
+
+        .scene-casefile .casefile-title {
+            font-family: var(--font-headline);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .scene-casefile .scene-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .scene-casefile .scene-text p {
+            margin-bottom: 1rem;
+        }
+
+        /* --- Interrogation --- */
+        .scene-interrogation {
+            position: relative;
+            background: var(--bg-elevated);
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .scene-interrogation::before {
+            content: '';
+            position: absolute;
+            top: -20%; left: 50%;
+            transform: translateX(-50%);
+            width: 120%; height: 140%;
+            background: conic-gradient(
+                from 180deg at 50% -20%,
+                transparent 30%,
+                rgba(255, 255, 255, 0.03) 45%,
+                rgba(255, 255, 255, 0.06) 50%,
+                rgba(255, 255, 255, 0.03) 55%,
+                transparent 70%
+            );
+            pointer-events: none;
+        }
+
+        .scene-interrogation .scene-text {
+            position: relative;
+            z-index: 2;
+            max-width: 550px;
+        }
+
+        .scene-interrogation .scene-text p {
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+        }
+
+        .scene-interrogation .dialogue-speaker {
+            font-family: var(--font-condensed);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--blood-bright);
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- Dark Scene (alley, warehouse) --- */
+        .scene-dark {
+            position: relative;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .scene-dark .fog-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 80%, rgba(100, 100, 100, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(100, 100, 100, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 100%, rgba(100, 100, 100, 0.1) 0%, transparent 40%);
+            pointer-events: none;
+            animation: fogDrift 20s ease-in-out infinite;
+        }
+
+        @keyframes fogDrift {
+            0%, 100% { opacity: 1; transform: translateX(0); }
+            50% { opacity: 0.7; transform: translateX(20px); }
+        }
+
+        .scene-dark .scene-text {
+            position: relative;
+            z-index: 2;
+        }
+
+        .scene-dark .scene-text p {
+            margin-bottom: 1rem;
+        }
+
+        /* --- Ending --- */
+        .scene-ending {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-condensed);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--blood-bright);
+            margin-bottom: 1rem;
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-headline);
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 2rem;
+            text-shadow: 4px 4px 0 var(--noir-shadow);
+        }
+
+        .scene-ending .scene-text {
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .scene-ending .scene-text p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .scene-ending .the-end {
+            font-family: var(--font-typewriter);
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: var(--text-faded);
+            margin-top: 2rem;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           CLUE FOUND TOAST
+        ═══════════════════════════════════════════ */
+        .clue-found {
+            display: inline-block;
+            background: var(--whiskey-amber);
+            color: var(--noir-black);
+            padding: 6px 16px 6px 28px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-top: 1.5rem;
+            position: relative;
+            animation: clueSlideIn 0.6s ease-out;
+        }
+
+        .clue-found::before {
+            content: '';
+            position: absolute;
+            left: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 10px; height: 10px;
+            background: var(--whiskey-amber);
+            border-radius: 50%;
+            border: 2px solid var(--noir-black);
+        }
+
+        @keyframes clueSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ═══════════════════════════════════════════
+           CHOICES
+        ═══════════════════════════════════════════ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            font-family: var(--font-typewriter);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--blood-red);
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+            transform-origin: bottom;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--noir-silver);
+            background: rgba(255, 255, 255, 0.03);
+            padding-left: 28px;
+        }
+
+        .choice-btn:hover::before {
+            transform: scaleY(1);
+        }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px; height: 22px;
+            border: 1px solid var(--noir-mid);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--blood-bright);
+            color: var(--blood-bright);
+        }
+
+        /* ═══════════════════════════════════════════
+           VENETIAN BLIND TRANSITION
+        ═══════════════════════════════════════════ */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: venetianTransition 1.2s ease-in-out;
+        }
+
+        @keyframes venetianTransition {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            50% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-blinds {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                180deg,
+                var(--noir-black) 0px,
+                var(--noir-black) 8px,
+                rgba(10, 10, 10, 0.85) 8px,
+                rgba(10, 10, 10, 0.85) 11px,
+                var(--noir-black) 11px,
+                var(--noir-black) 28px
+            );
+        }
+
+        /* ═══════════════════════════════════════════
+           TYPEWRITER ANIMATION
+        ═══════════════════════════════════════════ */
+        .typewriter-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1em;
+            background: var(--noir-black);
+            margin-left: 2px;
+            animation: cursorBlink 0.8s step-end infinite;
+            vertical-align: text-bottom;
+        }
+
+        .scene-dark .typewriter-cursor,
+        .scene-interrogation .typewriter-cursor,
+        .scene-ending .typewriter-cursor {
+            background: var(--noir-white);
+        }
+
+        @keyframes cursorBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        /* ═══════════════════════════════════════════
+           CLUE TRACKER (SIDEBAR)
+        ═══════════════════════════════════════════ */
+        .clue-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 220px;
+        }
+
+        .clue-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--gold-badge);
+            font-family: var(--font-typewriter);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .clue-tracker-toggle:hover {
+            border-color: var(--gold-badge);
+        }
+
+        .clue-tracker-panel {
+            display: none;
+            margin-top: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 1rem;
+        }
+
+        .clue-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .clue-tracker-panel h4 {
+            font-family: var(--font-typewriter);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .clue-item {
+            font-size: 0.75rem;
+            color: var(--whiskey-amber);
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            animation: clueSlideIn 0.4s ease-out;
+        }
+
+        .clue-item:last-child { border-bottom: none; }
+
+        .no-clues {
+            font-size: 0.75rem;
+            color: var(--text-faded);
+            font-style: italic;
+        }
+
+        /* ═══════════════════════════════════════════
+           AUDIO PLACEHOLDER (Phase 2)
+        ═══════════════════════════════════════════ */
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            padding: 8px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .audio-controls .audio-icon {
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--text-muted);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .audio-controls .audio-label {
+            font-size: 0.65rem;
+            color: var(--text-faded);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           RESTART / BACK BUTTONS
+        ═══════════════════════════════════════════ */
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .ctrl-btn {
+            padding: 8px 16px;
+            font-family: var(--font-typewriter);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid var(--border-subtle);
+            background: transparent;
+            color: var(--text-faded);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+        }
+
+        /* ═══════════════════════════════════════════
+           REDACTED TEXT
+        ═══════════════════════════════════════════ */
+        .redacted {
+            background: currentColor;
+            color: inherit;
+            padding: 0 4px;
+            user-select: none;
+            cursor: default;
+        }
+
+        .scene-narration .redacted {
+            background: var(--noir-black);
+            color: var(--noir-black);
+        }
+
+        .scene-newspaper .redacted {
+            background: var(--noir-black);
+            color: var(--noir-black);
+        }
+
+        /* ═══════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════ */
+        @media (max-width: 600px) {
+            .game-container { padding: 1rem; }
+            .scene-narration { padding: 1.5rem 1.5rem 1.5rem 2.5rem; }
+            .clue-tracker { right: 0.75rem; top: 0.75rem; }
+            .title-screen h1 { letter-spacing: 0.04em; }
+        }
+
+        /* ═══════════════════════════════════════════
+           STRIKETHROUGH FOR TYPEWRITER CORRECTIONS
+        ═══════════════════════════════════════════ */
+        .strike { text-decoration: line-through; opacity: 0.5; }
+
+        /* ═══════════════════════════════════════════
+           SCENE FADE IN
+        ═══════════════════════════════════════════ */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--noir-gray); }
+        ::selection { background: var(--blood-red); color: var(--noir-white); }
+    </style>
+</head>
+<body>
+    <!-- Venetian blind transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-blinds"></div>
+    </div>
+
+    <!-- Clue Tracker -->
+    <div class="clue-tracker" id="clueTracker" style="display: none;">
+        <button class="clue-tracker-toggle" id="clueToggle">
+            <span>Evidence</span>
+            <span id="clueCount">0</span>
+        </button>
+        <div class="clue-tracker-panel" id="cluePanel">
+            <h4>Collected Evidence</h4>
+            <div id="clueList">
+                <p class="no-clues">No evidence yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-badge">Private Investigations</div>
+            <h1>The Morrison Case</h1>
+            <div class="title-subtitle">An Interactive Noir Story</div>
+            <p class="title-tagline">"In this city, the rain doesn't wash anything clean. It just moves the dirt around."</p>
+            <button class="title-start" id="startBtn">Open Case File</button>
+            <p class="title-credits">A story told in shadows and choices</p>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-case-number">Case #1947-0892</span>
+                <span class="scene-clue-count" id="headerClueCount"></span>
+            </div>
+
+            <!-- Audio placeholder for Phase 2 -->
+            <div class="audio-controls" id="audioControls">
+                <div class="audio-icon">&#9654;</div>
+                <span class="audio-label">Voice narration — coming soon</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">New Case</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  THE MORRISON CASE — Story Data
+    // ═══════════════════════════════════════════════════════════════
+
+    const STORY = {
+        // --- ACT 1: The Office ---
+        office: {
+            type: 'narration',
+            text: [
+                "It was raining again. It's always raining in this city, like God's got a personal grudge against dry cleaning.",
+                "I was two fingers into a bottle of cheap bourbon when the door opened. She stood in the frame like a painting somebody forgot to finish — red dress, red lips, eyes that had seen the ugly side of beautiful things.",
+                "Water dripped from her coat onto my floor. I didn't mind. The carpet had seen worse."
+            ],
+            // audio: 'audio/scene-office.mp3',  // Phase 2
+            choices: [
+                { text: 'Pour her a drink', next: 'drink' },
+                { text: 'Tell her to state her business', next: 'business' }
+            ]
+        },
+
+        drink: {
+            type: 'dark',
+            text: [
+                "I poured two glasses of the bourbon. She took hers without a word and knocked it back like a professional. That told me something. Amateurs sip.",
+                "She set the glass down and looked at me with eyes that could have frozen the Hudson.",
+                '"My husband is dead, Mr. Marlowe. The police say suicide." She paused. "I say murder."'
+            ],
+            choices: [
+                { text: 'Continue', next: 'the_case' }
+            ]
+        },
+
+        business: {
+            type: 'interrogation',
+            text: [
+                '"I don\'t have all night, sweetheart. What\'s the trouble?"',
+                "She stiffened. Good. I'd rather deal with angry than crying.",
+                '"My husband is dead. Harold Morrison. The police say he put a .38 to his own temple." Her jaw tightened. "I say someone else pulled the trigger."'
+            ],
+            choices: [
+                { text: 'Continue', next: 'the_case' }
+            ]
+        },
+
+        // --- ACT 1: The Case ---
+        the_case: {
+            type: 'casefile',
+            caseId: 'CASE #1947-0892',
+            caseTitle: 'The Morrison Homicide',
+            text: [
+                "<strong>Victim:</strong> Harold Morrison, 52. Industrialist. Owner of Morrison Steel Works.",
+                "<strong>Cause of death:</strong> Single gunshot wound, right temple. .38 Special, one round fired. Weapon found in victim's hand.",
+                "<strong>Scene:</strong> Private study, Morrison residence. Door locked from the inside. No signs of forced entry.",
+                "<strong>Ruling:</strong> Suicide (pending).",
+                "The widow — Eleanor Morrison — is offering $500 to prove otherwise. That's three months' rent and a new hat. Last seen: Starlight Lounge, 11 PM Wednesday."
+            ],
+            choices: [
+                { text: 'Take the case', next: 'starlight' },
+                { text: 'Turn her down', next: 'turn_down' }
+            ]
+        },
+
+        turn_down: {
+            type: 'narration',
+            text: [
+                "I told her I wasn't interested. Too many dead husbands in this town and none of them ever stay dead for the right reasons.",
+                "She left without a word. But the perfume lingered — gardenias and something darker. The kind of scent that sticks to your thoughts.",
+                "Twenty minutes later I was putting on my coat and hat. Damn it.",
+                "Some cases don't let you walk away. They follow you out the door and climb into the passenger seat."
+            ],
+            choices: [
+                { text: 'Head to the Starlight Lounge', next: 'starlight' }
+            ]
+        },
+
+        // --- ACT 2: Investigation ---
+        starlight: {
+            type: 'dark',
+            text: [
+                "The Starlight Lounge smelled like cigarettes and broken promises. A jazz trio was murdering something slow in the corner. The clientele looked like they'd come here to forget things they hadn't done yet.",
+                "The bartender — a thick-necked guy named Eddie — was polishing glasses with the focus of a man avoiding eye contact.",
+                '"Morrison?" Eddie didn\'t look up. "Yeah, he was here Wednesday night. Left around eleven. Wasn\'t alone, though."',
+                "His hand stopped polishing."
+            ],
+            choices: [
+                { text: '"Who was he with?"', next: 'press_eddie' },
+                { text: 'Check the alley out back', next: 'alley' }
+            ]
+        },
+
+        press_eddie: {
+            type: 'interrogation',
+            text: [
+                "Eddie's eyes darted to the back room and back to me. He leaned in close enough that I could smell the gin on his breath.",
+                '"Look, I don\'t want trouble." His voice dropped to something barely above a whisper. "The guy Morrison was with... you don\'t mess with Castellano\'s people. That\'s all I\'m saying."',
+                "Castellano. Vincent Castellano.",
+                "The name landed like a fist. Half the rackets in this city ran through Castellano. Loan sharks, protection, the docks. If Morrison was tangled up with his outfit, suicide was the least of his problems."
+            ],
+            clue: 'Castellano connection — Morrison met with Castellano\'s people the night he died',
+            choices: [
+                { text: 'Continue the investigation', next: 'the_lead' }
+            ]
+        },
+
+        alley: {
+            type: 'dark',
+            text: [
+                "Rain-slicked concrete. Nothing but garbage cans, rats, and the kind of darkness that swallows sound.",
+                "I was about to head back inside when something caught my eye — a matchbook, half-buried in the gutter. Still dry enough to read.",
+                '<em style="color: var(--gold-badge); font-size: 1.1em;">THE BLUE ORCHID — Members Only</em>',
+                "An address on the back, written in a woman's handwriting. Expensive perfume scent on the cardboard. Gardenias.",
+                "Same perfume as Mrs. Morrison."
+            ],
+            clue: 'Blue Orchid matchbook — found in the alley, smells like Eleanor Morrison\'s perfume',
+            choices: [
+                { text: 'Continue the investigation', next: 'the_lead' }
+            ]
+        },
+
+        // --- ACT 2: Following the Lead ---
+        the_lead: {
+            type: 'narration',
+            text: [
+                "The night was getting deeper and so was this case. Morrison didn't kill himself — I was sure of that now. A locked room means nothing when you know the right tricks. And people with connections to Vincent Castellano don't need tricks. They have keys to every door in this city.",
+                "Two threads. Two ways to pull. The question was which one unraveled the truth and which one got me killed."
+            ],
+            choices: [
+                { text: 'Visit the warehouse where Morrison was found dead', next: 'warehouse' },
+                { text: 'Stake out the Morrison mansion', next: 'mansion' }
+            ]
+        },
+
+        warehouse: {
+            type: 'dark',
+            text: [
+                "The Cromwell warehouse was a cathedral of rust and shadows. Police tape still hung across the entrance like bunting at the world's worst party.",
+                "Inside, my flashlight carved through the dark. The cops had tossed the place — or thought they had. But cops look for evidence. I look for secrets.",
+                "Behind a loose brick in the east wall: an envelope. Inside, a photograph.",
+                "Eleanor Morrison. Arm-in-arm with Vincent Castellano. On a yacht. Champagne glasses raised. On the back, in that same handwriting from the matchbook:",
+                '<em style="color: var(--lipstick-red);">"Soon, my love. — E"</em>',
+                "The widow wasn't grieving. She was celebrating."
+            ],
+            clue: 'Photograph — Eleanor Morrison and Vincent Castellano together, with a love note from Eleanor',
+            choices: [
+                { text: 'Time to have a conversation with Mrs. Morrison', next: 'confrontation' }
+            ]
+        },
+
+        mansion: {
+            type: 'dark',
+            text: [
+                "I parked across the street from the Morrison place. Big house. Old money. The kind of place where the silverware costs more than my car and my apartment combined.",
+                "Midnight came and went. My coffee went cold. Then — headlights.",
+                "A black sedan. The door opened and out stepped a man I recognized from the papers: Vincent Castellano. Silver hair. Expensive coat. The kind of calm that comes from knowing nobody in this city would dare touch you.",
+                "And Eleanor Morrison opened the front door for him herself. She was wearing that red dress.",
+                "Not exactly the behavior of a grieving widow."
+            ],
+            clue: 'Castellano at the mansion — Eleanor met with the crime boss at midnight, wearing red',
+            choices: [
+                { text: 'Time to have a conversation with Mrs. Morrison', next: 'confrontation' }
+            ]
+        },
+
+        // --- ACT 3: Confrontation ---
+        confrontation: {
+            type: 'interrogation',
+            text: [
+                "I found Eleanor Morrison in the sitting room the next morning. Crystal decanter. Silk robe. She looked like a woman who had slept just fine.",
+                "She didn't look surprised to see me. That was the first wrong note.",
+                '"You know why I\'m here," I said.',
+                'She smiled. It was the kind of smile that probably worked on most men. "I hired you to find the truth, Mr. Marlowe."',
+                '"I found it. Your husband didn\'t kill himself. And you already knew that — because you and Castellano planned the whole thing."',
+                "The smile didn't waver. But her hand tightened on the glass."
+            ],
+            choices: [
+                { text: 'Turn the evidence over to the police', next: 'ending_justice' },
+                { text: 'Walk away — take the money and forget', next: 'ending_money' },
+                { text: 'Go after Castellano directly', next: 'ending_danger' }
+            ]
+        },
+
+        // --- ENDINGS ---
+        ending_justice: {
+            type: 'newspaper',
+            headline: 'MORRISON WIDOW ARRESTED IN MURDER-FOR-HIRE PLOT',
+            masthead: 'THE DAILY CHRONICLE — NOVEMBER 22, 1947',
+            text: [
+                "Eleanor Morrison, 34, and reputed crime boss Vincent Castellano, 58, were arrested yesterday in connection with the murder of industrialist Harold Morrison.",
+                "The arrests came after a private investigator — whose name has been withheld — provided crucial evidence to the District Attorney's office, including a photograph linking Mrs. Morrison romantically to Castellano.",
+                "Police now believe Morrison was murdered in a scheme to collect his $2 million estate and insurance policy. The locked-room suicide was staged by Castellano's associates, who accessed the study through a concealed servants' passage.",
+                "Both suspects are being held without bail."
+            ],
+            ending: {
+                title: 'Justice',
+                text: [
+                    "I collected my fee from the Morrison estate's lawyers. Five hundred dollars. It barely covered the dry cleaning and the bourbon.",
+                    "But some nights, when the rain lets up just long enough to see the stars, I think maybe the scales balanced a little. In this city, that's about as good as it gets."
+                ]
+            },
+            choices: [
+                { text: 'Play Again', next: '_restart' }
+            ]
+        },
+
+        ending_money: {
+            type: 'ending',
+            endingTitle: 'The Price of Silence',
+            text: [
+                "She'd paid me to find the truth. I found it.",
+                "I also found that the truth is worth exactly $500 in this economy. Maybe less, adjusted for the cost of a guilty conscience.",
+                "I took the money. Put on my hat. Walked to the door.",
+                '"Mr. Marlowe?" Her voice was silk and venom. "You made the smart choice."',
+                '"No," I said, not turning around. "I made the easy one."',
+                "Some nights the rain washes everything clean. This wasn't one of those nights. I don't think any night would be, for a while."
+            ],
+            choices: [
+                { text: 'Play Again', next: '_restart' }
+            ]
+        },
+
+        ending_danger: {
+            type: 'ending',
+            endingTitle: 'The Hard Way',
+            text: [
+                "Castellano's boys found me before I found him. Three of them, in an alley behind the Blue Orchid. Professional muscle — the kind that doesn't bother with conversation.",
+                "The first one came fast. I came faster. The .45 under my coat isn't polite, but it's persuasive.",
+                "When it was over, I was bleeding from a cut above my eye and my ribs felt like they'd been remodeled. But I was breathing. Two of them were reconsidering their career choices on the wet pavement.",
+                "I left Castellano a message with the third: the photograph, a copy of my case notes, and a simple promise — if anything happened to me, every newspaper in the city would have the story by morning.",
+                "It wasn't justice. Justice is a luxury this city can't afford. But it was enough to keep the wolves at bay.",
+                "For now."
+            ],
+            choices: [
+                { text: 'Play Again', next: '_restart' }
+            ]
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STORY ENGINE
+    // ═══════════════════════════════════════════════════════════════
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        clues: [],
+        cluesPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('clueToggle').addEventListener('click', () => this.toggleClues());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('clueTracker').style.display = 'block';
+            this.goTo('office');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.clues = [];
+            this.cluesPanelOpen = false;
+            document.getElementById('cluePanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('clueTracker').style.display = 'none';
+            this.updateClueUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 500);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1200);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            let html = '<div class="scene-content">';
+
+            // Build scene based on type
+            switch (scene.type) {
+                case 'narration':
+                    html += this.renderNarration(scene);
+                    break;
+                case 'newspaper':
+                    html += this.renderNewspaper(scene);
+                    break;
+                case 'casefile':
+                    html += this.renderCasefile(scene);
+                    break;
+                case 'interrogation':
+                    html += this.renderInterrogation(scene);
+                    break;
+                case 'dark':
+                    html += this.renderDark(scene);
+                    break;
+                case 'ending':
+                    html += this.renderEnding(scene);
+                    break;
+            }
+
+            // Clue notification
+            if (scene.clue) {
+                this.addClue(scene.clue);
+                html += `<div class="clue-found">EVIDENCE COLLECTED</div>`;
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += `${choice.text}`;
+                    html += `</button>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateClueUI();
+        },
+
+        renderNarration(scene) {
+            let html = '<div class="scene-narration"><div class="scene-text">';
+            scene.text.forEach(p => { html += `<p>${p}</p>`; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderNewspaper(scene) {
+            let html = '<div class="scene-newspaper">';
+            if (scene.masthead) html += `<div class="newspaper-masthead">${scene.masthead}</div>`;
+            if (scene.headline) html += `<div class="newspaper-headline">${scene.headline}</div>`;
+            html += '<div class="scene-text">';
+            scene.text.forEach(p => { html += `<p>${p}</p>`; });
+            html += '</div></div>';
+
+            // If there's an ending after the newspaper
+            if (scene.ending) {
+                html += '<div class="scene-ending" style="margin-top: 2rem;">';
+                html += `<div class="ending-label">Case Closed</div>`;
+                html += `<div class="ending-title">${scene.ending.title}</div>`;
+                html += '<div class="scene-text">';
+                scene.ending.text.forEach(p => { html += `<p>${p}</p>`; });
+                html += '</div>';
+                html += '<div class="the-end">The End</div>';
+                html += '</div>';
+            }
+
+            return html;
+        },
+
+        renderCasefile(scene) {
+            let html = '<div class="scene-casefile">';
+            html += '<div class="casefile-header">';
+            if (scene.caseId) html += `<div class="casefile-id">${scene.caseId}</div>`;
+            if (scene.caseTitle) html += `<div class="casefile-title">${scene.caseTitle}</div>`;
+            html += '</div>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(p => { html += `<p>${p}</p>`; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderInterrogation(scene) {
+            let html = '<div class="scene-interrogation"><div class="scene-text">';
+            scene.text.forEach(p => { html += `<p>${p}</p>`; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderDark(scene) {
+            let html = '<div class="scene-dark"><div class="fog-overlay"></div><div class="scene-text">';
+            scene.text.forEach(p => { html += `<p>${p}</p>`; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderEnding(scene) {
+            let html = '<div class="scene-ending">';
+            html += `<div class="ending-label">Case Closed</div>`;
+            html += `<div class="ending-title">${scene.endingTitle}</div>`;
+            html += '<div class="scene-text">';
+            scene.text.forEach(p => { html += `<p>${p}</p>`; });
+            html += '</div>';
+            html += '<div class="the-end">The End</div>';
+            html += '</div>';
+            return html;
+        },
+
+        addClue(clue) {
+            if (!this.clues.includes(clue)) {
+                this.clues.push(clue);
+            }
+        },
+
+        updateClueUI() {
+            const count = this.clues.length;
+            document.getElementById('clueCount').textContent = count;
+            document.getElementById('headerClueCount').textContent = count > 0 ? `Evidence: ${count}` : '';
+
+            const list = document.getElementById('clueList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-clues">No evidence yet...</p>';
+            } else {
+                list.innerHTML = this.clues.map(c => `<div class="clue-item">${c}</div>`).join('');
+            }
+        },
+
+        toggleClues() {
+            this.cluesPanelOpen = !this.cluesPanelOpen;
+            document.getElementById('cluePanel').classList.toggle('open', this.cluesPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

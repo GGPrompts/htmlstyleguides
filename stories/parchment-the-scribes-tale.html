@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Scribe's Tale — A Parchment Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=UnifrakturMaguntia&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════
+           CSS VARIABLES — From Parchment Style Guide
+        ═══════════════════════════════════════════ */
+        :root {
+            /* Typography */
+            --font-display: 'Cinzel', serif;
+            --font-decorative: 'UnifrakturMaguntia', cursive;
+            --font-body: 'EB Garamond', 'Crimson Text', Georgia, serif;
+            --font-accent: 'Crimson Text', Georgia, serif;
+
+            /* Spacing - Golden Ratio inspired */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 13px;
+            --space-4: 21px;
+            --space-5: 34px;
+            --space-6: 55px;
+            --space-7: 89px;
+            --space-8: 144px;
+
+            /* Parchment Colors */
+            --parchment-light: #f4e4c1;
+            --parchment: #e8d5a3;
+            --parchment-dark: #d4c089;
+            --parchment-aged: #c9b87a;
+
+            /* Ink Colors */
+            --ink-black: #2a1f1a;
+            --ink-brown: #4a3728;
+            --ink-sepia: #704214;
+            --ink-faded: #8b7355;
+            --ink-light: #a89070;
+
+            /* Accent Colors */
+            --vermillion: #c53a27;
+            --gold: #b8860b;
+            --gold-light: #d4a84b;
+            --burgundy: #722f37;
+            --forest: #2d4a3e;
+            --royal-blue: #1e3a5f;
+
+            /* Wax Seal Colors */
+            --wax-red: #8b2500;
+            --wax-burgundy: #5c1a1b;
+            --wax-gold: #8b7500;
+
+            /* Foxing and Aging */
+            --foxing: rgba(139, 90, 43, 0.15);
+            --age-stain: rgba(160, 120, 60, 0.1);
+            --shadow-warm: rgba(74, 55, 40, 0.2);
+
+            /* Semantic */
+            --text-primary: var(--ink-black);
+            --text-secondary: var(--ink-brown);
+            --text-muted: var(--ink-faded);
+            --bg-primary: var(--parchment);
+            --bg-secondary: var(--parchment-light);
+            --border-color: var(--ink-light);
+            --accent: var(--vermillion);
+
+            --transition-slow: 0.4s ease;
+            --transition-base: 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 18px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--parchment);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Parchment texture background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E"),
+                radial-gradient(ellipse at 20% 20%, transparent 40%, var(--age-stain) 100%),
+                radial-gradient(ellipse at 80% 80%, transparent 50%, var(--age-stain) 100%),
+                linear-gradient(180deg, var(--parchment-light) 0%, var(--parchment) 30%, var(--parchment-dark) 70%, var(--parchment-aged) 100%);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        /* Foxing spots overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 15% 25%, var(--foxing) 0%, transparent 2%),
+                radial-gradient(circle at 85% 15%, var(--foxing) 0%, transparent 1.5%),
+                radial-gradient(circle at 45% 75%, var(--foxing) 0%, transparent 1%),
+                radial-gradient(circle at 75% 45%, var(--foxing) 0%, transparent 2.5%),
+                radial-gradient(circle at 25% 85%, var(--foxing) 0%, transparent 1.8%),
+                radial-gradient(circle at 55% 35%, var(--foxing) 0%, transparent 1.2%),
+                radial-gradient(circle at 35% 55%, var(--foxing) 0%, transparent 0.8%),
+                radial-gradient(circle at 95% 65%, var(--foxing) 0%, transparent 1.5%),
+                radial-gradient(circle at 5% 55%, var(--foxing) 0%, transparent 2%),
+                radial-gradient(circle at 65% 95%, var(--foxing) 0%, transparent 1%);
+            opacity: 0.6;
+            z-index: 1;
+        }
+
+        /* ═══════════════════════════════════════════
+           PAGE EDGES
+        ═══════════════════════════════════════════ */
+        .page-edge {
+            position: fixed;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .page-edge-left {
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(90deg,
+                rgba(139, 115, 85, 0.3) 0%,
+                rgba(139, 115, 85, 0.1) 50%,
+                transparent 100%);
+        }
+
+        .page-edge-right {
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 30px;
+            background: linear-gradient(-90deg,
+                rgba(139, 115, 85, 0.3) 0%,
+                rgba(139, 115, 85, 0.1) 50%,
+                transparent 100%);
+        }
+
+        /* ═══════════════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════════════ */
+        .game-container {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 2rem var(--space-6);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ═══════════════════════════════════════════
+           TYPOGRAPHY — From Parchment Style Guide
+        ═══════════════════════════════════════════ */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            line-height: 1.3;
+            letter-spacing: 0.05em;
+            color: var(--ink-brown);
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            margin-bottom: var(--space-6);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: var(--space-5);
+            letter-spacing: 0.1em;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            margin-bottom: var(--space-4);
+        }
+
+        p {
+            margin-bottom: var(--space-4);
+            max-width: 60ch;
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        .lead {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: var(--ink-sepia);
+            font-style: italic;
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+        /* Decorative initial letter */
+        .dropcap {
+            float: left;
+            font-family: var(--font-decorative);
+            font-size: 4.5rem;
+            line-height: 0.8;
+            padding-right: var(--space-3);
+            padding-top: var(--space-2);
+            color: var(--vermillion);
+            text-shadow: 2px 2px 0 var(--gold);
+        }
+
+        .illuminated {
+            display: inline-block;
+            font-family: var(--font-decorative);
+            font-size: 3rem;
+            color: var(--vermillion);
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(1px 1px 0 var(--ink-brown));
+            padding: var(--space-2);
+            border: 2px solid var(--gold);
+            margin-right: var(--space-2);
+        }
+
+        .illuminated-inline {
+            font-family: var(--font-decorative);
+            font-size: 1.3em;
+            color: var(--vermillion);
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(1px 1px 0 var(--ink-brown));
+        }
+
+        /* Decorative flourishes */
+        .flourish {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--ink-faded);
+            margin: var(--space-5) 0;
+            letter-spacing: 0.5em;
+        }
+
+        .flourish::before,
+        .flourish::after {
+            content: '';
+            display: inline-block;
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--ink-faded), transparent);
+            vertical-align: middle;
+            margin: 0 var(--space-4);
+        }
+
+        /* Decorative rule */
+        .decorative-rule {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: var(--space-5) 0;
+        }
+
+        .decorative-rule::before,
+        .decorative-rule::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--ink-faded), transparent);
+            max-width: 150px;
+        }
+
+        .decorative-rule-center {
+            width: 12px;
+            height: 12px;
+            border: 1px solid var(--gold);
+            transform: rotate(45deg);
+            margin: 0 var(--space-4);
+            background: var(--parchment);
+        }
+
+        /* Manuscript marginalia */
+        .marginalia {
+            font-family: var(--font-accent);
+            font-style: italic;
+            font-size: 0.85rem;
+            color: var(--ink-faded);
+            border-left: 2px solid var(--ink-light);
+            padding-left: var(--space-4);
+            margin: var(--space-5) 0;
+        }
+
+        /* Ink blot decoration */
+        .ink-blot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--ink-brown);
+            border-radius: 50% 40% 50% 40%;
+            margin: 0 var(--space-2);
+            opacity: 0.6;
+        }
+
+        /* Candle glow effect */
+        .candle-glow {
+            box-shadow: 0 0 20px rgba(255, 200, 100, 0.3), 0 0 40px rgba(255, 180, 80, 0.1);
+        }
+
+        /* ═══════════════════════════════════════════
+           CARDS — From Parchment Style Guide
+        ═══════════════════════════════════════════ */
+        .card {
+            background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment) 100%);
+            border: 2px solid var(--ink-light);
+            padding: var(--space-5);
+            transition: all var(--transition-base);
+            position: relative;
+            margin-bottom: var(--space-5);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px solid var(--ink-light);
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        .card-initial {
+            font-family: var(--font-decorative);
+            font-size: 3.5rem;
+            line-height: 1;
+            color: var(--vermillion);
+            margin-bottom: var(--space-3);
+            text-shadow: 1px 1px 0 var(--gold);
+        }
+
+        .card h3 {
+            font-family: var(--font-display);
+            margin-bottom: var(--space-3);
+        }
+
+        .card p {
+            color: var(--ink-sepia);
+            margin-bottom: var(--space-3);
+            font-size: 0.95rem;
+        }
+
+        .card p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Scroll card variant */
+        .card-scroll {
+            background:
+                linear-gradient(90deg, rgba(139, 115, 85, 0.15) 0%, transparent 5%, transparent 95%, rgba(139, 115, 85, 0.15) 100%),
+                linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment) 100%);
+            border-radius: 2px;
+            position: relative;
+        }
+
+        .card-scroll::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(180deg, rgba(139, 115, 85, 0.2) 0%, transparent 100%);
+        }
+
+        /* ═══════════════════════════════════════════
+           BADGES — From Parchment Style Guide
+        ═══════════════════════════════════════════ */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-2) var(--space-3);
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-radius: 2px;
+            border: 1px solid currentColor;
+            color: var(--ink-brown);
+            background: transparent;
+        }
+
+        .badge-seal {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, var(--wax-red) 0%, #6b1c00 100%);
+            color: var(--parchment-light);
+            border: none;
+            font-size: 0.6rem;
+            box-shadow:
+                inset -2px -2px 4px rgba(0, 0, 0, 0.3),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+                2px 2px 6px var(--shadow-warm);
+            text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+        }
+
+        .badge-seal-gold {
+            background: radial-gradient(circle at 30% 30%, var(--gold-light) 0%, var(--wax-gold) 100%);
+            color: var(--ink-black);
+        }
+
+        .badge-seal-burgundy {
+            background: radial-gradient(circle at 30% 30%, #8b3a3a 0%, var(--wax-burgundy) 100%);
+        }
+
+        .badge-manuscript {
+            background: var(--parchment-light);
+            border: 2px double var(--ink-brown);
+            color: var(--ink-brown);
+        }
+
+        .badge-vermillion {
+            color: var(--vermillion);
+            border-color: var(--vermillion);
+        }
+
+        .badge-gold {
+            color: var(--gold);
+            border-color: var(--gold);
+            background: rgba(184, 134, 11, 0.1);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: var(--space-4);
+        }
+
+        /* ═══════════════════════════════════════════
+           SECTION HEADERS
+        ═══════════════════════════════════════════ */
+        .section-header {
+            margin-bottom: var(--space-5);
+            text-align: center;
+        }
+
+        .section-numeral {
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            color: var(--vermillion);
+            letter-spacing: 0.2em;
+            margin-bottom: var(--space-3);
+            text-transform: uppercase;
+        }
+
+        .section-numeral::before,
+        .section-numeral::after {
+            content: '\2022';
+            margin: 0 var(--space-3);
+            color: var(--gold);
+        }
+
+        /* ═══════════════════════════════════════════
+           BUTTONS — From Parchment Style Guide
+        ═══════════════════════════════════════════ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border: 2px solid var(--ink-brown);
+            background: transparent;
+            color: var(--ink-brown);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+            border: 1px solid var(--ink-light);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .btn:hover {
+            background: var(--ink-brown);
+            color: var(--parchment);
+            box-shadow: 2px 2px 8px var(--shadow-warm);
+        }
+
+        .btn:hover::before {
+            opacity: 1;
+            border-color: var(--parchment-light);
+        }
+
+        .btn-primary {
+            background: var(--ink-brown);
+            color: var(--parchment);
+        }
+
+        .btn-primary:hover {
+            background: var(--ink-black);
+            border-color: var(--ink-black);
+        }
+
+        .btn-accent {
+            border-color: var(--vermillion);
+            color: var(--vermillion);
+        }
+
+        .btn-accent:hover {
+            background: var(--vermillion);
+            color: var(--parchment);
+            border-color: var(--vermillion);
+        }
+
+        .btn-gold {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: linear-gradient(135deg, transparent 0%, rgba(184, 134, 11, 0.1) 100%);
+        }
+
+        .btn-gold:hover {
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            color: var(--ink-black);
+            border-color: var(--gold);
+        }
+
+        .btn-lg {
+            padding: var(--space-4) var(--space-6);
+            font-size: 0.9rem;
+        }
+
+        /* Header ornament */
+        .header-ornament {
+            font-family: var(--font-decorative);
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: var(--space-4);
+            text-shadow: 1px 1px 2px var(--shadow-warm);
+        }
+
+        /* Footer ornament */
+        .footer-ornament {
+            font-size: 1.5rem;
+            color: var(--gold);
+            letter-spacing: 0.5em;
+        }
+
+        /* ═══════════════════════════════════════════
+           TITLE SCREEN
+        ═══════════════════════════════════════════ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+        }
+
+        .title-screen h1 {
+            margin-bottom: var(--space-3);
+            text-shadow: 2px 2px 0 var(--parchment-dark);
+        }
+
+        .title-subtitle {
+            font-family: var(--font-accent);
+            font-style: italic;
+            font-size: 1.1rem;
+            color: var(--ink-sepia);
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-5);
+        }
+
+        .title-tagline {
+            font-family: var(--font-accent);
+            font-style: italic;
+            color: var(--ink-faded);
+            margin-bottom: var(--space-6);
+            max-width: 500px;
+            line-height: 1.8;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4) var(--space-6);
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            border: 2px solid var(--ink-brown);
+            background: transparent;
+            color: var(--ink-brown);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px; right: 3px; bottom: 3px;
+            border: 1px solid var(--ink-light);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .title-start:hover {
+            background: var(--ink-brown);
+            color: var(--parchment);
+            box-shadow: 2px 2px 12px var(--shadow-warm);
+        }
+
+        .title-start:hover::before {
+            opacity: 1;
+            border-color: var(--parchment-light);
+        }
+
+        .title-credits {
+            margin-top: var(--space-6);
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            color: var(--ink-faded);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE WRAPPER
+        ═══════════════════════════════════════════ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 1rem;
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-5);
+            border-bottom: 1px solid var(--ink-light);
+        }
+
+        .scene-era {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--vermillion);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--gold);
+            letter-spacing: 0.1em;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE CONTENT AREA
+        ═══════════════════════════════════════════ */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scene clearfix for dropcaps */
+        .scene-content::after {
+            content: '';
+            display: table;
+            clear: both;
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT FOUND TOAST
+        ═══════════════════════════════════════════ */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: linear-gradient(135deg, rgba(184, 134, 11, 0.15) 0%, rgba(184, 134, 11, 0.08) 100%);
+            border: 1px solid var(--gold);
+            color: var(--ink-brown);
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: var(--space-4);
+            animation: factSlideIn 0.6s ease-out;
+        }
+
+        .fact-found::before {
+            content: '\2766';
+            font-size: 1rem;
+            color: var(--gold);
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ═══════════════════════════════════════════
+           CHOICES
+        ═══════════════════════════════════════════ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            border: 2px solid var(--ink-light);
+            background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment) 100%);
+            color: var(--ink-brown);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--vermillion);
+            transform: scaleY(0);
+            transition: transform 0.25s ease;
+            transform-origin: bottom;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--ink-brown);
+            background: linear-gradient(135deg, var(--parchment) 0%, var(--parchment-dark) 100%);
+            box-shadow: 2px 2px 8px var(--shadow-warm);
+            padding-left: calc(var(--space-5) + 4px);
+        }
+
+        .choice-btn:hover::before {
+            transform: scaleY(1);
+        }
+
+        .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--ink-faded);
+            font-size: 0.7rem;
+            color: var(--ink-faded);
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+            font-family: var(--font-display);
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--vermillion);
+            color: var(--vermillion);
+        }
+
+        /* ═══════════════════════════════════════════
+           PAGE TURN TRANSITION
+        ═══════════════════════════════════════════ */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: pageTurnTransition 1.2s ease-in-out;
+        }
+
+        @keyframes pageTurnTransition {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            50% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-page {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                linear-gradient(135deg,
+                    var(--parchment-light) 0%,
+                    var(--parchment) 25%,
+                    var(--parchment-dark) 50%,
+                    var(--parchment) 75%,
+                    var(--parchment-light) 100%);
+        }
+
+        .transition-page::before {
+            content: '\2766';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: var(--font-decorative);
+            font-size: 4rem;
+            color: var(--gold);
+            opacity: 0.3;
+            animation: sealPulse 1.2s ease-in-out;
+        }
+
+        @keyframes sealPulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            50% { opacity: 0.4; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT TRACKER (SIDEBAR)
+        ═══════════════════════════════════════════ */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 240px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: var(--space-2) var(--space-3);
+            background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment) 100%);
+            border: 2px solid var(--ink-light);
+            color: var(--gold);
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: var(--gold);
+            box-shadow: 2px 2px 8px var(--shadow-warm);
+        }
+
+        .fact-tracker-toggle .toggle-icon {
+            font-family: var(--font-decorative);
+            font-size: 1.1rem;
+            color: var(--vermillion);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-2);
+            background: linear-gradient(135deg, var(--parchment-light) 0%, var(--parchment) 100%);
+            border: 2px solid var(--ink-light);
+            padding: var(--space-4);
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--ink-sepia);
+            margin-bottom: var(--space-3);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid var(--ink-light);
+        }
+
+        .fact-item {
+            font-family: var(--font-accent);
+            font-size: 0.75rem;
+            color: var(--ink-sepia);
+            padding: var(--space-2) 0;
+            border-bottom: 1px dotted var(--ink-light);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.4;
+        }
+
+        .fact-item::before {
+            content: '\2726 ';
+            color: var(--gold);
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-family: var(--font-accent);
+            font-size: 0.75rem;
+            color: var(--ink-faded);
+            font-style: italic;
+        }
+
+        /* ═══════════════════════════════════════════
+           GAME CONTROLS
+        ═══════════════════════════════════════════ */
+        .game-controls {
+            display: flex;
+            gap: var(--space-4);
+            margin-top: var(--space-6);
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--ink-light);
+        }
+
+        .ctrl-btn {
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid var(--ink-light);
+            background: transparent;
+            color: var(--ink-faded);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--ink-brown);
+            color: var(--ink-brown);
+            box-shadow: 1px 1px 4px var(--shadow-warm);
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE-SPECIFIC STYLES
+        ═══════════════════════════════════════════ */
+
+        /* Candlelit scene */
+        .scene-candlelit {
+            position: relative;
+        }
+
+        .scene-candlelit .candle-overlay {
+            position: absolute;
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            background: radial-gradient(ellipse at 50% 30%,
+                rgba(255, 200, 100, 0.08) 0%,
+                rgba(255, 180, 80, 0.04) 40%,
+                transparent 70%);
+            pointer-events: none;
+            animation: candleFlicker 4s ease-in-out infinite;
+        }
+
+        @keyframes candleFlicker {
+            0%, 100% { opacity: 1; }
+            25% { opacity: 0.85; }
+            50% { opacity: 0.95; }
+            75% { opacity: 0.8; }
+        }
+
+        /* Ending scene */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-6) var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--vermillion);
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-5);
+            color: var(--ink-brown);
+            text-shadow: 2px 2px 0 var(--parchment-dark);
+        }
+
+        .scene-ending .ending-text {
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .scene-ending .ending-text p {
+            margin-bottom: var(--space-4);
+            color: var(--ink-sepia);
+            text-align: center;
+        }
+
+        .scene-ending .the-end {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            color: var(--ink-faded);
+            margin-top: var(--space-5);
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCROLLBAR
+        ═══════════════════════════════════════════ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--parchment-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--ink-light); border-radius: 2px; }
+        ::selection { background: rgba(197, 58, 39, 0.25); color: var(--ink-black); }
+
+        /* ═══════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            html { font-size: 16px; }
+            .game-container { padding: 1.5rem var(--space-4); }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .page-edge-left, .page-edge-right { width: 15px; }
+            .dropcap { font-size: 3.5rem; }
+            .illuminated { font-size: 2.2rem; }
+        }
+
+        /* ═══════════════════════════════════════════
+           PRINT
+        ═══════════════════════════════════════════ */
+        @media print {
+            body::before, body::after { display: none; }
+            .page-edge { display: none; }
+            .fact-tracker { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Aged page edges -->
+    <div class="page-edge page-edge-left"></div>
+    <div class="page-edge page-edge-right"></div>
+
+    <!-- Page turn transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-page"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span class="toggle-icon">&#x2726;</span>
+            <span>Codex</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Knowledge Gathered</h4>
+            <div id="factList">
+                <p class="no-facts">No wisdom yet inscribed...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="header-ornament">&#x2766;</div>
+            <h1>The Scribe's Tale</h1>
+            <div class="title-subtitle">An Interactive History of the Written Word</div>
+            <div class="flourish">&#x2767;</div>
+            <p class="title-tagline">"Let those who wish to know what writing is know that it is a divine art. The pen, though fragile, preserves what armies cannot."</p>
+            <button class="title-start" id="startBtn">Open the Codex</button>
+            <p class="title-credits">A story told in ink and vellum</p>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-era" id="sceneEra"></span>
+                <span class="scene-fact-count" id="headerFactCount"></span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Begin Anew</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // =================================================================
+    //  THE SCRIBE'S TALE -- Story Data
+    // =================================================================
+
+    const STORY = {
+
+        // --- SCENE 1: The Arrival (c. 780 AD) ---
+        scriptorium_novice: {
+            era: 'Northumbria, c. 780 AD',
+            content: `
+                <div class="card candle-glow" style="position: relative;">
+                    <div class="scene-candlelit">
+                        <div class="candle-overlay"></div>
+                    </div>
+                    <p><span class="dropcap">T</span>he monastery gates close behind you with a groan of ancient oak. You are Aelric, a youth of fifteen winters, sent by your village to serve God and learn the mysteries of letters. The monks of this Northumbrian abbey are famed throughout Christendom for their learning.</p>
+                    <p>Brother Aldhelm, the master scribe, greets you in the cloister walk. His fingers are stained permanently with iron gall ink, and his eyes, though weary, gleam with purpose.</p>
+                    <p>"You come seeking knowledge," he says. "Good. The world forgets what we do not write down. In this scriptorium, we wage a war against oblivion."</p>
+                    <p>He leads you into the scriptorium itself, a long stone chamber where a dozen monks hunch over slanted desks. The air is thick with the scent of vellum, oak gall, and candlewax. Through narrow windows, pale northern light falls upon the pages like a benediction.</p>
+                </div>
+                <div class="marginalia">
+                    "The earliest European monastic writing dates to approximately 517 AD. By Aelric's time, monasteries had spent over 250 years defining European literary culture through selective manuscript preservation." <span class="ink-blot"></span>
+                </div>
+            `,
+            fact: 'Monastic writing began c. 517 AD -- monasteries preserved European literary culture for over 250 years before Aelric\'s era',
+            choices: [
+                { text: 'Ask to learn the art of calligraphy', next: 'calligraphy_path' },
+                { text: 'Ask to learn the art of illumination', next: 'illumination_path' }
+            ]
+        },
+
+        // --- SCENE 2A: Calligraphy Path ---
+        calligraphy_path: {
+            era: 'The Scriptorium, c. 782 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter II</p>
+                    <h2>The Quill and the Rule</h2>
+                </div>
+                <div class="card">
+                    <p><span class="dropcap">M</span>onths pass in quiet labour. Brother Aldhelm teaches you to prepare your own tools: quills cut from the flight feathers of geese, ink mixed from iron gall and oak gall crushed with gum arabic, and vellum scraped and stretched from calfskin until it gleams like pale gold.</p>
+                    <p>"The secret," Aldhelm whispers, tracing a line of script so even it seems printed, "is the new hand. It comes to us from the court of King Charles across the sea. A scholar named <strong>Alcuin of York</strong> has devised it."</p>
+                    <p>He shows you the elegant letters: rounded, clear, each one separate from the next. No longer the cramped tangles of older scripts. This is <em>Carolingian minuscule</em>, and it will change everything.</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-gold">Fact</span>
+                        <span class="badge badge-manuscript">Historical Record</span>
+                    </div>
+                    <h3>Alcuin of York (735-804 AD)</h3>
+                    <p>Alcuin became headmaster of the York school around 767 AD and over 15 years transformed it into an internationally renowned center of learning. Later invited by Emperor Charlemagne, he is credited with establishing scriptoria across Europe and preserving classical Roman texts through his network of copyists using the revolutionary Carolingian minuscule script.</p>
+                </div>
+            `,
+            fact: 'Alcuin of York (735-804 AD) created Carolingian minuscule script, standardizing legible writing across Europe',
+            choices: [
+                { text: 'Continue your studies', next: 'book_of_kells' }
+            ]
+        },
+
+        // --- SCENE 2B: Illumination Path ---
+        illumination_path: {
+            era: 'The Scriptorium, c. 782 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter II</p>
+                    <h2>Gold and Lapis</h2>
+                </div>
+                <div class="card candle-glow">
+                    <p><span class="dropcap">Y</span>ou are apprenticed to Brother Cuthwin, the abbey's illuminator. Where the scribes create text, Cuthwin creates worlds. His workspace is a riot of colour: pots of pigment line the shelves like jewels in a reliquary.</p>
+                    <p>"First, the gold," he instructs, showing you how to apply thin sheets of gold leaf with a burnishing tool made from an animal's tooth. "The gold must go down before any paint, or it will stick to the wet pigment and ruin everything."</p>
+                    <p>He shows you the precious blue pigment, ground from <em>lapis lazuli</em> stone imported all the way from the mines of Afghanistan. "This costs more than silver, weight for weight," Cuthwin says reverently. "Use it sparingly. For the Virgin's robe, and for nothing less."</p>
+                </div>
+                <div class="marginalia">
+                    "In the 8th century, scribes used quill pens from goose or swan feathers and inks from iron gall. Illuminators applied gold leaf and pigments including lapis lazuli from Afghanistan for blues and vermilion from cinnabar for reds." <span class="ink-blot"></span>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal">Sacred</span>
+                        <span class="badge badge-vermillion">Precious</span>
+                    </div>
+                    <h3>The Illuminator's Art</h3>
+                    <p>Vellum and parchment production required careful processes: animal skins were cleaned, stretched, scraped, and whitened with chalk. The finest manuscripts used gold leaf burnished with animal teeth and pigments worth more than the parchment itself.</p>
+                </div>
+            `,
+            fact: 'Lapis lazuli pigment, imported from Afghanistan, cost more than silver -- used only for the most sacred subjects',
+            choices: [
+                { text: 'Continue your studies', next: 'book_of_kells' }
+            ]
+        },
+
+        // --- SCENE 3: The Book of Kells ---
+        book_of_kells: {
+            era: 'The Monastery, c. 810 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter III</p>
+                    <h2>Tidings from Iona</h2>
+                </div>
+                <div class="card">
+                    <div class="card-initial">K</div>
+                    <h3>A Manuscript Beyond Compare</h3>
+                    <p>One autumn evening, a travelling monk arrives at the abbey bearing extraordinary news. On the Scottish island of Iona, the brothers have completed a manuscript of surpassing beauty: the <em>Book of Kells</em>.</p>
+                    <p>"It has taken the labour of generations," the monk says, warming his hands by the fire. "Three hundred and forty folios of vellum, each page alive with interlace, spirals, and figures so intricate that a man might study a single page for a lifetime and still discover new wonders."</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-gold">Fact</span>
+                        <span class="badge badge-gold">Treasured</span>
+                    </div>
+                    <h3>The Book of Kells (c. 800 AD)</h3>
+                    <p>Composed on the Scottish island of Iona by monks trained in the Irish illumination tradition, the Book of Kells contains 340 vellum folios. Scholars estimate it required approximately 75 years of labour to complete. It remains one of the most celebrated manuscripts in Western art.</p>
+                </div>
+                <div class="decorative-rule"><div class="decorative-rule-center"></div></div>
+                <div class="card">
+                    <p>You sit in silence after the monk finishes his tale. Seventy-five years of labour for a single book. A man might be born, grow old, and die before the final page is turned. The magnitude of the devotion staggers you.</p>
+                    <p>Brother Aldhelm places a hand on your shoulder. "This is our calling, Aelric. To preserve what must endure. But tell me, what troubles your spirit?"</p>
+                </div>
+            `,
+            fact: 'The Book of Kells (c. 800 AD) contains 340 vellum folios and took approximately 75 years to complete',
+            choices: [
+                { text: '"I accept this as sacred duty -- our labour is eternal."', next: 'sacred_duty' },
+                { text: '"Surely there must be a faster way to spread knowledge?"', next: 'questioning' }
+            ]
+        },
+
+        // --- SCENE 4A: Accept the Sacred Duty ---
+        sacred_duty: {
+            era: 'The Monastery, c. 815 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter IV</p>
+                    <h2>Ora et Labora</h2>
+                </div>
+                <div class="card candle-glow">
+                    <p><span class="dropcap">Y</span>ears pass in devoted contemplation. You rise with the bell for Matins at midnight, pray through the canonical hours, and spend your daylight in the scriptorium. Your hand grows steady, your eye sharp. You become one of the finest scribes in Northumbria.</p>
+                    <p>Word reaches you of the <strong>Lindisfarne Gospels</strong>, created decades before your birth. Bishop Eadfrith, who became Bishop of Lindisfarne in 698 AD, is believed to have created this masterwork single-handedly as part of preparations to translate Saint Cuthbert's relics to a shrine.</p>
+                    <p>A single man. A single act of devotion. The thought fills you with quiet awe.</p>
+                </div>
+                <div class="marginalia">
+                    "Eadfrith became Bishop of Lindisfarne in 698 AD. The Lindisfarne Gospels, created circa 715 under his direction, are presumed to be primarily the work of one scribe -- a feat of extraordinary patience and skill." <span class="ink-blot"></span>
+                </div>
+            `,
+            fact: 'The Lindisfarne Gospels (c. 715 AD) were likely created by a single scribe, Bishop Eadfrith of Lindisfarne',
+            choices: [
+                { text: 'Continue through the centuries', next: 'monastic_decline' }
+            ]
+        },
+
+        // --- SCENE 4B: Questioning the Method ---
+        questioning: {
+            era: 'The Monastery, c. 815 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter IV</p>
+                    <h2>The Restless Mind</h2>
+                </div>
+                <div class="card">
+                    <p><span class="dropcap">A</span>ldhelm frowns at your question, but there is no anger in his eyes. "Faster?" he repeats. "The Lord does not measure virtue in speed, Aelric. Consider: Bishop Eadfrith of Lindisfarne, who took his seat in 698 AD, is said to have created the Lindisfarne Gospels largely by his own hand. One man, one masterwork. That is not inefficiency. That is love."</p>
+                    <p>You bow your head, but the question does not leave you. As the years pass and your skill grows, you find yourself wondering what knowledge is lost because there are too few copies, too few scribes, too few hours of daylight.</p>
+                    <p>A single manuscript can be destroyed by fire, by flood, by the carelessness of a moment. What if there were a way to make many copies at once?</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-burgundy">Rare</span>
+                    </div>
+                    <h3>A Fragile Legacy</h3>
+                    <p>Of all the manuscripts produced in medieval scriptoria, only a fraction survive. Fire, war, damp, and neglect destroyed countless works. The Viking raids of the 8th and 9th centuries were particularly devastating to monastic libraries across Britain and Ireland.</p>
+                </div>
+            `,
+            fact: 'The Lindisfarne Gospels (c. 715 AD) were likely created by a single scribe, Bishop Eadfrith of Lindisfarne',
+            choices: [
+                { text: 'Continue through the centuries', next: 'monastic_decline' }
+            ]
+        },
+
+        // --- SCENE 5: The Monastic Decline ---
+        monastic_decline: {
+            era: 'Christendom, c. 1200 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter V</p>
+                    <h2>The Winds of Change</h2>
+                </div>
+                <div class="card">
+                    <p><span class="illuminated">C</span></p>
+                    <p>Centuries have passed. You are now Brother Anselm, a scribe in a Benedictine monastery in the year of our Lord 1200. The world beyond the cloister walls has changed beyond recognition.</p>
+                    <p>Universities have sprung up across Europe in the late 12th century. Young men who once would have entered the monastic life now flock to Paris, to Oxford, to Bologna. They seek learning not in service to God alone, but for its own sake, and for the advancement of law, medicine, and philosophy.</p>
+                    <p>The scriptorium is quieter than it once was. Several desks stand empty. The younger monks whisper of leaving.</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-gold">Fact</span>
+                        <span class="badge badge-manuscript">Historical Record</span>
+                    </div>
+                    <h3>The Rise of Universities (1150-1200 AD)</h3>
+                    <p>Universities founded across Europe in the late 12th century transformed manuscript production. The work gradually shifted from monasteries to new centres of learning, marking the decline of monastic scriptoria as the primary producers of books. Secular workshops in Paris, Rome, and the Netherlands would increasingly replace cloistered writing rooms.</p>
+                </div>
+                <div class="decorative-rule"><div class="decorative-rule-center"></div></div>
+                <div class="card">
+                    <p>The Abbot summons you to his study. "Brother Anselm, our scriptorium can no longer sustain itself through commissions alone. The secular workshops undercut our prices. I must ask you to consider our future."</p>
+                </div>
+            `,
+            fact: 'By 1150-1200 AD, universities across Europe shifted manuscript production from monasteries to secular centres',
+            choices: [
+                { text: 'Propose adapting -- accept secular commissions', next: 'secular_adapt' },
+                { text: 'Argue for preserving the monastic tradition unchanged', next: 'tradition_path' }
+            ]
+        },
+
+        // --- SCENE 6A: Adapt to Secular World ---
+        secular_adapt: {
+            era: 'The Workshop, c. 1310 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter VI</p>
+                    <h2>The Commercial Scriptorium</h2>
+                </div>
+                <div class="card">
+                    <p><span class="dropcap">T</span>he Abbot accepts your counsel. The monastery begins taking commissions from merchants, lawyers, and scholars: legal documents, herbals, books of hours for wealthy families. The work is less sacred but it keeps the scriptorium alive.</p>
+                    <p>By the early 14th century, you witness the transformation firsthand. Urban scriptoria in Paris, Rome, and the Netherlands have largely replaced the cloistered monastic writing rooms as the primary centres of manuscript production. Scribes are no longer exclusively monks; they are craftsmen, tradesmen, members of guilds.</p>
+                </div>
+                <div class="marginalia">
+                    "By the 14th century, the transition from monastic to commercial scriptoria accelerated dramatically. Books became commodities as well as sacred objects, available to anyone who could pay." <span class="ink-blot"></span>
+                </div>
+            `,
+            fact: 'By c. 1300 AD, urban scriptoria in Paris, Rome, and the Netherlands replaced monastic writing rooms as primary book producers',
+            choices: [
+                { text: 'Continue to the age of Gutenberg', next: 'gutenberg_arrives' }
+            ]
+        },
+
+        // --- SCENE 6B: Preserve Tradition ---
+        tradition_path: {
+            era: 'The Monastery, c. 1310 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter VI</p>
+                    <h2>The Faithful Remnant</h2>
+                </div>
+                <div class="card candle-glow">
+                    <p><span class="dropcap">Y</span>ou argue passionately that the scriptorium must remain true to its sacred purpose. Writing is a form of prayer, you insist. To reduce it to commerce would be to betray the centuries of monks who laboured before you.</p>
+                    <p>The Abbot nods slowly. The monastery continues its old ways. But the world moves on regardless. The commercial scriptoria of Paris and Rome grow in influence. Fewer pilgrims visit. Fewer novices arrive.</p>
+                    <p>Yet in this quieter monastery, something precious is preserved: the old techniques, the ancient recipes for pigments, the patience required to spend a week on a single illuminated capital letter. This knowledge, you know, may one day be needed again.</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-burgundy">Preserved</span>
+                    </div>
+                    <h3>A Living Tradition</h3>
+                    <p>While commercial workshops dominated book production, a handful of monasteries maintained the old methods. Their techniques would survive as craft knowledge, passed down through centuries even as the world moved toward mechanical reproduction.</p>
+                </div>
+            `,
+            fact: 'By c. 1300 AD, urban scriptoria in Paris, Rome, and the Netherlands replaced monastic writing rooms as primary book producers',
+            choices: [
+                { text: 'Continue to the age of Gutenberg', next: 'gutenberg_arrives' }
+            ]
+        },
+
+        // --- SCENE 7: Gutenberg's Revolution ---
+        gutenberg_arrives: {
+            era: 'Mainz, Germany, 1455 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter VII</p>
+                    <h2>The Machine in Mainz</h2>
+                </div>
+                <div class="card">
+                    <p><span class="illuminated">G</span></p>
+                    <p>You are now Brother Thomas, an ageing scribe in a world trembling on the edge of transformation. News has arrived from the Rhineland city of Mainz that shakes the foundations of everything you know.</p>
+                    <p>A goldsmith named <strong>Johannes Gutenberg</strong> has completed a Bible using a mechanical device. Not copied by hand. <em>Printed.</em> Using metal letters cast from moulds, pressed onto paper and vellum with a great wooden screw-press.</p>
+                    <p>They call it the <strong>42-line Bible</strong>, for the number of lines upon each page. And it is, by all accounts, beautiful.</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-gold">Fact</span>
+                        <span class="badge badge-gold">Historic</span>
+                    </div>
+                    <h3>The Gutenberg Bible (1455 AD)</h3>
+                    <p>Johannes Gutenberg (c. 1400-1468), a German goldsmith, began experimenting with printing in Strasbourg around 1440, inventing mass-produced uniform metal movable type and oil-based ink formulation. His 42-line Bible, completed in Mainz in 1455, was the first major book printed using this method in Europe. Approximately 160-185 copies were produced on paper and vellum, with about 49 surviving today.</p>
+                </div>
+                <div class="flourish">&#x2767;</div>
+                <div class="card">
+                    <p>A fellow monk brings you a single printed page, obtained at great expense from a travelling merchant. You hold it up to the window. The letters are impossibly uniform. Each one identical to the next. No scribe's hand could achieve such perfection, and yet -- you notice -- no scribe's hand <em>touched</em> these letters at all.</p>
+                    <p>The realization strikes you like a bell tolling compline: the age of the hand-copied book is ending.</p>
+                </div>
+            `,
+            fact: 'Gutenberg\'s 42-line Bible (1455) produced 160-185 copies -- only about 49 survive today',
+            choices: [
+                { text: 'Travel to Mainz to see the press with your own eyes', next: 'witness_press' },
+                { text: 'Remain in the monastery and reflect', next: 'monastery_reflect' }
+            ]
+        },
+
+        // --- SCENE 8A: Witness the Press ---
+        witness_press: {
+            era: 'Mainz, Germany, c. 1460 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter VIII</p>
+                    <h2>In the Workshop of Wonders</h2>
+                </div>
+                <div class="card">
+                    <p><span class="dropcap">T</span>he journey to Mainz takes three weeks by road. When you arrive, the city hums with an energy you have never felt in a monastery. Merchants, scholars, and curious travellers crowd the streets near the printing workshops that have sprung up in Gutenberg's wake.</p>
+                    <p>A printer named Johann agrees to show you the process. The workshop smells of oil-based ink and hot metal. Rows of tiny letter-blocks -- each one a mirror image of a letter, cast in lead -- fill wooden cases along the walls.</p>
+                    <p>"Watch," Johann says. He slides a composing stick across the type case, plucking letters with practised speed. In minutes he has assembled an entire line of text. What would take you half a day to copy takes him moments to set.</p>
+                    <p>The great press groans, and a perfect page emerges. Then another. And another. And another.</p>
+                </div>
+                <div class="marginalia">
+                    "The period from 1450 to 1500 is known as the 'incunabula' -- the cradle of printing. In these fifty years, mechanical printing transformed from a single workshop experiment into an industry that would reshape civilisation." <span class="ink-blot"></span>
+                </div>
+            `,
+            fact: 'The "incunabula" period (1450-1500) saw printing transform from one workshop to an industry reshaping civilisation',
+            choices: [
+                { text: 'Continue to the final chapters', next: 'vellum_vs_paper' }
+            ]
+        },
+
+        // --- SCENE 8B: Remain and Reflect ---
+        monastery_reflect: {
+            era: 'The Monastery, c. 1460 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter VIII</p>
+                    <h2>The Empty Desks</h2>
+                </div>
+                <div class="card candle-glow">
+                    <p><span class="dropcap">T</span>he scriptorium is half-empty now. Some of the younger monks have left to become typesetters and ink-mixers in the new printing workshops. You cannot blame them. The world offers them purpose and they follow it.</p>
+                    <p>But you remain. Each morning you grind your ink, sharpen your quill, and bend over the vellum as you have for fifty years. Your hands are gnarled now, your eyesight dimmed. Yet the letters still flow.</p>
+                    <p>You hear that books are now in the hands of merchants, scholars, and common folk who could never have afforded a hand-copied manuscript. The printed word is spreading across Europe like wildfire. The period they call the <em>incunabula</em> -- the cradle of printing -- has begun.</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-gold">Fact</span>
+                    </div>
+                    <h3>The Incunabula (1450-1500 AD)</h3>
+                    <p>The fifty years following Gutenberg's revolution are known as the incunabula period -- from the Latin for "cradle." During this era, printing spread from Mainz to every major city in Europe, producing an estimated 20 million volumes by the year 1500.</p>
+                </div>
+            `,
+            fact: 'The "incunabula" period (1450-1500) saw printing transform from one workshop to an industry reshaping civilisation',
+            choices: [
+                { text: 'Continue to the final chapters', next: 'vellum_vs_paper' }
+            ]
+        },
+
+        // --- SCENE 9: Vellum vs. Paper ---
+        vellum_vs_paper: {
+            era: 'Europe, c. 1470 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter IX</p>
+                    <h2>Vellum and Paper</h2>
+                </div>
+                <div class="card">
+                    <p><span class="dropcap">A</span> debate rages among scholars and churchmen. Gutenberg himself printed his Bible partly on vellum and partly on paper. The vellum copies, on calfskin stretched and bleached with centuries of refinement, are magnificent. But they are also staggeringly expensive.</p>
+                    <p>Paper is cheaper, faster to produce, and infinitely more scalable. A single calfskin yields only two folios. A printed Bible on vellum requires the hides of approximately 170 calves. Paper asks only for rags, water, and a mill.</p>
+                    <p>The practical argument is clear. Yet something in your soul resists. The vellum has a warmth, a life to it. You can feel the grain of the animal beneath your fingers. Paper is dead material. Beautiful, perhaps, but dead.</p>
+                </div>
+                <div class="decorative-rule"><div class="decorative-rule-center"></div></div>
+                <div class="card">
+                    <p>The Abbot asks for your counsel once more. "Brother Thomas, the merchants offer to supply us with paper at a fraction of the cost of vellum. Our remaining commissions grow scarce. What say you?"</p>
+                </div>
+            `,
+            fact: 'A single Gutenberg Bible on vellum required the hides of approximately 170 calves',
+            choices: [
+                { text: '"Preserve the craft -- use vellum while we still can."', next: 'aldus_manutius' },
+                { text: '"Accept the paper. The words matter more than the material."', next: 'aldus_manutius' }
+            ]
+        },
+
+        // --- SCENE 10: Aldus Manutius ---
+        aldus_manutius: {
+            era: 'Venice, c. 1501 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter X</p>
+                    <h2>The Aldine Revolution</h2>
+                </div>
+                <div class="card">
+                    <p><span class="illuminated">A</span></p>
+                    <p>Decades have passed. You are now a young scholar-monk named Marcus, the spiritual heir to generations of scribes. In the great printing city of Venice, you encounter the work of a man who proves that the printing press need not mean the death of beauty.</p>
+                    <p><strong>Aldus Manutius</strong>, a Venetian humanist, has founded the Aldine Press. His innovations take your breath away: he has invented <em>italic type</em>, a new style of letter that slants gracefully like a scribe's hurried hand. And he has created something revolutionary -- small, portable books that fit in a scholar's pocket.</p>
+                    <p>He calls them <em>enchiridia</em>. They are the ancestors of every paperback you will never live to see.</p>
+                </div>
+                <div class="card card-scroll">
+                    <div class="badge-row">
+                        <span class="badge badge-seal-gold">Fact</span>
+                        <span class="badge badge-gold">Treasured</span>
+                    </div>
+                    <h3>Aldus Manutius (c. 1449 - 1515 AD)</h3>
+                    <p>The Venetian humanist printer founded the Aldine Press and revolutionised book design. He invented italic typography for readability and created portable pocket-sized books called <em>enchiridia</em>, becoming the predecessor to modern paperback formats. Manutius proved that mechanical printing could achieve beauty and elegance, not merely efficiency.</p>
+                </div>
+                <div class="marginalia">
+                    "Aldus Manutius died on 6 February 1515, but his legacy endures in every pocket book, every italic font, and every publisher's mark -- the anchor and dolphin he chose as his emblem." <span class="ink-blot"></span>
+                </div>
+            `,
+            fact: 'Aldus Manutius (c. 1449-1515) invented italic type and pocket-sized books -- the ancestor of modern paperbacks',
+            choices: [
+                { text: 'Continue to the final chapter', next: 'the_bridge' }
+            ]
+        },
+
+        // --- SCENE 11: The Bridge Complete ---
+        the_bridge: {
+            era: 'A Great Library, c. 1515 AD',
+            content: `
+                <div class="section-header">
+                    <p class="section-numeral">Chapter XI</p>
+                    <h2>The Bridge Complete</h2>
+                </div>
+                <div class="card candle-glow">
+                    <p><span class="dropcap">Y</span>ou stand in a library that holds both worlds. On the left wall: illuminated manuscripts, their gold leaf still catching the candlelight after seven hundred years. The Book of Hours, the Lindisfarne Gospels, leaves from the great Bibles copied by monks in silent scriptoria across Europe.</p>
+                    <p>On the right wall: printed books. Gutenberg's Bible, its pages still sharp and black. Aldus Manutius's elegant pocket editions. Volumes of Aristotle and Virgil, of medicine and law, multiplied a thousandfold by the press.</p>
+                    <p>Between these two walls stretches the entire history of the written word in the West. From Alcuin's scriptoria in the 8th century to Gutenberg's press in 1455 to Manutius's portable books at the dawn of the 16th century.</p>
+                </div>
+                <div class="flourish">&#x2767;</div>
+                <div class="card">
+                    <p>A young reader sits at a table. She is not a monk, not a scholar, not a noble. She is the daughter of a merchant, and in her hands is a printed book -- something that, a century ago, would have been beyond the wildest dreams of anyone outside the Church.</p>
+                    <p>She reads by candlelight, just as monks have read for a thousand years. The medium has changed. The sacred act of sharing knowledge persists.</p>
+                    <p>What is your final reflection?</p>
+                </div>
+            `,
+            fact: 'The bridge from Alcuin (c. 780) to Gutenberg (1455) to Manutius (1515) spans over 700 years of the written word',
+            choices: [
+                { text: '"The craft was the message -- what mattered was the devotion."', next: 'ending_craft' },
+                { text: '"The knowledge was the mission -- the method must evolve."', next: 'ending_knowledge' },
+                { text: '"Both are true -- beauty and access can coexist."', next: 'ending_harmony' }
+            ]
+        },
+
+        // --- ENDING A: The Craft ---
+        ending_craft: {
+            era: 'Epilogue',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Finis</div>
+                    <div class="ending-title">The Illuminated Path</div>
+                    <div class="ending-text">
+                        <div class="flourish">&#x2767;</div>
+                        <p>You chose the path of the craftsman, the illuminator, the keeper of beauty. In your hands, every letter was a prayer, every page a cathedral of ink and gold.</p>
+                        <p>The manuscripts you and your brothers created survive to this day. The Book of Kells draws half a million visitors each year to Trinity College Dublin. The Lindisfarne Gospels rest in the British Library, their colours unfaded after thirteen centuries.</p>
+                        <p>The printing press changed the world. But the hand-made manuscripts remind us that there is a kind of beauty that can only come from patience, devotion, and the human touch. Your art endures not because it was efficient, but because it was irreplaceable.</p>
+                        <div class="decorative-rule"><div class="decorative-rule-center"></div></div>
+                        <p class="lead">Today, calligraphers and illuminators still practise the medieval arts, keeping alive a tradition that stretches back to the earliest monasteries of the 6th century. The tools have barely changed: quill, ink, gold leaf, vellum. Some things are worth preserving exactly as they are.</p>
+                        <div class="the-end">The End</div>
+                        <div class="footer-ornament" style="margin-top: var(--space-5);">&#x2726; &#x2726; &#x2726;</div>
+                    </div>
+                </div>
+            `,
+            fact: 'The Book of Kells draws half a million visitors yearly to Trinity College Dublin -- medieval art endures',
+            choices: [
+                { text: 'Begin Anew', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING B: Knowledge ---
+        ending_knowledge: {
+            era: 'Epilogue',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Finis</div>
+                    <div class="ending-title">The Printed Word</div>
+                    <div class="ending-text">
+                        <div class="flourish">&#x2767;</div>
+                        <p>You chose the path of knowledge, of progress, of trusting that the mission matters more than the method. Alcuin himself wrote: "Let those who wish to know what writing is know that it is a divine art." He never said it must be done by hand alone.</p>
+                        <p>Within fifty years of Gutenberg's Bible, an estimated 20 million printed volumes existed in Europe. By 1500, more books had been produced in half a century than in all the preceding thousand years of manuscript copying combined.</p>
+                        <p>Literacy spread. Ideas spread. The Reformation, the Scientific Revolution, the Enlightenment -- all were made possible because knowledge was no longer locked behind monastery walls, available only to those who could afford a hand-copied manuscript.</p>
+                        <div class="decorative-rule"><div class="decorative-rule-center"></div></div>
+                        <p class="lead">The printing press did not destroy the scribe's legacy. It fulfilled it. The mission was always to preserve and share knowledge. Gutenberg and Manutius simply found a way to share it with the whole world.</p>
+                        <div class="the-end">The End</div>
+                        <div class="footer-ornament" style="margin-top: var(--space-5);">&#x2726; &#x2726; &#x2726;</div>
+                    </div>
+                </div>
+            `,
+            fact: 'By 1500, more books had been printed in 50 years than in the preceding 1,000 years of manuscript copying',
+            choices: [
+                { text: 'Begin Anew', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING C: Harmony ---
+        ending_harmony: {
+            era: 'Epilogue',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Finis</div>
+                    <div class="ending-title">The Eternal Scriptorium</div>
+                    <div class="ending-text">
+                        <div class="flourish">&#x2767;</div>
+                        <p>You chose the middle way, the path of wisdom. Beauty and access are not enemies. Aldus Manutius proved this when he married the printer's efficiency with the calligrapher's elegance, creating books that were both affordable and beautiful.</p>
+                        <p>Some monasteries established hybrid studios in the late 15th century, where monks worked alongside mechanical presses. Some texts were still hand-illuminated; others were printed and coloured by hand afterward. The old and the new coexisted, each strengthening the other.</p>
+                        <p>Today, the finest printed books are still described as "beautiful." Type designers still study the proportions of Carolingian minuscule. The italic fonts on your screen descend directly from Aldus Manutius's invention of 1501.</p>
+                        <div class="decorative-rule"><div class="decorative-rule-center"></div></div>
+                        <p class="lead">Every time you read a book -- on paper or on screen -- you are the inheritor of a tradition that began with monks in candlelit scriptoria, grinding their ink and sharpening their quills. The medium changes. The devotion endures. From quill to movable type to pixel, the human need to record, to share, to illuminate the darkness with the written word remains unchanged.</p>
+                        <div class="the-end">The End</div>
+                        <div class="footer-ornament" style="margin-top: var(--space-5);">&#x2726; &#x2726; &#x2726;</div>
+                    </div>
+                </div>
+            `,
+            fact: 'The italic fonts on modern screens descend directly from Aldus Manutius\'s invention of 1501',
+            choices: [
+                { text: 'Begin Anew', next: '_restart' }
+            ]
+        }
+    };
+
+    // =================================================================
+    //  STORY ENGINE
+    // =================================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('scriptorium_novice');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 500);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1200);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            // Update era display
+            if (scene.era) {
+                document.getElementById('sceneEra').textContent = scene.era;
+            }
+
+            const container = document.getElementById('sceneContent');
+            let html = '<div class="scene-content">';
+
+            // Scene content (raw HTML with parchment CSS classes)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+                html += '<div class="fact-found">Knowledge Inscribed</div>';
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+            document.getElementById('headerFactCount').textContent = count > 0 ? `Codex: ${count}` : '';
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No wisdom yet inscribed...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => `<div class="fact-item">${f}</div>`).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

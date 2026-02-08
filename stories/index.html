@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Stories</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital@0;1&family=Nunito:wght@400;600;700&family=Poiret+One&family=Josefin+Sans:wght@300;400;600&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Cinzel&family=VT323&family=Press+Start+2P&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 4rem 2rem;
+        }
+
+        .container { max-width: 1100px; margin: 0 auto; }
+
+        .back-link {
+            display: inline-block;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: #e0e0e0; }
+        .back-link::before { content: '\2190  '; }
+
+        h1 {
+            font-size: 3rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats {
+            color: #555;
+            font-size: 0.85rem;
+            margin-bottom: 3rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .card {
+            padding: 1.5rem;
+            text-decoration: none;
+            display: block;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+        }
+
+        .card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .card .topic {
+            font-size: 0.8rem;
+            margin-bottom: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .card p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+
+        .card .meta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+           NOIR
+        ═══════════════════════════════════════════════════════════════ */
+        .card-noir {
+            font-family: 'Playfair Display', Georgia, serif;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 100%);
+            border: 1px solid #333;
+            color: #e8e8e8;
+        }
+        .card-noir::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent 0px, transparent 8px, rgba(0,0,0,0.4) 8px, rgba(0,0,0,0.4) 12px);
+            opacity: 0.6;
+            pointer-events: none;
+            animation: blinds-sway 3s ease-in-out infinite;
+        }
+        @keyframes blinds-sway {
+            0%, 100% { transform: skewX(0deg); }
+            50% { transform: skewX(2deg); }
+        }
+        .card-noir::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .card-noir h2 { color: #e8e8e8; font-style: italic; position: relative; }
+        .card-noir .topic { color: #888; font-family: 'Courier New', monospace; position: relative; }
+        .card-noir p { color: #888; font-family: 'Courier New', monospace; position: relative; }
+        .card-noir .tag { background: #8B0000; color: #e8e8e8; }
+        .card-noir:hover { border-color: #8B0000; box-shadow: 0 0 30px rgba(139, 0, 0, 0.3); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PIXEL ART
+        ═══════════════════════════════════════════════════════════════ */
+        .card-pixel {
+            font-family: 'VT323', monospace;
+            background: #1a1c2c;
+            border: 4px solid #f4f4f4;
+            color: #f4f4f4;
+            image-rendering: pixelated;
+            box-shadow: inset -4px -4px 0 #333c57, inset 4px 4px 0 #566c86, 8px 8px 0 #0d0d0d;
+        }
+        .card-pixel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+            pointer-events: none;
+        }
+        .card-pixel h2 { font-family: 'Press Start 2P', monospace; font-size: 0.9rem; color: #29adff; text-shadow: 2px 2px 0 #1a1c2c; letter-spacing: 0; }
+        .card-pixel .topic { color: #94b0c2; font-size: 1rem; }
+        .card-pixel p { color: #94b0c2; font-size: 1.1rem; line-height: 1.4; }
+        .card-pixel .tag { font-family: 'Press Start 2P', monospace; font-size: 0.5rem; background: #ff004d; color: #fff; border: none; box-shadow: 2px 2px 0 #7e2553; }
+        .card-pixel:hover { transform: translate(-4px, -4px); box-shadow: inset -4px -4px 0 #333c57, inset 4px 4px 0 #566c86, 12px 12px 0 #0d0d0d; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           BAUHAUS
+        ═══════════════════════════════════════════════════════════════ */
+        .card-bauhaus {
+            font-family: 'Inter', sans-serif;
+            background: #ffffff;
+            border: 3px solid #000000;
+            color: #000000;
+        }
+        .card-bauhaus::before {
+            content: '';
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 24px; height: 24px;
+            background: #E53935;
+            pointer-events: none;
+        }
+        .card-bauhaus::after {
+            content: '';
+            position: absolute;
+            bottom: 12px; right: 12px;
+            width: 24px; height: 24px;
+            background: #1E88E5;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .card-bauhaus h2 { font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card-bauhaus .topic { color: #333; }
+        .card-bauhaus p { color: #333; }
+        .card-bauhaus .tag { background: #FDD835; color: #000; border: 2px solid #000; }
+        .card-bauhaus:hover { background: #000; color: #fff; }
+        .card-bauhaus:hover h2 { color: #FDD835; }
+        .card-bauhaus:hover .topic, .card-bauhaus:hover p { color: #ccc; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           ART DECO
+        ═══════════════════════════════════════════════════════════════ */
+        .card-art-deco {
+            font-family: 'Josefin Sans', sans-serif;
+            font-weight: 300;
+            background: #0d0d0d;
+            border: 1px solid #d4af37;
+            color: #f5f0e1;
+        }
+        .card-art-deco::before {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            pointer-events: none;
+        }
+        .card-art-deco h2 { font-family: 'Poiret One', cursive; color: #d4af37; text-shadow: 0 0 10px rgba(212, 175, 55, 0.3); letter-spacing: 0.15em; text-transform: uppercase; }
+        .card-art-deco h2::before { content: '\25C7 '; }
+        .card-art-deco h2::after { content: ' \25C7'; }
+        .card-art-deco .topic { color: rgba(245, 240, 225, 0.7); }
+        .card-art-deco p { color: rgba(245, 240, 225, 0.7); }
+        .card-art-deco .tag { background: #d4af37; color: #0d0d0d; clip-path: polygon(8% 0%, 92% 0%, 100% 50%, 92% 100%, 8% 100%, 0% 50%); padding: 0.25rem 1rem; }
+        .card-art-deco:hover { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           ART NOUVEAU
+        ═══════════════════════════════════════════════════════════════ */
+        .card-art-nouveau {
+            font-family: 'Playfair Display', Georgia, serif;
+            background: linear-gradient(145deg, #F5F0E6 0%, #E8E0D0 100%);
+            border: 2px solid #C9A227;
+            color: #3D3028;
+        }
+        .card-art-nouveau::before {
+            content: '\2767';
+            position: absolute;
+            top: 10px; right: 14px;
+            color: #8B9F7C;
+            font-size: 1.3rem;
+        }
+        .card-art-nouveau::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 60px; height: 60px;
+            background: radial-gradient(ellipse at bottom left, rgba(201, 162, 39, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .card-art-nouveau h2 { font-style: italic; color: #6B2D3C; }
+        .card-art-nouveau .topic { color: #5A4A3A; }
+        .card-art-nouveau p { color: #5A4A3A; }
+        .card-art-nouveau .tag { background: #8B9F7C; color: #F5F0E6; border-radius: 12px 12px 8px 8px; }
+        .card-art-nouveau:hover { border-color: #6B2D3C; box-shadow: 0 4px 20px rgba(107, 45, 60, 0.2); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           PARCHMENT
+        ═══════════════════════════════════════════════════════════════ */
+        .card-parchment {
+            font-family: 'EB Garamond', Georgia, serif;
+            background: linear-gradient(145deg, #f4e4bc 0%, #e8d4a8 100%);
+            border: 1px solid #c4a86a;
+            color: #3d2b1f;
+        }
+        .card-parchment::before {
+            content: '\2767';
+            position: absolute;
+            top: 8px; right: 12px;
+            color: #8b4513;
+            opacity: 0.4;
+            font-size: 1.2rem;
+        }
+        .card-parchment h2 { font-family: 'Cinzel', serif; color: #5c3317; letter-spacing: 0.05em; }
+        .card-parchment .topic { color: #5a4a3a; }
+        .card-parchment p { color: #5a4a3a; }
+        .card-parchment .tag { background: #8b0000; color: #f4e4bc; border-radius: 50%; width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-size: 0.6rem; }
+        .card-parchment:hover { box-shadow: 0 4px 16px rgba(139, 69, 19, 0.2); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           JAPANESE ZEN
+        ═══════════════════════════════════════════════════════════════ */
+        .card-japanese-zen {
+            font-family: 'Noto Serif', Georgia, serif;
+            background: #f5f3ef;
+            border: 1px solid #d4cfc5;
+            color: #2c2c2c;
+        }
+        .card-japanese-zen::before {
+            content: '\25EF';
+            position: absolute;
+            top: 12px; right: 16px;
+            font-size: 1.5rem;
+            color: rgba(60, 60, 60, 0.15);
+            font-weight: 100;
+        }
+        .card-japanese-zen h2 { font-weight: 400; letter-spacing: 0.1em; color: #3c3c3c; }
+        .card-japanese-zen .topic { color: #6a6a6a; }
+        .card-japanese-zen p { color: #6a6a6a; }
+        .card-japanese-zen .tag { background: transparent; color: #8b7355; border: 1px solid #c4b8a5; }
+        .card-japanese-zen:hover { border-color: #8b7355; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           MOROCCAN
+        ═══════════════════════════════════════════════════════════════ */
+        .card-moroccan {
+            font-family: 'Playfair Display', Georgia, serif;
+            background: linear-gradient(145deg, #1A3A5C 0%, #0F2439 100%);
+            border: 2px solid #C9A227;
+            color: #F5EBE0;
+        }
+        .card-moroccan::before {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 1px solid rgba(201, 162, 39, 0.3);
+            pointer-events: none;
+        }
+        .card-moroccan::after {
+            content: '\2726';
+            position: absolute;
+            top: 10px; right: 12px;
+            color: #C9A227;
+            font-size: 1rem;
+            animation: moroccan-star 4s linear infinite;
+        }
+        @keyframes moroccan-star {
+            0%, 100% { transform: rotate(0deg); opacity: 0.6; }
+            50% { transform: rotate(180deg); opacity: 1; }
+        }
+        .card-moroccan h2 { color: #C9A227; letter-spacing: 0.05em; }
+        .card-moroccan .topic { color: rgba(245, 235, 224, 0.75); }
+        .card-moroccan p { color: rgba(245, 235, 224, 0.75); }
+        .card-moroccan .tag { background: #C45C3E; color: #F5EBE0; clip-path: polygon(10% 0%, 90% 0%, 100% 50%, 90% 100%, 10% 100%, 0% 50%); padding: 0.25rem 1rem; }
+        .card-moroccan:hover { box-shadow: 0 0 20px rgba(201, 162, 39, 0.4); border-color: #d4af37; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           MID-CENTURY
+        ═══════════════════════════════════════════════════════════════ */
+        .card-midcentury {
+            font-family: 'Josefin Sans', sans-serif;
+            background: linear-gradient(145deg, #DBC5A0 0%, #C19A6B 100%);
+            border: 2px solid #5D3A1A;
+            color: #3D2A1A;
+        }
+        .card-midcentury::before {
+            content: '';
+            position: absolute;
+            top: 12px; right: 12px;
+            width: 24px; height: 24px;
+            background: #D4AF37;
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+        .card-midcentury::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #CC5500, #DAA520, #6B8E23);
+        }
+        .card-midcentury h2 { font-weight: 600; color: #5D3A1A; text-transform: uppercase; letter-spacing: 0.05em; }
+        .card-midcentury .topic { color: #5D4A3A; }
+        .card-midcentury p { color: #5D4A3A; }
+        .card-midcentury .tag { background: #CC5500; color: #FDF5E6; border-radius: 0; }
+        .card-midcentury:hover { box-shadow: 0 6px 24px rgba(93, 58, 26, 0.3); border-color: #D4AF37; }
+
+        /* ═══════════════════════════════════════════════════════════════
+           STREAMLINE MODERNE
+        ═══════════════════════════════════════════════════════════════ */
+        .card-streamline-moderne {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(145deg, #1A2A4A 0%, #0F1A2A 100%);
+            border: 2px solid #C0C0C0;
+            border-radius: 0 24px 0 24px;
+            color: #F5F0E6;
+        }
+        .card-streamline-moderne::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, #C0C0C0 20%, #C0C0C0 80%, transparent 100%);
+        }
+        .card-streamline-moderne::after {
+            content: '\25C9';
+            position: absolute;
+            bottom: 12px; right: 16px;
+            color: #7EBDB4;
+            font-size: 1.2rem;
+        }
+        .card-streamline-moderne h2 { font-weight: 600; color: #C0C0C0; letter-spacing: 0.08em; }
+        .card-streamline-moderne .topic { color: rgba(245, 240, 230, 0.7); }
+        .card-streamline-moderne p { color: rgba(245, 240, 230, 0.7); }
+        .card-streamline-moderne .tag { background: linear-gradient(135deg, #C0C0C0, #E0E0E0); color: #1A2A4A; border-radius: 20px; }
+        .card-streamline-moderne:hover { border-color: #7EBDB4; box-shadow: 0 0 20px rgba(192, 192, 192, 0.3); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           LETTERPRESS
+        ═══════════════════════════════════════════════════════════════ */
+        .card-letterpress {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            background: #f8f5f0;
+            border: 1px solid #d4cfc5;
+            color: #1c1c1c;
+        }
+        .card-letterpress::before {
+            content: '';
+            position: absolute;
+            top: 8px; left: 8px;
+            width: 24px; height: 24px;
+            border-left: 2px solid #b8860b;
+            border-top: 2px solid #b8860b;
+            pointer-events: none;
+        }
+        .card-letterpress h2 { color: #1a2744; text-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 -1px 1px rgba(0,0,0,0.1); font-weight: 600; }
+        .card-letterpress .topic { color: #5a5a5a; }
+        .card-letterpress p { color: #5a5a5a; }
+        .card-letterpress .tag { background: #1a2744; color: #f8f5f0; }
+        .card-letterpress:hover { box-shadow: 0 4px 20px rgba(26, 39, 68, 0.15); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           NORDIC
+        ═══════════════════════════════════════════════════════════════ */
+        .card-nordic {
+            font-family: 'Nunito', sans-serif;
+            background: #fafaf8;
+            border: 1px solid #e8e4dc;
+            border-radius: 12px;
+            color: #3d3d3d;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .card-nordic h2 { font-family: 'Playfair Display', Georgia, serif; font-weight: 400; color: #2d2d2d; }
+        .card-nordic .topic { color: #6a6a6a; }
+        .card-nordic p { color: #6a6a6a; }
+        .card-nordic .tag { background: #c4705a; color: #fff; border-radius: 20px; }
+        .card-nordic:hover { border-color: #c4705a; box-shadow: 0 4px 16px rgba(196, 112, 90, 0.15); }
+
+        /* ═══════════════════════════════════════════════════════════════
+           COPPER & VERDIGRIS
+        ═══════════════════════════════════════════════════════════════ */
+        .card-copper-verdigris {
+            font-family: 'Playfair Display', Georgia, serif;
+            background: linear-gradient(145deg, #2D4A4A 0%, #1A3030 100%);
+            border: 2px solid #B87333;
+            color: #E8E0D0;
+        }
+        .card-copper-verdigris::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 50%; height: 100%;
+            background: radial-gradient(ellipse at top right, rgba(67, 179, 174, 0.2) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .card-copper-verdigris::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #B87333, #43B3AE, #2D8A85);
+        }
+        .card-copper-verdigris h2 { background: linear-gradient(90deg, #D4956A, #43B3AE); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-style: italic; }
+        .card-copper-verdigris .topic { color: rgba(232, 224, 208, 0.8); }
+        .card-copper-verdigris p { color: rgba(232, 224, 208, 0.8); }
+        .card-copper-verdigris .tag { background: linear-gradient(135deg, #B87333, #D4956A); color: #1A2020; border-radius: 2px; }
+        .card-copper-verdigris:hover { border-color: #43B3AE; box-shadow: 0 0 20px rgba(67, 179, 174, 0.3), 0 0 40px rgba(184, 115, 51, 0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="../index.html" class="back-link">Style Guides</a>
+        <h1>Interactive Stories</h1>
+        <p class="subtitle">Branching narratives built from HTML style guides. Each story teaches real history through the design language of its era.</p>
+        <p class="stats">13 stories &middot; 170+ scenes &middot; 170+ historical facts &middot; keyboard support (1/2/3 keys)</p>
+
+        <div class="grid">
+            <a href="noir-the-morrison-case.html" class="card card-noir">
+                <h2>The Morrison Case</h2>
+                <div class="topic">Interactive detective fiction</div>
+                <p>A rain-soaked noir mystery with venetian blind shadows and hard-boiled narration.</p>
+                <div class="meta">
+                    <span class="tag">15 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="pixel-player-one.html" class="card card-pixel">
+                <h2>Player One</h2>
+                <div class="topic">History of video games, 1972-1995</div>
+                <p>From Pong to PlayStation through health bars, game over screens, and coin-op cabinets.</p>
+                <div class="meta">
+                    <span class="tag">10 scenes</span>
+                    <span class="tag">1 ending</span>
+                </div>
+            </a>
+
+            <a href="bauhaus-the-last-semester.html" class="card card-bauhaus">
+                <h2>The Last Semester</h2>
+                <div class="topic">Bauhaus school history, 1919-1933</div>
+                <p>Weimar geometry meets rising fascism. Red squares, blue circles, and the school that changed everything.</p>
+                <div class="meta">
+                    <span class="tag">10 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="art-deco-the-jazz-age.html" class="card card-art-deco">
+                <h2>The Jazz Age</h2>
+                <div class="topic">1920s America &mdash; Prohibition to the Crash</div>
+                <p>Gold and glamour in a Manhattan speakeasy. From flappers to Black Tuesday through geometric opulence.</p>
+                <div class="meta">
+                    <span class="tag">17 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="art-nouveau-belle-epoque.html" class="card card-art-nouveau">
+                <h2>Belle Epoque</h2>
+                <div class="topic">Paris 1890-1910 &mdash; Mucha, cinema, the World's Fair</div>
+                <p>Organic curves and floral excess in fin-de-si&egrave;cle Paris. Posters, absinthe, and the birth of cinema.</p>
+                <div class="meta">
+                    <span class="tag">16 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="parchment-the-scribes-tale.html" class="card card-parchment">
+                <h2>The Scribe's Tale</h2>
+                <div class="topic">Medieval bookmaking, 780-1515 AD</div>
+                <p>Illuminated manuscripts, monastic scriptoria, and Gutenberg's revolution on aged vellum.</p>
+                <div class="meta">
+                    <span class="tag">18 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="japanese-zen-the-way.html" class="card card-japanese-zen">
+                <h2>The Way</h2>
+                <div class="topic">Zen Buddhism, tea ceremony, wabi-sabi</div>
+                <p>Ink wash and negative space. From Bodhidharma through kintsugi to the art of imperfection.</p>
+                <div class="meta">
+                    <span class="tag">15 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="moroccan-the-geometers-garden.html" class="card card-moroccan">
+                <h2>The Geometer's Garden</h2>
+                <div class="topic">Islamic geometry &mdash; algebra, the Alhambra, zellige</div>
+                <p>Star patterns and mathematical prayer in 14th-century Fez. Where art meets algebra.</p>
+                <div class="meta">
+                    <span class="tag">18 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="midcentury-the-space-race.html" class="card card-midcentury">
+                <h2>The Space Race</h2>
+                <div class="topic">Sputnik to Apollo 11, 1957-1969</div>
+                <p>Starbursts and atomic optimism. From Sputnik's beep to Armstrong's boot print on teak and brass.</p>
+                <div class="meta">
+                    <span class="tag">18 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="streamline-moderne-the-express.html" class="card card-streamline-moderne">
+                <h2>The Express</h2>
+                <div class="topic">1930s &mdash; ocean liners, Depression-era dreams</div>
+                <p>Chrome and aerodynamics aboard the SS Normandie. Speed lines cutting through the Great Depression.</p>
+                <div class="meta">
+                    <span class="tag">16 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="letterpress-the-press.html" class="card card-letterpress">
+                <h2>The Press</h2>
+                <div class="topic">History of printing, 1430-present</div>
+                <p>Debossed type and ink bleed. From Gutenberg's workshop to desktop publishing's revolution.</p>
+                <div class="meta">
+                    <span class="tag">19 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="nordic-the-long-winter.html" class="card card-nordic">
+                <h2>The Long Winter</h2>
+                <div class="topic">Vikings to hygge &mdash; 1,200 years of Scandinavia</div>
+                <p>Warm wood and frost. From Lindisfarne raids to IKEA flat-packs and the art of coziness.</p>
+                <div class="meta">
+                    <span class="tag">17 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+
+            <a href="copper-verdigris-liberty.html" class="card card-copper-verdigris">
+                <h2>Liberty</h2>
+                <div class="topic">Statue of Liberty &mdash; copper, chemistry, conservation</div>
+                <p>Metallic patina and oxidation. The engineer who understood why copper turns green.</p>
+                <div class="meta">
+                    <span class="tag">16 scenes</span>
+                    <span class="tag">3 endings</span>
+                </div>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
