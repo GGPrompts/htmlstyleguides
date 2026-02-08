@@ -910,6 +910,119 @@
             text-transform: uppercase;
         }
 
+        /* --- AUDIO NARRATION PLAYER --- */
+        .audio-player {
+            display: none;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-4);
+            margin-bottom: var(--space-5);
+            background: linear-gradient(145deg, rgba(45, 27, 78, 0.4) 0%, rgba(20, 10, 40, 0.6) 100%);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            transition: opacity 0.4s ease, border-color 0.3s ease;
+        }
+
+        .audio-player.visible {
+            display: flex;
+        }
+
+        .audio-player:hover {
+            border-color: var(--border-glow);
+        }
+
+        .audio-player-label {
+            font-family: var(--font-body);
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .audio-play-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--cosmic-pink);
+            border-radius: var(--radius-full);
+            background: transparent;
+            color: var(--cosmic-pink);
+            cursor: pointer;
+            font-size: 0.875rem;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .audio-play-btn:hover {
+            border-color: var(--aurora-teal);
+            color: var(--aurora-teal);
+            box-shadow: var(--glow-teal);
+        }
+
+        .audio-progress-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            min-width: 0;
+        }
+
+        .audio-progress-bar {
+            flex: 1;
+            height: 3px;
+            background: rgba(150, 140, 180, 0.15);
+            position: relative;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .audio-progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 0%;
+            background: var(--gradient-aurora);
+            border-radius: 2px;
+            transition: width 0.1s linear;
+        }
+
+        .audio-progress-bar:hover .audio-progress-fill {
+            height: 5px;
+            top: -1px;
+        }
+
+        .audio-progress-bar:hover {
+            height: 5px;
+        }
+
+        .audio-time {
+            font-family: var(--font-body);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            min-width: 3.5em;
+            text-align: right;
+            letter-spacing: 0.05em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .audio-player.playing .audio-play-btn {
+            border-color: var(--aurora-teal);
+            color: var(--aurora-teal);
+            box-shadow: 0 0 10px var(--aurora-teal-glow);
+        }
+
+        .audio-player.loading .audio-play-btn {
+            opacity: 0.5;
+            cursor: wait;
+        }
+
         /* --- SCROLLBAR --- */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-void); }
@@ -922,6 +1035,9 @@
             .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
             .section-title { font-size: 2rem; }
             .constellation { display: none; }
+            .audio-player { gap: var(--space-2); padding: var(--space-2) var(--space-3); }
+            .audio-player-label { display: none; }
+            .audio-play-btn { width: 28px; height: 28px; font-size: 0.75rem; }
         }
     </style>
 </head>
@@ -978,6 +1094,18 @@
                 <span class="scene-signal-id" id="signalId">Signal Incoming</span>
                 <span class="scene-fact-count" id="headerFactCount"></span>
             </div>
+            <!-- Audio Narration Player -->
+            <div class="audio-player" id="audioPlayer">
+                <span class="audio-player-label">Listen</span>
+                <button class="audio-play-btn" id="audioPlayBtn" title="Play narration" aria-label="Play narration">&#9654;</button>
+                <div class="audio-progress-wrap">
+                    <div class="audio-progress-bar" id="audioProgressBar">
+                        <div class="audio-progress-fill" id="audioProgressFill"></div>
+                    </div>
+                    <span class="audio-time" id="audioTime">0:00</span>
+                </div>
+            </div>
+
             <div id="sceneContent"></div>
             <div class="game-controls">
                 <button class="ctrl-btn" id="restartBtn">Return to Start</button>
@@ -1586,10 +1714,20 @@
         facts: [],
         factsPanelOpen: false,
 
+        // Audio narration state
+        audio: null,
+        audioReady: false,
+        audioPlaying: false,
+        audioUpdateInterval: null,
+
         init() {
             document.getElementById('startBtn').addEventListener('click', () => this.start());
             document.getElementById('restartBtn').addEventListener('click', () => this.restart());
             document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Audio controls
+            document.getElementById('audioPlayBtn').addEventListener('click', () => this.toggleAudio());
+            document.getElementById('audioProgressBar').addEventListener('click', (e) => this.seekAudio(e));
 
             // Keyboard support: 1-9 for choices
             document.addEventListener('keydown', (e) => {
@@ -1609,6 +1747,7 @@
         },
 
         restart() {
+            this.stopAudio();
             this.currentScene = null;
             this.history = [];
             this.facts = [];
@@ -1652,6 +1791,10 @@
         },
 
         renderScene(sceneId, scene) {
+            // Stop any playing audio and load new scene audio
+            this.stopAudio();
+            this.loadAudio(sceneId);
+
             const container = document.getElementById('sceneContent');
 
             // Update signal ID in header
@@ -1705,6 +1848,137 @@
                 list.innerHTML = this.facts.map(f => '<div class="fact-item">' + f + '</div>').join('');
             }
         },
+
+        // ── Audio Narration Methods ──────────────────────────
+
+        loadAudio(sceneId) {
+            const player = document.getElementById('audioPlayer');
+            const playBtn = document.getElementById('audioPlayBtn');
+            const progressFill = document.getElementById('audioProgressFill');
+            const timeDisplay = document.getElementById('audioTime');
+
+            // Reset UI
+            player.classList.remove('visible', 'playing', 'loading');
+            playBtn.innerHTML = '&#9654;';
+            playBtn.title = 'Play narration';
+            playBtn.setAttribute('aria-label', 'Play narration');
+            progressFill.style.width = '0%';
+            timeDisplay.textContent = '0:00';
+            this.audioReady = false;
+            this.audioPlaying = false;
+
+            // Create new audio element
+            const audioSrc = 'audio/cosmic/' + sceneId + '.mp3';
+            this.audio = new Audio();
+
+            // Show player in loading state while we check if file exists
+            player.classList.add('visible', 'loading');
+
+            this.audio.addEventListener('canplaythrough', () => {
+                this.audioReady = true;
+                player.classList.remove('loading');
+                timeDisplay.textContent = this.formatTime(this.audio.duration);
+            }, { once: true });
+
+            this.audio.addEventListener('error', () => {
+                // Audio file not found or failed to load — hide player gracefully
+                this.audioReady = false;
+                player.classList.remove('visible', 'loading');
+                this.audio = null;
+            });
+
+            this.audio.addEventListener('ended', () => {
+                this.audioPlaying = false;
+                player.classList.remove('playing');
+                playBtn.innerHTML = '&#9654;';
+                playBtn.title = 'Play narration';
+                playBtn.setAttribute('aria-label', 'Play narration');
+                this.stopProgressUpdates();
+            });
+
+            this.audio.preload = 'auto';
+            this.audio.src = audioSrc;
+        },
+
+        stopAudio() {
+            if (this.audio) {
+                this.audio.pause();
+                this.audio.removeAttribute('src');
+                this.audio.load();
+                this.audio = null;
+            }
+            this.audioReady = false;
+            this.audioPlaying = false;
+            this.stopProgressUpdates();
+
+            const player = document.getElementById('audioPlayer');
+            if (player) {
+                player.classList.remove('visible', 'playing', 'loading');
+            }
+        },
+
+        toggleAudio() {
+            if (!this.audio || !this.audioReady) return;
+
+            if (this.audioPlaying) {
+                this.audio.pause();
+                this.audioPlaying = false;
+                document.getElementById('audioPlayer').classList.remove('playing');
+                document.getElementById('audioPlayBtn').innerHTML = '&#9654;';
+                document.getElementById('audioPlayBtn').title = 'Play narration';
+                document.getElementById('audioPlayBtn').setAttribute('aria-label', 'Play narration');
+                this.stopProgressUpdates();
+            } else {
+                this.audio.play().then(() => {
+                    this.audioPlaying = true;
+                    document.getElementById('audioPlayer').classList.add('playing');
+                    document.getElementById('audioPlayBtn').innerHTML = '&#9208;';
+                    document.getElementById('audioPlayBtn').title = 'Pause narration';
+                    document.getElementById('audioPlayBtn').setAttribute('aria-label', 'Pause narration');
+                    this.startProgressUpdates();
+                }).catch(() => {
+                    // Playback blocked or failed — ignore silently
+                });
+            }
+        },
+
+        seekAudio(e) {
+            if (!this.audio || !this.audioReady) return;
+            const bar = document.getElementById('audioProgressBar');
+            const rect = bar.getBoundingClientRect();
+            const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+            this.audio.currentTime = ratio * this.audio.duration;
+            this.updateProgress();
+        },
+
+        startProgressUpdates() {
+            this.stopProgressUpdates();
+            this.audioUpdateInterval = setInterval(() => this.updateProgress(), 250);
+        },
+
+        stopProgressUpdates() {
+            if (this.audioUpdateInterval) {
+                clearInterval(this.audioUpdateInterval);
+                this.audioUpdateInterval = null;
+            }
+        },
+
+        updateProgress() {
+            if (!this.audio || !this.audio.duration) return;
+            const pct = (this.audio.currentTime / this.audio.duration) * 100;
+            document.getElementById('audioProgressFill').style.width = pct + '%';
+            const remaining = this.audio.duration - this.audio.currentTime;
+            document.getElementById('audioTime').textContent = this.formatTime(remaining);
+        },
+
+        formatTime(seconds) {
+            if (!seconds || !isFinite(seconds)) return '0:00';
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return m + ':' + (s < 10 ? '0' : '') + s;
+        },
+
+        // ── Fact Tracker Methods ─────────────────────────
 
         toggleFacts() {
             this.factsPanelOpen = !this.factsPanelOpen;
