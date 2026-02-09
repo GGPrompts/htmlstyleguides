@@ -232,7 +232,7 @@ Stories can have read-aloud narration using AI voice cloning. The TTS setup is a
 | James Earl Jones | `references/jej_disgraced.wav` | "You have disgraced yourself and you must be punished" | Dark/dramatic narration |
 | JFK | `references/jfk_clean.wav` | "the belief that the rights of man come not from the generosity" | Formal/patriotic topics |
 | MLK Jr | `references/mlk_injustice.wav` | "Injustice anywhere is a threat to justice everywhere" | Passionate/principled topics |
-| Carl Sagan | `references/sagan_clean.wav` | "we humans have had civilization only for about ten thousand years our species is a few hundred thousand years old" | Science/space/wonder |
+| Carl Sagan | `references/sagan_skeptical.wav` | "If we are not able to ask skeptical questions, to interrogate those who tell us that something is true" | Science/space/wonder |
 
 ### Getting New Voice Clips
 
@@ -268,44 +268,55 @@ ffmpeg -i input.wav -ac 1 -ar 24000 -y output_clean.wav
 
 ### Batch Generation Script
 
-The reusable generation script is at `~/projects/qwen-tts-test/generate_dark_academia.py`. To adapt it for a new story:
+The reusable generation script is at `~/projects/qwen-tts-test/generate_cosmic.py`. To adapt it for a new story:
 
 1. Update `REF_AUDIO` and `REF_TEXT` for the chosen voice
 2. Update `OUTPUT_DIR` for the new story
 3. Update `STORY_FILE` to point to the story HTML
-4. Run: `source venv/bin/activate && echo "y" | python generate_script.py`
+4. Update `extract_scenes()` if the story uses a different content format (e.g. `text: [...]` arrays vs `content: \`...\`` template literals)
+5. Run: `source venv/bin/activate && echo "y" | python generate_script.py`
 
 The script automatically:
 - Extracts scene text from the STORY object in the HTML
 - Strips HTML tags, images, and captions to get clean narration text
-- Generates one WAV per scene, skipping already-generated files (resumable)
+- Preserves paragraph boundaries for natural pacing
+- Chunks long paragraphs at sentence boundaries (~400 char max per chunk)
+- Adds 1.2s silence between paragraphs, 0.3s between sentence chunks
+- Generates audio per chunk and concatenates, skipping already-generated scenes (resumable)
 - Prints progress and timing for each scene
+
+**Note:** `generate_dark_academia.py` is an older version that doesn't chunk or preserve paragraph boundaries. Use `generate_cosmic.py` as the template for new stories.
 
 ### Critical Generation Settings
 
-These prevent stuck/runaway generation:
+These prevent stuck/runaway generation and reference text bleeding:
 
 ```python
-# ALWAYS set max_new_tokens — without this, generation can run forever
+# ALWAYS use x_vector_only_mode=True to prevent reference text from
+# being spoken at the start of every generated chunk
 wavs, sr = model.generate_voice_clone(
     text=text,
     language="English",
     ref_audio=REF_AUDIO,
     ref_text=REF_TEXT,
-    x_vector_only_mode=False,
+    x_vector_only_mode=True,    # IMPORTANT: prevents ref text bleeding into output
     max_new_tokens=4096,        # Caps output length, prevents infinite loops
 )
 
-# ALWAYS set a per-scene timeout
+# ALWAYS set a per-chunk timeout (chunks are ~400 chars max)
 import signal
-MAX_SCENE_SECONDS = 300  # 5 min max per scene
+MAX_CHUNK_SECONDS = 180  # 3 min max per chunk
 signal.signal(signal.SIGALRM, timeout_handler)
-signal.alarm(MAX_SCENE_SECONDS)
+signal.alarm(MAX_CHUNK_SECONDS)
 # ... generate ...
 signal.alarm(0)  # Cancel after success
 ```
 
-Without `max_new_tokens`, the model can get stuck generating endlessly on certain inputs. This was discovered when a scene ran for 20+ minutes with no output. Adding `max_new_tokens=4096` fixed it immediately.
+**Why `x_vector_only_mode=True`:** With `False`, the model treats the reference audio+text as a continuation prompt. When chunking text, this causes the reference transcript to be spoken at the start of *every* chunk — e.g. hearing "species is a few hundred thousand years old" before every paragraph.
+
+**Why chunking:** Scenes with 1000+ characters will timeout if generated as a single call. Split text into ~400 char chunks at sentence boundaries, generate each separately, then concatenate with silence gaps.
+
+**Why paragraph-aware gaps:** Without explicit paragraph breaks, titles flow directly into body text with no pause. The script inserts `\n\n` markers at `</p>` and `</div>` boundaries, then uses 1.2s silence between paragraphs and 0.3s between sentence chunks within long paragraphs.
 
 ### Post-Generation: Convert WAV to MP3
 
