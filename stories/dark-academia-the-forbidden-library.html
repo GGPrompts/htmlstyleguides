@@ -954,6 +954,26 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .audio-speed-btn {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-style: italic;
+            color: var(--gold-muted);
+            background: transparent;
+            border: 1px solid rgba(154, 123, 79, 0.3);
+            padding: 0.15rem 0.4rem;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+            letter-spacing: 0.05em;
+        }
+
+        .audio-speed-btn:hover {
+            border-color: var(--gold-antique);
+            color: var(--gold-antique);
+        }
+
         .audio-player.playing .audio-play-btn {
             border-color: var(--gold-antique);
             color: var(--parchment);
@@ -1036,6 +1056,7 @@
                     </div>
                     <span class="audio-time" id="audioTime">0:00</span>
                 </div>
+                <button class="audio-speed-btn" id="audioSpeedBtn" title="Playback speed">1x</button>
             </div>
 
             <div id="sceneContent"></div>
@@ -1626,6 +1647,8 @@
         audioReady: false,
         audioPlaying: false,
         audioUpdateInterval: null,
+        audioSpeedIndex: 0,
+        audioSpeeds: [1, 1.25, 1.5, 2],
 
         init() {
             document.getElementById('startBtn').addEventListener('click', () => this.start());
@@ -1635,6 +1658,7 @@
             // Audio controls
             document.getElementById('audioPlayBtn').addEventListener('click', () => this.toggleAudio());
             document.getElementById('audioProgressBar').addEventListener('click', (e) => this.seekAudio(e));
+            document.getElementById('audioSpeedBtn').addEventListener('click', () => this.cycleSpeed());
 
             // Keyboard support
             document.addEventListener('keydown', (e) => {
@@ -1823,6 +1847,8 @@
             timeDisplay.textContent = '0:00';
             this.audioReady = false;
             this.audioPlaying = false;
+            this.audioSpeedIndex = 0;
+            document.getElementById('audioSpeedBtn').textContent = '1x';
 
             // Create new audio element
             const audioSrc = 'audio/dark-academia/' + sceneId + '.mp3';
@@ -1906,6 +1932,14 @@
             const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
             this.audio.currentTime = ratio * this.audio.duration;
             this.updateProgress();
+        },
+
+        cycleSpeed() {
+            if (!this.audio) return;
+            this.audioSpeedIndex = (this.audioSpeedIndex + 1) % this.audioSpeeds.length;
+            const speed = this.audioSpeeds[this.audioSpeedIndex];
+            this.audio.playbackRate = speed;
+            document.getElementById('audioSpeedBtn').textContent = speed + 'x';
         },
 
         startProgressUpdates() {
