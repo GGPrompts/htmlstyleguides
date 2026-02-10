@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dark Folio — Design System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           DARK FOLIO — DESIGN SYSTEM
+           A futuristic dark editorial aesthetic
+           Black + Gold + Silver
+           ============================================ */
+
+        :root {
+            /* Typography */
+            --font-display: 'Syne', 'Avenir', sans-serif;
+            --font-body: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+            /* Core Palette */
+            --void: #09090b;
+            --surface: #111114;
+            --surface-raised: #19191e;
+            --surface-overlay: #212127;
+
+            /* Gold Spectrum */
+            --gold: #c9a84c;
+            --gold-bright: #e8cf6a;
+            --gold-dim: #7a6a30;
+            --gold-glow: rgba(201, 168, 76, 0.12);
+
+            /* Silver Spectrum */
+            --silver: #8e8e96;
+            --silver-bright: #b8b8c0;
+            --chrome: #dcdce4;
+
+            /* Rules & Borders */
+            --rule: #28282e;
+            --rule-faint: #1e1e24;
+
+            /* Semantic */
+            --text-primary: #e4e4ec;
+            --text-body: #b0b0b8;
+            --text-muted: #6e6e78;
+            --text-faint: #484850;
+            --alert-amber: #d4a030;
+            --alert-red: #c0392b;
+
+            /* Spacing Scale (4px base) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* Layout */
+            --column-gap: 36px;
+            --body-line-height: 1.7;
+            --max-width: 1200px;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 17px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: var(--body-line-height);
+            color: var(--text-body);
+            background-color: var(--void);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Subtle scan-line texture */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(255, 255, 255, 0.006) 3px,
+                    rgba(255, 255, 255, 0.006) 4px
+                );
+        }
+
+        /* ============================================
+           CONTAINER & LAYOUT
+           ============================================ */
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--space-5);
+        }
+
+        .section {
+            margin-bottom: var(--space-8);
+            padding-bottom: var(--space-7);
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-6);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--rule-faint);
+        }
+
+        .section-kicker {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--gold);
+            margin-bottom: var(--space-2);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+
+        .section-deck {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: var(--space-3);
+            max-width: 65ch;
+            line-height: 1.6;
+        }
+
+        /* Column Grids */
+        .cols-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--column-gap);
+        }
+
+        .cols-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--column-gap);
+        }
+
+        .cols-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--column-gap);
+        }
+
+        .cols-2-1 {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--column-gap);
+        }
+
+        .cols-1-2 {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: var(--column-gap);
+        }
+
+        /* Column dividers */
+        .with-rules > *:not(:first-child) {
+            border-left: 1px solid var(--rule);
+            padding-left: var(--column-gap);
+        }
+
+        @media (max-width: 768px) {
+            .cols-2,
+            .cols-3,
+            .cols-4,
+            .cols-2-1,
+            .cols-1-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .with-rules > *:not(:first-child) {
+                border-left: none;
+                padding-left: 0;
+                border-top: 1px solid var(--rule);
+                padding-top: var(--space-5);
+            }
+
+            html {
+                font-size: 16px;
+            }
+        }
+
+        /* ============================================
+           HORIZONTAL RULES
+           ============================================ */
+
+        hr {
+            border: none;
+            margin: var(--space-5) 0;
+        }
+
+        hr.rule-thin {
+            border-top: 1px solid var(--rule-faint);
+        }
+
+        hr.rule-medium {
+            border-top: 1px solid var(--rule);
+        }
+
+        hr.rule-heavy {
+            border-top: 2px solid var(--gold-dim);
+        }
+
+        hr.rule-gold {
+            border-top: 1px solid var(--gold);
+        }
+
+        hr.rule-double {
+            border-top: 3px double var(--gold-dim);
+        }
+
+        /* ============================================
+           MASTHEAD / HEADER
+           ============================================ */
+
+        .masthead {
+            text-align: center;
+            padding: var(--space-7) 0 var(--space-5);
+            border-bottom: 1px solid var(--gold);
+            position: relative;
+            margin-bottom: var(--space-7);
+        }
+
+        .masthead::after {
+            content: '';
+            display: block;
+            border-bottom: 1px solid var(--gold-dim);
+            margin-top: 4px;
+        }
+
+        .masthead-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--text-muted);
+            margin-bottom: var(--space-5);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .masthead-nameplate {
+            font-family: var(--font-display);
+            font-size: clamp(2.75rem, 8vw, 4.5rem);
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+        }
+
+        .masthead-nameplate span {
+            color: var(--gold);
+        }
+
+        .masthead-motto {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: var(--space-5);
+        }
+
+        .masthead-nav {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-5);
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding-top: var(--space-3);
+            border-top: 1px solid var(--rule);
+        }
+
+        .masthead-nav a {
+            color: var(--silver);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .masthead-nav a:hover {
+            color: var(--gold);
+        }
+
+        /* ============================================
+           TYPOGRAPHY
+           ============================================ */
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            line-height: 1.15;
+            color: var(--text-primary);
+        }
+
+        h1 {
+            font-size: 2.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        h4 {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--silver-bright);
+        }
+
+        h5 {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--silver);
+        }
+
+        h6 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--text-muted);
+        }
+
+        p {
+            margin-bottom: var(--space-4);
+            max-width: 65ch;
+        }
+
+        .lede {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--silver-bright);
+        }
+
+        /* Drop cap */
+        .dropcap::first-letter {
+            float: left;
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 0.78;
+            padding-right: var(--space-3);
+            padding-top: var(--space-1);
+            color: var(--gold);
+        }
+
+        /* Byline & dateline */
+        .byline {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+        }
+
+        .byline strong {
+            color: var(--silver-bright);
+        }
+
+        .dateline {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-faint);
+        }
+
+        /* Blockquote */
+        blockquote {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            font-style: italic;
+            line-height: 1.6;
+            padding: var(--space-4) var(--space-5);
+            border-left: 2px solid var(--gold);
+            margin: var(--space-5) 0;
+            color: var(--silver-bright);
+            background: var(--gold-glow);
+        }
+
+        blockquote cite {
+            display: block;
+            font-family: var(--font-mono);
+            font-style: normal;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-top: var(--space-3);
+            color: var(--text-muted);
+        }
+
+        /* Pull quote */
+        .pull-quote {
+            position: relative;
+            font-family: var(--font-display);
+            font-size: 1.65rem;
+            font-weight: 600;
+            line-height: 1.35;
+            text-align: center;
+            padding: var(--space-6) var(--space-5);
+            margin: var(--space-6) 0;
+            border-top: 1px solid var(--gold);
+            border-bottom: 1px solid var(--gold);
+            color: var(--text-primary);
+        }
+
+        .pull-quote::before {
+            content: '\201C';
+            display: block;
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 0.5;
+            color: var(--gold);
+            margin-bottom: var(--space-3);
+        }
+
+        .pull-quote-attribution {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-top: var(--space-3);
+        }
+
+        /* ============================================
+           COLOR PALETTE
+           ============================================ */
+
+        .swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .swatch {
+            text-align: center;
+        }
+
+        .swatch-preview {
+            height: 80px;
+            border: 1px solid var(--rule);
+            margin-bottom: var(--space-2);
+        }
+
+        .swatch-name {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--silver-bright);
+            margin-bottom: 2px;
+        }
+
+        .swatch-hex {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           TYPE SPECIMENS
+           ============================================ */
+
+        .type-specimen {
+            padding: var(--space-5) 0;
+            border-bottom: 1px solid var(--rule-faint);
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+        }
+
+        .type-label {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            margin-bottom: var(--space-2);
+        }
+
+        .type-sample-display {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: -0.03em;
+            color: var(--text-primary);
+        }
+
+        .type-sample-h1 {
+            font-family: var(--font-display);
+            font-size: 2.75rem;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--text-primary);
+        }
+
+        .type-sample-h2 {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1.15;
+            color: var(--text-primary);
+        }
+
+        .type-sample-h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-primary);
+        }
+
+        .type-sample-h4 {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--silver-bright);
+        }
+
+        .type-sample-body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: var(--body-line-height);
+            color: var(--text-body);
+        }
+
+        .type-sample-mono {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--gold);
+        }
+
+        /* ============================================
+           SPACING
+           ============================================ */
+
+        .spacing-demo {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-3);
+        }
+
+        .spacing-label {
+            min-width: 80px;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 20px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-dim));
+        }
+
+        .spacing-value {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-faint);
+        }
+
+        /* ============================================
+           BUTTONS
+           ============================================ */
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            align-items: center;
+            margin-bottom: var(--space-5);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            padding: var(--space-3) var(--space-5);
+            border: 1px solid var(--rule);
+            background: transparent;
+            color: var(--silver-bright);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            line-height: 1;
+        }
+
+        .btn:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-primary {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--void);
+        }
+
+        .btn-primary:hover {
+            background: var(--gold-bright);
+            border-color: var(--gold-bright);
+            color: var(--void);
+        }
+
+        .btn-secondary {
+            border-color: var(--silver);
+            color: var(--silver);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--silver-bright);
+            color: var(--silver-bright);
+            background: rgba(184, 184, 192, 0.06);
+        }
+
+        .btn-ghost {
+            border-color: transparent;
+            color: var(--text-muted);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--rule);
+            color: var(--silver-bright);
+        }
+
+        .btn-accent {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .btn-accent:hover {
+            background: var(--gold);
+            color: var(--void);
+        }
+
+        .btn-small {
+            font-size: 0.6rem;
+            padding: var(--space-2) var(--space-4);
+        }
+
+        .btn-large {
+            font-size: 0.78rem;
+            padding: var(--space-4) var(--space-7);
+        }
+
+        /* ============================================
+           FORMS
+           ============================================ */
+
+        .form-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--silver);
+            margin-bottom: var(--space-2);
+        }
+
+        .form-hint {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--text-faint);
+            margin-top: var(--space-1);
+            letter-spacing: 0.02em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: var(--space-3);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: var(--surface);
+            border: 1px solid var(--rule);
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 1px var(--gold-dim);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-faint);
+        }
+
+        textarea.form-input {
+            min-height: 140px;
+            resize: vertical;
+        }
+
+        select.form-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M6 8L1 3h10z' fill='%236e6e78'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: var(--space-7);
+        }
+
+        select.form-input option {
+            background: var(--surface);
+            color: var(--text-primary);
+        }
+
+        .form-checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            color: var(--text-body);
+        }
+
+        .form-checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--gold);
+        }
+
+        /* ============================================
+           CARDS
+           ============================================ */
+
+        /* Lead Story */
+        .card-lead {
+            padding-bottom: var(--space-6);
+            border-bottom: 1px solid var(--gold-dim);
+            margin-bottom: var(--space-6);
+        }
+
+        .card-lead .card-kicker {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--gold);
+            margin-bottom: var(--space-2);
+        }
+
+        .card-lead .card-headline {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+        }
+
+        .card-lead .card-deck {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+            max-width: 60ch;
+            line-height: 1.6;
+        }
+
+        .card-lead .card-byline {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+        }
+
+        .card-lead .card-byline strong {
+            color: var(--silver);
+        }
+
+        /* Column Story */
+        .card-column {
+            padding-bottom: var(--space-5);
+            margin-bottom: var(--space-5);
+            border-bottom: 1px solid var(--rule-faint);
+        }
+
+        .card-column:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .card-column .card-kicker {
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--gold);
+            margin-bottom: var(--space-1);
+        }
+
+        .card-column .card-headline {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.25;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .card-column .card-headline a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .card-column .card-headline a:hover {
+            color: var(--gold);
+        }
+
+        .card-column .card-excerpt {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-2);
+            max-width: 50ch;
+        }
+
+        .card-column .card-byline {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+        }
+
+        /* Brief / Sidebar */
+        .card-brief {
+            padding: var(--space-3) 0;
+            border-bottom: 1px solid var(--rule-faint);
+        }
+
+        .card-brief:first-child {
+            padding-top: 0;
+        }
+
+        .card-brief:last-child {
+            border-bottom: none;
+        }
+
+        .card-brief .card-headline {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1.3;
+            color: var(--silver-bright);
+            margin-bottom: var(--space-1);
+        }
+
+        .card-brief .card-headline a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .card-brief .card-headline a:hover {
+            color: var(--gold);
+        }
+
+        .card-brief .card-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* Feature / Boxed Story */
+        .card-feature {
+            border: 1px solid var(--gold-dim);
+            padding: var(--space-5);
+            margin-bottom: var(--space-5);
+            background: var(--surface);
+        }
+
+        .card-feature .card-label {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            background: var(--gold);
+            color: var(--void);
+            padding: var(--space-1) var(--space-3);
+            margin-bottom: var(--space-4);
+        }
+
+        .card-feature .card-headline {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+        }
+
+        .card-feature .card-excerpt {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+            line-height: 1.6;
+        }
+
+        .card-feature .card-byline {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-faint);
+        }
+
+        .card-feature .card-byline strong {
+            color: var(--silver);
+        }
+
+        /* ============================================
+           DATA TABLE
+           ============================================ */
+
+        .data-table-wrapper {
+            overflow-x: auto;
+            margin: var(--space-5) 0;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        .data-table caption {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: left;
+            padding-bottom: var(--space-3);
+            border-bottom: 2px solid var(--gold-dim);
+            margin-bottom: 0;
+            color: var(--text-primary);
+        }
+
+        .data-table thead th {
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.6rem;
+            text-align: left;
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--gold-dim);
+            color: var(--gold);
+            white-space: nowrap;
+        }
+
+        .data-table tbody td {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--rule-faint);
+            vertical-align: top;
+            color: var(--text-body);
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--gold-glow);
+        }
+
+        .data-table .num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .data-table .highlight {
+            color: var(--gold-bright);
+            font-weight: 700;
+        }
+
+        .data-table tfoot td {
+            font-weight: 700;
+            border-top: 1px solid var(--gold-dim);
+            border-bottom: none;
+            padding: var(--space-3);
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           BADGES / TAGS
+           ============================================ */
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            align-items: center;
+        }
+
+        .tag {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: var(--space-1) var(--space-3);
+            border: 1px solid var(--rule);
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .tag-gold {
+            border-color: var(--gold);
+            color: var(--gold);
+        }
+
+        .tag-gold-filled {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--void);
+        }
+
+        .tag-silver {
+            border-color: var(--silver);
+            color: var(--silver);
+        }
+
+        .tag-chrome {
+            background: var(--chrome);
+            border-color: var(--chrome);
+            color: var(--void);
+        }
+
+        .tag-outline {
+            background: transparent;
+            border-color: var(--text-muted);
+            color: var(--text-muted);
+        }
+
+        .tag-surface {
+            background: var(--surface-raised);
+            border: none;
+            border-bottom: 2px solid var(--gold-dim);
+            padding: var(--space-1) var(--space-2);
+            color: var(--silver-bright);
+        }
+
+        /* ============================================
+           ALERTS / NOTICES
+           ============================================ */
+
+        .alert {
+            padding: var(--space-4) var(--space-5);
+            margin-bottom: var(--space-5);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            border-left: 3px solid var(--gold);
+            background: var(--surface);
+        }
+
+        .alert-title {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: var(--space-2);
+            color: var(--gold);
+        }
+
+        .alert p {
+            color: var(--text-body);
+        }
+
+        .alert-info {
+            border-left-color: var(--silver);
+        }
+
+        .alert-info .alert-title {
+            color: var(--silver);
+        }
+
+        .alert-critical {
+            border-left-color: var(--alert-red);
+            background: rgba(192, 57, 43, 0.06);
+        }
+
+        .alert-critical .alert-title {
+            color: var(--alert-red);
+        }
+
+        .alert-update {
+            border-left-color: var(--text-muted);
+            border: 1px solid var(--rule);
+            border-left-width: 3px;
+            border-left-color: var(--silver);
+        }
+
+        .alert-update .alert-title {
+            color: var(--silver);
+        }
+
+        /* ============================================
+           DESIGN PRINCIPLES
+           ============================================ */
+
+        .principle {
+            padding: var(--space-5) 0;
+            border-bottom: 1px solid var(--rule-faint);
+        }
+
+        .principle:last-child {
+            border-bottom: none;
+        }
+
+        .principle-number {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gold-dim);
+            line-height: 1;
+            margin-bottom: var(--space-2);
+        }
+
+        .principle-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .principle-text {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            max-width: 55ch;
+            line-height: 1.65;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            margin-top: var(--space-8);
+            border-top: 1px solid var(--gold);
+            position: relative;
+        }
+
+        .footer::after {
+            content: '';
+            display: block;
+            border-top: 1px solid var(--gold-dim);
+            position: absolute;
+            top: 4px;
+            left: 0;
+            right: 0;
+        }
+
+        .footer-inner {
+            padding: var(--space-7) 0 var(--space-6);
+        }
+
+        .footer-nameplate {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            text-align: center;
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+        }
+
+        .footer-nameplate span {
+            color: var(--gold);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: var(--space-5);
+            padding-bottom: var(--space-5);
+            border-bottom: 1px solid var(--rule);
+        }
+
+        .footer-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--gold);
+        }
+
+        .footer-legal {
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--text-faint);
+            letter-spacing: 0.04em;
+            line-height: 1.8;
+        }
+
+        /* ============================================
+           UTILITIES
+           ============================================ */
+
+        .text-center { text-align: center; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-2 { margin-bottom: var(--space-2); }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mb-5 { margin-bottom: var(--space-5); }
+        .mb-6 { margin-bottom: var(--space-6); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-5 { margin-top: var(--space-5); }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ==========================================
+             MASTHEAD
+             ========================================== -->
+
+        <header class="masthead">
+            <div class="masthead-top">
+                <span>Vol. I &middot; No. 001</span>
+                <span>February 2026</span>
+                <span>Dark Folio &middot; v1.0</span>
+            </div>
+            <h1 class="masthead-nameplate">Dark <span>Folio</span></h1>
+            <p class="masthead-motto">A Design System Forged in Black &amp; Gold</p>
+            <nav class="masthead-nav">
+                <a href="#">Palette</a>
+                <a href="#">Typography</a>
+                <a href="#">Spacing</a>
+                <a href="#">Components</a>
+                <a href="#">Cards</a>
+                <a href="#">Data</a>
+                <a href="#">Principles</a>
+            </nav>
+        </header>
+
+        <!-- ==========================================
+             COLOR PALETTE
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">01 // Palette</p>
+                <h2 class="section-title">Color System</h2>
+                <p class="section-deck">A disciplined dark palette anchored in near-black voids, illuminated by gold accents and cooled by silver neutrals. Every color earns its place.</p>
+            </div>
+
+            <h4 class="mb-4">Core Surfaces</h4>
+            <div class="swatch-grid mb-6">
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--void);"></div>
+                    <p class="swatch-name">Void</p>
+                    <p class="swatch-hex">#09090B</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--surface);"></div>
+                    <p class="swatch-name">Surface</p>
+                    <p class="swatch-hex">#111114</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--surface-raised);"></div>
+                    <p class="swatch-name">Raised</p>
+                    <p class="swatch-hex">#19191E</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--surface-overlay);"></div>
+                    <p class="swatch-name">Overlay</p>
+                    <p class="swatch-hex">#212127</p>
+                </div>
+            </div>
+
+            <h4 class="mb-4">Gold Spectrum</h4>
+            <div class="swatch-grid mb-6">
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--gold-dim);"></div>
+                    <p class="swatch-name">Gold Dim</p>
+                    <p class="swatch-hex">#7A6A30</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--gold);"></div>
+                    <p class="swatch-name">Gold</p>
+                    <p class="swatch-hex">#C9A84C</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--gold-bright);"></div>
+                    <p class="swatch-name">Gold Bright</p>
+                    <p class="swatch-hex">#E8CF6A</p>
+                </div>
+            </div>
+
+            <h4 class="mb-4">Silver &amp; Chrome</h4>
+            <div class="swatch-grid">
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--text-faint);"></div>
+                    <p class="swatch-name">Faint</p>
+                    <p class="swatch-hex">#484850</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--silver);"></div>
+                    <p class="swatch-name">Silver</p>
+                    <p class="swatch-hex">#8E8E96</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--silver-bright);"></div>
+                    <p class="swatch-name">Silver Bright</p>
+                    <p class="swatch-hex">#B8B8C0</p>
+                </div>
+                <div class="swatch">
+                    <div class="swatch-preview" style="background: var(--chrome);"></div>
+                    <p class="swatch-name">Chrome</p>
+                    <p class="swatch-hex">#DCDCE4</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             TYPOGRAPHY
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">02 // Typography</p>
+                <h2 class="section-title">Type System</h2>
+                <p class="section-deck">Syne for commanding geometric headlines, Inter for supremely legible body text, and JetBrains Mono for labels, data, and system metadata.</p>
+            </div>
+
+            <div class="type-specimen">
+                <p class="type-label">Display / Syne ExtraBold / 76px</p>
+                <p class="type-sample-display">Aa Bb Cc</p>
+            </div>
+
+            <div class="type-specimen">
+                <p class="type-label">Heading 1 / Syne ExtraBold / 44px</p>
+                <p class="type-sample-h1">The Architecture of Dark Interfaces</p>
+            </div>
+
+            <div class="type-specimen">
+                <p class="type-label">Heading 2 / Syne Bold / 32px</p>
+                <p class="type-sample-h2">Precision Meets Restraint</p>
+            </div>
+
+            <div class="type-specimen">
+                <p class="type-label">Heading 3 / Syne Bold / 24px</p>
+                <p class="type-sample-h3">Gold as an Accent Language</p>
+            </div>
+
+            <div class="type-specimen">
+                <p class="type-label">Heading 4 / JetBrains Mono Bold / 13px / Uppercase</p>
+                <p class="type-sample-h4">System Parameters</p>
+            </div>
+
+            <div class="type-specimen">
+                <p class="type-label">Body / Inter / 17px</p>
+                <p class="type-sample-body">The quick brown fox jumps over the lazy dog. Dark interfaces demand precision in contrast ratios and typographic hierarchy. Every shade of grey, every gold accent must be intentional -- earning its place through function, never decoration.</p>
+            </div>
+
+            <div class="type-specimen">
+                <p class="type-label">Monospace / JetBrains Mono / 14px</p>
+                <p class="type-sample-mono">const palette = { void: '#09090b', gold: '#c9a84c' };</p>
+            </div>
+
+            <hr class="rule-heavy" style="margin: var(--space-7) 0;">
+
+            <!-- Drop Cap -->
+            <h4 class="mb-4">Drop Cap</h4>
+            <p class="dropcap">When light is scarce, what remains must be deliberate. The dark canvas strips away distraction, leaving only structure and content. Gold accents don't decorate -- they guide. Silver typography doesn't fill space -- it communicates. Every element must justify its luminance against the void.</p>
+
+            <hr class="rule-thin" style="margin: var(--space-6) 0;">
+
+            <!-- Byline & Dateline -->
+            <h4 class="mb-4">Bylines &amp; Datelines</h4>
+            <p class="byline mb-2">By <strong>A. Blackwood</strong>, Systems Architect</p>
+            <p class="dateline mb-5">San Francisco -- Feb. 9, 2026</p>
+
+            <!-- Pull Quote -->
+            <div class="pull-quote">
+                In dark design, every photon of light is a decision. There is no ambient glow to forgive carelessness -- only the precise luminance you choose to emit.
+                <span class="pull-quote-attribution">-- Dark Folio Design Brief</span>
+            </div>
+
+            <!-- Blockquote -->
+            <blockquote>
+                "The best dark interfaces aren't just light themes inverted. They are designed from the darkness outward, treating shadow as the primary material and light as the accent."
+                <cite>-- Principles of Dark Design</cite>
+            </blockquote>
+        </section>
+
+        <!-- ==========================================
+             SPACING
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">03 // Spacing</p>
+                <h2 class="section-title">Spacing Scale</h2>
+                <p class="section-deck">A 4px base unit with nine steps. On dark surfaces, generous spacing is essential -- elements need room to breathe against the void.</p>
+            </div>
+
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-1</span>
+                <div class="spacing-bar" style="width: 4px;"></div>
+                <span class="spacing-value">4px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-2</span>
+                <div class="spacing-bar" style="width: 8px;"></div>
+                <span class="spacing-value">8px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-3</span>
+                <div class="spacing-bar" style="width: 12px;"></div>
+                <span class="spacing-value">12px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-4</span>
+                <div class="spacing-bar" style="width: 16px;"></div>
+                <span class="spacing-value">16px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-5</span>
+                <div class="spacing-bar" style="width: 24px;"></div>
+                <span class="spacing-value">24px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-6</span>
+                <div class="spacing-bar" style="width: 32px;"></div>
+                <span class="spacing-value">32px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-7</span>
+                <div class="spacing-bar" style="width: 48px;"></div>
+                <span class="spacing-value">48px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-8</span>
+                <div class="spacing-bar" style="width: 64px;"></div>
+                <span class="spacing-value">64px</span>
+            </div>
+            <div class="spacing-demo">
+                <span class="spacing-label">--space-9</span>
+                <div class="spacing-bar" style="width: 96px;"></div>
+                <span class="spacing-value">96px</span>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             RULE LINES
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">04 // Rules</p>
+                <h2 class="section-title">Rule Lines</h2>
+                <p class="section-deck">Horizontal dividers define structure and hierarchy. On dark surfaces, rules glow faintly with gold or recede into the surface with subtle greys.</p>
+            </div>
+
+            <p class="type-label mb-2">Thin Rule</p>
+            <hr class="rule-thin">
+            <p class="type-label mb-2" style="margin-top: var(--space-5);">Medium Rule</p>
+            <hr class="rule-medium">
+            <p class="type-label mb-2" style="margin-top: var(--space-5);">Heavy Rule</p>
+            <hr class="rule-heavy">
+            <p class="type-label mb-2" style="margin-top: var(--space-5);">Gold Rule</p>
+            <hr class="rule-gold">
+            <p class="type-label mb-2" style="margin-top: var(--space-5);">Double Rule</p>
+            <hr class="rule-double">
+        </section>
+
+        <!-- ==========================================
+             BUTTONS
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">05 // Buttons</p>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-deck">Precise, monospaced controls with sharp edges and deliberate interaction states. Gold for primary actions, silver for secondary, ghost for tertiary.</p>
+            </div>
+
+            <h4 class="mb-4">Standard</h4>
+            <div class="button-row">
+                <button class="btn btn-primary">Deploy</button>
+                <button class="btn">Configure</button>
+                <button class="btn btn-secondary">Archive</button>
+                <button class="btn btn-ghost">Dismiss</button>
+                <button class="btn btn-accent">Highlight</button>
+            </div>
+
+            <h4 class="mb-4">Small</h4>
+            <div class="button-row">
+                <button class="btn btn-small btn-primary">Save</button>
+                <button class="btn btn-small">Edit</button>
+                <button class="btn btn-small btn-secondary">Copy</button>
+                <button class="btn btn-small btn-accent">Pin</button>
+            </div>
+
+            <h4 class="mb-4">Large</h4>
+            <div class="button-row">
+                <button class="btn btn-large btn-primary">Initialize Dark Folio System</button>
+                <button class="btn btn-large">Browse Components</button>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             FORMS
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">06 // Forms</p>
+                <h2 class="section-title">Form Elements</h2>
+                <p class="section-deck">Input fields that emerge from the dark surface with subtle borders, gaining a gold focus ring when active. Clean, functional, precise.</p>
+            </div>
+
+            <div class="cols-2">
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="form-input" placeholder="Enter your handle">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" placeholder="you@system.io">
+                    <span class="form-hint">Encrypted at rest. Never shared.</span>
+                </div>
+            </div>
+
+            <div class="cols-2">
+                <div class="form-group">
+                    <label class="form-label">Access Level</label>
+                    <select class="form-input">
+                        <option>Observer</option>
+                        <option>Contributor</option>
+                        <option>Administrator</option>
+                        <option>Architect</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">API Key</label>
+                    <input type="text" class="form-input" placeholder="dk_live_...">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea class="form-input" placeholder="Additional context or configuration notes..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-checkbox-group">
+                    <input type="checkbox">
+                    Enable dark mode audit logging
+                </label>
+            </div>
+
+            <div class="button-row">
+                <button class="btn btn-primary">Submit</button>
+                <button class="btn btn-ghost">Cancel</button>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             CARDS
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">07 // Cards</p>
+                <h2 class="section-title">Cards &amp; Content Blocks</h2>
+                <p class="section-deck">Four card variants reflecting information hierarchy: lead story, column entry, brief sidebar item, and featured box with gold border.</p>
+            </div>
+
+            <!-- Lead Story -->
+            <h4 class="mb-4">Lead Story</h4>
+            <article class="card-lead">
+                <p class="card-kicker">Featured Analysis</p>
+                <h3 class="card-headline">The New Generation of Dark Interfaces Rewrites the Rules of Digital Readability</h3>
+                <p class="card-deck">As screens become our primary reading surface, designers are discovering that darkness isn't the absence of design -- it's a material in its own right, demanding new frameworks for contrast, hierarchy, and attention.</p>
+                <p class="card-byline">By <strong>A. Blackwood</strong> and <strong>R. Calder</strong> &middot; 11 min read</p>
+            </article>
+
+            <hr class="rule-heavy">
+
+            <!-- Column Stories -->
+            <h4 class="mb-5 mt-5">Column Stories</h4>
+            <div class="cols-3 with-rules mb-6">
+                <div>
+                    <article class="card-column">
+                        <p class="card-kicker">Systems</p>
+                        <h3 class="card-headline"><a href="#">Why Dark Design Systems Demand Their Own Color Theory</a></h3>
+                        <p class="card-excerpt">Inverting a light palette is not a dark mode. True dark design requires rethinking every assumption about contrast and luminance.</p>
+                        <p class="card-byline">By M. Volkov</p>
+                    </article>
+                    <article class="card-column">
+                        <p class="card-kicker">Typography</p>
+                        <h3 class="card-headline"><a href="#">The Case for Geometric Sans-Serifs in Dark Contexts</a></h3>
+                        <p class="card-excerpt">Clean, modern typefaces with even stroke widths maintain legibility where traditional serifs may falter.</p>
+                        <p class="card-byline">By S. Ngo</p>
+                    </article>
+                </div>
+                <div>
+                    <article class="card-column">
+                        <p class="card-kicker">Interaction</p>
+                        <h3 class="card-headline"><a href="#">Gold as a Signal: Using Accent Color to Direct Attention</a></h3>
+                        <p class="card-excerpt">When the canvas is dark, a warm accent becomes more than decoration -- it becomes a wayfinding system.</p>
+                        <p class="card-byline">By J. Harmon</p>
+                    </article>
+                    <article class="card-column">
+                        <p class="card-kicker">Accessibility</p>
+                        <h3 class="card-headline"><a href="#">Contrast Ratios After Dark: Meeting WCAG on Black Surfaces</a></h3>
+                        <p class="card-excerpt">Achieving AA and AAA compliance on dark backgrounds requires different thinking than light-mode defaults.</p>
+                        <p class="card-byline">By T. Chen</p>
+                    </article>
+                </div>
+                <div>
+                    <article class="card-column">
+                        <p class="card-kicker">Culture</p>
+                        <h3 class="card-headline"><a href="#">From Terminal to Trend: How Developer Aesthetics Went Mainstream</a></h3>
+                        <p class="card-excerpt">The monospace fonts and dark canvases of code editors are now influencing consumer product design worldwide.</p>
+                        <p class="card-byline">By L. Okafor</p>
+                    </article>
+                    <article class="card-column">
+                        <p class="card-kicker">Research</p>
+                        <h3 class="card-headline"><a href="#">Eye Tracking Studies Reveal How Users Scan Dark Interfaces</a></h3>
+                        <p class="card-excerpt">New research suggests reading patterns shift fundamentally when the ground plane inverts from light to dark.</p>
+                        <p class="card-byline">By P. Lindqvist</p>
+                    </article>
+                </div>
+            </div>
+
+            <hr class="rule-thin">
+
+            <!-- Briefs -->
+            <h4 class="mb-5 mt-5">Briefs / Sidebar</h4>
+            <div class="cols-2-1 with-rules">
+                <div>
+                    <div class="pull-quote">
+                        The void is not emptiness. It is the most intentional surface in your design -- the space where every other element gains its meaning.
+                        <span class="pull-quote-attribution">-- Dark Folio Design Brief</span>
+                    </div>
+                </div>
+                <div>
+                    <article class="card-brief">
+                        <h5 class="card-headline"><a href="#">New Monospace Fonts Optimized for Dark Displays</a></h5>
+                        <p class="card-text">Three foundries release typefaces tuned for low-luminance rendering.</p>
+                    </article>
+                    <article class="card-brief">
+                        <h5 class="card-headline"><a href="#">OLED Adoption Hits 60% in Premium Devices</a></h5>
+                        <p class="card-text">True blacks make dark mode genuinely power-efficient at scale.</p>
+                    </article>
+                    <article class="card-brief">
+                        <h5 class="card-headline"><a href="#">Gold Standard: Luxury Brands Adopt Dark-First Design</a></h5>
+                        <p class="card-text">High-end fashion and automotive sites lead the shift to dark interfaces.</p>
+                    </article>
+                    <article class="card-brief">
+                        <h5 class="card-headline"><a href="#">Browser Support for color-scheme Reaches 98%</a></h5>
+                        <p class="card-text">Dark mode preference detection is now universally available.</p>
+                    </article>
+                </div>
+            </div>
+
+            <hr class="rule-thin" style="margin-top: var(--space-6);">
+
+            <!-- Feature Cards -->
+            <h4 class="mb-5 mt-5">Feature / Boxed Story</h4>
+            <div class="cols-2">
+                <article class="card-feature">
+                    <span class="card-label">Deep Dive</span>
+                    <h3 class="card-headline">Building a Design System for the Dark</h3>
+                    <p class="card-excerpt">From token architecture to component states, a comprehensive guide to constructing dark-first design systems. We spent six months testing contrast ratios, gold accent temperatures, and reading comfort across 40 screen types.</p>
+                    <p class="card-byline">By <strong>A. Blackwood</strong> &middot; Long Read</p>
+                </article>
+                <article class="card-feature">
+                    <span class="card-label">Investigation</span>
+                    <h3 class="card-headline">The Hidden Cost of Poor Dark Mode Implementation</h3>
+                    <p class="card-excerpt">An analysis of 200 major applications reveals that lazy dark mode -- simple color inversions without proper redesign -- increases eye strain by 23% and reduces session time by 18% compared to well-crafted dark interfaces.</p>
+                    <p class="card-byline">By <strong>R. Calder</strong> &middot; Long Read</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             DATA TABLE
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">08 // Data</p>
+                <h2 class="section-title">Data Table</h2>
+                <p class="section-deck">Monospace figures on dark surfaces with gold header accents and subtle hover states. Built for precision and scanability.</p>
+            </div>
+
+            <div class="data-table-wrapper">
+                <table class="data-table">
+                    <caption>Dark Mode Adoption Metrics, Q4 2025</caption>
+                    <thead>
+                        <tr>
+                            <th>Platform</th>
+                            <th>Category</th>
+                            <th class="num">Dark Users</th>
+                            <th class="num">Light Users</th>
+                            <th class="num">Dark %</th>
+                            <th class="num">YOY Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">iOS</strong></td>
+                            <td>Mobile OS</td>
+                            <td class="num">684,200,000</td>
+                            <td class="num">315,800,000</td>
+                            <td class="num">68.4%</td>
+                            <td class="num highlight">+7.2%</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">Android</strong></td>
+                            <td>Mobile OS</td>
+                            <td class="num">1,240,000,000</td>
+                            <td class="num">760,000,000</td>
+                            <td class="num">62.0%</td>
+                            <td class="num highlight">+9.1%</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">macOS</strong></td>
+                            <td>Desktop OS</td>
+                            <td class="num">78,400,000</td>
+                            <td class="num">41,600,000</td>
+                            <td class="num">65.3%</td>
+                            <td class="num">+4.8%</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">Windows</strong></td>
+                            <td>Desktop OS</td>
+                            <td class="num">412,000,000</td>
+                            <td class="num">588,000,000</td>
+                            <td class="num">41.2%</td>
+                            <td class="num highlight">+12.4%</td>
+                        </tr>
+                        <tr>
+                            <td><strong style="color: var(--text-primary);">VS Code</strong></td>
+                            <td>IDE</td>
+                            <td class="num">28,900,000</td>
+                            <td class="num">5,100,000</td>
+                            <td class="num">85.0%</td>
+                            <td class="num">+1.2%</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="2"><strong>Weighted Average</strong></td>
+                            <td class="num"><strong>2,443,500,000</strong></td>
+                            <td class="num"><strong>1,710,500,000</strong></td>
+                            <td class="num"><strong>58.8%</strong></td>
+                            <td class="num highlight"><strong>+6.9%</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             BADGES / TAGS
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">09 // Tags</p>
+                <h2 class="section-title">Badges &amp; Tags</h2>
+                <p class="section-deck">Monospace labels for categorization and status. Gold variants for emphasis, silver for neutral, chrome for high-contrast situations.</p>
+            </div>
+
+            <h4 class="mb-4">Standard Tags</h4>
+            <div class="tag-row mb-6">
+                <span class="tag">Systems</span>
+                <span class="tag">Typography</span>
+                <span class="tag">Components</span>
+                <span class="tag">Accessibility</span>
+                <span class="tag">Research</span>
+            </div>
+
+            <h4 class="mb-4">Emphasis Tags</h4>
+            <div class="tag-row mb-6">
+                <span class="tag tag-gold">Featured</span>
+                <span class="tag tag-gold-filled">Live</span>
+                <span class="tag tag-silver">Archive</span>
+                <span class="tag tag-chrome">Alert</span>
+                <span class="tag tag-outline">Draft</span>
+                <span class="tag tag-surface">Section</span>
+            </div>
+
+            <h4 class="mb-4">In Context</h4>
+            <div class="cols-2">
+                <div>
+                    <p class="mb-2"><span class="tag tag-gold-filled" style="vertical-align: middle; margin-right: var(--space-2);">Live</span> <strong style="font-family: var(--font-display); color: var(--text-primary);">Dark Mode Preference API Ships in All Major Browsers</strong></p>
+                    <p style="font-size: 0.88rem; color: var(--text-muted);">The prefers-color-scheme media query now has full cross-browser support, enabling automatic dark mode switching.</p>
+                </div>
+                <div>
+                    <p class="mb-2"><span class="tag tag-gold" style="vertical-align: middle; margin-right: var(--space-2);">Featured</span> <strong style="font-family: var(--font-display); color: var(--text-primary);">OLED Screens Make True Black a Design Superpower</strong></p>
+                    <p style="font-size: 0.88rem; color: var(--text-muted);">With pixels physically turning off, dark design moves from aesthetic choice to genuine power optimization.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             ALERTS
+             ========================================== -->
+
+        <section class="section">
+            <div class="section-header">
+                <p class="section-kicker">10 // Alerts</p>
+                <h2 class="section-title">Alerts &amp; Notices</h2>
+                <p class="section-deck">System notifications and editorial notices. Gold for standard alerts, silver for informational, red for critical. All emerge subtly from the dark surface.</p>
+            </div>
+
+            <div class="alert">
+                <p class="alert-title">System Notice</p>
+                <p class="mb-0">Dark Folio v1.0 has been released. All component tokens are now stable and ready for production use. Review the migration guide for upgrading from beta.</p>
+            </div>
+
+            <div class="alert alert-critical">
+                <p class="alert-title">Critical</p>
+                <p class="mb-0">Contrast ratio below 4.5:1 detected in card-brief text against surface-raised background. Increase text luminance to silver-bright (#B8B8C0) to meet WCAG AA compliance.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <p class="alert-title">Note</p>
+                <p class="mb-0">This design system is optimized for OLED and high-contrast displays. On lower-quality LCD panels, consider increasing surface values by one step for improved readability.</p>
+            </div>
+
+            <div class="alert alert-update">
+                <p class="alert-title">Update -- v1.0.1</p>
+                <p class="mb-0">Gold accent temperature adjusted from #D4A843 to #C9A84C for better warmth balance against the void background. All component states updated accordingly.</p>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             DESIGN PRINCIPLES
+             ========================================== -->
+
+        <section class="section" style="border-bottom: none;">
+            <div class="section-header">
+                <p class="section-kicker">11 // Principles</p>
+                <h2 class="section-title">Design Principles</h2>
+                <p class="section-deck">The guiding values behind Dark Folio. Every decision traces back to these six tenets.</p>
+            </div>
+
+            <div class="cols-2 with-rules">
+                <div>
+                    <div class="principle">
+                        <p class="principle-number">01</p>
+                        <h3 class="principle-title">Darkness Is a Material</h3>
+                        <p class="principle-text">The void is not the absence of design. It is the primary surface -- the material from which all other elements emerge. Treat it with the same intentionality as any foreground element.</p>
+                    </div>
+                    <div class="principle">
+                        <p class="principle-number">02</p>
+                        <h3 class="principle-title">Earn Every Photon</h3>
+                        <p class="principle-text">On a dark canvas, every lit pixel draws the eye. Nothing glows by default. Light is reserved for content, interaction, and structure -- never for decoration or ambiance.</p>
+                    </div>
+                    <div class="principle">
+                        <p class="principle-number">03</p>
+                        <h3 class="principle-title">Gold Guides, Silver Informs</h3>
+                        <p class="principle-text">Gold accents direct attention and signal primary actions. Silver typography conveys information calmly. The two metals never compete -- they operate in complementary registers.</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="principle">
+                        <p class="principle-number">04</p>
+                        <h3 class="principle-title">Legibility Is Non-Negotiable</h3>
+                        <p class="principle-text">Dark backgrounds demand higher standards for contrast and type rendering. Every text element must meet WCAG AA at minimum. When aesthetics and readability conflict, readability wins.</p>
+                    </div>
+                    <div class="principle">
+                        <p class="principle-number">05</p>
+                        <h3 class="principle-title">Structure Through Subtlety</h3>
+                        <p class="principle-text">Borders, rules, and surface elevation changes provide hierarchy without shouting. A 1px rule at #28282E against #09090B is enough. Heavy dividers are reserved for gold accents and top-level sections.</p>
+                    </div>
+                    <div class="principle">
+                        <p class="principle-number">06</p>
+                        <h3 class="principle-title">Precision Over Personality</h3>
+                        <p class="principle-text">Monospace labels, geometric headlines, and systematic spacing communicate competence and clarity. The system's personality emerges from its precision -- not from ornament, texture, or illustration.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==========================================
+             FOOTER
+             ========================================== -->
+
+        <footer class="footer">
+            <div class="footer-inner">
+                <p class="footer-nameplate">Dark <span>Folio</span></p>
+                <div class="footer-links">
+                    <a href="#">Palette</a>
+                    <a href="#">Typography</a>
+                    <a href="#">Spacing</a>
+                    <a href="#">Rules</a>
+                    <a href="#">Buttons</a>
+                    <a href="#">Forms</a>
+                    <a href="#">Cards</a>
+                    <a href="#">Data</a>
+                    <a href="#">Tags</a>
+                    <a href="#">Alerts</a>
+                    <a href="#">Principles</a>
+                </div>
+                <p class="footer-legal">
+                    Dark Folio Design System &middot; v1.0 &middot; February 2026
+                    <br>
+                    A futuristic editorial aesthetic forged in black, gold, and silver.
+                </p>
+            </div>
+        </footer>
+
+    </div>
+</body>
+</html>
