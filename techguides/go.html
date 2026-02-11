@@ -1,0 +1,5382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Go — Tech Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&family=Cinzel:wght@400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           CELTIC MANUSCRIPT — GO TECH GUIDE
+           ============================================
+           Inspired by the Book of Kells, illuminated
+           manuscripts, and Celtic knotwork. Parchment
+           backgrounds with forest-green and gold leaf
+           accents, burgundy drop caps, earthy tones
+           evoking ancient Irish monastic scriptorium.
+           ============================================ */
+
+        :root {
+            /* FOREST GREENS */
+            --forest-green: #1a4d2e;
+            --forest-light: #2d7a4a;
+            --forest-dark: #0e2a19;
+
+            /* GOLD LEAF */
+            --gold: #c9982e;
+            --gold-light: #e8c252;
+            --gold-dark: #8f6b1a;
+
+            /* BURGUNDY / WINE */
+            --burgundy: #6b1631;
+            --burgundy-light: #8f2040;
+
+            /* PARCHMENT */
+            --parchment: #f0e6d0;
+            --parchment-light: #f7f1e3;
+            --parchment-dark: #d9cab0;
+
+            /* EARTH TONES */
+            --earth-brown: #5c4a32;
+            --ink-black: #1a1612;
+
+            /* ACCENT COLORS */
+            --celtic-blue: #1e4066;
+            --moss: #4a6b3a;
+            --copper: #a0522d;
+
+            /* FONT FAMILIES */
+            --font-display: 'MedievalSharp', cursive;
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Cormorant Garamond', serif;
+            --font-mono: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+
+            /* SPACING SCALE */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* SEMANTIC COLORS */
+            --text-primary: var(--ink-black);
+            --text-secondary: #3d3226;
+            --text-muted: #7a6e5e;
+            --bg-primary: var(--parchment);
+            --bg-secondary: var(--parchment-light);
+            --accent-warm: var(--gold);
+            --accent-cool: var(--forest-green);
+
+            /* EFFECTS */
+            --shadow-parchment: 0 4px 20px rgba(26, 22, 18, 0.15);
+            --shadow-deep: 0 8px 32px rgba(26, 22, 18, 0.2);
+            --shadow-gold: 0 0 20px rgba(201, 152, 46, 0.3);
+            --shadow-inset: inset 0 2px 8px rgba(26, 22, 18, 0.08);
+            --glow-gold: 0 0 30px rgba(201, 152, 46, 0.25);
+            --glow-forest: 0 0 30px rgba(26, 77, 46, 0.2);
+
+            /* GRADIENTS */
+            --gradient-gold: linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-light), var(--gold), var(--gold-dark));
+            --gradient-forest: linear-gradient(135deg, var(--forest-dark), var(--forest-green), var(--forest-light), var(--forest-green), var(--forest-dark));
+            --gradient-knotwork: linear-gradient(90deg, transparent, var(--gold), var(--forest-green), var(--gold), transparent);
+
+            /* BORDER RADIUS */
+            --radius-sm: 2px;
+            --radius-md: 4px;
+            --radius-lg: 8px;
+
+            /* TRANSITIONS */
+            --transition-base: 300ms ease;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+            scroll-padding-top: 60px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1.0625rem;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           PARCHMENT TEXTURE BACKGROUND
+           ============================================ */
+
+        .parchment-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(92, 74, 50, 0.02) 2px,
+                    rgba(92, 74, 50, 0.02) 4px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(92, 74, 50, 0.015) 3px,
+                    rgba(92, 74, 50, 0.015) 6px
+                ),
+                radial-gradient(ellipse at 30% 20%, rgba(232, 194, 82, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(201, 152, 46, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(217, 202, 176, 0.3) 0%, transparent 60%),
+                linear-gradient(
+                    180deg,
+                    var(--parchment-light) 0%,
+                    var(--parchment) 20%,
+                    var(--parchment-dark) 50%,
+                    var(--parchment) 80%,
+                    var(--parchment-light) 100%
+                );
+        }
+
+        /* Parchment grain overlay */
+        .parchment-grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* ============================================
+           CONTAINER
+           ============================================ */
+
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        /* ============================================
+           BACK LINK
+           ============================================ */
+
+        .back-link {
+            display: inline-block;
+            position: relative;
+            z-index: 2;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--forest-green);
+            text-decoration: none;
+            padding: var(--space-4) var(--space-6);
+            transition: color var(--transition-base);
+        }
+
+        .back-link:hover {
+            color: var(--gold-dark);
+        }
+
+        .back-link::before {
+            content: '\2190\00a0';
+        }
+
+        /* ============================================
+           PAGE HEADER — Celtic Illuminated Style
+           ============================================ */
+
+        .page-header {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: var(--space-7) var(--space-6) var(--space-8);
+        }
+
+        /* Top knotwork border */
+        .page-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 4px;
+            background: var(--gradient-knotwork);
+            border-radius: 2px;
+        }
+
+        /* Bottom knotwork border */
+        .page-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 250px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--forest-green), var(--gold), var(--forest-green), transparent);
+        }
+
+        .header-ornament {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .header-ornament .line {
+            width: 70px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold));
+            border-radius: 1px;
+        }
+
+        .header-ornament .line:last-child {
+            background: linear-gradient(90deg, var(--gold), transparent);
+        }
+
+        .header-ornament .symbol {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            color: var(--gold);
+            text-shadow: 0 0 12px rgba(201, 152, 46, 0.4);
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 5.5rem);
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-4);
+            background: linear-gradient(135deg, var(--forest-green), var(--gold), var(--forest-light), var(--gold-dark), var(--forest-green));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 8s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .page-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.0625rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           STICKY JUMP NAVIGATION
+           ============================================ */
+
+        .jump-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            gap: 0;
+            padding: 0;
+            background: var(--forest-dark);
+            border-top: 3px solid var(--gold);
+            border-bottom: 3px solid var(--gold);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            box-shadow: 0 4px 20px rgba(14, 42, 25, 0.5);
+        }
+
+        .jump-nav a {
+            display: inline-block;
+            padding: 11px 16px;
+            font-family: var(--font-heading);
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--parchment-dark);
+            text-decoration: none;
+            transition: color 0.2s, background 0.2s;
+            flex-shrink: 0;
+            border-right: 1px solid rgba(201, 152, 46, 0.2);
+        }
+
+        .jump-nav a:last-child {
+            border-right: none;
+        }
+
+        .jump-nav a:hover {
+            color: var(--gold-light);
+            background: rgba(201, 152, 46, 0.12);
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
+
+        .section {
+            position: relative;
+            z-index: 2;
+            padding: var(--space-8) 0;
+            border-bottom: 1px solid rgba(201, 152, 46, 0.2);
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 400;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0.45;
+            margin-bottom: var(--space-2);
+            text-shadow: 0 0 20px rgba(201, 152, 46, 0.2);
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 2.25rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: var(--forest-dark);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-line {
+            width: 140px;
+            height: 2px;
+            margin: 0 auto;
+            background: var(--gradient-knotwork);
+            position: relative;
+        }
+
+        .section-line::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: var(--gold);
+            border-radius: 50%;
+            box-shadow: var(--glow-gold);
+        }
+
+        .section-description {
+            font-family: var(--font-body);
+            font-size: 1.0625rem;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 65ch;
+            margin: var(--space-4) auto 0;
+            line-height: 1.75;
+        }
+
+        /* ============================================
+           SUBSECTIONS
+           ============================================ */
+
+        .subsection {
+            margin-bottom: var(--space-7);
+        }
+
+        .subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .subsection-title {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--forest-green);
+            letter-spacing: 0.06em;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 2px solid rgba(26, 77, 46, 0.2);
+        }
+
+        .subsection-title::before {
+            content: '\25C8\00a0';
+            color: var(--gold);
+            font-size: 0.8em;
+        }
+
+        .subsection-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-4);
+            line-height: 1.75;
+            max-width: 70ch;
+        }
+
+        /* ============================================
+           CODE BLOCKS
+           ============================================ */
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+        }
+
+        pre {
+            background: var(--forest-dark);
+            border: 1px solid rgba(201, 152, 46, 0.3);
+            border-left: 4px solid var(--gold);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: var(--space-5);
+            margin: var(--space-4) 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            box-shadow: var(--shadow-inset);
+        }
+
+        pre::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--gold), var(--forest-green), transparent);
+            border-radius: 0 var(--radius-md) 0 0;
+        }
+
+        pre code {
+            display: block;
+            color: var(--parchment);
+            white-space: pre;
+            line-height: 1.65;
+            font-size: 0.82rem;
+            background: none;
+            padding: 0;
+            border: none;
+        }
+
+        /* Inline code */
+        p code, li code, td code {
+            background: rgba(26, 77, 46, 0.1);
+            color: var(--forest-dark);
+            padding: 2px 7px;
+            border-radius: var(--radius-sm);
+            font-size: 0.84em;
+            border: 1px solid rgba(26, 77, 46, 0.15);
+        }
+
+        /* ============================================
+           TABLES
+           ============================================ */
+
+        .table-container {
+            margin: var(--space-5) 0;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-parchment);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+        }
+
+        thead {
+            background: var(--forest-green);
+        }
+
+        thead th {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-align: left;
+            padding: var(--space-3) var(--space-4);
+            color: var(--parchment-light);
+            font-size: 0.78rem;
+            border-bottom: 2px solid var(--gold);
+        }
+
+        tbody td {
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid rgba(201, 152, 46, 0.15);
+            vertical-align: top;
+            color: var(--text-primary);
+        }
+
+        tbody tr {
+            background: var(--parchment-light);
+        }
+
+        tbody tr:nth-child(even) {
+            background: var(--parchment);
+        }
+
+        tbody tr:hover {
+            background: rgba(201, 152, 46, 0.08);
+        }
+
+        tbody td code {
+            background: rgba(14, 42, 25, 0.08);
+            color: var(--forest-dark);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 0.82em;
+            border: 1px solid rgba(26, 77, 46, 0.12);
+        }
+
+        /* ============================================
+           ALERTS / CALLOUT BOXES
+           ============================================ */
+
+        .alert {
+            padding: var(--space-4) var(--space-5);
+            border-radius: var(--radius-md);
+            margin: var(--space-4) 0;
+            font-size: 0.9375rem;
+            line-height: 1.7;
+            position: relative;
+            border-left: 4px solid;
+        }
+
+        .alert-title {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.78rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-2);
+            display: block;
+        }
+
+        .alert-info {
+            background: rgba(30, 64, 102, 0.08);
+            border-color: var(--celtic-blue);
+            color: var(--text-primary);
+        }
+
+        .alert-info .alert-title {
+            color: var(--celtic-blue);
+        }
+
+        .alert-warning {
+            background: rgba(107, 22, 49, 0.07);
+            border-color: var(--burgundy);
+            color: var(--text-primary);
+        }
+
+        .alert-warning .alert-title {
+            color: var(--burgundy);
+        }
+
+        .alert-tip {
+            background: rgba(26, 77, 46, 0.07);
+            border-color: var(--forest-green);
+            color: var(--text-primary);
+        }
+
+        .alert-tip .alert-title {
+            color: var(--forest-green);
+        }
+
+        /* ============================================
+           BADGES / INLINE LABELS
+           ============================================ */
+
+        .badge {
+            display: inline-block;
+            font-family: var(--font-heading);
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 2px 10px;
+            border-radius: var(--radius-sm);
+            vertical-align: middle;
+        }
+
+        .badge-gold {
+            background: rgba(201, 152, 46, 0.15);
+            color: var(--gold-dark);
+            border: 1px solid rgba(201, 152, 46, 0.3);
+        }
+
+        .badge-forest {
+            background: rgba(26, 77, 46, 0.1);
+            color: var(--forest-green);
+            border: 1px solid rgba(26, 77, 46, 0.25);
+        }
+
+        .badge-burgundy {
+            background: rgba(107, 22, 49, 0.1);
+            color: var(--burgundy);
+            border: 1px solid rgba(107, 22, 49, 0.25);
+        }
+
+        .badge-blue {
+            background: rgba(30, 64, 102, 0.1);
+            color: var(--celtic-blue);
+            border: 1px solid rgba(30, 64, 102, 0.25);
+        }
+
+        /* ============================================
+           COMMAND GRID — Responsive Card Layout
+           ============================================ */
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-4);
+            margin: var(--space-5) 0;
+        }
+
+        .command-card {
+            background: var(--parchment-light);
+            border: 1px solid rgba(201, 152, 46, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            transition: all var(--transition-base);
+            position: relative;
+            box-shadow: var(--shadow-parchment);
+        }
+
+        .command-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 4px 16px rgba(201, 152, 46, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .command-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-knotwork);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+
+        .command-card-title {
+            font-family: var(--font-heading);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--forest-green);
+            margin-bottom: var(--space-2);
+        }
+
+        .command-card code {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: var(--forest-dark);
+            background: rgba(14, 42, 25, 0.06);
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-2);
+            border: 1px solid rgba(26, 77, 46, 0.1);
+        }
+
+        .command-card p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           PATTERN CARDS — Common Patterns Display
+           ============================================ */
+
+        .pattern-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: var(--space-5);
+            margin: var(--space-5) 0;
+        }
+
+        .pattern-card {
+            background: var(--parchment-light);
+            border: 1px solid rgba(201, 152, 46, 0.2);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .pattern-card-header {
+            background: var(--forest-green);
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 2px solid var(--gold);
+        }
+
+        .pattern-card-header h4 {
+            font-family: var(--font-heading);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--parchment-light);
+        }
+
+        .pattern-card-body {
+            padding: var(--space-4);
+        }
+
+        .pattern-card-body pre {
+            margin: 0;
+            border-radius: var(--radius-md);
+            border-left-width: 3px;
+        }
+
+        .pattern-card-body p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-top: var(--space-3);
+            margin-bottom: 0;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           COMPARISON BOXES
+           ============================================ */
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-4);
+            margin: var(--space-5) 0;
+        }
+
+        .comparison-box {
+            background: var(--parchment-light);
+            border: 1px solid rgba(201, 152, 46, 0.2);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            overflow: hidden;
+        }
+
+        .comparison-box.good {
+            border-left: 4px solid var(--forest-green);
+        }
+
+        .comparison-box.bad {
+            border-left: 4px solid var(--burgundy);
+        }
+
+        .comparison-label {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-2);
+        }
+
+        .comparison-box.good .comparison-label {
+            color: var(--forest-green);
+        }
+
+        .comparison-box.bad .comparison-label {
+            color: var(--burgundy);
+        }
+
+        .comparison-box pre {
+            margin: var(--space-2) 0 0;
+            border-left-width: 3px;
+        }
+
+        /* ============================================
+           LISTS
+           ============================================ */
+
+        ul, ol {
+            margin: var(--space-3) 0 var(--space-4);
+            padding-left: var(--space-6);
+        }
+
+        li {
+            margin-bottom: var(--space-2);
+            color: var(--text-primary);
+        }
+
+        li::marker {
+            color: var(--gold);
+        }
+
+        /* ============================================
+           PARAGRAPHS, LINKS, STRONG
+           ============================================ */
+
+        p {
+            margin-bottom: var(--space-3);
+            color: var(--text-primary);
+        }
+
+        p:last-child {
+            margin-bottom: 0;
+        }
+
+        a {
+            color: var(--forest-green);
+            text-decoration: underline;
+            text-decoration-color: rgba(26, 77, 46, 0.3);
+            text-underline-offset: 2px;
+            transition: all var(--transition-base);
+        }
+
+        a:hover {
+            color: var(--gold-dark);
+            text-decoration-color: var(--gold);
+        }
+
+        strong {
+            font-weight: 600;
+            color: var(--forest-dark);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .site-footer {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: var(--space-7) var(--space-6);
+            margin-top: var(--space-8);
+        }
+
+        .site-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 350px;
+            height: 3px;
+            background: var(--gradient-knotwork);
+        }
+
+        .site-footer a {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--forest-green);
+            text-decoration: none;
+            transition: color var(--transition-base);
+        }
+
+        .site-footer a:hover {
+            color: var(--gold-dark);
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 400;
+            margin-bottom: var(--space-4);
+            color: var(--forest-dark);
+            text-shadow: 1px 1px 0 rgba(201, 152, 46, 0.3);
+        }
+
+        .footer-text {
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .footer-ornament {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+        }
+
+        .footer-ornament .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .footer-ornament .dot:nth-child(1) { background: var(--forest-dark); }
+        .footer-ornament .dot:nth-child(2) { background: var(--forest-green); }
+        .footer-ornament .dot:nth-child(3) { background: var(--gold); }
+        .footer-ornament .dot:nth-child(4) { background: var(--forest-green); }
+        .footer-ornament .dot:nth-child(5) { background: var(--forest-dark); }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 var(--space-4);
+            }
+
+            .page-header {
+                padding: var(--space-6) var(--space-4) var(--space-7);
+            }
+
+            .page-header::before {
+                width: 250px;
+            }
+
+            .page-title {
+                font-size: 3rem;
+            }
+
+            .section {
+                padding: var(--space-6) 0;
+            }
+
+            .section-title {
+                font-size: 1.75rem;
+            }
+
+            .section-number {
+                font-size: 2.5rem;
+            }
+
+            .subsection-title {
+                font-size: 1.1rem;
+            }
+
+            .command-grid,
+            .comparison,
+            .pattern-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            thead th,
+            tbody td {
+                padding: var(--space-2) var(--space-3);
+            }
+
+            pre {
+                padding: var(--space-4);
+            }
+
+            pre code {
+                font-size: 0.78rem;
+            }
+
+            .header-ornament .line {
+                width: 35px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .page-title {
+                font-size: 2.25rem;
+            }
+
+            .jump-nav a {
+                padding: 9px 12px;
+                font-size: 0.6rem;
+            }
+
+            .section {
+                padding: var(--space-5) 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="parchment-bg"></div>
+<div class="parchment-grain"></div>
+
+<a href="index.html" class="back-link">Tech Guides</a>
+
+<header class="page-header">
+    <div class="header-ornament">
+        <span class="line"></span>
+        <span class="symbol">&#10040;</span>
+        <span class="line"></span>
+    </div>
+    <h1 class="page-title">Go</h1>
+    <p class="page-subtitle">Simplicity, Concurrency &amp; Compiled Speed</p>
+</header>
+
+<!-- Sticky Jump Nav -->
+<nav class="jump-nav">
+    <a href="#cheatsheet">Quick Ref</a>
+    <a href="#syntax">Core Syntax</a>
+    <a href="#functions">Functions</a>
+    <a href="#concurrency">Concurrency</a>
+    <a href="#errors">Errors</a>
+    <a href="#modules">Modules</a>
+    <a href="#testing">Testing</a>
+    <a href="#stdlib">Std Library</a>
+    <a href="#ecosystem">Ecosystem</a>
+    <a href="#idioms">Idioms</a>
+</nav>
+
+<main>
+
+    <!-- ============================================
+         SECTION 01: QUICK REFERENCE
+         ============================================ -->
+    <section id="cheatsheet" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">01</div>
+                <h2 class="section-title">Quick Reference</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Essential Go commands, declaration patterns, and common idioms at a glance.</p>
+            </div>
+
+            <!-- Common go commands -->
+            <div class="subsection">
+                <h3 class="subsection-title">Common Go Commands</h3>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>go run main.go</code></td>
+                                <td>Compile and execute a Go program in one step</td>
+                            </tr>
+                            <tr>
+                                <td><code>go build</code></td>
+                                <td>Compile the current package into an executable binary</td>
+                            </tr>
+                            <tr>
+                                <td><code>go test ./...</code></td>
+                                <td>Run all tests recursively in the current module</td>
+                            </tr>
+                            <tr>
+                                <td><code>go fmt ./...</code></td>
+                                <td>Format all Go source files with canonical style</td>
+                            </tr>
+                            <tr>
+                                <td><code>go vet ./...</code></td>
+                                <td>Report suspicious constructs and likely bugs</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod init module/path</code></td>
+                                <td>Initialize a new module in the current directory</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod tidy</code></td>
+                                <td>Add missing and remove unused module dependencies</td>
+                            </tr>
+                            <tr>
+                                <td><code>go get pkg@version</code></td>
+                                <td>Add or update a dependency in go.mod</td>
+                            </tr>
+                            <tr>
+                                <td><code>go install pkg@latest</code></td>
+                                <td>Build and install a Go binary to $GOBIN</td>
+                            </tr>
+                            <tr>
+                                <td><code>go doc fmt.Println</code></td>
+                                <td>Show documentation for a symbol or package</td>
+                            </tr>
+                            <tr>
+                                <td><code>go generate ./...</code></td>
+                                <td>Run code generation directives in source files</td>
+                            </tr>
+                            <tr>
+                                <td><code>go work init</code></td>
+                                <td>Initialize a multi-module workspace (Go 1.18+)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Variable Declaration Quick Reference -->
+            <div class="subsection">
+                <h3 class="subsection-title">Variable Declaration Quick Reference</h3>
+
+                <div class="command-grid">
+                    <div class="command-card">
+                        <div class="command-card-title">Short Declaration</div>
+                        <code>name := "gopher"</code>
+                        <p>Infers type. Only inside functions. Most common form.</p>
+                    </div>
+                    <div class="command-card">
+                        <div class="command-card-title">Var Declaration</div>
+                        <code>var count int = 10</code>
+                        <p>Explicit type. Works at package level and inside functions.</p>
+                    </div>
+                    <div class="command-card">
+                        <div class="command-card-title">Zero Value Var</div>
+                        <code>var active bool</code>
+                        <p>Declares with zero value (false for bool, 0 for int, "" for string).</p>
+                    </div>
+                    <div class="command-card">
+                        <div class="command-card-title">Constants</div>
+                        <code>const Pi = 3.14159</code>
+                        <p>Compile-time constant. Untyped unless explicitly typed.</p>
+                    </div>
+                    <div class="command-card">
+                        <div class="command-card-title">Iota Enums</div>
+                        <code>const ( A = iota; B; C )</code>
+                        <p>Auto-incrementing integer constants: A=0, B=1, C=2.</p>
+                    </div>
+                    <div class="command-card">
+                        <div class="command-card-title">Multiple Assign</div>
+                        <code>x, y := 10, "hello"</code>
+                        <p>Declare multiple variables at once with different types.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Common Patterns -->
+            <div class="subsection">
+                <h3 class="subsection-title">Common Patterns</h3>
+
+                <div class="pattern-grid">
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Error Check</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>result, err := doSomething()
+if err != nil {
+    return fmt.Errorf("failed: %w", err)
+}</code></pre>
+                            <p>The canonical Go error-handling pattern. Check errors immediately after every fallible call.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Goroutine Launch</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>var wg sync.WaitGroup
+wg.Add(1)
+go func() {
+    defer wg.Done()
+    process(item)
+}()
+wg.Wait()</code></pre>
+                            <p>Launch concurrent work with a WaitGroup to synchronize completion.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Defer Close</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>f, err := os.Open("data.txt")
+if err != nil {
+    return err
+}
+defer f.Close()
+// use f...</code></pre>
+                            <p>Defer cleanup immediately after acquiring a resource. Deferred calls run in LIFO order when the function returns.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Struct Literal</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>srv := &amp;http.Server{
+    Addr:         ":8080",
+    ReadTimeout:  5 * time.Second,
+    WriteTimeout: 10 * time.Second,
+}</code></pre>
+                            <p>Initialize structs with named fields. Unset fields receive their zero value.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Slice Operations</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>items := []string{"a", "b", "c"}
+items = append(items, "d")
+sub := items[1:3] // ["b", "c"]
+cp := make([]string, len(items))
+copy(cp, items)</code></pre>
+                            <p>Slices are Go's dynamic arrays. Append grows, slicing shares memory, copy for safe duplication.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Map Operations</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>m := map[string]int{"a": 1, "b": 2}
+m["c"] = 3
+val, ok := m["a"]  // ok == true
+delete(m, "b")
+for k, v := range m { ... }</code></pre>
+                            <p>Maps are hash tables. Always use the comma-ok idiom to distinguish missing keys from zero values.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 02: CORE SYNTAX
+         ============================================ -->
+    <section id="syntax" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">02</div>
+                <h2 class="section-title">Core Syntax</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Fundamental building blocks of the Go language: packages, types, variables, and control flow.</p>
+            </div>
+
+            <!-- Package Structure & Imports -->
+            <div class="subsection">
+                <h3 class="subsection-title">Package Structure &amp; Imports</h3>
+                <p>Every Go file begins with a package declaration. The <code>main</code> package with a <code>main()</code> function is the entry point for executables. All other packages are libraries.</p>
+
+                <pre><code>package main
+
+import (
+    "fmt"
+    "net/http"
+    "os"
+
+    "github.com/gorilla/mux"          // third-party import
+    "mymodule/internal/auth"           // internal package
+)
+
+func main() {
+    fmt.Println("Hello, Go!")
+}</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">Import Conventions</span>
+                    Group imports in three blocks separated by blank lines: standard library, third-party packages, and local/internal packages. The <code>goimports</code> tool handles this automatically.
+                </div>
+
+                <pre><code>// Package-level declarations (visible across all files in the package)
+package config
+
+var DefaultPort = 8080            // exported (uppercase)
+var defaultHost = "localhost"     // unexported (lowercase)
+
+// init() runs once when the package is first imported
+func init() {
+    if port := os.Getenv("PORT"); port != "" {
+        DefaultPort, _ = strconv.Atoi(port)
+    }
+}</code></pre>
+            </div>
+
+            <!-- Variable Declarations -->
+            <div class="subsection">
+                <h3 class="subsection-title">Variable Declarations</h3>
+
+                <pre><code>// Short variable declaration (inside functions only)
+name := "gopher"
+x, y := 10, 20
+
+// Var declaration (works at package level too)
+var age int = 30
+var city string                   // zero value: ""
+var (
+    width  float64 = 1920
+    height float64 = 1080
+)
+
+// Constants
+const Pi = 3.14159265             // untyped constant
+const MaxRetries int = 3          // typed constant
+
+// Iota — auto-incrementing constant generator
+const (
+    Sunday    = iota              // 0
+    Monday                        // 1
+    Tuesday                       // 2
+    Wednesday                     // 3
+    Thursday                      // 4
+    Friday                        // 5
+    Saturday                      // 6
+)
+
+// Iota with expressions
+const (
+    _  = iota                     // skip 0
+    KB = 1 &lt;&lt; (10 * iota)        // 1024
+    MB                            // 1048576
+    GB                            // 1073741824
+    TB                            // 1099511627776
+)</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">Tip</span>
+                    Prefer <code>:=</code> inside functions for brevity. Use <code>var</code> when you need to specify a type explicitly, declare at package level, or want the zero value without assigning.
+                </div>
+            </div>
+
+            <!-- Basic Types & Zero Values -->
+            <div class="subsection">
+                <h3 class="subsection-title">Basic Types &amp; Zero Values</h3>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Zero Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>bool</code></td>
+                                <td><code>false</code></td>
+                                <td>Boolean true/false</td>
+                            </tr>
+                            <tr>
+                                <td><code>int</code>, <code>int8</code> ... <code>int64</code></td>
+                                <td><code>0</code></td>
+                                <td>Signed integers (int is platform-dependent: 32 or 64 bit)</td>
+                            </tr>
+                            <tr>
+                                <td><code>uint</code>, <code>uint8</code> ... <code>uint64</code></td>
+                                <td><code>0</code></td>
+                                <td>Unsigned integers; <code>byte</code> is alias for <code>uint8</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>float32</code>, <code>float64</code></td>
+                                <td><code>0</code></td>
+                                <td>IEEE-754 floating point; prefer <code>float64</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>complex64</code>, <code>complex128</code></td>
+                                <td><code>(0+0i)</code></td>
+                                <td>Complex numbers with float32/float64 parts</td>
+                            </tr>
+                            <tr>
+                                <td><code>string</code></td>
+                                <td><code>""</code></td>
+                                <td>Immutable UTF-8 byte sequence</td>
+                            </tr>
+                            <tr>
+                                <td><code>rune</code></td>
+                                <td><code>0</code></td>
+                                <td>Alias for <code>int32</code>; represents a Unicode code point</td>
+                            </tr>
+                            <tr>
+                                <td><code>uintptr</code></td>
+                                <td><code>0</code></td>
+                                <td>Integer large enough to hold any pointer value</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Composite Types -->
+            <div class="subsection">
+                <h3 class="subsection-title">Composite Types</h3>
+
+                <pre><code>// ── Arrays (fixed size, rarely used directly) ──
+var grid [3][3]int                   // 3x3 matrix of zeros
+primes := [5]int{2, 3, 5, 7, 11}
+
+// ── Slices (dynamic, backed by an array) ──
+nums := []int{1, 2, 3, 4, 5}
+nums = append(nums, 6, 7)           // grow slice
+sub := nums[2:5]                     // [3, 4, 5] — shares memory
+fresh := make([]int, 0, 100)        // len=0, cap=100
+
+// ── Maps (hash table) ──
+scores := map[string]int{
+    "alice": 95,
+    "bob":   87,
+}
+scores["carol"] = 91
+val, ok := scores["dave"]           // ok is false, val is 0
+delete(scores, "bob")
+
+// ── Structs ──
+type Point struct {
+    X, Y float64
+}
+
+type User struct {
+    Name    string `json:"name"`
+    Email   string `json:"email"`
+    Age     int    `json:"age,omitempty"`
+    admin   bool   // unexported field
+}
+
+p := Point{X: 3.0, Y: 4.0}
+u := User{Name: "Alice", Email: "alice@example.com"}
+
+// Struct embedding (composition over inheritance)
+type Admin struct {
+    User                              // embedded struct
+    Level int
+}
+a := Admin{User: User{Name: "Bob"}, Level: 1}
+fmt.Println(a.Name)                  // promoted field</code></pre>
+            </div>
+
+            <!-- Pointers -->
+            <div class="subsection">
+                <h3 class="subsection-title">Pointers</h3>
+                <p>Go has pointers but no pointer arithmetic. Pointers are used to share data and avoid copying large structures.</p>
+
+                <pre><code>x := 42
+p := &amp;x                              // p is *int, points to x
+fmt.Println(*p)                      // 42 — dereference
+*p = 100                             // x is now 100
+
+// new() allocates and returns a pointer
+ptr := new(int)                      // *int, points to 0
+
+// Structs are commonly used via pointers
+func newUser(name string) *User {
+    return &amp;User{Name: name}         // safe: Go escapes to heap
+}
+
+// Nil pointer — the zero value for pointer types
+var np *int                          // nil
+if np != nil {
+    fmt.Println(*np)
+}</code></pre>
+
+                <div class="alert alert-warning">
+                    <span class="alert-title">Warning</span>
+                    Dereferencing a nil pointer causes a runtime panic. Always check for nil when a pointer could be unset, especially with function return values and struct fields.
+                </div>
+            </div>
+
+            <!-- Control Flow -->
+            <div class="subsection">
+                <h3 class="subsection-title">Control Flow</h3>
+
+                <pre><code>// ── If / Else (no parentheses, braces required) ──
+if x &gt; 10 {
+    fmt.Println("big")
+} else if x &gt; 5 {
+    fmt.Println("medium")
+} else {
+    fmt.Println("small")
+}
+
+// If with init statement
+if err := validate(input); err != nil {
+    return err                        // err scoped to this if/else
+}
+
+// ── For (the only loop keyword) ──
+for i := 0; i &lt; 10; i++ {           // classic C-style
+    fmt.Println(i)
+}
+
+for condition {                      // while-style
+    // ...
+}
+
+for {                                // infinite loop
+    break                            // exit
+}
+
+// ── Range (iterate slices, maps, strings, channels) ──
+for i, v := range []string{"a", "b", "c"} {
+    fmt.Printf("%d: %s\n", i, v)
+}
+
+for key, val := range myMap {        // map iteration (random order)
+    fmt.Printf("%s = %d\n", key, val)
+}
+
+for i := range 10 {                 // Go 1.22+ range over integer
+    fmt.Println(i)                   // 0, 1, 2, ... 9
+}
+
+// ── Switch (no fall-through by default) ──
+switch day {
+case "Monday", "Tuesday":
+    fmt.Println("early week")
+case "Friday":
+    fmt.Println("TGIF")
+    fallthrough                      // explicit fall-through
+default:
+    fmt.Println("another day")
+}
+
+// Type switch
+switch v := x.(type) {
+case int:
+    fmt.Printf("int: %d\n", v)
+case string:
+    fmt.Printf("string: %s\n", v)
+default:
+    fmt.Printf("unknown: %T\n", v)
+}
+
+// ── Defer, Panic, Recover ──
+func safeDiv(a, b int) (result int, err error) {
+    defer func() {
+        if r := recover(); r != nil {
+            err = fmt.Errorf("panic: %v", r)
+        }
+    }()
+    return a / b, nil                // panics if b == 0
+}</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">Range Over Integers</span>
+                    Go 1.22 introduced <code>for i := range n</code>, which iterates from 0 to n-1. This replaces the verbose <code>for i := 0; i &lt; n; i++</code> pattern for simple counting loops.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 03: FUNCTIONS & INTERFACES
+         ============================================ -->
+    <section id="functions" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">03</div>
+                <h2 class="section-title">Functions &amp; Interfaces</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Functions, methods, closures, interfaces, and generics: how Go composes behavior.</p>
+            </div>
+
+            <!-- Function Syntax -->
+            <div class="subsection">
+                <h3 class="subsection-title">Function Syntax</h3>
+
+                <pre><code>// Basic function
+func add(a, b int) int {
+    return a + b
+}
+
+// Multiple return values
+func divide(a, b float64) (float64, error) {
+    if b == 0 {
+        return 0, errors.New("division by zero")
+    }
+    return a / b, nil
+}
+
+// Named return values (useful for documentation, short functions)
+func coordinates(addr string) (lat, lng float64, err error) {
+    // ... geocoding logic ...
+    return lat, lng, nil
+}
+
+// Blank identifier to ignore return values
+_, err := divide(10, 0)
+
+// Functions are first-class values
+var op func(int, int) int = add
+result := op(3, 4)                   // 7</code></pre>
+            </div>
+
+            <!-- Variadic Functions -->
+            <div class="subsection">
+                <h3 class="subsection-title">Variadic Functions</h3>
+
+                <pre><code>// Variadic parameter (must be last parameter)
+func sum(nums ...int) int {
+    total := 0
+    for _, n := range nums {
+        total += n
+    }
+    return total
+}
+
+sum(1, 2, 3)                         // 6
+sum()                                // 0
+
+// Spread a slice into variadic args
+values := []int{10, 20, 30}
+sum(values...)                       // 60
+
+// Common stdlib example
+fmt.Println("a", "b", "c")          // Println(a ...any)</code></pre>
+            </div>
+
+            <!-- Methods -->
+            <div class="subsection">
+                <h3 class="subsection-title">Methods: Value vs Pointer Receivers</h3>
+
+                <pre><code>type Rect struct {
+    Width, Height float64
+}
+
+// Value receiver — operates on a copy
+func (r Rect) Area() float64 {
+    return r.Width * r.Height
+}
+
+// Pointer receiver — can modify the original
+func (r *Rect) Scale(factor float64) {
+    r.Width *= factor
+    r.Height *= factor
+}
+
+r := Rect{Width: 10, Height: 5}
+fmt.Println(r.Area())                // 50
+r.Scale(2)
+fmt.Println(r.Area())                // 200</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">Receiver Guidelines</span>
+                    Use a pointer receiver when the method mutates the receiver, the struct is large (avoids copying), or for consistency if any method on the type uses a pointer receiver. Use a value receiver for small, immutable types.
+                </div>
+            </div>
+
+            <!-- Closures -->
+            <div class="subsection">
+                <h3 class="subsection-title">Closures</h3>
+
+                <pre><code>// A closure captures variables from its enclosing scope
+func makeCounter() func() int {
+    count := 0
+    return func() int {
+        count++
+        return count
+    }
+}
+
+counter := makeCounter()
+fmt.Println(counter())               // 1
+fmt.Println(counter())               // 2
+fmt.Println(counter())               // 3
+
+// Closures are often used with goroutines and callbacks
+func processItems(items []string, fn func(string)) {
+    for _, item := range items {
+        fn(item)
+    }
+}
+
+processItems([]string{"a", "b"}, func(s string) {
+    fmt.Println(strings.ToUpper(s))
+})</code></pre>
+            </div>
+
+            <!-- Interfaces -->
+            <div class="subsection">
+                <h3 class="subsection-title">Interfaces &amp; Implicit Implementation</h3>
+                <p>Interfaces in Go are satisfied implicitly. If a type has all the methods an interface requires, it implements that interface. No <code>implements</code> keyword needed.</p>
+
+                <pre><code>// Define an interface
+type Shape interface {
+    Area() float64
+    Perimeter() float64
+}
+
+// Circle implicitly implements Shape
+type Circle struct {
+    Radius float64
+}
+
+func (c Circle) Area() float64 {
+    return math.Pi * c.Radius * c.Radius
+}
+
+func (c Circle) Perimeter() float64 {
+    return 2 * math.Pi * c.Radius
+}
+
+// Use the interface
+func printInfo(s Shape) {
+    fmt.Printf("Area: %.2f, Perimeter: %.2f\n", s.Area(), s.Perimeter())
+}
+
+printInfo(Circle{Radius: 5})         // works!
+
+// The empty interface accepts any value (aliased as "any" since Go 1.18)
+func describe(val any) {
+    fmt.Printf("(%v, %T)\n", val, val)
+}
+
+describe(42)                          // (42, int)
+describe("hello")                     // (hello, string)</code></pre>
+            </div>
+
+            <!-- Type Assertions & Type Switches -->
+            <div class="subsection">
+                <h3 class="subsection-title">Type Assertions &amp; Type Switches</h3>
+
+                <pre><code>// Type assertion — extract the concrete type
+var i any = "hello"
+
+s := i.(string)                      // panics if i is not string
+fmt.Println(s)                       // "hello"
+
+s, ok := i.(string)                  // safe form — ok is false if wrong type
+if ok {
+    fmt.Println(s)
+}
+
+// Type switch — branch on dynamic type
+func classify(val any) string {
+    switch v := val.(type) {
+    case nil:
+        return "nil"
+    case int:
+        return fmt.Sprintf("int: %d", v)
+    case string:
+        return fmt.Sprintf("string of len %d", len(v))
+    case bool:
+        return fmt.Sprintf("bool: %t", v)
+    case error:
+        return fmt.Sprintf("error: %s", v)
+    default:
+        return fmt.Sprintf("unknown: %T", v)
+    }
+}</code></pre>
+            </div>
+
+            <!-- Common Standard Library Interfaces -->
+            <div class="subsection">
+                <h3 class="subsection-title">Common Standard Library Interfaces</h3>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Interface</th>
+                                <th>Method(s)</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>io.Reader</code></td>
+                                <td><code>Read(p []byte) (n int, err error)</code></td>
+                                <td>Reads bytes from a source (files, network, buffers)</td>
+                            </tr>
+                            <tr>
+                                <td><code>io.Writer</code></td>
+                                <td><code>Write(p []byte) (n int, err error)</code></td>
+                                <td>Writes bytes to a destination</td>
+                            </tr>
+                            <tr>
+                                <td><code>io.Closer</code></td>
+                                <td><code>Close() error</code></td>
+                                <td>Releases resources (files, connections)</td>
+                            </tr>
+                            <tr>
+                                <td><code>fmt.Stringer</code></td>
+                                <td><code>String() string</code></td>
+                                <td>Custom string representation for <code>fmt.Print</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>error</code></td>
+                                <td><code>Error() string</code></td>
+                                <td>The built-in error interface</td>
+                            </tr>
+                            <tr>
+                                <td><code>sort.Interface</code></td>
+                                <td><code>Len()</code>, <code>Less(i,j)</code>, <code>Swap(i,j)</code></td>
+                                <td>Custom sorting for any collection</td>
+                            </tr>
+                            <tr>
+                                <td><code>http.Handler</code></td>
+                                <td><code>ServeHTTP(w, *r)</code></td>
+                                <td>Handle HTTP requests</td>
+                            </tr>
+                            <tr>
+                                <td><code>encoding.TextMarshaler</code></td>
+                                <td><code>MarshalText() ([]byte, error)</code></td>
+                                <td>Custom text serialization</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code>// Implementing fmt.Stringer
+type Point struct{ X, Y float64 }
+
+func (p Point) String() string {
+    return fmt.Sprintf("(%g, %g)", p.X, p.Y)
+}
+
+fmt.Println(Point{3, 4})            // prints: (3, 4)
+
+// Implementing io.Reader
+type InfiniteZeros struct{}
+
+func (z InfiniteZeros) Read(p []byte) (int, error) {
+    for i := range p {
+        p[i] = 0
+    }
+    return len(p), nil
+}</code></pre>
+            </div>
+
+            <!-- Generics -->
+            <div class="subsection">
+                <h3 class="subsection-title">Generics <span class="badge badge-gold">Go 1.18+</span></h3>
+                <p>Go 1.18 introduced type parameters, enabling functions and types to operate on multiple concrete types while preserving type safety.</p>
+
+                <pre><code>// Generic function with type parameter
+func Map[T, U any](slice []T, fn func(T) U) []U {
+    result := make([]U, len(slice))
+    for i, v := range slice {
+        result[i] = fn(v)
+    }
+    return result
+}
+
+doubled := Map([]int{1, 2, 3}, func(n int) int {
+    return n * 2
+})
+// doubled == [2, 4, 6]
+
+// Type constraint — restrict what types are allowed
+func Min[T constraints.Ordered](a, b T) T {
+    if a &lt; b {
+        return a
+    }
+    return b
+}
+
+Min(3, 7)                            // 3
+Min("alpha", "beta")                 // "alpha"
+
+// Custom constraint interface
+type Number interface {
+    ~int | ~int32 | ~int64 | ~float32 | ~float64
+}
+
+func Sum[T Number](nums []T) T {
+    var total T
+    for _, n := range nums {
+        total += n
+    }
+    return total
+}
+
+// The comparable constraint — types that support == and !=
+func Contains[T comparable](slice []T, target T) bool {
+    for _, v := range slice {
+        if v == target {
+            return true
+        }
+    }
+    return false
+}
+
+// Generic types
+type Stack[T any] struct {
+    items []T
+}
+
+func (s *Stack[T]) Push(v T) {
+    s.items = append(s.items, v)
+}
+
+func (s *Stack[T]) Pop() (T, bool) {
+    if len(s.items) == 0 {
+        var zero T
+        return zero, false
+    }
+    v := s.items[len(s.items)-1]
+    s.items = s.items[:len(s.items)-1]
+    return v, true
+}</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">The ~ Tilde Operator</span>
+                    The <code>~int</code> constraint matches <code>int</code> and any named type whose underlying type is <code>int</code> (e.g., <code>type UserID int</code>). Without the tilde, only the exact type matches.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 04: CONCURRENCY
+         ============================================ -->
+    <section id="concurrency" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">04</div>
+                <h2 class="section-title">Concurrency</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Goroutines, channels, select, context, and sync primitives: Go's concurrency model built on CSP.</p>
+            </div>
+
+            <!-- Goroutines -->
+            <div class="subsection">
+                <h3 class="subsection-title">Goroutines &amp; the go Keyword</h3>
+                <p>A goroutine is a lightweight thread of execution managed by the Go runtime. Goroutines start with as little as 2 KB of stack space and are multiplexed onto OS threads.</p>
+
+                <pre><code>// Launch a goroutine
+go func() {
+    fmt.Println("running concurrently")
+}()
+
+// Named function as goroutine
+go processRequest(req)
+
+// Goroutines are cheap — launch thousands
+for i := 0; i &lt; 10_000; i++ {
+    go worker(i)
+}</code></pre>
+
+                <div class="alert alert-warning">
+                    <span class="alert-title">Warning</span>
+                    The main goroutine does not wait for other goroutines. If <code>main()</code> returns, all goroutines are terminated. Use <code>sync.WaitGroup</code>, channels, or <code>select{}</code> to keep main alive until work completes.
+                </div>
+            </div>
+
+            <!-- WaitGroup -->
+            <div class="subsection">
+                <h3 class="subsection-title">WaitGroup</h3>
+
+                <pre><code>import "sync"
+
+func main() {
+    var wg sync.WaitGroup
+
+    urls := []string{
+        "https://example.com",
+        "https://golang.org",
+        "https://go.dev",
+    }
+
+    for _, url := range urls {
+        wg.Add(1)
+        go func(u string) {
+            defer wg.Done()
+            resp, err := http.Get(u)
+            if err != nil {
+                log.Println(err)
+                return
+            }
+            defer resp.Body.Close()
+            fmt.Printf("%s: %s\n", u, resp.Status)
+        }(url)
+    }
+
+    wg.Wait()  // blocks until all goroutines call Done()
+    fmt.Println("All requests complete")
+}</code></pre>
+            </div>
+
+            <!-- Channels -->
+            <div class="subsection">
+                <h3 class="subsection-title">Channels</h3>
+
+                <pre><code>// ── Unbuffered channel (synchronous) ──
+ch := make(chan string)
+
+go func() {
+    ch &lt;- "hello"                    // blocks until receiver is ready
+}()
+
+msg := &lt;-ch                         // blocks until sender sends
+fmt.Println(msg)                     // "hello"
+
+// ── Buffered channel (asynchronous up to capacity) ──
+jobs := make(chan int, 100)          // buffer of 100
+jobs &lt;- 42                          // doesn't block (buffer not full)
+val := &lt;-jobs                       // 42
+
+// ── Directional channels (for function signatures) ──
+func producer(out chan&lt;- int) {      // send-only
+    for i := 0; i &lt; 5; i++ {
+        out &lt;- i
+    }
+    close(out)
+}
+
+func consumer(in &lt;-chan int) {       // receive-only
+    for val := range in {            // iterates until channel closed
+        fmt.Println(val)
+    }
+}
+
+ch := make(chan int)
+go producer(ch)
+consumer(ch)
+
+// ── Closing channels ──
+close(ch)                            // signal no more values
+val, ok := &lt;-ch                     // ok is false after close
+
+// Range over channel (exits when channel is closed)
+for item := range ch {
+    process(item)
+}</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">Channel Axioms</span>
+                    A send to a nil channel blocks forever. A receive from a nil channel blocks forever. A send to a closed channel panics. A receive from a closed channel returns the zero value immediately. Close only on the sender side.
+                </div>
+            </div>
+
+            <!-- Select Statement -->
+            <div class="subsection">
+                <h3 class="subsection-title">Select Statement</h3>
+                <p>Select lets a goroutine wait on multiple channel operations simultaneously. It blocks until one case is ready; if multiple are ready, one is chosen at random.</p>
+
+                <pre><code>// ── Basic select ──
+select {
+case msg := &lt;-msgCh:
+    fmt.Println("received:", msg)
+case errCh &lt;- err:
+    fmt.Println("sent error")
+case &lt;-done:
+    fmt.Println("shutting down")
+    return
+}
+
+// ── Select with default (non-blocking) ──
+select {
+case msg := &lt;-ch:
+    handle(msg)
+default:
+    // ch isn't ready, do something else
+    fmt.Println("no message available")
+}
+
+// ── Select with timeout ──
+select {
+case result := &lt;-ch:
+    fmt.Println("got result:", result)
+case &lt;-time.After(3 * time.Second):
+    fmt.Println("timed out after 3s")
+}
+
+// ── Ticker loop with quit channel ──
+ticker := time.NewTicker(500 * time.Millisecond)
+defer ticker.Stop()
+
+for {
+    select {
+    case t := &lt;-ticker.C:
+        fmt.Println("tick at", t)
+    case &lt;-quit:
+        return
+    }
+}</code></pre>
+            </div>
+
+            <!-- Context Package -->
+            <div class="subsection">
+                <h3 class="subsection-title">Context Package</h3>
+                <p>The <code>context</code> package carries deadlines, cancellation signals, and request-scoped values across API boundaries and goroutines.</p>
+
+                <pre><code>import "context"
+
+// ── WithCancel — manual cancellation ──
+ctx, cancel := context.WithCancel(context.Background())
+defer cancel()
+
+go func(ctx context.Context) {
+    for {
+        select {
+        case &lt;-ctx.Done():
+            fmt.Println("cancelled:", ctx.Err())
+            return
+        default:
+            doWork()
+        }
+    }
+}(ctx)
+
+cancel()  // signal all goroutines using this context
+
+// ── WithTimeout — automatic cancellation after duration ──
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+defer cancel()
+
+result, err := longOperation(ctx)
+if err == context.DeadlineExceeded {
+    log.Println("operation timed out")
+}
+
+// ── WithDeadline — cancel at specific time ──
+deadline := time.Now().Add(30 * time.Second)
+ctx, cancel := context.WithDeadline(context.Background(), deadline)
+defer cancel()
+
+// ── WithValue — attach request-scoped data ──
+type contextKey string
+const userKey contextKey = "user"
+
+ctx = context.WithValue(ctx, userKey, currentUser)
+
+// Retrieve later
+if user, ok := ctx.Value(userKey).(*User); ok {
+    fmt.Println("request from:", user.Name)
+}</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">Context Best Practices</span>
+                    Always pass context as the first parameter: <code>func DoThing(ctx context.Context, ...)</code>. Never store context in a struct. Always call the cancel function (use defer). Do not use <code>context.WithValue</code> for passing optional parameters; use it only for request-scoped data like trace IDs.
+                </div>
+            </div>
+
+            <!-- Sync Primitives -->
+            <div class="subsection">
+                <h3 class="subsection-title">Sync Primitives</h3>
+
+                <pre><code>import "sync"
+
+// ── Mutex — mutual exclusion ──
+type SafeCounter struct {
+    mu sync.Mutex
+    v  map[string]int
+}
+
+func (c *SafeCounter) Inc(key string) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.v[key]++
+}
+
+func (c *SafeCounter) Value(key string) int {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    return c.v[key]
+}
+
+// ── RWMutex — multiple readers, single writer ──
+type Cache struct {
+    mu   sync.RWMutex
+    data map[string]string
+}
+
+func (c *Cache) Get(key string) (string, bool) {
+    c.mu.RLock()                     // multiple readers allowed
+    defer c.mu.RUnlock()
+    val, ok := c.data[key]
+    return val, ok
+}
+
+func (c *Cache) Set(key, val string) {
+    c.mu.Lock()                      // exclusive write access
+    defer c.mu.Unlock()
+    c.data[key] = val
+}
+
+// ── Once — exactly one execution ──
+var once sync.Once
+var instance *Database
+
+func GetDB() *Database {
+    once.Do(func() {
+        instance = connectToDatabase()
+    })
+    return instance
+}
+
+// ── Pool — reusable object pool ──
+var bufPool = sync.Pool{
+    New: func() any {
+        return new(bytes.Buffer)
+    },
+}
+
+buf := bufPool.Get().(*bytes.Buffer)
+buf.Reset()
+// use buf ...
+bufPool.Put(buf)                     // return to pool</code></pre>
+            </div>
+
+            <!-- Atomic Operations -->
+            <div class="subsection">
+                <h3 class="subsection-title">Atomic Operations</h3>
+
+                <pre><code>import "sync/atomic"
+
+// ── Atomic counter (lock-free) ──
+var counter atomic.Int64
+
+counter.Add(1)                       // increment
+counter.Add(-1)                      // decrement
+val := counter.Load()                // read
+counter.Store(0)                     // write
+swapped := counter.CompareAndSwap(5, 10)  // CAS
+
+// ── Atomic value (store any type) ──
+var config atomic.Value
+
+type Config struct {
+    Workers int
+    Debug   bool
+}
+
+config.Store(Config{Workers: 4, Debug: false})
+cfg := config.Load().(Config)
+
+// ── Atomic bool ──
+var ready atomic.Bool
+ready.Store(true)
+if ready.Load() {
+    proceed()
+}</code></pre>
+            </div>
+
+            <!-- Common Concurrency Patterns -->
+            <div class="subsection">
+                <h3 class="subsection-title">Common Concurrency Patterns</h3>
+
+                <div class="pattern-grid">
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Worker Pool</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>func workerPool(numWorkers int, jobs &lt;-chan Job, results chan&lt;- Result) {
+    var wg sync.WaitGroup
+    for i := 0; i &lt; numWorkers; i++ {
+        wg.Add(1)
+        go func() {
+            defer wg.Done()
+            for job := range jobs {
+                results &lt;- process(job)
+            }
+        }()
+    }
+    wg.Wait()
+    close(results)
+}</code></pre>
+                            <p>Fixed pool of goroutines consuming from a shared job channel. Controls resource usage.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Fan-In (Merge)</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>func fanIn(channels ...&lt;-chan string) &lt;-chan string {
+    merged := make(chan string)
+    var wg sync.WaitGroup
+    for _, ch := range channels {
+        wg.Add(1)
+        go func(c &lt;-chan string) {
+            defer wg.Done()
+            for val := range c {
+                merged &lt;- val
+            }
+        }(ch)
+    }
+    go func() {
+        wg.Wait()
+        close(merged)
+    }()
+    return merged
+}</code></pre>
+                            <p>Merge multiple channels into one. Collects results from parallel producers.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Pipeline</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>func generate(nums ...int) &lt;-chan int {
+    out := make(chan int)
+    go func() {
+        for _, n := range nums {
+            out &lt;- n
+        }
+        close(out)
+    }()
+    return out
+}
+
+func square(in &lt;-chan int) &lt;-chan int {
+    out := make(chan int)
+    go func() {
+        for n := range in {
+            out &lt;- n * n
+        }
+        close(out)
+    }()
+    return out
+}
+
+// Usage: compose stages
+for v := range square(square(generate(2, 3))) {
+    fmt.Println(v)  // 16, 81
+}</code></pre>
+                            <p>Chain processing stages via channels. Each stage reads from the previous and writes to the next.</p>
+                        </div>
+                    </div>
+
+                    <div class="pattern-card">
+                        <div class="pattern-card-header">
+                            <h4>Semaphore</h4>
+                        </div>
+                        <div class="pattern-card-body">
+                            <pre><code>// Limit concurrent operations
+sem := make(chan struct{}, 10) // max 10
+
+for _, url := range urls {
+    sem &lt;- struct{}{}  // acquire
+    go func(u string) {
+        defer func() { &lt;-sem }() // release
+        fetch(u)
+    }(url)
+}
+
+// Fill semaphore to wait for all
+for i := 0; i &lt; cap(sem); i++ {
+    sem &lt;- struct{}{}
+}</code></pre>
+                            <p>Buffered channel as a counting semaphore. Limits concurrency to N simultaneous operations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gotchas -->
+            <div class="subsection">
+                <h3 class="subsection-title">Common Gotchas</h3>
+
+                <div class="comparison">
+                    <div class="comparison-box bad">
+                        <div class="comparison-label">Bug: Loop Variable Capture (pre Go 1.22)</div>
+                        <pre><code>for _, url := range urls {
+    go func() {
+        fetch(url) // all goroutines
+                   // see last url!
+    }()
+}</code></pre>
+                    </div>
+                    <div class="comparison-box good">
+                        <div class="comparison-label">Fix: Pass as Argument</div>
+                        <pre><code>for _, url := range urls {
+    go func(u string) {
+        fetch(u)   // each gets
+                   // its own copy
+    }(url)
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">Go 1.22 Loop Variable Fix</span>
+                    Starting in Go 1.22, loop variables are per-iteration, not per-loop. The left-side bug is fixed automatically in Go 1.22+. However, passing values as function arguments remains a clear, explicit pattern that works in all versions.
+                </div>
+
+                <div class="comparison">
+                    <div class="comparison-box bad">
+                        <div class="comparison-label">Bug: Goroutine Leak</div>
+                        <pre><code>ch := make(chan int)
+go func() {
+    result := compute()
+    ch &lt;- result // blocks forever
+               // if nobody reads ch
+}()
+// forgot to &lt;-ch</code></pre>
+                    </div>
+                    <div class="comparison-box good">
+                        <div class="comparison-label">Fix: Use Context for Cancellation</div>
+                        <pre><code>ctx, cancel := context.WithTimeout(
+    context.Background(),
+    5*time.Second,
+)
+defer cancel()
+select {
+case result := &lt;-ch:
+    use(result)
+case &lt;-ctx.Done():
+    log.Println("timed out")
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 05: ERROR HANDLING
+         ============================================ -->
+    <section id="errors" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">05</div>
+                <h2 class="section-title">Error Handling</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Go treats errors as values. Master the error interface, wrapping, sentinel errors, and best practices.</p>
+            </div>
+
+            <!-- The error Interface -->
+            <div class="subsection">
+                <h3 class="subsection-title">The error Interface</h3>
+                <p>In Go, errors are ordinary values that implement the built-in <code>error</code> interface. There are no exceptions, no try/catch. Errors are returned and checked explicitly.</p>
+
+                <pre><code>// The built-in error interface
+type error interface {
+    Error() string
+}
+
+// Functions return errors as the last return value
+func readFile(path string) ([]byte, error) {
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return nil, err
+    }
+    return data, nil
+}
+
+// Callers check errors immediately
+data, err := readFile("config.yaml")
+if err != nil {
+    log.Fatalf("cannot read config: %v", err)
+}</code></pre>
+            </div>
+
+            <!-- Creating Errors -->
+            <div class="subsection">
+                <h3 class="subsection-title">Creating Errors: errors.New and fmt.Errorf</h3>
+
+                <pre><code>import (
+    "errors"
+    "fmt"
+)
+
+// Simple static error message
+err := errors.New("connection refused")
+
+// Formatted error with context
+err := fmt.Errorf("user %q not found in database", username)
+
+// Wrapping an underlying error with %w (Go 1.13+)
+data, err := os.ReadFile(path)
+if err != nil {
+    return fmt.Errorf("loading config %s: %w", path, err)
+}
+// The resulting error chain:
+// "loading config app.yaml: open app.yaml: no such file or directory"</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">%w vs %v</span>
+                    Use <code>%w</code> to wrap an error so callers can unwrap and inspect it with <code>errors.Is</code> or <code>errors.As</code>. Use <code>%v</code> when you want to include the error text but intentionally break the chain so callers cannot inspect the underlying error.
+                </div>
+            </div>
+
+            <!-- Inspecting Errors -->
+            <div class="subsection">
+                <h3 class="subsection-title">errors.Is, errors.As, errors.Unwrap</h3>
+
+                <pre><code>// ── errors.Is — check for a specific error value in the chain ──
+if errors.Is(err, os.ErrNotExist) {
+    fmt.Println("file does not exist")
+}
+
+if errors.Is(err, context.DeadlineExceeded) {
+    fmt.Println("operation timed out")
+}
+
+// errors.Is walks the entire wrap chain
+wrapped := fmt.Errorf("outer: %w", fmt.Errorf("inner: %w", os.ErrPermission))
+errors.Is(wrapped, os.ErrPermission) // true
+
+// ── errors.As — extract a specific error type from the chain ──
+var pathErr *os.PathError
+if errors.As(err, &amp;pathErr) {
+    fmt.Println("failed path:", pathErr.Path)
+    fmt.Println("operation:", pathErr.Op)
+}
+
+var netErr *net.OpError
+if errors.As(err, &amp;netErr) {
+    fmt.Println("net op:", netErr.Op)
+}
+
+// ── errors.Unwrap — get the next error in the chain ──
+inner := errors.Unwrap(err)          // nil if not wrapped</code></pre>
+            </div>
+
+            <!-- Custom Error Types -->
+            <div class="subsection">
+                <h3 class="subsection-title">Custom Error Types</h3>
+
+                <pre><code>// Custom error type with structured data
+type ValidationError struct {
+    Field   string
+    Message string
+    Value   any
+}
+
+func (e *ValidationError) Error() string {
+    return fmt.Sprintf("validation failed on %s: %s (got %v)",
+        e.Field, e.Message, e.Value)
+}
+
+func validateAge(age int) error {
+    if age &lt; 0 || age &gt; 150 {
+        return &amp;ValidationError{
+            Field:   "age",
+            Message: "must be between 0 and 150",
+            Value:   age,
+        }
+    }
+    return nil
+}
+
+// Callers can extract the structured error
+err := validateAge(-5)
+var ve *ValidationError
+if errors.As(err, &amp;ve) {
+    fmt.Printf("bad field: %s, value: %v\n", ve.Field, ve.Value)
+}
+
+// Custom error with wrapping (implements Unwrap)
+type AppError struct {
+    Code    int
+    Message string
+    Err     error
+}
+
+func (e *AppError) Error() string {
+    return fmt.Sprintf("[%d] %s: %v", e.Code, e.Message, e.Err)
+}
+
+func (e *AppError) Unwrap() error {
+    return e.Err
+}</code></pre>
+            </div>
+
+            <!-- Sentinel Errors vs Error Types -->
+            <div class="subsection">
+                <h3 class="subsection-title">Sentinel Errors vs Error Types</h3>
+
+                <div class="comparison">
+                    <div class="comparison-box good">
+                        <div class="comparison-label">Sentinel Errors</div>
+                        <pre><code>// Package-level error values
+var (
+    ErrNotFound   = errors.New("not found")
+    ErrForbidden  = errors.New("forbidden")
+    ErrConflict   = errors.New("conflict")
+)
+
+// Check with errors.Is
+if errors.Is(err, ErrNotFound) {
+    w.WriteHeader(404)
+}</code></pre>
+                    </div>
+                    <div class="comparison-box good">
+                        <div class="comparison-label">Error Types</div>
+                        <pre><code>// Structured error types
+type NotFoundError struct {
+    Resource string
+    ID       string
+}
+func (e *NotFoundError) Error() string {
+    return fmt.Sprintf("%s %s not found",
+        e.Resource, e.ID)
+}
+// Check with errors.As
+var nfe *NotFoundError
+if errors.As(err, &amp;nfe) {
+    log.Printf("missing: %s", nfe.ID)
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Approach</th>
+                                <th>Use When</th>
+                                <th>Check With</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Sentinel errors</strong></td>
+                                <td>The condition matters, but no extra data is needed</td>
+                                <td><code>errors.Is(err, ErrNotFound)</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Error types</strong></td>
+                                <td>Callers need structured data from the error</td>
+                                <td><code>errors.As(err, &amp;target)</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Opaque errors</strong></td>
+                                <td>Callers only need to know if it failed</td>
+                                <td><code>err != nil</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Error Wrapping Chains -->
+            <div class="subsection">
+                <h3 class="subsection-title">Error Wrapping Chains</h3>
+                <p>Wrap errors at each layer to build a trail of context. This creates a chain that <code>errors.Is</code> and <code>errors.As</code> can walk.</p>
+
+                <pre><code>// Layer 1: Repository
+func (r *UserRepo) FindByID(id string) (*User, error) {
+    row := r.db.QueryRow("SELECT ... WHERE id = $1", id)
+    if err := row.Scan(&amp;user); err != nil {
+        if errors.Is(err, sql.ErrNoRows) {
+            return nil, ErrNotFound
+        }
+        return nil, fmt.Errorf("query user %s: %w", id, err)
+    }
+    return &amp;user, nil
+}
+
+// Layer 2: Service
+func (s *UserService) GetProfile(id string) (*Profile, error) {
+    user, err := s.repo.FindByID(id)
+    if err != nil {
+        return nil, fmt.Errorf("get profile: %w", err)
+    }
+    return buildProfile(user), nil
+}
+
+// Layer 3: Handler
+func (h *Handler) HandleGetProfile(w http.ResponseWriter, r *http.Request) {
+    profile, err := h.svc.GetProfile(userID)
+    if err != nil {
+        if errors.Is(err, ErrNotFound) {
+            http.Error(w, "user not found", http.StatusNotFound)
+            return
+        }
+        http.Error(w, "internal error", http.StatusInternalServerError)
+        return
+    }
+    json.NewEncoder(w).Encode(profile)
+}
+
+// Full error message: "get profile: query user abc123: connection refused"
+// errors.Is(err, ErrNotFound) works through the entire chain</code></pre>
+            </div>
+
+            <!-- Best Practices -->
+            <div class="subsection">
+                <h3 class="subsection-title">Best Practices</h3>
+
+                <ul>
+                    <li><strong>Always check errors.</strong> Never use <code>_</code> to discard an error unless you can genuinely justify why failure is acceptable.</li>
+                    <li><strong>Add context when wrapping.</strong> Each layer should add what it was trying to do: <code>fmt.Errorf("parsing config: %w", err)</code>.</li>
+                    <li><strong>Do not log and return.</strong> Either handle the error (log + recover) or wrap and return it. Doing both creates duplicate log entries.</li>
+                    <li><strong>Use sentinel errors for conditions.</strong> Export package-level <code>var ErrXxx = errors.New("...")</code> for errors callers need to check.</li>
+                    <li><strong>Return early.</strong> Handle the error case first and return, keeping the happy path un-indented.</li>
+                    <li><strong>Avoid panic in libraries.</strong> Reserve <code>panic</code> for truly unrecoverable states (programmer errors). Libraries should return errors.</li>
+                    <li><strong>Wrap at boundaries.</strong> When calling into another package, wrap with context. When returning from a public API, decide whether to expose the inner error chain.</li>
+                </ul>
+
+                <div class="comparison">
+                    <div class="comparison-box bad">
+                        <div class="comparison-label">Anti-Pattern: Log and Return</div>
+                        <pre><code>if err != nil {
+    log.Println("failed:", err)
+    return err  // caller logs again!
+}</code></pre>
+                    </div>
+                    <div class="comparison-box good">
+                        <div class="comparison-label">Correct: Wrap and Return</div>
+                        <pre><code>if err != nil {
+    return fmt.Errorf("connecting to db: %w", err)
+}
+// let the top-level handler decide to log</code></pre>
+                    </div>
+                </div>
+
+                <div class="comparison">
+                    <div class="comparison-box bad">
+                        <div class="comparison-label">Anti-Pattern: Deep Nesting</div>
+                        <pre><code>data, err := fetch()
+if err == nil {
+    parsed, err := parse(data)
+    if err == nil {
+        // happy path buried deep
+    }
+}</code></pre>
+                    </div>
+                    <div class="comparison-box good">
+                        <div class="comparison-label">Correct: Early Returns</div>
+                        <pre><code>data, err := fetch()
+if err != nil {
+    return err
+}
+parsed, err := parse(data)
+if err != nil {
+    return err
+}
+// happy path at top level</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 06: MODULES & TOOLING (Placeholder)
+         ============================================ -->
+    <section id="modules" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">06</div>
+                <h2 class="section-title">Modules &amp; Tooling</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Go modules are the standard for dependency management. Master go.mod, workspaces, cross-compilation, and the essential toolchain.</p>
+            </div>
+
+            <!-- go.mod Structure -->
+            <div class="subsection">
+                <h3 class="subsection-title">go.mod Structure</h3>
+                <p>Every Go project starts with a <code>go.mod</code> file at the module root. It declares the module path, Go version, and all dependencies.</p>
+
+                <pre><code>// go.mod — the module manifest
+module github.com/yourname/myproject
+
+go 1.23
+
+// Direct dependencies
+require (
+    github.com/gin-gonic/gin       v1.9.1
+    github.com/jackc/pgx/v5        v5.5.1
+    golang.org/x/sync              v0.6.0
+)
+
+// Indirect dependencies (managed automatically by go mod tidy)
+require (
+    github.com/bytedance/sonic     v1.10.2  // indirect
+    golang.org/x/crypto            v0.18.0  // indirect
+    golang.org/x/text              v0.14.0  // indirect
+)
+
+// Replace a dependency with a local copy or fork
+replace github.com/broken/pkg => ../my-local-fix
+
+// Replace with a specific fork
+replace github.com/original/lib => github.com/myfork/lib v1.2.3
+
+// Retract versions that should not be used
+retract (
+    v1.0.0 // Published with critical bug
+    [v1.1.0, v1.2.0] // Accidental range with breaking changes
+)</code></pre>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Directive</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>module</code></td>
+                                <td>Declares the module's import path (usually a repository URL)</td>
+                            </tr>
+                            <tr>
+                                <td><code>go</code></td>
+                                <td>Minimum Go version required. Enables language features up to that version</td>
+                            </tr>
+                            <tr>
+                                <td><code>require</code></td>
+                                <td>Lists dependencies with their minimum version (MVS — Minimum Version Selection)</td>
+                            </tr>
+                            <tr>
+                                <td><code>replace</code></td>
+                                <td>Redirects a module to a fork, local path, or different version</td>
+                            </tr>
+                            <tr>
+                                <td><code>exclude</code></td>
+                                <td>Prevents a specific module version from being used</td>
+                            </tr>
+                            <tr>
+                                <td><code>retract</code></td>
+                                <td>Marks versions of your own module that should not be used</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Module Commands -->
+            <div class="subsection">
+                <h3 class="subsection-title">Module Commands</h3>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>go mod init &lt;path&gt;</code></td>
+                                <td>Initialize a new module, creating go.mod</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod tidy</code></td>
+                                <td>Add missing and remove unused dependencies. Run after changing imports</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod vendor</code></td>
+                                <td>Copy dependencies into a <code>vendor/</code> directory for offline builds</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod download</code></td>
+                                <td>Download modules to local cache without building</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod graph</code></td>
+                                <td>Print the module dependency graph</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod why &lt;pkg&gt;</code></td>
+                                <td>Explain why a package is needed (shortest dependency chain)</td>
+                            </tr>
+                            <tr>
+                                <td><code>go mod edit -json</code></td>
+                                <td>Print go.mod as JSON. Also supports <code>-require</code>, <code>-replace</code>, <code>-dropreplace</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>go get &lt;pkg&gt;@v1.2.3</code></td>
+                                <td>Add or upgrade a dependency to a specific version</td>
+                            </tr>
+                            <tr>
+                                <td><code>go get &lt;pkg&gt;@latest</code></td>
+                                <td>Upgrade to the latest version</td>
+                            </tr>
+                            <tr>
+                                <td><code>go get -u ./...</code></td>
+                                <td>Update all dependencies to their latest minor/patch versions</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code># Common workflow: start a new project
+mkdir myproject &amp;&amp; cd myproject
+go mod init github.com/yourname/myproject
+
+# Add a dependency (automatically updates go.mod and go.sum)
+go get github.com/gin-gonic/gin@latest
+
+# Clean up after removing imports
+go mod tidy
+
+# Check why a dependency exists
+go mod why golang.org/x/crypto
+
+# Vendor dependencies for reproducible builds
+go mod vendor
+go build -mod=vendor ./...</code></pre>
+            </div>
+
+            <!-- Semantic Versioning -->
+            <div class="subsection">
+                <h3 class="subsection-title">Semantic Versioning</h3>
+                <p>Go modules enforce <strong>semantic versioning</strong> (semver). The import compatibility rule is fundamental: <em>"If an old package and a new package have the same import path, the new package must be backward-compatible with the old package."</em></p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Version Range</th>
+                                <th>Rules</th>
+                                <th>Import Path</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge badge-forest">v0.x.x</span></td>
+                                <td>Unstable / pre-release. No compatibility guarantees. Breaking changes allowed</td>
+                                <td><code>github.com/user/pkg</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-gold">v1.x.x</span></td>
+                                <td>Stable. Patch and minor versions must be backward-compatible</td>
+                                <td><code>github.com/user/pkg</code></td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge badge-burgundy">v2+</span></td>
+                                <td>Major version bump. May contain breaking changes. Requires version suffix in path</td>
+                                <td><code>github.com/user/pkg/v2</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code>// Importing different major versions of the same module
+import (
+    v1 "github.com/user/pkg"       // v1.x.x
+    v2 "github.com/user/pkg/v2"    // v2.x.x — different import path
+)
+
+// In go.mod, major version suffix is part of the module path
+require github.com/jackc/pgx/v5 v5.5.1</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">Major Version Paths</span>
+                    For v2 and above, the major version must appear in both the <code>module</code> directive in go.mod and in all import paths. This allows v1 and v2 to coexist in the same build.
+                </div>
+            </div>
+
+            <!-- Workspaces -->
+            <div class="subsection">
+                <h3 class="subsection-title">Workspaces (go.work)</h3>
+                <p>Go workspaces (Go 1.18+) let you work on multiple modules simultaneously without <code>replace</code> directives. Ideal for multi-module repos or developing a library alongside its consumer.</p>
+
+                <pre><code>// go.work — workspace manifest
+go 1.23
+
+use (
+    ./api
+    ./shared
+    ./worker
+)</code></pre>
+
+                <pre><code># Initialize a workspace
+go work init ./api ./shared ./worker
+
+# Add another module to the workspace
+go work use ./newmodule
+
+# Sync workspace with module dependencies
+go work sync
+
+# Build all modules in the workspace
+go build ./...</code></pre>
+
+                <div class="alert alert-warning">
+                    <span class="alert-title">Don't Commit go.work</span>
+                    The <code>go.work</code> file is typically for local development. Add it to <code>.gitignore</code> unless your entire repository is a structured multi-module workspace. CI/CD should use <code>go.mod</code> with proper versioned dependencies.
+                </div>
+            </div>
+
+            <!-- Build & Cross-Compilation -->
+            <div class="subsection">
+                <h3 class="subsection-title">Build &amp; Cross-Compilation</h3>
+                <p>Go compiles to static binaries and natively supports cross-compilation. Set <code>GOOS</code> and <code>GOARCH</code> environment variables to target any supported platform.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>GOOS</th>
+                                <th>GOARCH</th>
+                                <th>Target</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>linux</code></td>
+                                <td><code>amd64</code></td>
+                                <td>Linux x86-64 (servers, containers)</td>
+                            </tr>
+                            <tr>
+                                <td><code>linux</code></td>
+                                <td><code>arm64</code></td>
+                                <td>Linux ARM64 (AWS Graviton, RPi 4)</td>
+                            </tr>
+                            <tr>
+                                <td><code>darwin</code></td>
+                                <td><code>arm64</code></td>
+                                <td>macOS Apple Silicon (M1/M2/M3/M4)</td>
+                            </tr>
+                            <tr>
+                                <td><code>darwin</code></td>
+                                <td><code>amd64</code></td>
+                                <td>macOS Intel</td>
+                            </tr>
+                            <tr>
+                                <td><code>windows</code></td>
+                                <td><code>amd64</code></td>
+                                <td>Windows x86-64</td>
+                            </tr>
+                            <tr>
+                                <td><code>js</code></td>
+                                <td><code>wasm</code></td>
+                                <td>WebAssembly</td>
+                            </tr>
+                            <tr>
+                                <td><code>wasip1</code></td>
+                                <td><code>wasm</code></td>
+                                <td>WASI Preview 1</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code># Cross-compile for Linux from any OS
+GOOS=linux GOARCH=amd64 go build -o myapp-linux ./cmd/myapp
+
+# Build for macOS Apple Silicon
+GOOS=darwin GOARCH=arm64 go build -o myapp-macos ./cmd/myapp
+
+# Build for Windows
+GOOS=windows GOARCH=amd64 go build -o myapp.exe ./cmd/myapp
+
+# List all supported platforms
+go tool dist list
+
+# Static binary with no CGO (important for containers)
+CGO_ENABLED=0 GOOS=linux go build -o myapp ./cmd/myapp</code></pre>
+
+                <p><strong>Build tags</strong> conditionally include files in a build based on OS, architecture, or custom constraints.</p>
+
+                <pre><code>//go:build linux &amp;&amp; amd64
+// +build linux,amd64    (old syntax, still works)
+
+package mypackage
+
+// This file is only compiled on linux/amd64
+
+//go:build !windows
+// This file is compiled on every OS except Windows
+
+//go:build integration
+// Custom tag — only built with: go test -tags=integration ./...</code></pre>
+
+                <p><strong>ldflags</strong> inject values at build time, commonly used for version information.</p>
+
+                <pre><code>// main.go
+package main
+
+var (
+    version = "dev"
+    commit  = "none"
+    date    = "unknown"
+)
+
+func main() {
+    fmt.Printf("myapp %s (commit %s, built %s)\n", version, commit, date)
+}</code></pre>
+
+                <pre><code># Inject version info at build time
+go build -ldflags "\
+  -X main.version=1.2.3 \
+  -X main.commit=$(git rev-parse --short HEAD) \
+  -X main.date=$(date -u +%Y-%m-%dT%H:%M:%SZ) \
+  -s -w" \
+  -o myapp ./cmd/myapp
+
+# -s  strips symbol table
+# -w  strips DWARF debug info
+# Both reduce binary size</code></pre>
+            </div>
+
+            <!-- Essential Tools -->
+            <div class="subsection">
+                <h3 class="subsection-title">Essential Tools</h3>
+
+                <div class="command-grid">
+                    <div class="command-card">
+                        <h4>go fmt / gofmt</h4>
+                        <p>Canonical formatting. Tabs for indentation, spaces for alignment. Non-negotiable in Go.</p>
+                        <pre><code># Format all files
+go fmt ./...
+
+# Format with simplifications
+gofmt -s -w .</code></pre>
+                    </div>
+                    <div class="command-card">
+                        <h4>go vet</h4>
+                        <p>Static analysis that catches bugs the compiler misses: printf format mismatches, unreachable code, suspicious constructs.</p>
+                        <pre><code># Vet all packages
+go vet ./...
+
+# Specific analyzer only
+go vet -printf ./...</code></pre>
+                    </div>
+                    <div class="command-card">
+                        <h4>go doc</h4>
+                        <p>Browse documentation from the command line. Works for any installed package.</p>
+                        <pre><code># Package overview
+go doc fmt
+
+# Specific function
+go doc fmt.Fprintf
+
+# Show source code
+go doc -src fmt.Fprintf</code></pre>
+                    </div>
+                    <div class="command-card">
+                        <h4>go generate</h4>
+                        <p>Run code generation commands embedded in source files as <code>//go:generate</code> comments.</p>
+                        <pre><code>//go:generate stringer -type=Color
+//go:generate mockgen -source=repo.go
+
+# Run all generators
+go generate ./...</code></pre>
+                    </div>
+                </div>
+
+                <p><strong>golangci-lint</strong> is the standard meta-linter. It runs dozens of linters in parallel and is much faster than running them individually.</p>
+
+                <pre><code># Install
+go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Run with defaults (includes govet, errcheck, staticcheck, etc.)
+golangci-lint run ./...
+
+# Run specific linters only
+golangci-lint run --enable=gosec,prealloc ./...</code></pre>
+
+                <pre><code># .golangci.yml — project configuration
+linters:
+  enable:
+    - govet
+    - errcheck
+    - staticcheck
+    - gosec
+    - gocritic
+    - prealloc
+    - exhaustive
+  disable:
+    - wsl
+    - godox
+
+linters-settings:
+  govet:
+    enable-all: true
+  errcheck:
+    check-type-assertions: true
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - style
+      - performance
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - errcheck
+        - gosec</code></pre>
+
+                <p><strong>Race detector</strong> finds data races at runtime. Essential for concurrent code.</p>
+
+                <pre><code># Run tests with race detection (slower but catches races)
+go test -race ./...
+
+# Build with race detector embedded
+go build -race -o myapp ./cmd/myapp
+
+# Race detector works at runtime — exercise concurrent paths in tests</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">CI Pipeline Essentials</span>
+                    A solid Go CI pipeline runs these in order: <code>go fmt</code> (check formatting), <code>go vet</code> (catch bugs), <code>golangci-lint run</code> (extended linting), <code>go test -race -cover ./...</code> (tests with race detection and coverage).
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 07: TESTING (Placeholder)
+         ============================================ -->
+    <section id="testing" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">07</div>
+                <h2 class="section-title">Testing</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Go has a powerful built-in testing framework. No external test runner needed — just <code>go test</code>.</p>
+            </div>
+
+            <!-- Test Basics -->
+            <div class="subsection">
+                <h3 class="subsection-title">Test Basics</h3>
+                <p>Test files live alongside the code they test, named <code>*_test.go</code>. Test functions start with <code>Test</code> and receive a <code>*testing.T</code>.</p>
+
+                <pre><code>// math.go
+package math
+
+func Add(a, b int) int {
+    return a + b
+}
+
+func Divide(a, b float64) (float64, error) {
+    if b == 0 {
+        return 0, errors.New("division by zero")
+    }
+    return a / b, nil
+}</code></pre>
+
+                <pre><code>// math_test.go
+package math
+
+import "testing"
+
+func TestAdd(t *testing.T) {
+    got := Add(2, 3)
+    want := 5
+    if got != want {
+        t.Errorf("Add(2, 3) = %d, want %d", got, want)
+    }
+}
+
+func TestDivide(t *testing.T) {
+    got, err := Divide(10, 2)
+    if err != nil {
+        t.Fatalf("unexpected error: %v", err)
+    }
+    if got != 5.0 {
+        t.Errorf("Divide(10, 2) = %f, want 5.0", got)
+    }
+}
+
+func TestDivideByZero(t *testing.T) {
+    _, err := Divide(10, 0)
+    if err == nil {
+        t.Fatal("expected error for division by zero, got nil")
+    }
+}</code></pre>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Method</th>
+                                <th>Behavior</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>t.Error(args...)</code></td>
+                                <td>Log failure and continue running the test</td>
+                            </tr>
+                            <tr>
+                                <td><code>t.Errorf(format, args...)</code></td>
+                                <td>Formatted failure message, continue running</td>
+                            </tr>
+                            <tr>
+                                <td><code>t.Fatal(args...)</code></td>
+                                <td>Log failure and stop the test immediately</td>
+                            </tr>
+                            <tr>
+                                <td><code>t.Fatalf(format, args...)</code></td>
+                                <td>Formatted failure, stop immediately</td>
+                            </tr>
+                            <tr>
+                                <td><code>t.Log(args...)</code></td>
+                                <td>Log info (only shown with <code>-v</code> flag or on failure)</td>
+                            </tr>
+                            <tr>
+                                <td><code>t.Skip(args...)</code></td>
+                                <td>Skip this test (e.g., missing dependency)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code># Run all tests in current module
+go test ./...
+
+# Run tests in a specific package
+go test ./internal/auth/
+
+# Verbose output (shows t.Log, pass/fail per test)
+go test -v ./...
+
+# Run only tests matching a regex
+go test -run TestDivide ./...
+
+# Short mode (tests can check testing.Short() to skip long tests)
+go test -short ./...</code></pre>
+            </div>
+
+            <!-- Table-Driven Tests -->
+            <div class="subsection">
+                <h3 class="subsection-title">Table-Driven Tests</h3>
+                <p>The idiomatic Go testing pattern. Define test cases as a slice of structs and iterate with subtests. This makes it easy to add cases and produces clear output.</p>
+
+                <pre><code>func TestAdd(t *testing.T) {
+    tests := []struct {
+        name string
+        a, b int
+        want int
+    }{
+        {"positive numbers", 2, 3, 5},
+        {"negative numbers", -1, -2, -3},
+        {"mixed signs", -1, 5, 4},
+        {"zeros", 0, 0, 0},
+        {"large numbers", 1000000, 2000000, 3000000},
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := Add(tt.a, tt.b)
+            if got != tt.want {
+                t.Errorf("Add(%d, %d) = %d, want %d",
+                    tt.a, tt.b, got, tt.want)
+            }
+        })
+    }
+}</code></pre>
+
+                <pre><code>// Table-driven test with error cases
+func TestDivide(t *testing.T) {
+    tests := []struct {
+        name    string
+        a, b    float64
+        want    float64
+        wantErr bool
+    }{
+        {"normal division", 10, 2, 5, false},
+        {"integer result", 9, 3, 3, false},
+        {"fractional result", 1, 3, 0.3333333333333333, false},
+        {"divide by zero", 10, 0, 0, true},
+        {"zero numerator", 0, 5, 0, false},
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got, err := Divide(tt.a, tt.b)
+            if (err != nil) != tt.wantErr {
+                t.Fatalf("Divide(%v, %v) error = %v, wantErr %v",
+                    tt.a, tt.b, err, tt.wantErr)
+            }
+            if !tt.wantErr &amp;&amp; got != tt.want {
+                t.Errorf("Divide(%v, %v) = %v, want %v",
+                    tt.a, tt.b, got, tt.want)
+            }
+        })
+    }
+}
+
+// Run a specific subtest:
+// go test -run TestDivide/divide_by_zero ./...</code></pre>
+            </div>
+
+            <!-- Test Helpers -->
+            <div class="subsection">
+                <h3 class="subsection-title">Test Helpers</h3>
+
+                <pre><code>// t.Helper() marks a function as a test helper.
+// When it fails, the error points to the caller, not the helper.
+func assertEqual(t *testing.T, got, want int) {
+    t.Helper()
+    if got != want {
+        t.Errorf("got %d, want %d", got, want)
+    }
+}
+
+func TestStuff(t *testing.T) {
+    assertEqual(t, Add(1, 2), 3)  // failure points here, not inside assertEqual
+}
+
+// t.Cleanup() registers a function to run when the test finishes.
+// Cleanups run in LIFO order, even if the test fails or panics.
+func TestWithTempDir(t *testing.T) {
+    dir := t.TempDir()  // automatically cleaned up
+    // ... use dir ...
+}
+
+func setupDatabase(t *testing.T) *sql.DB {
+    t.Helper()
+    db, err := sql.Open("sqlite3", ":memory:")
+    if err != nil {
+        t.Fatalf("opening db: %v", err)
+    }
+    t.Cleanup(func() {
+        db.Close()
+    })
+    return db
+}</code></pre>
+
+                <p>The <code>testdata/</code> directory is a special convention. Go tooling ignores it during builds, making it perfect for test fixtures.</p>
+
+                <pre><code>// testdata/ directory — ignored by go build, perfect for fixtures
+// mypackage/
+//   parser.go
+//   parser_test.go
+//   testdata/
+//     valid_input.json
+//     expected_output.json
+//     edge_case.json
+
+func TestParser(t *testing.T) {
+    input, err := os.ReadFile("testdata/valid_input.json")
+    if err != nil {
+        t.Fatalf("reading test fixture: %v", err)
+    }
+
+    got, err := Parse(input)
+    if err != nil {
+        t.Fatalf("Parse() error: %v", err)
+    }
+
+    want, err := os.ReadFile("testdata/expected_output.json")
+    if err != nil {
+        t.Fatalf("reading expected output: %v", err)
+    }
+
+    if !bytes.Equal(got, want) {
+        t.Errorf("output mismatch:\ngot:  %s\nwant: %s", got, want)
+    }
+}</code></pre>
+            </div>
+
+            <!-- Parallel Tests -->
+            <div class="subsection">
+                <h3 class="subsection-title">Parallel Tests</h3>
+                <p>Call <code>t.Parallel()</code> to run a test concurrently with other parallel tests. This can significantly speed up I/O-bound or slow test suites.</p>
+
+                <pre><code>func TestFetchUser(t *testing.T) {
+    t.Parallel()  // this test runs in parallel with other parallel tests
+
+    user, err := FetchUser("abc123")
+    if err != nil {
+        t.Fatalf("FetchUser: %v", err)
+    }
+    if user.Name == "" {
+        t.Error("expected non-empty name")
+    }
+}
+
+// Table-driven + parallel: capture the loop variable correctly
+func TestSlugify(t *testing.T) {
+    tests := []struct {
+        name  string
+        input string
+        want  string
+    }{
+        {"simple", "Hello World", "hello-world"},
+        {"special chars", "Go is #1!", "go-is-1"},
+        {"unicode", "Gopher Cafe", "gopher-cafe"},
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            t.Parallel()  // each subtest runs in parallel
+            got := Slugify(tt.input)
+            if got != tt.want {
+                t.Errorf("Slugify(%q) = %q, want %q",
+                    tt.input, got, tt.want)
+            }
+        })
+    }
+}</code></pre>
+
+                <div class="alert alert-warning">
+                    <span class="alert-title">Parallel Test Pitfalls</span>
+                    Parallel tests must not share mutable state. Each subtest should only use its own <code>tt</code> variable. Shared setup should use <code>sync.Once</code> or be done before calling <code>t.Parallel()</code>. Set max parallelism with <code>go test -parallel 4</code>.
+                </div>
+            </div>
+
+            <!-- Benchmarks -->
+            <div class="subsection">
+                <h3 class="subsection-title">Benchmarks</h3>
+                <p>Benchmark functions measure performance. They live in <code>_test.go</code> files and start with <code>Benchmark</code>.</p>
+
+                <pre><code>func BenchmarkAdd(b *testing.B) {
+    for b.Loop() {  // Go 1.24+: preferred over range b.N
+        Add(42, 58)
+    }
+}
+
+// Pre-1.24 style (still common)
+func BenchmarkAddClassic(b *testing.B) {
+    for i := 0; i &lt; b.N; i++ {
+        Add(42, 58)
+    }
+}
+
+// Benchmark with setup that shouldn't be timed
+func BenchmarkParse(b *testing.B) {
+    data, err := os.ReadFile("testdata/large.json")
+    if err != nil {
+        b.Fatalf("setup: %v", err)
+    }
+
+    b.ResetTimer()          // exclude setup time
+    b.ReportAllocs()        // report memory allocations
+
+    for b.Loop() {
+        Parse(data)
+    }
+}
+
+// Sub-benchmarks for comparing approaches
+func BenchmarkConcat(b *testing.B) {
+    b.Run("plus", func(b *testing.B) {
+        for b.Loop() {
+            _ = "hello" + " " + "world"
+        }
+    })
+    b.Run("fmt", func(b *testing.B) {
+        for b.Loop() {
+            _ = fmt.Sprintf("%s %s", "hello", "world")
+        }
+    })
+    b.Run("builder", func(b *testing.B) {
+        for b.Loop() {
+            var buf strings.Builder
+            buf.WriteString("hello")
+            buf.WriteString(" ")
+            buf.WriteString("world")
+            _ = buf.String()
+        }
+    })
+}</code></pre>
+
+                <pre><code># Run benchmarks (tests run too unless you filter)
+go test -bench=. ./...
+
+# Run only benchmarks, skip tests
+go test -bench=. -run=^$ ./...
+
+# Run specific benchmark
+go test -bench=BenchmarkConcat ./...
+
+# With memory stats
+go test -bench=. -benchmem ./...
+
+# Longer benchmark runs for more stable results
+go test -bench=. -benchtime=5s ./...
+
+# Compare benchmarks with benchstat
+go test -bench=. -count=10 ./... &gt; old.txt
+# ... make optimization ...
+go test -bench=. -count=10 ./... &gt; new.txt
+benchstat old.txt new.txt</code></pre>
+            </div>
+
+            <!-- Examples & Coverage -->
+            <div class="subsection">
+                <h3 class="subsection-title">Examples &amp; Coverage</h3>
+                <p>Example functions serve as both documentation and verified tests. They appear in <code>go doc</code> output and are executed during <code>go test</code>.</p>
+
+                <pre><code>// Example functions — verified documentation
+func ExampleAdd() {
+    fmt.Println(Add(2, 3))
+    // Output: 5
+}
+
+func ExampleDivide() {
+    result, err := Divide(10, 3)
+    if err != nil {
+        fmt.Println("error:", err)
+        return
+    }
+    fmt.Printf("%.2f\n", result)
+    // Output: 3.33
+}
+
+// Example for a specific method
+func ExampleUser_FullName() {
+    u := User{First: "Rob", Last: "Pike"}
+    fmt.Println(u.FullName())
+    // Output: Rob Pike
+}
+
+// Unordered output (for maps, goroutines, etc.)
+func ExampleKeys() {
+    m := map[string]int{"a": 1, "b": 2, "c": 3}
+    for _, k := range Keys(m) {
+        fmt.Println(k)
+    }
+    // Unordered output:
+    // a
+    // b
+    // c
+}</code></pre>
+
+                <pre><code># Run tests with coverage percentage
+go test -cover ./...
+
+# Generate a coverage profile
+go test -coverprofile=coverage.out ./...
+
+# View coverage in browser (opens HTML report)
+go tool cover -html=coverage.out
+
+# Show coverage per function
+go tool cover -func=coverage.out
+
+# Coverage for specific packages only
+go test -coverpkg=./internal/... -coverprofile=coverage.out ./...</code></pre>
+            </div>
+
+            <!-- Testify -->
+            <div class="subsection">
+                <h3 class="subsection-title">Testify</h3>
+                <p><code>github.com/stretchr/testify</code> is the most popular assertion library. It provides readable assertions, requirement checks, and mocking.</p>
+
+                <pre><code>import (
+    "testing"
+    "github.com/stretchr/testify/assert"
+    "github.com/stretchr/testify/require"
+)
+
+func TestUser(t *testing.T) {
+    // assert — logs failure but continues the test
+    assert.Equal(t, 5, Add(2, 3))
+    assert.NotNil(t, user)
+    assert.Contains(t, "hello world", "world")
+    assert.Len(t, items, 3)
+
+    // require — stops the test on failure (like t.Fatal)
+    user, err := GetUser("abc")
+    require.NoError(t, err)         // stop here if error
+    require.NotNil(t, user)         // stop here if nil
+    assert.Equal(t, "Alice", user.Name)  // continue even if this fails
+}</code></pre>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Assertion</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>assert.Equal(t, want, got)</code></td>
+                                <td>Deep equality check</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.NotEqual(t, a, b)</code></td>
+                                <td>Not equal</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.NoError(t, err)</code></td>
+                                <td>Error is nil</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.Error(t, err)</code></td>
+                                <td>Error is not nil</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.ErrorIs(t, err, target)</code></td>
+                                <td>Wraps <code>errors.Is</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.Nil(t, obj)</code></td>
+                                <td>Value is nil</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.NotNil(t, obj)</code></td>
+                                <td>Value is not nil</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.True(t, cond)</code></td>
+                                <td>Boolean is true</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.Contains(t, s, sub)</code></td>
+                                <td>String/slice/map contains element</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.Len(t, obj, n)</code></td>
+                                <td>Collection has length n</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.Empty(t, obj)</code></td>
+                                <td>String/slice/map is empty</td>
+                            </tr>
+                            <tr>
+                                <td><code>assert.JSONEq(t, want, got)</code></td>
+                                <td>JSON strings are semantically equal</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code>// Table-driven tests with testify
+func TestSlugify(t *testing.T) {
+    tests := []struct {
+        name  string
+        input string
+        want  string
+    }{
+        {"basic", "Hello World", "hello-world"},
+        {"special", "Go &amp; Rust!", "go-rust"},
+        {"spaces", "  trim me  ", "trim-me"},
+    }
+
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got := Slugify(tt.input)
+            assert.Equal(t, tt.want, got,
+                "Slugify(%q) should produce correct slug", tt.input)
+        })
+    }
+}</code></pre>
+
+                <pre><code>// Test suites with testify/suite
+import "github.com/stretchr/testify/suite"
+
+type UserServiceSuite struct {
+    suite.Suite
+    db  *sql.DB
+    svc *UserService
+}
+
+func (s *UserServiceSuite) SetupSuite() {
+    // Runs once before all tests in the suite
+    s.db = setupTestDB(s.T())
+    s.svc = NewUserService(s.db)
+}
+
+func (s *UserServiceSuite) TearDownSuite() {
+    s.db.Close()
+}
+
+func (s *UserServiceSuite) SetupTest() {
+    // Runs before each test — clean slate
+    s.db.Exec("DELETE FROM users")
+}
+
+func (s *UserServiceSuite) TestCreateUser() {
+    user, err := s.svc.Create("Alice", "alice@test.com")
+    s.Require().NoError(err)
+    s.Assert().Equal("Alice", user.Name)
+    s.Assert().NotZero(user.ID)
+}
+
+func (s *UserServiceSuite) TestGetUser() {
+    created, _ := s.svc.Create("Bob", "bob@test.com")
+    found, err := s.svc.GetByID(created.ID)
+    s.Require().NoError(err)
+    s.Assert().Equal("Bob", found.Name)
+}
+
+// Run the suite
+func TestUserServiceSuite(t *testing.T) {
+    suite.Run(t, new(UserServiceSuite))
+}</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">assert vs require</span>
+                    Use <code>require</code> for preconditions that must pass for the rest of the test to be meaningful (e.g., no error from setup). Use <code>assert</code> for the actual assertions you want to check — this lets you see all failures at once instead of stopping at the first one.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 08: STANDARD LIBRARY (Placeholder)
+         ============================================ -->
+    <section id="stdlib" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">08</div>
+                <h2 class="section-title">Standard Library</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Go's standard library is famously comprehensive. These are the packages you'll use in nearly every project.</p>
+            </div>
+
+            <!-- fmt -->
+            <div class="subsection">
+                <h3 class="subsection-title">fmt</h3>
+                <p>Formatted I/O. The <code>Printf</code> family is the workhorse for output, logging, and string building.</p>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Verb</th>
+                                <th>Description</th>
+                                <th>Example Output</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>%v</code></td>
+                                <td>Default format</td>
+                                <td><code>{Alice 30}</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%+v</code></td>
+                                <td>Default with field names</td>
+                                <td><code>{Name:Alice Age:30}</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%#v</code></td>
+                                <td>Go syntax representation</td>
+                                <td><code>main.User{Name:"Alice", Age:30}</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%T</code></td>
+                                <td>Type of the value</td>
+                                <td><code>main.User</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%d</code></td>
+                                <td>Integer (base 10)</td>
+                                <td><code>42</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%b</code></td>
+                                <td>Integer (base 2)</td>
+                                <td><code>101010</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%x</code></td>
+                                <td>Integer (base 16, lowercase)</td>
+                                <td><code>2a</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%s</code></td>
+                                <td>String</td>
+                                <td><code>hello</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%q</code></td>
+                                <td>Quoted string</td>
+                                <td><code>"hello"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%f</code></td>
+                                <td>Float (default precision)</td>
+                                <td><code>3.141593</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%.2f</code></td>
+                                <td>Float (2 decimal places)</td>
+                                <td><code>3.14</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%e</code></td>
+                                <td>Scientific notation</td>
+                                <td><code>3.141593e+00</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%p</code></td>
+                                <td>Pointer address</td>
+                                <td><code>0xc0000b4000</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>%w</code></td>
+                                <td>Wrap error (Errorf only)</td>
+                                <td>wraps for <code>errors.Is</code>/<code>errors.As</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code>// Print family
+fmt.Println("hello", "world")           // hello world\n
+fmt.Printf("name: %s, age: %d\n", name, age)
+fmt.Print("no newline")
+
+// Sprint family — return string instead of printing
+s := fmt.Sprintf("user %s (#%d)", name, id)
+msg := fmt.Sprintf("%.2f%%", 99.5)      // "99.50%"
+
+// Fprint family — write to any io.Writer
+fmt.Fprintf(os.Stderr, "error: %v\n", err)
+fmt.Fprintf(w, "HTTP response: %s", body)
+
+// Errorf — create formatted errors (with optional wrapping)
+err := fmt.Errorf("read config %s: %w", path, err)</code></pre>
+            </div>
+
+            <!-- strings & strconv -->
+            <div class="subsection">
+                <h3 class="subsection-title">strings &amp; strconv</h3>
+
+                <pre><code>import "strings"
+
+strings.Contains("seafood", "foo")      // true
+strings.HasPrefix("gopher", "go")       // true
+strings.HasSuffix("main.go", ".go")     // true
+
+strings.ToUpper("hello")                // "HELLO"
+strings.ToLower("HELLO")                // "hello"
+strings.TrimSpace("  hi  ")             // "hi"
+strings.Trim("***hi***", "*")           // "hi"
+
+strings.Split("a,b,c", ",")             // ["a", "b", "c"]
+strings.SplitN("a,b,c", ",", 2)         // ["a", "b,c"]
+strings.Join([]string{"a","b","c"}, "-") // "a-b-c"
+
+strings.Replace("oink oink", "oink", "moo", 1)  // "moo oink"
+strings.ReplaceAll("oink oink", "oink", "moo")  // "moo moo"
+
+strings.Count("cheese", "e")             // 3
+strings.Index("chicken", "ken")          // 4
+strings.Repeat("na", 4)                  // "nananana"
+
+// strings.Builder — efficient string concatenation
+var b strings.Builder
+for i := 0; i &lt; 100; i++ {
+    fmt.Fprintf(&amp;b, "item %d\n", i)
+}
+result := b.String()</code></pre>
+
+                <pre><code>import "strconv"
+
+// String ↔ Integer
+strconv.Itoa(42)                         // "42"
+n, err := strconv.Atoi("42")            // 42, nil
+n, err := strconv.Atoi("nope")          // 0, error
+
+// String ↔ Float
+f, err := strconv.ParseFloat("3.14", 64)  // 3.14, nil
+s := strconv.FormatFloat(3.14, 'f', 2, 64) // "3.14"
+
+// String ↔ Bool
+b, err := strconv.ParseBool("true")     // true, nil
+s := strconv.FormatBool(true)            // "true"
+
+// String ↔ Integer (with base and bit size)
+n, err := strconv.ParseInt("ff", 16, 64) // 255, nil
+s := strconv.FormatInt(255, 16)           // "ff"</code></pre>
+            </div>
+
+            <!-- io & bufio -->
+            <div class="subsection">
+                <h3 class="subsection-title">io &amp; bufio</h3>
+                <p>The <code>io.Reader</code> and <code>io.Writer</code> interfaces are the backbone of Go I/O. Nearly everything composes through them.</p>
+
+                <pre><code>// The two fundamental interfaces
+type Reader interface {
+    Read(p []byte) (n int, err error)
+}
+
+type Writer interface {
+    Write(p []byte) (n int, err error)
+}
+
+// Copy from any Reader to any Writer
+n, err := io.Copy(dst, src)          // e.g., file to HTTP response
+
+// Read everything into memory
+data, err := io.ReadAll(resp.Body)
+
+// Compose readers
+r := io.LimitReader(src, 1024*1024)  // read at most 1MB
+r := io.TeeReader(src, os.Stdout)    // read and tee to stdout
+
+// Pipe — synchronous in-memory pipe
+pr, pw := io.Pipe()
+go func() {
+    defer pw.Close()
+    json.NewEncoder(pw).Encode(data)
+}()
+// pr now streams the JSON as it's written</code></pre>
+
+                <pre><code>import "bufio"
+
+// Scanner — read line by line (default) or by custom split
+file, _ := os.Open("data.txt")
+defer file.Close()
+
+scanner := bufio.NewScanner(file)
+for scanner.Scan() {
+    line := scanner.Text()
+    fmt.Println(line)
+}
+if err := scanner.Err(); err != nil {
+    log.Fatal(err)
+}
+
+// Scanner with custom split function
+scanner.Split(bufio.ScanWords)  // split by words instead of lines
+
+// Buffered writer — reduces system calls
+w := bufio.NewWriter(file)
+fmt.Fprintf(w, "buffered write: %d\n", 42)
+w.Flush()  // don't forget to flush!</code></pre>
+            </div>
+
+            <!-- encoding/json -->
+            <div class="subsection">
+                <h3 class="subsection-title">encoding/json</h3>
+
+                <pre><code>type User struct {
+    ID        int       `json:"id"`
+    Name      string    `json:"name"`
+    Email     string    `json:"email,omitempty"`  // omit if empty
+    Password  string    `json:"-"`                // never marshal
+    CreatedAt time.Time `json:"created_at"`
+}
+
+// Marshal — struct → JSON bytes
+user := User{ID: 1, Name: "Alice", Email: "alice@test.com"}
+data, err := json.Marshal(user)
+// {"id":1,"name":"Alice","email":"alice@test.com","created_at":"..."}
+
+// Pretty print
+data, err := json.MarshalIndent(user, "", "  ")
+
+// Unmarshal — JSON bytes → struct
+var u User
+err := json.Unmarshal(data, &amp;u)
+
+// Unmarshal into a map (dynamic JSON)
+var m map[string]any
+err := json.Unmarshal(data, &amp;m)
+name := m["name"].(string)</code></pre>
+
+                <pre><code>// Streaming with json.Decoder (efficient for HTTP bodies, files)
+func decodeUsers(r io.Reader) ([]User, error) {
+    var users []User
+    dec := json.NewDecoder(r)
+    if err := dec.Decode(&amp;users); err != nil {
+        return nil, err
+    }
+    return users, nil
+}
+
+// In an HTTP handler
+func handleCreateUser(w http.ResponseWriter, r *http.Request) {
+    var user User
+    if err := json.NewDecoder(r.Body).Decode(&amp;user); err != nil {
+        http.Error(w, "invalid JSON", http.StatusBadRequest)
+        return
+    }
+    // ... process user ...
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(user)
+}
+
+// Custom marshaling
+type Status int
+
+const (
+    Active Status = iota
+    Inactive
+)
+
+func (s Status) MarshalJSON() ([]byte, error) {
+    names := map[Status]string{Active: "active", Inactive: "inactive"}
+    return json.Marshal(names[s])
+}
+
+func (s *Status) UnmarshalJSON(data []byte) error {
+    var name string
+    if err := json.Unmarshal(data, &amp;name); err != nil {
+        return err
+    }
+    switch name {
+    case "active":
+        *s = Active
+    case "inactive":
+        *s = Inactive
+    default:
+        return fmt.Errorf("unknown status: %s", name)
+    }
+    return nil
+}</code></pre>
+            </div>
+
+            <!-- net/http -->
+            <div class="subsection">
+                <h3 class="subsection-title">net/http</h3>
+                <p>Go's HTTP package is production-ready out of the box. Go 1.22+ added method-based routing to the default <code>ServeMux</code>.</p>
+
+                <pre><code>// Basic HTTP server (Go 1.22+ enhanced routing)
+mux := http.NewServeMux()
+
+// Method + path patterns (Go 1.22+)
+mux.HandleFunc("GET /users", listUsers)
+mux.HandleFunc("POST /users", createUser)
+mux.HandleFunc("GET /users/{id}", getUser)     // path parameter
+mux.HandleFunc("DELETE /users/{id}", deleteUser)
+
+// Path parameter extraction
+func getUser(w http.ResponseWriter, r *http.Request) {
+    id := r.PathValue("id")  // Go 1.22+
+    // ... look up user by id ...
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(user)
+}
+
+// Production server with timeouts
+server := &amp;http.Server{
+    Addr:         ":8080",
+    Handler:      mux,
+    ReadTimeout:  5 * time.Second,
+    WriteTimeout: 10 * time.Second,
+    IdleTimeout:  120 * time.Second,
+}
+
+log.Println("listening on :8080")
+log.Fatal(server.ListenAndServe())</code></pre>
+
+                <pre><code>// Middleware pattern
+func loggingMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        start := time.Now()
+        next.ServeHTTP(w, r)
+        log.Printf("%s %s %v", r.Method, r.URL.Path, time.Since(start))
+    })
+}
+
+// Apply middleware
+handler := loggingMiddleware(mux)</code></pre>
+
+                <pre><code>// HTTP client with timeout (never use http.DefaultClient in production)
+client := &amp;http.Client{
+    Timeout: 10 * time.Second,
+}
+
+// Simple GET
+resp, err := client.Get("https://api.example.com/data")
+if err != nil {
+    return fmt.Errorf("GET request: %w", err)
+}
+defer resp.Body.Close()
+
+if resp.StatusCode != http.StatusOK {
+    return fmt.Errorf("unexpected status: %d", resp.StatusCode)
+}
+
+var result Data
+if err := json.NewDecoder(resp.Body).Decode(&amp;result); err != nil {
+    return fmt.Errorf("decoding response: %w", err)
+}
+
+// POST with JSON body
+payload, _ := json.Marshal(user)
+resp, err := client.Post(
+    "https://api.example.com/users",
+    "application/json",
+    bytes.NewReader(payload),
+)
+
+// Custom request with headers
+req, err := http.NewRequestWithContext(ctx, "PUT", url, body)
+req.Header.Set("Authorization", "Bearer "+token)
+req.Header.Set("Content-Type", "application/json")
+resp, err := client.Do(req)</code></pre>
+
+                <div class="alert alert-warning">
+                    <span class="alert-title">Always Set Timeouts</span>
+                    The default <code>http.Client</code> and <code>http.Server</code> have <strong>no timeouts</strong>. In production, always configure <code>ReadTimeout</code>, <code>WriteTimeout</code>, and client <code>Timeout</code> to prevent resource leaks from slow or stalled connections.
+                </div>
+            </div>
+
+            <!-- slog -->
+            <div class="subsection">
+                <h3 class="subsection-title">slog (Go 1.21+)</h3>
+                <p>Structured logging in the standard library. Replaces <code>log</code> for any production application.</p>
+
+                <pre><code>import "log/slog"
+
+// Default text logger
+slog.Info("server started", "port", 8080)
+// 2024-01-15 10:30:00 INFO server started port=8080
+
+slog.Warn("slow query", "duration", time.Since(start), "query", q)
+slog.Error("request failed", "err", err, "method", r.Method)
+
+// JSON handler (for production / log aggregators)
+logger := slog.New(slog.NewJSONHandler(os.Stdout, &amp;slog.HandlerOptions{
+    Level: slog.LevelInfo,
+}))
+slog.SetDefault(logger)
+
+slog.Info("user created", "id", user.ID, "email", user.Email)
+// {"time":"2024-01-15T10:30:00Z","level":"INFO","msg":"user created","id":42,"email":"alice@test.com"}
+
+// Log levels
+slog.Debug("verbose detail")   // hidden at default level
+slog.Info("normal operation")
+slog.Warn("something unusual")
+slog.Error("something failed")</code></pre>
+
+                <pre><code>// Structured attributes and groups
+slog.Info("request",
+    slog.String("method", r.Method),
+    slog.String("path", r.URL.Path),
+    slog.Int("status", status),
+    slog.Duration("latency", duration),
+    slog.Group("user",
+        slog.Int("id", user.ID),
+        slog.String("role", user.Role),
+    ),
+)
+// ... "user":{"id":42,"role":"admin"} ...
+
+// Logger with persistent context (child loggers)
+reqLogger := slog.With("request_id", requestID, "user_id", userID)
+reqLogger.Info("processing order", "order_id", orderID)
+reqLogger.Error("payment failed", "err", err)
+
+// Dynamic log level
+var level slog.LevelVar
+level.Set(slog.LevelDebug)  // change at runtime
+
+handler := slog.NewJSONHandler(os.Stdout, &amp;slog.HandlerOptions{
+    Level: &amp;level,
+})</code></pre>
+            </div>
+
+            <!-- time -->
+            <div class="subsection">
+                <h3 class="subsection-title">time</h3>
+                <p>Go uses a unique reference time for formatting: <code>Mon Jan 2 15:04:05 MST 2006</code> (1/2 3:4:5 6 7). Memorize it by the mnemonic: 01/02 03:04:05 PM '06 -0700.</p>
+
+                <pre><code>import "time"
+
+// Current time
+now := time.Now()
+fmt.Println(now)  // 2024-01-15 10:30:00.123456 -0800 PST
+
+// Duration
+elapsed := time.Since(start)    // time.Duration since start
+fmt.Printf("took %v\n", elapsed)
+fmt.Printf("took %dms\n", elapsed.Milliseconds())
+
+d := 5*time.Second + 500*time.Millisecond
+time.Sleep(d)</code></pre>
+
+                <pre><code>// Formatting — use the reference time as a template
+now := time.Now()
+
+now.Format("2006-01-02")                   // "2024-01-15"
+now.Format("2006-01-02 15:04:05")          // "2024-01-15 10:30:00"
+now.Format(time.RFC3339)                   // "2024-01-15T10:30:00-08:00"
+now.Format("Mon, 02 Jan 2006")             // "Mon, 15 Jan 2024"
+now.Format("3:04 PM")                      // "10:30 AM"
+
+// Parsing — same reference time approach
+t, err := time.Parse("2006-01-02", "2024-01-15")
+t, err := time.Parse(time.RFC3339, "2024-01-15T10:30:00Z")
+t, err := time.ParseInLocation("2006-01-02", "2024-01-15", time.UTC)</code></pre>
+
+                <pre><code>// Timers and tickers
+// Timer — fires once after duration
+timer := time.NewTimer(5 * time.Second)
+&lt;-timer.C  // blocks until timer fires
+
+// AfterFunc — run function after delay
+time.AfterFunc(2*time.Second, func() {
+    fmt.Println("delayed execution")
+})
+
+// Ticker — fires repeatedly at interval
+ticker := time.NewTicker(1 * time.Second)
+defer ticker.Stop()
+
+for range ticker.C {
+    fmt.Println("tick", time.Now())
+    // break when done
+}
+
+// Common operations
+t1.Before(t2)                     // bool
+t1.After(t2)                      // bool
+t1.Equal(t2)                      // bool (handles monotonic clock)
+t1.Add(24 * time.Hour)            // time.Time (tomorrow)
+t1.Sub(t2)                        // time.Duration (difference)
+t1.Truncate(time.Hour)            // round down to hour
+t1.UTC()                          // convert to UTC
+t1.In(time.FixedZone("EST", -5*3600)) // convert timezone</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">Reference Time Mnemonic</span>
+                    Go's reference time is <code>01/02 03:04:05 PM '06 -0700</code>. Each component is a different digit: month=01, day=02, hour=03, minute=04, second=05, year=06, timezone=-0700. If you need 24-hour format, use <code>15</code> for the hour.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 09: ECOSYSTEM (Placeholder)
+         ============================================ -->
+    <section id="ecosystem" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">09</div>
+                <h2 class="section-title">Ecosystem</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Go's ecosystem favors focused, well-composed libraries over monolithic frameworks. These are the essential third-party packages.</p>
+            </div>
+
+            <!-- Cobra -->
+            <div class="subsection">
+                <h3 class="subsection-title">Cobra — CLI Framework</h3>
+                <p><code>github.com/spf13/cobra</code> is the standard for building CLI applications. Used by kubectl, Hugo, GitHub CLI, and Docker.</p>
+
+                <pre><code>// cmd/root.go — root command
+package cmd
+
+import (
+    "fmt"
+    "os"
+    "github.com/spf13/cobra"
+)
+
+var verbose bool
+
+var rootCmd = &amp;cobra.Command{
+    Use:   "myapp",
+    Short: "A brief description of your app",
+    Long:  `A longer description with examples and usage.`,
+}
+
+func Execute() {
+    if err := rootCmd.Execute(); err != nil {
+        os.Exit(1)
+    }
+}
+
+func init() {
+    // Persistent flags — available to this command and all subcommands
+    rootCmd.PersistentFlags().BoolVarP(&amp;verbose, "verbose", "v", false,
+        "enable verbose output")
+
+    // Add subcommands
+    rootCmd.AddCommand(serveCmd)
+    rootCmd.AddCommand(migrateCmd)
+}</code></pre>
+
+                <pre><code>// cmd/serve.go — subcommand
+var port int
+
+var serveCmd = &amp;cobra.Command{
+    Use:   "serve",
+    Short: "Start the HTTP server",
+    Args:  cobra.NoArgs,
+    RunE: func(cmd *cobra.Command, args []string) error {
+        fmt.Printf("Starting server on :%d\n", port)
+        return startServer(port)
+    },
+}
+
+func init() {
+    // Local flag — only for this command
+    serveCmd.Flags().IntVarP(&amp;port, "port", "p", 8080, "server port")
+}
+
+// cmd/migrate.go — subcommand with positional args
+var migrateCmd = &amp;cobra.Command{
+    Use:   "migrate [up|down]",
+    Short: "Run database migrations",
+    Args:  cobra.ExactArgs(1),
+    RunE: func(cmd *cobra.Command, args []string) error {
+        direction := args[0]
+        if direction != "up" &amp;&amp; direction != "down" {
+            return fmt.Errorf("invalid direction: %s (use 'up' or 'down')", direction)
+        }
+        return runMigrations(direction)
+    },
+}</code></pre>
+
+                <pre><code>// main.go
+package main
+
+import "myapp/cmd"
+
+func main() {
+    cmd.Execute()
+}
+
+// Usage:
+// myapp serve --port 3000
+// myapp migrate up --verbose
+// myapp --help</code></pre>
+            </div>
+
+            <!-- Bubbletea -->
+            <div class="subsection">
+                <h3 class="subsection-title">Bubbletea — TUI Framework</h3>
+                <p><code>github.com/charmbracelet/bubbletea</code> builds terminal UIs using The Elm Architecture: Model, Update, View.</p>
+
+                <pre><code>import (
+    tea "github.com/charmbracelet/bubbletea"
+    "fmt"
+)
+
+// Model holds all application state
+type model struct {
+    choices  []string
+    cursor   int
+    selected map[int]struct{}
+}
+
+func initialModel() model {
+    return model{
+        choices:  []string{"Buy groceries", "Wash dishes", "Do laundry"},
+        selected: make(map[int]struct{}),
+    }
+}
+
+// Init returns an initial command (or nil)
+func (m model) Init() tea.Cmd {
+    return nil
+}
+
+// Update handles messages and returns updated model + optional command
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+    switch msg := msg.(type) {
+    case tea.KeyMsg:
+        switch msg.String() {
+        case "ctrl+c", "q":
+            return m, tea.Quit
+        case "up", "k":
+            if m.cursor &gt; 0 {
+                m.cursor--
+            }
+        case "down", "j":
+            if m.cursor &lt; len(m.choices)-1 {
+                m.cursor++
+            }
+        case "enter", " ":
+            if _, ok := m.selected[m.cursor]; ok {
+                delete(m.selected, m.cursor)
+            } else {
+                m.selected[m.cursor] = struct{}{}
+            }
+        }
+    }
+    return m, nil
+}
+
+// View renders the UI as a string
+func (m model) View() string {
+    s := "What should we buy?\n\n"
+    for i, choice := range m.choices {
+        cursor := " "
+        if m.cursor == i {
+            cursor = ">"
+        }
+        checked := " "
+        if _, ok := m.selected[i]; ok {
+            checked = "x"
+        }
+        s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
+    }
+    s += "\nPress q to quit.\n"
+    return s
+}
+
+func main() {
+    p := tea.NewProgram(initialModel())
+    if _, err := p.Run(); err != nil {
+        log.Fatal(err)
+    }
+}</code></pre>
+
+                <pre><code>// Bubbletea commands — async operations
+type statusMsg int
+
+func checkServer() tea.Msg {
+    resp, err := http.Get("https://example.com")
+    if err != nil {
+        return errMsg{err}
+    }
+    return statusMsg(resp.StatusCode)
+}
+
+// In Update:
+case tea.KeyMsg:
+    if msg.String() == "c" {
+        return m, checkServer  // returns a tea.Cmd (function)
+    }
+case statusMsg:
+    m.status = int(msg)
+case errMsg:
+    m.err = msg.err
+
+// Bubbles — prebuilt components
+// github.com/charmbracelet/bubbles
+// spinner, textinput, list, table, viewport, progress, paginator</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">Bubbletea v2</span>
+                    Bubbletea v2 introduces context-based commands, improved event handling, and a refined API. The core Model/Update/View pattern remains the same, but <code>tea.Cmd</code> now accepts a <code>context.Context</code>.
+                </div>
+            </div>
+
+            <!-- Web Frameworks -->
+            <div class="subsection">
+                <h3 class="subsection-title">Web Frameworks</h3>
+                <p>Go 1.22+ made the standard library router much more capable. Third-party routers add middleware chains, route groups, and convenience.</p>
+
+                <pre><code>// chi — lightweight, idiomatic, composable router
+import "github.com/go-chi/chi/v5"
+import "github.com/go-chi/chi/v5/middleware"
+
+r := chi.NewRouter()
+
+// Middleware stack
+r.Use(middleware.Logger)
+r.Use(middleware.Recoverer)
+r.Use(middleware.RequestID)
+r.Use(middleware.RealIP)
+r.Use(middleware.Timeout(30 * time.Second))
+
+// Routes
+r.Get("/", homeHandler)
+r.Post("/users", createUser)
+
+// Route groups
+r.Route("/api/v1", func(r chi.Router) {
+    r.Use(authMiddleware)
+
+    r.Get("/users", listUsers)
+    r.Post("/users", createUser)
+
+    r.Route("/users/{userID}", func(r chi.Router) {
+        r.Get("/", getUser)
+        r.Put("/", updateUser)
+        r.Delete("/", deleteUser)
+    })
+})
+
+// Path parameter
+func getUser(w http.ResponseWriter, r *http.Request) {
+    userID := chi.URLParam(r, "userID")
+    // ...
+}
+
+http.ListenAndServe(":3000", r)</code></pre>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>net/http (1.22+)</th>
+                                <th>chi</th>
+                                <th>Gin</th>
+                                <th>Echo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Method routing</strong></td>
+                                <td>Yes (native)</td>
+                                <td>Yes</td>
+                                <td>Yes</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Path parameters</strong></td>
+                                <td><code>{id}</code></td>
+                                <td><code>{id}</code></td>
+                                <td><code>:id</code></td>
+                                <td><code>:id</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Middleware</strong></td>
+                                <td>Manual wrapping</td>
+                                <td>Stack-based</td>
+                                <td>Stack-based</td>
+                                <td>Stack-based</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Route groups</strong></td>
+                                <td>No</td>
+                                <td>Yes</td>
+                                <td>Yes</td>
+                                <td>Yes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Handler signature</strong></td>
+                                <td><code>http.Handler</code></td>
+                                <td><code>http.Handler</code></td>
+                                <td><code>gin.HandlerFunc</code></td>
+                                <td><code>echo.HandlerFunc</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>stdlib compatible</strong></td>
+                                <td>Yes</td>
+                                <td>Yes (100%)</td>
+                                <td>Partial</td>
+                                <td>Partial</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Dependencies</strong></td>
+                                <td>Zero</td>
+                                <td>Zero</td>
+                                <td>Many</td>
+                                <td>Some</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Best for</strong></td>
+                                <td>Simple APIs</td>
+                                <td>Most projects</td>
+                                <td>Speed-focused APIs</td>
+                                <td>Feature-rich APIs</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">Recommendation</span>
+                    Start with <code>net/http</code> for simple projects. Reach for <strong>chi</strong> when you need route groups and middleware chains — it's 100% compatible with <code>net/http</code> handlers, so you never lock into a proprietary API.
+                </div>
+            </div>
+
+            <!-- Database -->
+            <div class="subsection">
+                <h3 class="subsection-title">Database — GORM vs sqlx</h3>
+
+                <pre><code>// ── GORM — full ORM ──
+import "gorm.io/gorm"
+import "gorm.io/driver/postgres"
+
+// Model definition
+type User struct {
+    gorm.Model                        // ID, CreatedAt, UpdatedAt, DeletedAt
+    Name    string `gorm:"size:100;not null"`
+    Email   string `gorm:"uniqueIndex;not null"`
+    Posts   []Post `gorm:"foreignKey:AuthorID"`
+}
+
+type Post struct {
+    gorm.Model
+    Title    string
+    Body     string
+    AuthorID uint
+}
+
+// Connect
+db, err := gorm.Open(postgres.Open(dsn), &amp;gorm.Config{})
+
+// Auto-migrate (create/update tables)
+db.AutoMigrate(&amp;User{}, &amp;Post{})
+
+// CRUD
+db.Create(&amp;User{Name: "Alice", Email: "alice@test.com"})
+
+var user User
+db.First(&amp;user, 1)                          // by primary key
+db.Where("email = ?", email).First(&amp;user)   // by condition
+
+db.Model(&amp;user).Update("Name", "Bob")
+db.Model(&amp;user).Updates(User{Name: "Bob", Email: "bob@test.com"})
+
+db.Delete(&amp;user, 1)
+
+// Queries
+var users []User
+db.Where("name LIKE ?", "%alice%").
+    Order("created_at DESC").
+    Limit(10).
+    Find(&amp;users)
+
+// Preload associations
+db.Preload("Posts").Find(&amp;users)</code></pre>
+
+                <pre><code>// ── sqlx — enhanced database/sql ──
+import "github.com/jmoiron/sqlx"
+import _ "github.com/lib/pq"
+
+db, err := sqlx.Connect("postgres", dsn)
+
+// Struct scanning (no manual Scan calls)
+type User struct {
+    ID    int    `db:"id"`
+    Name  string `db:"name"`
+    Email string `db:"email"`
+}
+
+// Get single row into struct
+var user User
+err := db.Get(&amp;user, "SELECT * FROM users WHERE id = $1", 42)
+
+// Select multiple rows into slice
+var users []User
+err := db.Select(&amp;users, "SELECT * FROM users WHERE active = $1", true)
+
+// Named queries — use struct field names
+_, err := db.NamedExec(
+    `INSERT INTO users (name, email) VALUES (:name, :email)`,
+    user,
+)
+
+// Named query with map
+_, err := db.NamedExec(
+    `UPDATE users SET name = :name WHERE id = :id`,
+    map[string]any{"name": "Alice", "id": 42},
+)
+
+// Transactions
+tx, err := db.Beginx()
+tx.NamedExec(`INSERT INTO users ...`, user)
+tx.NamedExec(`INSERT INTO audit_log ...`, entry)
+tx.Commit()  // or tx.Rollback()</code></pre>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>GORM</th>
+                                <th>sqlx</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Approach</strong></td>
+                                <td>Full ORM (Active Record)</td>
+                                <td>Enhanced <code>database/sql</code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>SQL knowledge</strong></td>
+                                <td>Optional (query builder)</td>
+                                <td>Required (you write SQL)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Migrations</strong></td>
+                                <td>Built-in AutoMigrate</td>
+                                <td>Use external tool (goose, migrate)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Associations</strong></td>
+                                <td>Built-in (HasMany, BelongsTo)</td>
+                                <td>Manual JOINs</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Performance</strong></td>
+                                <td>Good (some overhead)</td>
+                                <td>Near raw SQL</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Best for</strong></td>
+                                <td>Rapid CRUD, complex relations</td>
+                                <td>Full SQL control, performance-critical</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Viper -->
+            <div class="subsection">
+                <h3 class="subsection-title">Viper — Configuration</h3>
+                <p><code>github.com/spf13/viper</code> handles configuration from files, environment variables, flags, and remote systems. Often paired with Cobra.</p>
+
+                <pre><code>import "github.com/spf13/viper"
+
+// Set defaults
+viper.SetDefault("server.port", 8080)
+viper.SetDefault("server.timeout", "30s")
+viper.SetDefault("database.max_conns", 10)
+
+// Read config file
+viper.SetConfigName("config")     // config.yaml, config.json, etc.
+viper.SetConfigType("yaml")
+viper.AddConfigPath(".")           // search current directory
+viper.AddConfigPath("$HOME/.myapp")
+
+if err := viper.ReadInConfig(); err != nil {
+    if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+        // Config file not found — use defaults
+    } else {
+        log.Fatalf("reading config: %v", err)
+    }
+}
+
+// Environment variables
+viper.SetEnvPrefix("MYAPP")           // MYAPP_SERVER_PORT
+viper.AutomaticEnv()
+viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+// Access values
+port := viper.GetInt("server.port")
+timeout := viper.GetDuration("server.timeout")
+debug := viper.GetBool("debug")</code></pre>
+
+                <pre><code>// Unmarshal into a struct (the recommended approach)
+type Config struct {
+    Server struct {
+        Port    int           `mapstructure:"port"`
+        Timeout time.Duration `mapstructure:"timeout"`
+    } `mapstructure:"server"`
+    Database struct {
+        DSN      string `mapstructure:"dsn"`
+        MaxConns int    `mapstructure:"max_conns"`
+    } `mapstructure:"database"`
+    Debug bool `mapstructure:"debug"`
+}
+
+var cfg Config
+if err := viper.Unmarshal(&amp;cfg); err != nil {
+    log.Fatalf("unmarshaling config: %v", err)
+}
+
+// config.yaml
+// server:
+//   port: 3000
+//   timeout: 30s
+// database:
+//   dsn: postgres://localhost/myapp
+//   max_conns: 25
+// debug: false</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">Priority Order</span>
+                    Viper resolves values in this order (highest to lowest): explicit <code>Set()</code> calls, flags, environment variables, config file, key/value store, defaults. This means environment variables always override config file values.
+                </div>
+            </div>
+
+            <!-- Wire -->
+            <div class="subsection">
+                <h3 class="subsection-title">Wire — Dependency Injection</h3>
+                <p><code>github.com/google/wire</code> provides compile-time dependency injection. It generates code — no runtime reflection or service locators.</p>
+
+                <pre><code>// providers.go — provider functions return dependencies
+func NewDatabase(cfg *Config) (*sql.DB, error) {
+    return sql.Open("postgres", cfg.DatabaseDSN)
+}
+
+func NewUserRepo(db *sql.DB) *UserRepo {
+    return &amp;UserRepo{db: db}
+}
+
+func NewUserService(repo *UserRepo, logger *slog.Logger) *UserService {
+    return &amp;UserService{repo: repo, logger: logger}
+}
+
+func NewServer(svc *UserService, cfg *Config) *http.Server {
+    mux := http.NewServeMux()
+    mux.HandleFunc("GET /users", svc.ListUsers)
+    return &amp;http.Server{Addr: cfg.Addr, Handler: mux}
+}</code></pre>
+
+                <pre><code>// wire.go — injector declaration (input for wire tool)
+//go:build wireinject
+
+package main
+
+import "github.com/google/wire"
+
+func InitializeServer(cfg *Config) (*http.Server, error) {
+    wire.Build(
+        NewDatabase,
+        NewUserRepo,
+        NewUserService,
+        NewLogger,
+        NewServer,
+    )
+    return nil, nil  // wire replaces this
+}
+
+// Provider sets — group related providers
+var DatabaseSet = wire.NewSet(NewDatabase, NewUserRepo)
+var ServiceSet = wire.NewSet(DatabaseSet, NewUserService, NewLogger)
+
+func InitializeServer(cfg *Config) (*http.Server, error) {
+    wire.Build(ServiceSet, NewServer)
+    return nil, nil
+}</code></pre>
+
+                <pre><code># Generate wire_gen.go (the actual DI code)
+go install github.com/google/wire/cmd/wire@latest
+wire ./...
+
+# The generated wire_gen.go contains a real function:
+func InitializeServer(cfg *Config) (*http.Server, error) {
+    db, err := NewDatabase(cfg)
+    if err != nil { return nil, err }
+    repo := NewUserRepo(db)
+    logger := NewLogger()
+    svc := NewUserService(repo, logger)
+    server := NewServer(svc, cfg)
+    return server, nil
+}</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">When to Use Wire</span>
+                    Wire shines in larger applications with many interdependent services. For small apps, simple constructor functions called in <code>main()</code> work fine. Wire's advantage is that it catches missing or circular dependencies at compile time, not runtime.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SECTION 10: GO IDIOMS (Placeholder)
+         ============================================ -->
+    <section id="idioms" class="section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-number">10</div>
+                <h2 class="section-title">Go Idioms</h2>
+                <div class="section-line"></div>
+                <p class="section-description">Go has strong opinions. These proverbs, patterns, and conventions define idiomatic Go code.</p>
+            </div>
+
+            <!-- Go Proverbs -->
+            <div class="subsection">
+                <h3 class="subsection-title">Go Proverbs</h3>
+                <p>From Rob Pike's <em>Go Proverbs</em> talk. These aren't just slogans — they shape how Go code is written and reviewed.</p>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"Don't communicate by sharing memory; share memory by communicating"</div>
+                    <div class="pattern-body">
+                        <p>Instead of using mutexes to protect shared state, send data through channels. Let goroutines own their data and communicate via message passing.</p>
+                        <div class="comparison">
+                            <div class="comparison-box bad">
+                                <div class="comparison-label">Shared Memory</div>
+                                <pre><code>var mu sync.Mutex
+var balance int
+
+func Deposit(amount int) {
+    mu.Lock()
+    balance += amount
+    mu.Unlock()
+}</code></pre>
+                            </div>
+                            <div class="comparison-box good">
+                                <div class="comparison-label">Message Passing</div>
+                                <pre><code>type Bank struct {
+    deposits chan int
+    balances chan int
+}
+
+func (b *Bank) Run() {
+    balance := 0
+    for {
+        select {
+        case amount := &lt;-b.deposits:
+            balance += amount
+        case b.balances &lt;- balance:
+        }
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"Accept interfaces, return structs"</div>
+                    <div class="pattern-body">
+                        <p>Functions should accept interfaces for flexibility and return concrete types for clarity. The caller decides when abstraction is needed, not the implementer.</p>
+                        <pre><code>// Good: accept io.Reader (any data source works)
+func Process(r io.Reader) (*Result, error) {
+    data, err := io.ReadAll(r)
+    // ...
+    return &amp;Result{Data: data}, nil
+}
+
+// Works with files, HTTP bodies, buffers, strings...
+Process(os.Stdin)
+Process(resp.Body)
+Process(strings.NewReader("hello"))
+Process(&amp;bytes.Buffer{})</code></pre>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"Errors are values"</div>
+                    <div class="pattern-body">
+                        <p>Errors aren't special control flow. They're regular values you can store, compare, wrap, and pass around. This enables patterns like error accumulation and programmatic error handling.</p>
+                        <pre><code>// Errors as values enable creative patterns
+type errWriter struct {
+    w   io.Writer
+    err error
+}
+
+func (ew *errWriter) write(buf []byte) {
+    if ew.err != nil {
+        return  // skip if already failed
+    }
+    _, ew.err = ew.w.Write(buf)
+}
+
+// Clean sequential writes — check error once at the end
+ew := &amp;errWriter{w: fd}
+ew.write(header)
+ew.write(body)
+ew.write(footer)
+if ew.err != nil {
+    return ew.err
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"Make the zero value useful"</div>
+                    <div class="pattern-body">
+                        <p>Design types so their zero value (all fields at default) is immediately usable without a constructor.</p>
+                        <pre><code>// sync.Mutex — zero value is an unlocked mutex
+var mu sync.Mutex  // ready to use, no initialization needed
+
+// bytes.Buffer — zero value is an empty buffer
+var buf bytes.Buffer
+buf.WriteString("hello")
+
+// Your own types should follow this pattern
+type Server struct {
+    Addr    string        // "" defaults handled in ListenAndServe
+    Handler http.Handler  // nil means DefaultServeMux
+    Timeout time.Duration // 0 means no timeout
+}
+
+// Works with zero value
+s := Server{}
+s.ListenAndServe()  // sensible defaults for all fields</code></pre>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"A little copying is better than a little dependency"</div>
+                    <div class="pattern-body">
+                        <p>Don't import a large package for one small utility function. Copy a few lines instead of adding a dependency with its own transitive dependencies.</p>
+                        <pre><code>// Don't import a utility package just for this:
+func min(a, b int) int {
+    if a &lt; b {
+        return a
+    }
+    return b
+}
+
+// Note: Go 1.21+ added built-in min/max, but the principle
+// applies broadly to small helper functions</code></pre>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"Clear is better than clever"</div>
+                    <div class="pattern-body">
+                        <p>Write code that's obvious at first read. Avoid clever one-liners, tricky bit manipulation, and obscure optimizations unless they're genuinely needed and well-commented.</p>
+                        <div class="comparison">
+                            <div class="comparison-box bad">
+                                <div class="comparison-label">Clever</div>
+                                <pre><code>// What does this do?
+v = v[:0+copy(v[0:], v[i:])]</code></pre>
+                            </div>
+                            <div class="comparison-box good">
+                                <div class="comparison-label">Clear</div>
+                                <pre><code>// Remove element at index i
+v = append(v[:i], v[i+1:]...)</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"The bigger the interface, the weaker the abstraction"</div>
+                    <div class="pattern-body">
+                        <p>Small interfaces are powerful. <code>io.Reader</code> (one method) is implemented by hundreds of types. An interface with 20 methods is rarely reusable.</p>
+                        <pre><code>// Strong abstraction — small interface
+type Stringer interface {
+    String() string
+}
+
+// Weak abstraction — too many methods
+type Repository interface {
+    Create(ctx context.Context, u *User) error
+    GetByID(ctx context.Context, id string) (*User, error)
+    GetByEmail(ctx context.Context, email string) (*User, error)
+    Update(ctx context.Context, u *User) error
+    Delete(ctx context.Context, id string) error
+    List(ctx context.Context, opts ListOpts) ([]*User, error)
+    Count(ctx context.Context) (int, error)
+    // ... this interface is too specific to be reusable
+}
+
+// Better: compose small interfaces or use concrete types
+type UserReader interface {
+    GetByID(ctx context.Context, id string) (*User, error)
+}
+
+type UserWriter interface {
+    Create(ctx context.Context, u *User) error
+    Update(ctx context.Context, u *User) error
+}</code></pre>
+                    </div>
+                </div>
+
+                <div class="pattern-card">
+                    <div class="pattern-header">"Don't panic"</div>
+                    <div class="pattern-body">
+                        <p>Reserve <code>panic</code> for truly unrecoverable states — programmer errors, impossible conditions, failed invariants during initialization. Libraries should <strong>never</strong> panic; always return errors.</p>
+                        <pre><code>// Acceptable: program cannot continue without this
+func mustCompile(pattern string) *regexp.Regexp {
+    re, err := regexp.Compile(pattern)
+    if err != nil {
+        panic(fmt.Sprintf("invalid regex %q: %v", pattern, err))
+    }
+    return re
+}
+
+// Only use must* patterns for package-level initialization
+var emailRe = mustCompile(`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+$`)
+
+// Never panic in normal code paths — return an error instead</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Layout -->
+            <div class="subsection">
+                <h3 class="subsection-title">Project Layout</h3>
+                <p>There's no official enforced layout, but the community has converged on a standard structure for non-trivial projects.</p>
+
+                <pre><code>myproject/
+├── cmd/                    # Application entry points
+│   ├── server/
+│   │   └── main.go         # go run ./cmd/server
+│   └── worker/
+│       └── main.go         # go run ./cmd/worker
+│
+├── internal/               # Private packages (enforced by Go toolchain)
+│   ├── auth/               # Authentication logic
+│   │   ├── auth.go
+│   │   └── auth_test.go
+│   ├── database/           # Database layer
+│   │   ├── postgres.go
+│   │   └── migrations/
+│   └── handler/            # HTTP handlers
+│       ├── user.go
+│       └── user_test.go
+│
+├── pkg/                    # Public packages (importable by other projects)
+│   └── validator/          # Reusable validation utilities
+│       ├── validator.go
+│       └── validator_test.go
+│
+├── api/                    # API definitions (OpenAPI, protobuf)
+│   └── openapi.yaml
+│
+├── go.mod
+├── go.sum
+├── Makefile
+└── README.md</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-title">The internal/ Rule</span>
+                    Code inside <code>internal/</code> can only be imported by code in the parent of <code>internal/</code>. This is <strong>enforced by the Go compiler</strong>. Use it to hide implementation details from external consumers. Packages in <code>internal/</code> are your private API — refactor freely without breaking others.
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Directory</th>
+                                <th>Purpose</th>
+                                <th>Importable Externally?</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>cmd/</code></td>
+                                <td>Each subdirectory is a <code>main</code> package (one binary per dir)</td>
+                                <td>No (main packages)</td>
+                            </tr>
+                            <tr>
+                                <td><code>internal/</code></td>
+                                <td>Private application code — enforced access restriction</td>
+                                <td>No (compiler-enforced)</td>
+                            </tr>
+                            <tr>
+                                <td><code>pkg/</code></td>
+                                <td>Public library code safe for external use</td>
+                                <td>Yes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p><strong>Package naming conventions:</strong></p>
+                <ul>
+                    <li><strong>Short, lowercase, no underscores:</strong> <code>http</code>, <code>json</code>, <code>auth</code>, <code>user</code></li>
+                    <li><strong>Singular nouns:</strong> <code>user</code> not <code>users</code>, <code>model</code> not <code>models</code></li>
+                    <li><strong>No stutter:</strong> <code>http.Server</code> not <code>http.HTTPServer</code></li>
+                    <li><strong>Avoid <code>util</code>, <code>common</code>, <code>helpers</code>:</strong> these are meaningless — put code where it belongs</li>
+                    <li><strong>Package name is part of the API:</strong> callers write <code>auth.NewClient()</code>, so name accordingly</li>
+                </ul>
+            </div>
+
+            <!-- Best Practices -->
+            <div class="subsection">
+                <h3 class="subsection-title">Best Practices</h3>
+
+                <p><strong>init() functions</strong> run automatically when a package is imported. Use them sparingly.</p>
+
+                <pre><code>// init() runs automatically — no explicit call needed
+func init() {
+    // Acceptable uses:
+    // - Register database drivers
+    // - Set up package-level regex or lookup tables
+    // - Initialize default loggers
+}
+
+// Avoid init() for:
+// - Complex logic that can fail (no error return)
+// - Side effects that make testing hard
+// - Anything that depends on runtime configuration
+
+// Better alternative: explicit initialization
+func Setup(cfg *Config) error {
+    // ... can return errors, accepts configuration
+    return nil
+}</code></pre>
+
+                <p><strong>go:embed</strong> (Go 1.16+) embeds static files directly into the binary.</p>
+
+                <pre><code>import "embed"
+
+//go:embed templates/*.html
+var templates embed.FS
+
+//go:embed static/*
+var staticFiles embed.FS
+
+//go:embed version.txt
+var version string  // single file as string
+
+//go:embed schema.sql
+var schema []byte   // single file as bytes
+
+// Use with http.FileServer
+http.Handle("/static/",
+    http.FileServer(http.FS(staticFiles)))
+
+// Use with html/template
+tmpl, err := template.ParseFS(templates, "templates/*.html")</code></pre>
+
+                <p><strong>Effective error messages</strong> follow a consistent style.</p>
+
+                <div class="comparison">
+                    <div class="comparison-box bad">
+                        <div class="comparison-label">Unhelpful Errors</div>
+                        <pre><code>return errors.New("failed")
+return errors.New("Error occurred")
+return fmt.Errorf("ERROR: could not read the file!")
+return fmt.Errorf("ReadConfig: %w", err)</code></pre>
+                    </div>
+                    <div class="comparison-box good">
+                        <div class="comparison-label">Effective Errors</div>
+                        <pre><code>return errors.New("connection refused")
+return fmt.Errorf("read config %s: %w", path, err)
+return fmt.Errorf("parse user age: %w", err)
+return fmt.Errorf("dial %s:%d: %w", host, port, err)</code></pre>
+                    </div>
+                </div>
+
+                <ul>
+                    <li>Lowercase, no trailing punctuation</li>
+                    <li>Include relevant context (filename, ID, operation)</li>
+                    <li>Build a chain: <code>"fetch user 42: query db: connection refused"</code></li>
+                    <li>Don't start with "failed to" or "error" — it's already an error</li>
+                </ul>
+
+                <p><strong>Comment conventions</strong> (godoc format):</p>
+
+                <pre><code>// Package auth provides authentication and authorization
+// middleware for HTTP servers.
+package auth
+
+// Authenticator validates credentials and returns a user identity.
+// It returns ErrUnauthorized if the credentials are invalid.
+type Authenticator interface {
+    Authenticate(ctx context.Context, token string) (*Identity, error)
+}
+
+// NewJWTAuth creates an Authenticator that validates JWT tokens
+// using the provided signing key. The key must be at least 256 bits.
+//
+// Example:
+//
+//  auth := NewJWTAuth([]byte(os.Getenv("JWT_SECRET")))
+//  identity, err := auth.Authenticate(ctx, token)
+func NewJWTAuth(key []byte) *JWTAuth {
+    // ...
+}
+
+// ErrUnauthorized is returned when credentials are invalid or expired.
+var ErrUnauthorized = errors.New("unauthorized")
+
+// Deprecated: Use NewJWTAuth instead.
+func NewAuth(key string) *Auth { ... }</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-title">The Go Readability Test</span>
+                    Good Go code reads like a well-written technical document. If you have to re-read a function to understand what it does, simplify it. If a comment explains <em>what</em> the code does (rather than <em>why</em>), the code itself isn't clear enough. Aim for code that a new team member can understand in one pass.
+                </div>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="site-footer">
+    <div class="footer-logo">Go</div>
+    <p class="footer-text">Simplicity is the ultimate sophistication.</p>
+    <a href="index.html">Back to Tech Guides</a>
+    <div class="footer-ornament">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+    </div>
+</footer>
+
+</body>
+</html>
