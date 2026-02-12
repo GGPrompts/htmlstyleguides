@@ -2,7 +2,7 @@
 
 Master mapping of all 103 style guides and their usage across tech guides and stories.
 
-**Used:** 50 styles · **Available:** 53 styles
+**Used:** 51 styles · **Available:** 52 styles
 
 | Style | Tech Guide | Story |
 |-------|-----------|-------|
@@ -14,7 +14,7 @@ Master mapping of all 103 style guides and their usage across tech guides and st
 | art-deco | Linux Distributions | The Jazz Age |
 | art-nouveau | | Belle Époque |
 | astronomical | | |
-| atlas-console | | |
+| atlas-console | Monitoring & Observability | |
 | bauhaus | | The Last Semester |
 | blueprint | Kubernetes | |
 | brutalist-web | systemd | The Concrete Dream |
