@@ -29,7 +29,7 @@ Master mapping of all 103 style guides and their usage across tech guides and st
 | coffee-shop | | |
 | coffee | Java | The Bean |
 | concrete-brutalist | | |
-| constructivism | | |
+| constructivism | Terraform | |
 | copper-verdigris | Rust | Liberty |
 | corporate-memphis | | |
 | cosmic | | The Golden Record |
