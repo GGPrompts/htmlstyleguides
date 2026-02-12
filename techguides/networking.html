@@ -1,0 +1,3467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NETOPS // Networking Fundamentals — Tech Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Share+Tech+Mono&family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           NETOPS // NETWORKING FUNDAMENTALS
+           Air Traffic Control Design System — Tech Guide Adaptation
+           ================================================================ */
+
+        /* --- CSS VARIABLES / DESIGN TOKENS --- */
+        :root {
+            /* PHOSPHOR GREEN PALETTE */
+            --primary: #00ff66;
+            --primary-dim: #00cc52;
+            --primary-bright: #66ffaa;
+            --primary-glow: rgba(0, 255, 102, 0.6);
+            --primary-subtle: rgba(0, 255, 102, 0.15);
+
+            /* ALERT COLORS */
+            --alert-red: #ff3344;
+            --alert-red-glow: rgba(255, 51, 68, 0.6);
+            --alert-yellow: #ffcc00;
+            --alert-yellow-glow: rgba(255, 204, 0, 0.5);
+            --alert-blue: #00aaff;
+            --alert-blue-glow: rgba(0, 170, 255, 0.5);
+
+            /* BACKGROUND LAYERS */
+            --bg-void: #000000;
+            --bg-deep: #0a0f0a;
+            --bg-primary: #0d140d;
+            --bg-secondary: #111a11;
+            --bg-elevated: #152015;
+            --bg-panel: #0a100a;
+
+            /* BORDERS & LINES */
+            --border-dim: rgba(0, 255, 102, 0.2);
+            --border-active: rgba(0, 255, 102, 0.5);
+            --border-bright: #00ff66;
+            --grid-line: rgba(0, 255, 102, 0.08);
+
+            /* TEXT */
+            --text-primary: #00ff66;
+            --text-dim: #00cc52;
+            --text-muted: rgba(0, 255, 102, 0.5);
+            --text-faint: rgba(0, 255, 102, 0.3);
+
+            /* TYPOGRAPHY */
+            --font-mono: 'IBM Plex Mono', 'Share Tech Mono', monospace;
+            --font-display: 'Orbitron', sans-serif;
+            --font-data: 'Share Tech Mono', monospace;
+
+            /* TYPE SCALE */
+            --text-xs: 0.65rem;
+            --text-sm: 0.75rem;
+            --text-base: 0.875rem;
+            --text-lg: 1rem;
+            --text-xl: 1.125rem;
+            --text-2xl: 1.375rem;
+            --text-3xl: 1.75rem;
+            --text-4xl: 2.25rem;
+            --text-5xl: 3rem;
+
+            /* SPACING SCALE */
+            --space-1: 2px;
+            --space-2: 4px;
+            --space-3: 8px;
+            --space-4: 12px;
+            --space-5: 16px;
+            --space-6: 24px;
+            --space-7: 32px;
+            --space-8: 48px;
+            --space-9: 64px;
+            --space-10: 96px;
+
+            /* EFFECTS */
+            --glow-sm: 0 0 4px var(--primary-glow);
+            --glow-md: 0 0 8px var(--primary-glow), 0 0 16px var(--primary-glow);
+            --glow-lg: 0 0 12px var(--primary-glow), 0 0 24px var(--primary-glow), 0 0 48px var(--primary-glow);
+            --glow-text: 0 0 8px var(--primary-glow);
+            --scanline-opacity: 0.02;
+
+            /* TRANSITIONS */
+            --transition-fast: 100ms ease;
+            --transition-base: 200ms ease;
+            --transition-slow: 400ms ease;
+
+            /* BORDER RADIUS */
+            --radius-sm: 2px;
+            --radius-md: 4px;
+            --radius-lg: 6px;
+        }
+
+        /* --- BASE RESET --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+            scroll-padding-top: 60px;
+        }
+
+        body {
+            font-family: var(--font-mono);
+            font-size: var(--text-base);
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-void);
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: 0.02em;
+        }
+
+        /* --- SCANLINE OVERLAY --- */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, var(--scanline-opacity)) 2px,
+                rgba(0, 0, 0, var(--scanline-opacity)) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* --- GRID OVERLAY --- */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        @keyframes blink-slow {
+            0%, 70% { opacity: 1; }
+            71%, 100% { opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% {
+                box-shadow: var(--glow-sm);
+                opacity: 1;
+            }
+            50% {
+                box-shadow: var(--glow-md);
+                opacity: 0.8;
+            }
+        }
+
+        .blink { animation: blink 1s steps(1) infinite; }
+        .blink-slow { animation: blink-slow 2s ease-in-out infinite; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+
+        /* --- CONTAINER --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-6);
+        }
+
+        /* --- BACK LINK --- */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-family: var(--font-mono);
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: var(--space-4) 0;
+            transition: color var(--transition-fast);
+        }
+
+        .back-link::before {
+            content: '<';
+            font-family: var(--font-data);
+            color: var(--primary);
+            text-shadow: var(--glow-sm);
+        }
+
+        .back-link:hover {
+            color: var(--primary);
+            text-shadow: var(--glow-sm);
+        }
+
+        /* --- SYSTEM HEADER --- */
+        .system-header {
+            border: 1px solid var(--border-active);
+            background: var(--bg-primary);
+            padding: var(--space-6);
+            margin-bottom: var(--space-5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .system-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+            box-shadow: var(--glow-md);
+        }
+
+        .header-grid {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: var(--space-6);
+            align-items: start;
+        }
+
+        .system-id {
+            font-family: var(--font-display);
+            font-size: var(--text-5xl);
+            font-weight: 800;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow: var(--glow-lg);
+            line-height: 1;
+            margin-bottom: var(--space-3);
+        }
+
+        .system-subtitle {
+            font-size: var(--text-sm);
+            color: var(--text-muted);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .status-readout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-5);
+            margin-top: var(--space-5);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-size: var(--text-sm);
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: var(--glow-sm);
+        }
+
+        .status-indicator.warning {
+            background: var(--alert-yellow);
+            box-shadow: 0 0 8px var(--alert-yellow-glow);
+        }
+
+        .status-indicator.alert {
+            background: var(--alert-red);
+            box-shadow: 0 0 8px var(--alert-red-glow);
+            animation: blink 0.5s steps(1) infinite;
+        }
+
+        .status-indicator.info {
+            background: var(--alert-blue);
+            box-shadow: 0 0 8px var(--alert-blue-glow);
+        }
+
+        .header-meta {
+            text-align: right;
+            font-family: var(--font-data);
+            font-size: var(--text-sm);
+            color: var(--text-dim);
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--border-dim);
+            background: var(--bg-panel);
+        }
+
+        .header-meta .version {
+            color: var(--primary-bright);
+            text-shadow: var(--glow-text);
+            font-size: var(--text-lg);
+            margin-bottom: var(--space-2);
+        }
+
+        /* --- STICKY JUMP NAV --- */
+        .jump-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            gap: var(--space-1);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            background: var(--bg-deep);
+            border: 1px solid var(--border-dim);
+            border-top: 2px solid var(--primary);
+            padding: var(--space-3) var(--space-4);
+            margin-bottom: var(--space-7);
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-dim) transparent;
+        }
+
+        .jump-nav::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .jump-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .jump-nav::-webkit-scrollbar-thumb {
+            background: var(--border-dim);
+        }
+
+        .jump-nav a {
+            font-family: var(--font-mono);
+            font-size: var(--text-xs);
+            color: var(--text-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid transparent;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .jump-nav a:hover {
+            color: var(--primary);
+            border-color: var(--border-active);
+            background: var(--bg-panel);
+            text-shadow: var(--glow-sm);
+        }
+
+        /* --- SECTION STYLES --- */
+        .section {
+            margin-bottom: var(--space-8);
+            padding: var(--space-6);
+            border: 1px solid var(--border-dim);
+            background: var(--bg-primary);
+            position: relative;
+        }
+
+        .section::before {
+            content: attr(data-sector);
+            position: absolute;
+            top: 0;
+            left: var(--space-4);
+            transform: translateY(-50%);
+            background: var(--bg-primary);
+            padding: 0 var(--space-3);
+            font-size: var(--text-xs);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: var(--text-4xl);
+            font-weight: 800;
+            color: var(--text-faint);
+            line-height: 1;
+            letter-spacing: 0.05em;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: var(--text-xl);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .section-description {
+            color: var(--text-muted);
+            font-size: var(--text-sm);
+            margin-bottom: var(--space-5);
+            line-height: 1.6;
+        }
+
+        /* --- SUBSECTION --- */
+        .subsection {
+            margin-bottom: var(--space-6);
+            padding-top: var(--space-4);
+        }
+
+        .subsection-title {
+            font-family: var(--font-display);
+            font-size: var(--text-lg);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--border-dim);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .subsection-title::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            box-shadow: var(--glow-sm);
+            flex-shrink: 0;
+        }
+
+        /* --- CODE BLOCKS --- */
+        pre {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            padding: var(--space-4) var(--space-5);
+            overflow-x: auto;
+            margin-bottom: var(--space-4);
+            position: relative;
+        }
+
+        pre::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+            background: var(--primary);
+            box-shadow: var(--glow-sm);
+        }
+
+        pre code {
+            font-family: var(--font-mono);
+            font-size: var(--text-sm);
+            color: var(--primary);
+            line-height: 1.7;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: var(--text-sm);
+            color: var(--primary-bright);
+        }
+
+        /* Inline code */
+        p code, li code, td code {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            padding: var(--space-1) var(--space-2);
+            font-size: 0.85em;
+        }
+
+        /* --- TABLES --- */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--border-dim);
+            margin-bottom: var(--space-4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-sm);
+        }
+
+        th {
+            background: var(--bg-secondary);
+            font-size: var(--text-xs);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            border-bottom: 1px solid var(--border-dim);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--border-dim);
+            vertical-align: top;
+        }
+
+        tr {
+            background: var(--bg-panel);
+            transition: background var(--transition-fast);
+        }
+
+        tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        td.highlight {
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--primary-bright);
+        }
+
+        td.mono {
+            font-family: var(--font-data);
+            color: var(--primary-bright);
+        }
+
+        /* --- COMMAND GRID --- */
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .command-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            padding: var(--space-4);
+            transition: border-color var(--transition-fast);
+            position: relative;
+        }
+
+        .command-card:hover {
+            border-color: var(--border-active);
+        }
+
+        .command-card .cmd {
+            font-family: var(--font-data);
+            font-size: var(--text-sm);
+            color: var(--primary-bright);
+            text-shadow: var(--glow-sm);
+            margin-bottom: var(--space-2);
+            line-height: 1.4;
+            word-break: break-all;
+        }
+
+        .command-card .desc {
+            color: var(--text-muted);
+            font-size: var(--text-xs);
+            line-height: 1.5;
+        }
+
+        /* --- ALERT BOXES --- */
+        .alert {
+            border-left: 3px solid var(--primary);
+            padding: var(--space-4) var(--space-5);
+            margin-bottom: var(--space-5);
+            background: var(--bg-panel);
+        }
+
+        .alert-info {
+            border-color: var(--alert-blue);
+        }
+
+        .alert-info .alert-title {
+            color: var(--alert-blue);
+        }
+
+        .alert-warning {
+            border-color: var(--alert-yellow);
+        }
+
+        .alert-warning .alert-title {
+            color: var(--alert-yellow);
+        }
+
+        .alert-danger {
+            border-color: var(--alert-red);
+        }
+
+        .alert-danger .alert-title {
+            color: var(--alert-red);
+        }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: var(--space-3);
+            color: var(--primary);
+        }
+
+        .alert p {
+            font-size: var(--text-sm);
+            color: var(--text-dim);
+            line-height: 1.6;
+        }
+
+        /* --- BADGES --- */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--font-mono);
+            font-size: var(--text-xs);
+            font-weight: 500;
+            padding: var(--space-1) var(--space-3);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .badge--filled {
+            background: var(--primary);
+            color: var(--bg-void);
+        }
+
+        .badge--info {
+            border-color: var(--alert-blue);
+            color: var(--alert-blue);
+        }
+
+        .badge--warning {
+            border-color: var(--alert-yellow);
+            color: var(--alert-yellow);
+        }
+
+        .badge--alert {
+            border-color: var(--alert-red);
+            color: var(--alert-red);
+        }
+
+        /* --- DATA PANELS --- */
+        .data-panel {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-dim);
+            padding: var(--space-4);
+            position: relative;
+            margin-bottom: var(--space-4);
+        }
+
+        .data-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: var(--glow-sm);
+        }
+
+        .data-panel .panel-label {
+            font-family: var(--font-display);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .data-panel .panel-value {
+            font-family: var(--font-data);
+            font-size: var(--text-lg);
+            color: var(--primary-bright);
+            text-shadow: var(--glow-sm);
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        /* --- ENCAPSULATION DIAGRAM --- */
+        .encap-diagram {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+        }
+
+        .encap-layer {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            padding: var(--space-3) var(--space-4);
+            border: 1px solid var(--border-dim);
+            background: var(--bg-panel);
+            position: relative;
+        }
+
+        .encap-layer .layer-label {
+            font-family: var(--font-display);
+            font-size: var(--text-xs);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            min-width: 100px;
+        }
+
+        .encap-layer .layer-content {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+        }
+
+        .encap-layer .layer-block {
+            font-family: var(--font-data);
+            font-size: var(--text-xs);
+            padding: var(--space-2) var(--space-3);
+            border: 1px solid var(--border-active);
+            color: var(--primary-bright);
+        }
+
+        .encap-layer .layer-block.added {
+            background: var(--primary-subtle);
+            border-color: var(--primary);
+            color: var(--primary);
+            text-shadow: var(--glow-sm);
+        }
+
+        /* --- CONTENT TEXT --- */
+        .content-text {
+            font-size: var(--text-sm);
+            color: var(--text-dim);
+            line-height: 1.7;
+            margin-bottom: var(--space-4);
+        }
+
+        .content-text strong {
+            color: var(--primary-bright);
+            font-weight: 600;
+        }
+
+        ul.content-list {
+            list-style: none;
+            margin-bottom: var(--space-4);
+        }
+
+        ul.content-list li {
+            font-size: var(--text-sm);
+            color: var(--text-dim);
+            padding: var(--space-2) 0;
+            padding-left: var(--space-5);
+            position: relative;
+            line-height: 1.6;
+        }
+
+        ul.content-list li::before {
+            content: '>';
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-family: var(--font-data);
+            text-shadow: var(--glow-sm);
+        }
+
+        ul.content-list li code {
+            color: var(--primary-bright);
+        }
+
+        /* --- FOOTER --- */
+        .site-footer {
+            border: 1px solid var(--border-dim);
+            background: var(--bg-primary);
+            padding: var(--space-5);
+            text-align: center;
+            margin-top: var(--space-8);
+        }
+
+        .site-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: var(--text-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .site-footer a:hover {
+            text-shadow: var(--glow-sm);
+            text-decoration: underline;
+        }
+
+        .site-footer .footer-meta {
+            font-size: var(--text-xs);
+            color: var(--text-faint);
+            margin-top: var(--space-3);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-4);
+            }
+
+            .system-id {
+                font-size: var(--text-3xl);
+            }
+
+            .header-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-meta {
+                text-align: left;
+            }
+
+            .section {
+                padding: var(--space-4);
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-2);
+            }
+
+            .section-number {
+                font-size: var(--text-2xl);
+            }
+
+            .section-title {
+                font-size: var(--text-lg);
+            }
+
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .panel-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .encap-layer {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .encap-layer .layer-label {
+                min-width: auto;
+            }
+
+            table {
+                font-size: var(--text-xs);
+            }
+
+            th, td {
+                padding: var(--space-2) var(--space-3);
+            }
+
+            .jump-nav {
+                padding: var(--space-2) var(--space-3);
+            }
+
+            .status-readout {
+                gap: var(--space-3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- BACK LINK -->
+        <a href="index.html" class="back-link">Tech Guides</a>
+
+        <!-- SYSTEM HEADER -->
+        <header class="system-header">
+            <div class="header-grid">
+                <div>
+                    <h1 class="system-id">NETOPS//FUNDAMENTALS</h1>
+                    <p class="system-subtitle">Network Operations &amp; Infrastructure Reference v2.0</p>
+                    <div class="status-readout">
+                        <div class="status-item">
+                            <span class="status-indicator"></span>
+                            <span>TCP/IP STACK ONLINE</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator info"></span>
+                            <span>DNS RESOLUTION ACTIVE</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator warning"></span>
+                            <span>FIREWALL MONITORING</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-indicator alert"></span>
+                            <span>INTRUSION DETECTION</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="header-meta">
+                    <div class="version">v2.0</div>
+                    <div>NETOPS REFERENCE</div>
+                    <div>RFC COMPLIANT</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- STICKY JUMP NAV -->
+        <nav class="jump-nav">
+            <a href="#cheatsheet">01 Quick Reference</a>
+            <a href="#network-stack">02 Network Stack</a>
+            <a href="#ip-addressing">03 IP Addressing</a>
+            <a href="#dns">04 DNS</a>
+            <a href="#protocols">05 Protocols</a>
+            <a href="#routing">06 Routing</a>
+            <a href="#firewalls">07 Firewalls</a>
+            <a href="#vpns">08 VPNs</a>
+            <a href="#load-balancing">09 Load Balancing</a>
+            <a href="#troubleshooting">10 Troubleshooting</a>
+        </nav>
+
+        <!-- ============================================================
+             SECTION 01 — QUICK REFERENCE
+             ============================================================ -->
+        <section id="cheatsheet" class="section" data-sector="SECTOR-01 // QUICK REF">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <div>
+                    <h2 class="section-title">Quick Reference</h2>
+                </div>
+            </div>
+            <p class="section-description">Essential networking commands organized by task. Copy, paste, diagnose.</p>
+
+            <div class="section-content">
+
+                <!-- Connectivity Testing -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Connectivity Testing</h3>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">ping -c 4 192.168.1.1</div>
+                            <div class="desc">Test reachability (4 packets)</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">ping -c 4 -s 1472 -M do host</div>
+                            <div class="desc">Test MTU (don't fragment)</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">traceroute example.com</div>
+                            <div class="desc">Trace route to destination</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">mtr example.com</div>
+                            <div class="desc">Continuous trace + ping combined</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DNS Lookup -->
+                <div class="subsection">
+                    <h3 class="subsection-title">DNS Lookup</h3>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">dig example.com</div>
+                            <div class="desc">DNS query (A record)</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">dig +short example.com AAAA</div>
+                            <div class="desc">Quick IPv6 lookup</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">dig @8.8.8.8 example.com</div>
+                            <div class="desc">Query specific server</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">nslookup example.com</div>
+                            <div class="desc">Simple DNS lookup</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Port & Service -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Port &amp; Service Discovery</h3>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">ss -tlnp</div>
+                            <div class="desc">Show listening TCP ports</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">ss -ulnp</div>
+                            <div class="desc">Show listening UDP ports</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">nmap -sS -p 1-1000 host</div>
+                            <div class="desc">SYN scan ports 1-1000</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">nmap -sV host</div>
+                            <div class="desc">Service version detection</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interface & Routing -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Interface &amp; Routing</h3>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">ip addr show</div>
+                            <div class="desc">Show all interfaces</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">ip route show</div>
+                            <div class="desc">Show routing table</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">ip link set eth0 up/down</div>
+                            <div class="desc">Enable/disable interface</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">ip neigh show</div>
+                            <div class="desc">Show ARP/neighbor table</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Traffic Capture -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Traffic Capture</h3>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">tcpdump -i eth0 -n</div>
+                            <div class="desc">Capture on interface</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">tcpdump -i eth0 port 80</div>
+                            <div class="desc">Capture HTTP traffic</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">tcpdump -i eth0 -w capture.pcap</div>
+                            <div class="desc">Save to file</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">curl -I -w "time_total: %{time_total}\n" URL</div>
+                            <div class="desc">HTTP timing</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Configuration Files</h3>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">cat /etc/resolv.conf</div>
+                            <div class="desc">DNS config</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">cat /etc/hosts</div>
+                            <div class="desc">Local hostname resolution</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">sysctl net.ipv4.ip_forward</div>
+                            <div class="desc">Check IP forwarding</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">iptables -L -n -v</div>
+                            <div class="desc">List firewall rules</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 02 — THE NETWORK STACK
+             ============================================================ -->
+        <section id="network-stack" class="section" data-sector="SECTOR-02 // NET STACK">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <div>
+                    <h2 class="section-title">The Network Stack</h2>
+                </div>
+            </div>
+            <p class="section-description">The OSI 7-layer model and TCP/IP 4-layer model provide the conceptual frameworks for understanding how data moves across networks.</p>
+
+            <div class="section-content">
+
+                <!-- OSI Model -->
+                <div class="subsection">
+                    <h3 class="subsection-title">OSI Reference Model</h3>
+                    <p class="content-text">The Open Systems Interconnection model defines <strong>seven abstraction layers</strong> for network communication. Each layer serves the layer above it and is served by the layer below it.</p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Layer</th>
+                                    <th>Name</th>
+                                    <th>PDU</th>
+                                    <th>Protocols</th>
+                                    <th>Devices</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">7</td>
+                                    <td>Application</td>
+                                    <td class="mono">Data</td>
+                                    <td>HTTP, FTP, SMTP, DNS, SNMP</td>
+                                    <td>Proxy, WAF</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">6</td>
+                                    <td>Presentation</td>
+                                    <td class="mono">Data</td>
+                                    <td>SSL/TLS, JPEG, ASCII</td>
+                                    <td>&mdash;</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">5</td>
+                                    <td>Session</td>
+                                    <td class="mono">Data</td>
+                                    <td>NetBIOS, RPC, SMB</td>
+                                    <td>&mdash;</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">4</td>
+                                    <td>Transport</td>
+                                    <td class="mono">Segment / Datagram</td>
+                                    <td>TCP, UDP</td>
+                                    <td>Load Balancer</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">3</td>
+                                    <td>Network</td>
+                                    <td class="mono">Packet</td>
+                                    <td>IP, ICMP, OSPF, BGP</td>
+                                    <td>Router</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">2</td>
+                                    <td>Data Link</td>
+                                    <td class="mono">Frame</td>
+                                    <td>Ethernet, Wi-Fi, ARP</td>
+                                    <td>Switch</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">1</td>
+                                    <td>Physical</td>
+                                    <td class="mono">Bits</td>
+                                    <td>Cables, Radio, Fiber</td>
+                                    <td>Hub, NIC</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TCP/IP Model -->
+                <div class="subsection">
+                    <h3 class="subsection-title">TCP/IP Model</h3>
+                    <p class="content-text">The practical protocol suite that powers the internet. Maps roughly to the OSI model but consolidates the upper layers.</p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Layer</th>
+                                    <th>OSI Equivalent</th>
+                                    <th>Key Protocols</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Application</td>
+                                    <td>Layers 5-7</td>
+                                    <td>HTTP, DNS, SMTP, SNMP, SSH</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Transport</td>
+                                    <td>Layer 4</td>
+                                    <td>TCP, UDP</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Internet</td>
+                                    <td>Layer 3</td>
+                                    <td>IP, ICMP, ARP</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Network Access</td>
+                                    <td>Layers 1-2</td>
+                                    <td>Ethernet, Wi-Fi, PPP</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Encapsulation -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Data Encapsulation</h3>
+                    <p class="content-text">As data moves down the stack, each layer wraps it with its own header (and sometimes trailer). This process is called <strong>encapsulation</strong>. On the receiving end, each layer strips its header in reverse order (<strong>de-encapsulation</strong>).</p>
+
+                    <div class="encap-diagram">
+                        <div class="encap-layer">
+                            <span class="layer-label">Application</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">DATA</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Transport</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">TCP HDR</span>
+                                <span class="layer-block">DATA</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Network</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">IP HDR</span>
+                                <span class="layer-block">TCP HDR</span>
+                                <span class="layer-block">DATA</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Data Link</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">MAC HDR</span>
+                                <span class="layer-block">IP HDR</span>
+                                <span class="layer-block">TCP HDR</span>
+                                <span class="layer-block">DATA</span>
+                                <span class="layer-block added">FCS</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Physical</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">BITS ON THE WIRE</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Conceptual vs. Practical</div>
+                        <p>The OSI model is the conceptual framework for learning and troubleshooting. TCP/IP is the practical protocol suite that runs the internet. When debugging, think in layers: start at Layer 1 (is the cable plugged in?) and work your way up.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 03 — IP ADDRESSING & SUBNETTING
+             ============================================================ -->
+        <section id="ip-addressing" class="section" data-sector="SECTOR-03 // IP ADDR">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <div>
+                    <h2 class="section-title">IP Addressing &amp; Subnetting</h2>
+                </div>
+            </div>
+            <p class="section-description">Understanding IP address structure, subnet masks, CIDR notation, and how to carve address space into usable networks.</p>
+
+            <div class="section-content">
+
+                <!-- IPv4 Structure -->
+                <div class="subsection">
+                    <h3 class="subsection-title">IPv4 Address Structure</h3>
+                    <p class="content-text">IPv4 addresses are <strong>32-bit numbers</strong> expressed in dotted-decimal notation. The subnet mask divides the address into a <strong>network portion</strong> and a <strong>host portion</strong>.</p>
+
+                    <div class="panel-grid">
+                        <div class="data-panel">
+                            <div class="panel-label">Format</div>
+                            <div class="panel-value">32-bit / 4 octets</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Notation</div>
+                            <div class="panel-value">192.168.1.1</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Total Addresses</div>
+                            <div class="panel-value">4,294,967,296</div>
+                        </div>
+                    </div>
+
+                    <pre><code># Example breakdown:  192.168.1.0/24
+#
+# IP Address:       192.168.1.0
+# Subnet Mask:      255.255.255.0
+# Network:          192.168.1.0     (first 24 bits)
+# Broadcast:        192.168.1.255   (last address)
+# Usable Range:     192.168.1.1  -  192.168.1.254
+# Total Addresses:  256
+# Usable Hosts:     254</code></pre>
+                </div>
+
+                <!-- Private Address Ranges -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Private Address Ranges (RFC 1918)</h3>
+                    <p class="content-text">Reserved for internal use. Not routable on the public internet. Use NAT (Network Address Translation) to reach external networks.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Range</th>
+                                    <th>CIDR</th>
+                                    <th>Addresses</th>
+                                    <th>Typical Use</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="mono">10.0.0.0 &ndash; 10.255.255.255</td>
+                                    <td class="mono">10.0.0.0/8</td>
+                                    <td class="mono">16,777,216</td>
+                                    <td>Enterprise</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono">172.16.0.0 &ndash; 172.31.255.255</td>
+                                    <td class="mono">172.16.0.0/12</td>
+                                    <td class="mono">1,048,576</td>
+                                    <td>Mid-size</td>
+                                </tr>
+                                <tr>
+                                    <td class="mono">192.168.0.0 &ndash; 192.168.255.255</td>
+                                    <td class="mono">192.168.0.0/16</td>
+                                    <td class="mono">65,536</td>
+                                    <td>Home / Small Office</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Special Addresses -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Special Addresses</h3>
+                    <ul class="content-list">
+                        <li><code>127.0.0.0/8</code> &mdash; <strong>Loopback</strong>. Traffic never leaves the host. <code>127.0.0.1</code> is localhost.</li>
+                        <li><code>169.254.0.0/16</code> &mdash; <strong>APIPA (link-local)</strong>. Auto-assigned when DHCP fails.</li>
+                        <li><code>0.0.0.0/0</code> &mdash; <strong>Default route</strong>. Matches all destinations (gateway of last resort).</li>
+                        <li><code>255.255.255.255</code> &mdash; <strong>Limited broadcast</strong>. Sent to all hosts on the local network segment.</li>
+                    </ul>
+                </div>
+
+                <!-- CIDR Reference -->
+                <div class="subsection">
+                    <h3 class="subsection-title">CIDR Reference Table</h3>
+                    <p class="content-text">Classless Inter-Domain Routing replaced the old Class A/B/C system. The <code>/prefix</code> number indicates how many bits define the network portion.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>CIDR</th>
+                                    <th>Subnet Mask</th>
+                                    <th>Addresses</th>
+                                    <th>Usable Hosts</th>
+                                    <th>Common Use</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">/8</td>
+                                    <td class="mono">255.0.0.0</td>
+                                    <td class="mono">16,777,216</td>
+                                    <td class="mono">16,777,214</td>
+                                    <td>Large enterprise</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/16</td>
+                                    <td class="mono">255.255.0.0</td>
+                                    <td class="mono">65,536</td>
+                                    <td class="mono">65,534</td>
+                                    <td>Campus</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/24</td>
+                                    <td class="mono">255.255.255.0</td>
+                                    <td class="mono">256</td>
+                                    <td class="mono">254</td>
+                                    <td>Standard LAN</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/25</td>
+                                    <td class="mono">255.255.255.128</td>
+                                    <td class="mono">128</td>
+                                    <td class="mono">126</td>
+                                    <td>Half subnet</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/26</td>
+                                    <td class="mono">255.255.255.192</td>
+                                    <td class="mono">64</td>
+                                    <td class="mono">62</td>
+                                    <td>Department</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/27</td>
+                                    <td class="mono">255.255.255.224</td>
+                                    <td class="mono">32</td>
+                                    <td class="mono">30</td>
+                                    <td>Small group</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/28</td>
+                                    <td class="mono">255.255.255.240</td>
+                                    <td class="mono">16</td>
+                                    <td class="mono">14</td>
+                                    <td>Server VLAN</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/30</td>
+                                    <td class="mono">255.255.255.252</td>
+                                    <td class="mono">4</td>
+                                    <td class="mono">2</td>
+                                    <td>Point-to-point</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">/32</td>
+                                    <td class="mono">255.255.255.255</td>
+                                    <td class="mono">1</td>
+                                    <td class="mono">1</td>
+                                    <td>Host route</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">// Remember</div>
+                        <p>Usable hosts = total addresses - 2 (one for network address, one for broadcast). Exception: /31 point-to-point links (RFC 3021) use both addresses, and /32 is a single host.</p>
+                    </div>
+                </div>
+
+                <!-- IPv6 Overview -->
+                <div class="subsection">
+                    <h3 class="subsection-title">IPv6 Overview</h3>
+                    <p class="content-text">IPv6 uses <strong>128-bit addresses</strong> written as 8 groups of 4 hexadecimal digits, separated by colons. It provides a vastly larger address space than IPv4.</p>
+
+                    <div class="panel-grid">
+                        <div class="data-panel">
+                            <div class="panel-label">Address Size</div>
+                            <div class="panel-value">128-bit</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Notation</div>
+                            <div class="panel-value">2001:0db8::1</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Global Adoption</div>
+                            <div class="panel-value">~47% (2026)</div>
+                        </div>
+                    </div>
+
+                    <ul class="content-list">
+                        <li><strong>Standard subnet:</strong> <code>/64</code> &mdash; 64 bits for network, 64 bits for host interface ID</li>
+                        <li><strong>Link-local:</strong> <code>fe80::/10</code> &mdash; Auto-configured on every interface, non-routable</li>
+                        <li><strong>Loopback:</strong> <code>::1</code> &mdash; Equivalent to IPv4's 127.0.0.1</li>
+                        <li><strong>Unspecified:</strong> <code>::</code> &mdash; Equivalent to IPv4's 0.0.0.0</li>
+                        <li><strong>Global unicast:</strong> <code>2000::/3</code> &mdash; Publicly routable addresses</li>
+                        <li><strong>Unique local:</strong> <code>fc00::/7</code> &mdash; Equivalent to RFC 1918 private ranges</li>
+                    </ul>
+
+                    <pre><code># IPv6 address shortening rules:
+#
+# Full:        2001:0db8:0000:0000:0000:0000:0000:0001
+# Drop zeros:  2001:db8:0:0:0:0:0:1
+# Collapse:    2001:db8::1
+#
+# Rules:
+# 1. Remove leading zeros in each group
+# 2. Replace ONE consecutive run of all-zero groups with ::
+# 3. :: can only appear ONCE in an address</code></pre>
+                </div>
+
+                <!-- Subnet Calculation Example -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Subnet Calculation Example</h3>
+                    <p class="content-text">Given <code>10.0.0.0/24</code>, subnet into <code>/26</code> blocks. A /24 has 256 addresses; each /26 has 64 addresses, so we get <strong>4 subnets</strong>.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Subnet</th>
+                                    <th>Network</th>
+                                    <th>Usable Range</th>
+                                    <th>Broadcast</th>
+                                    <th>Hosts</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">1</td>
+                                    <td class="mono">10.0.0.0/26</td>
+                                    <td class="mono">.1 &ndash; .62</td>
+                                    <td class="mono">10.0.0.63</td>
+                                    <td class="mono">62</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">2</td>
+                                    <td class="mono">10.0.0.64/26</td>
+                                    <td class="mono">.65 &ndash; .126</td>
+                                    <td class="mono">10.0.0.127</td>
+                                    <td class="mono">62</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">3</td>
+                                    <td class="mono">10.0.0.128/26</td>
+                                    <td class="mono">.129 &ndash; .190</td>
+                                    <td class="mono">10.0.0.191</td>
+                                    <td class="mono">62</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">4</td>
+                                    <td class="mono">10.0.0.192/26</td>
+                                    <td class="mono">.193 &ndash; .254</td>
+                                    <td class="mono">10.0.0.255</td>
+                                    <td class="mono">62</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <pre><code># Quick subnet math:
+#
+# /26 = 32 - 26 = 6 host bits
+# 2^6 = 64 addresses per subnet
+# 64 - 2 = 62 usable hosts per subnet
+# 256 / 64 = 4 subnets from a /24
+#
+# Block size = 256 - subnet_mask_octet
+# For /26:  subnet mask = 255.255.255.192
+#           block size  = 256 - 192 = 64
+# Subnets start at:  .0, .64, .128, .192</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Quick Subnet Formula</div>
+                        <p>Number of subnets = 2^(new_bits). Number of hosts per subnet = 2^(host_bits) - 2. When splitting a /24 into /26s, you borrow 2 bits (26-24=2), giving 2^2 = 4 subnets, each with 2^6 - 2 = 62 hosts.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 04 — DNS RESOLUTION
+             ============================================================ -->
+        <section id="dns" class="section" data-sector="SECTOR-04 // DNS">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <div>
+                    <h2 class="section-title">DNS Resolution</h2>
+                </div>
+            </div>
+            <p class="section-description">How domain names are translated into IP addresses through a hierarchical, distributed naming system that underpins virtually all internet communication.</p>
+
+            <div class="section-content">
+
+                <!-- DNS Hierarchy -->
+                <div class="subsection">
+                    <h3 class="subsection-title">DNS Hierarchy</h3>
+                    <p class="content-text">The Domain Name System operates as a <strong>hierarchical, distributed database</strong> with four key server types, each responsible for a different level of the resolution chain.</p>
+
+                    <div class="panel-grid">
+                        <div class="data-panel">
+                            <div class="panel-label">Root Servers</div>
+                            <div class="panel-value">13 Named Authorities (A&ndash;M)</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">TLD Servers</div>
+                            <div class="panel-value">.com .net .org + Country Codes</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Authoritative NS</div>
+                            <div class="panel-value">Store Actual DNS Records</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Recursive Resolvers</div>
+                            <div class="panel-value">ISP / 8.8.8.8 / 1.1.1.1</div>
+                        </div>
+                    </div>
+
+                    <ul class="content-list">
+                        <li><strong>Root Servers</strong> &mdash; 13 named authorities (A through M) operated by organizations worldwide. They maintain knowledge of TLD nameservers and are the starting point for resolving any domain.</li>
+                        <li><strong>TLD Servers</strong> &mdash; Handle top-level domains like <code>.com</code>, <code>.net</code>, <code>.org</code>, and country codes (<code>.uk</code>, <code>.de</code>, <code>.jp</code>). They know which authoritative nameservers handle each registered domain.</li>
+                        <li><strong>Authoritative Nameservers</strong> &mdash; The final authority for a domain. They store the actual DNS records (A, AAAA, MX, CNAME, etc.) and return definitive answers.</li>
+                        <li><strong>Recursive Resolvers</strong> &mdash; The first stop for your DNS query. Your ISP, Google (<code>8.8.8.8</code>), or Cloudflare (<code>1.1.1.1</code>) operate these. They cache results to speed up subsequent lookups.</li>
+                    </ul>
+                </div>
+
+                <!-- Resolution Chain -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Resolution Chain</h3>
+                    <p class="content-text">When you type a URL into your browser, a multi-step resolution process unfolds to translate the domain name into a routable IP address.</p>
+
+                    <div class="encap-diagram">
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 1</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Browser checks local cache</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 2</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">OS checks /etc/hosts, then system DNS cache</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 3</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Query sent to recursive resolver</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 4</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Resolver checks its own cache</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 5</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Query root server</span>
+                                <span class="layer-block">Get TLD referral</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 6</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Query TLD server</span>
+                                <span class="layer-block">Get authoritative NS</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 7</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Query authoritative NS</span>
+                                <span class="layer-block">Get IP address</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 8</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">IP returned to client, cached per TTL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DNS Record Types -->
+                <div class="subsection">
+                    <h3 class="subsection-title">DNS Record Types</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Purpose</th>
+                                    <th>Example</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">A</td>
+                                    <td>Domain &rarr; IPv4</td>
+                                    <td class="mono">example.com &rarr; 192.0.2.1</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">AAAA</td>
+                                    <td>Domain &rarr; IPv6</td>
+                                    <td class="mono">example.com &rarr; 2001:db8::1</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">CNAME</td>
+                                    <td>Alias</td>
+                                    <td class="mono">www &rarr; example.com</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">MX</td>
+                                    <td>Mail server</td>
+                                    <td class="mono">Priority 10 mail.example.com</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">TXT</td>
+                                    <td>Arbitrary text</td>
+                                    <td class="mono">SPF, DKIM verification</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">NS</td>
+                                    <td>Nameserver</td>
+                                    <td class="mono">ns1.example.com</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">SOA</td>
+                                    <td>Zone authority</td>
+                                    <td class="mono">Serial, refresh, retry, expire</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">PTR</td>
+                                    <td>Reverse lookup</td>
+                                    <td class="mono">IP &rarr; domain</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">SRV</td>
+                                    <td>Service locator</td>
+                                    <td class="mono">_sip._tcp.example.com</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- DNS Commands -->
+                <div class="subsection">
+                    <h3 class="subsection-title">DNS Commands</h3>
+
+                    <pre><code># Basic lookups
+dig example.com                    # A record query
+dig example.com MX                 # Mail server lookup
+dig +short example.com AAAA        # Quick IPv6 lookup
+dig @8.8.8.8 example.com          # Query specific server
+dig +trace example.com             # Full resolution trace
+
+# nslookup
+nslookup example.com               # Basic lookup
+nslookup -type=MX example.com     # MX records
+nslookup example.com 8.8.8.8      # Use specific server
+
+# Reverse DNS
+dig -x 192.0.2.1                   # Reverse lookup
+host 192.0.2.1                     # Simple reverse
+
+# Cache management
+# Linux: systemd-resolve --flush-caches
+# macOS: sudo dscacheutil -flushcache
+# Windows: ipconfig /flushdns</code></pre>
+                </div>
+
+                <!-- DNSSEC -->
+                <div class="subsection">
+                    <h3 class="subsection-title">DNSSEC</h3>
+                    <p class="content-text">DNSSEC (DNS Security Extensions) adds <strong>cryptographic signing</strong> to DNS data to prevent spoofing and cache poisoning attacks. It works by establishing a chain of trust from the root zone down to individual records.</p>
+
+                    <ul class="content-list">
+                        <li><code>DNSKEY</code> &mdash; Public key used to verify signatures</li>
+                        <li><code>RRSIG</code> &mdash; Signature over a set of DNS records</li>
+                        <li><code>DS</code> &mdash; Delegation Signer, links parent and child zones</li>
+                        <li><code>NSEC / NSEC3</code> &mdash; Authenticated denial of existence</li>
+                    </ul>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">// DNSSEC Limitation</div>
+                        <p>DNSSEC provides authentication and integrity but does NOT provide confidentiality. DNS queries and responses are still transmitted in plaintext. For encrypted DNS, use DNS-over-HTTPS (DoH) or DNS-over-TLS (DoT).</p>
+                    </div>
+                </div>
+
+                <!-- Common DNS Gotchas -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Common DNS Gotchas</h3>
+
+                    <div class="alert alert-danger">
+                        <div class="alert-title">// CNAME at Apex</div>
+                        <p>CNAME records cannot be used on apex (root) domains per RFC 1034. Use ALIAS or ANAME records instead, which are provider-specific extensions that solve this limitation.</p>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <div class="alert-title">// MX Target Restriction</div>
+                        <p>MX records must point to an A or AAAA record, never to a CNAME. Pointing MX to a CNAME violates RFC 2181 and will cause mail delivery failures with strict resolvers.</p>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">// TTL &amp; Propagation</div>
+                        <p>TTL (Time to Live) directly affects how long records are cached. Before making DNS changes, lower the TTL well in advance (e.g., to 300 seconds) so the old record expires quickly from caches worldwide.</p>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Case Insensitivity</div>
+                        <p>DNS is case-insensitive per RFC 4343. <code>Example.COM</code> and <code>example.com</code> resolve identically. However, case is preserved in records for display purposes.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 05 — CORE PROTOCOLS
+             ============================================================ -->
+        <section id="protocols" class="section" data-sector="SECTOR-05 // PROTOCOLS">
+            <div class="section-header">
+                <span class="section-number">05</span>
+                <div>
+                    <h2 class="section-title">Core Protocols</h2>
+                </div>
+            </div>
+            <p class="section-description">The fundamental transport and application-layer protocols that form the backbone of modern networking &mdash; from TCP reliability to HTTP communication.</p>
+
+            <div class="section-content">
+
+                <!-- TCP vs UDP -->
+                <div class="subsection">
+                    <h3 class="subsection-title">TCP vs UDP</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>TCP</th>
+                                    <th>UDP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Connection</td>
+                                    <td>Connection-oriented (3-way handshake)</td>
+                                    <td>Connectionless</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Reliability</td>
+                                    <td>Guaranteed delivery, ACKs</td>
+                                    <td>Best-effort, no guarantees</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Ordering</td>
+                                    <td>In-order delivery (sequence numbers)</td>
+                                    <td>No ordering</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Speed</td>
+                                    <td>Slower (reliability overhead)</td>
+                                    <td>Faster (minimal overhead)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Flow Control</td>
+                                    <td>Sliding window</td>
+                                    <td>None</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Header Size</td>
+                                    <td class="mono">20&ndash;60 bytes</td>
+                                    <td class="mono">8 bytes</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Use Cases</td>
+                                    <td>HTTP, FTP, SSH, SMTP</td>
+                                    <td>DNS, VoIP, streaming, gaming</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- TCP Three-Way Handshake -->
+                <div class="subsection">
+                    <h3 class="subsection-title">TCP Three-Way Handshake</h3>
+                    <p class="content-text">TCP establishes a reliable connection using a <strong>three-way handshake</strong> before any data is transmitted. Each side exchanges sequence numbers to synchronize.</p>
+
+                    <pre><code>Client                    Server
+  |  1. SYN (seq=x)         |
+  |------------------------->|
+  |  2. SYN-ACK (seq=y,      |
+  |     ack=x+1)             |
+  |<-------------------------|
+  |  3. ACK (ack=y+1)        |
+  |------------------------->|
+  |  Connection Established   |</code></pre>
+
+                    <p class="content-text"><strong>Connection teardown</strong> uses a 4-way process: the initiator sends <code>FIN</code>, receiver sends <code>ACK</code>, then receiver sends its own <code>FIN</code>, and initiator sends final <code>ACK</code>. This allows each side to finish transmitting independently.</p>
+
+                    <pre><code>Client                    Server
+  |  1. FIN                  |
+  |------------------------->|
+  |  2. ACK                  |
+  |<-------------------------|
+  |  3. FIN                  |
+  |<-------------------------|
+  |  4. ACK                  |
+  |------------------------->|
+  |  Connection Closed        |</code></pre>
+                </div>
+
+                <!-- DHCP -->
+                <div class="subsection">
+                    <h3 class="subsection-title">DHCP (DORA Process)</h3>
+                    <p class="content-text">Dynamic Host Configuration Protocol automatically assigns IP addresses and network parameters using a four-step broadcast process known as <strong>DORA</strong>.</p>
+
+                    <div class="encap-diagram">
+                        <div class="encap-layer">
+                            <span class="layer-label">D &mdash; Discover</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Client broadcasts 0.0.0.0 &rarr; 255.255.255.255 (UDP 67/68)</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">O &mdash; Offer</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Server responds with IP, mask, gateway, DNS, lease time</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">R &mdash; Request</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Client accepts offer (broadcast, identifies chosen server)</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">A &mdash; Acknowledge</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Server confirms, client configures interface</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-grid">
+                        <div class="data-panel">
+                            <div class="panel-label">Server Port</div>
+                            <div class="panel-value">UDP 67</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Client Port</div>
+                            <div class="panel-value">UDP 68</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Lease Renewal</div>
+                            <div class="panel-value">T1 = 50% of Lease</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HTTP/HTTPS -->
+                <div class="subsection">
+                    <h3 class="subsection-title">HTTP / HTTPS</h3>
+                    <p class="content-text">The Hypertext Transfer Protocol is the foundation of web communication. HTTPS adds TLS encryption for secure data transfer.</p>
+
+                    <p class="content-text"><strong>HTTP Methods:</strong></p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Purpose</th>
+                                    <th>Idempotent</th>
+                                    <th>Safe</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">GET</td>
+                                    <td>Retrieve</td>
+                                    <td class="mono">Yes</td>
+                                    <td class="mono">Yes</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">POST</td>
+                                    <td>Create</td>
+                                    <td class="mono">No</td>
+                                    <td class="mono">No</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">PUT</td>
+                                    <td>Replace</td>
+                                    <td class="mono">Yes</td>
+                                    <td class="mono">No</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">PATCH</td>
+                                    <td>Partial update</td>
+                                    <td class="mono">No</td>
+                                    <td class="mono">No</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">DELETE</td>
+                                    <td>Remove</td>
+                                    <td class="mono">Yes</td>
+                                    <td class="mono">No</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">HEAD</td>
+                                    <td>Headers only</td>
+                                    <td class="mono">Yes</td>
+                                    <td class="mono">Yes</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="content-text"><strong>Status Codes:</strong></p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Range</th>
+                                    <th>Category</th>
+                                    <th>Key Codes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">1xx</td>
+                                    <td>Informational</td>
+                                    <td>100 Continue</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">2xx</td>
+                                    <td>Success</td>
+                                    <td>200 OK, 201 Created, 204 No Content</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">3xx</td>
+                                    <td>Redirect</td>
+                                    <td>301 Permanent, 302 Found, 304 Not Modified</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">4xx</td>
+                                    <td>Client Error</td>
+                                    <td>400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">5xx</td>
+                                    <td>Server Error</td>
+                                    <td>500 Internal, 502 Bad Gateway, 503 Unavailable</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="content-text"><strong>TLS Handshake</strong> (simplified): Client Hello &rarr; Server Hello + certificate &rarr; Verify certificate chain &rarr; Session key exchange (ECDHE) &rarr; Encrypted communication begins.</p>
+
+                    <div class="panel-grid">
+                        <div class="data-panel">
+                            <div class="panel-label">HTTP Port</div>
+                            <div class="panel-value">TCP 80</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">HTTPS Port</div>
+                            <div class="panel-value">TCP 443</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SMTP & Email Flow -->
+                <div class="subsection">
+                    <h3 class="subsection-title">SMTP &amp; Email Flow</h3>
+                    <p class="content-text">Email traverses multiple protocols and servers from sender to recipient. The journey involves submission, relay, delivery, and retrieval stages.</p>
+
+                    <div class="encap-diagram">
+                        <div class="encap-layer">
+                            <span class="layer-label">MUA</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Mail User Agent (your email client)</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">MSA :587</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Mail Submission Agent (authenticated relay)</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">MTA :25</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Mail Transfer Agent &rarr; MTA (server-to-server relay)</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">MDA</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Mail Delivery Agent (stores in mailbox)</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Recipient</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">IMAP :993 / POP3 :995 (retrieval)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Email Authentication</div>
+                        <p><strong>SPF</strong> (Sender Policy Framework) defines which IPs can send for a domain. <strong>DKIM</strong> (DomainKeys Identified Mail) adds cryptographic signatures to verify message integrity. <strong>DMARC</strong> ties SPF and DKIM together with a policy for handling failures. All three are essential for deliverability and preventing spoofing.</p>
+                    </div>
+                </div>
+
+                <!-- SNMP -->
+                <div class="subsection">
+                    <h3 class="subsection-title">SNMP</h3>
+                    <p class="content-text">Simple Network Management Protocol enables monitoring and management of network devices. Agents on devices expose metrics via a Management Information Base (MIB).</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Version</th>
+                                    <th>Security</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">v1</td>
+                                    <td>Community strings (plaintext)</td>
+                                    <td>Legacy, avoid</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">v2c</td>
+                                    <td>Community strings (plaintext)</td>
+                                    <td>64-bit counters, bulk operations</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">v3</td>
+                                    <td>Authentication + encryption</td>
+                                    <td>Recommended for all environments</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel-grid">
+                        <div class="data-panel">
+                            <div class="panel-label">Agent Port</div>
+                            <div class="panel-value">UDP 161</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Trap Port</div>
+                            <div class="panel-value">UDP 162</div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">// Security Advisory</div>
+                        <p>Always use SNMPv3 in production. SNMPv1 and v2c transmit community strings in plaintext, making them trivially interceptable. Default community strings like "public" and "private" are the first thing attackers check.</p>
+                    </div>
+                </div>
+
+                <!-- NTP -->
+                <div class="subsection">
+                    <h3 class="subsection-title">NTP</h3>
+                    <p class="content-text">Network Time Protocol synchronizes clocks across networked systems using a <strong>stratum hierarchy</strong>. Accurate time is critical for logging, authentication (Kerberos), TLS certificates, and distributed systems.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Stratum</th>
+                                    <th>Source</th>
+                                    <th>Accuracy</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">0</td>
+                                    <td>Atomic / GPS clock</td>
+                                    <td class="mono">Microseconds</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">1</td>
+                                    <td>Direct connection to stratum 0</td>
+                                    <td class="mono">Microseconds</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">2</td>
+                                    <td>Synced to stratum 1</td>
+                                    <td class="mono">Milliseconds</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">3&ndash;15</td>
+                                    <td>Each level synced to previous</td>
+                                    <td class="mono">Increasing drift</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">16</td>
+                                    <td>Unsynchronized</td>
+                                    <td class="mono">N/A</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="panel-grid">
+                        <div class="data-panel">
+                            <div class="panel-label">Port</div>
+                            <div class="panel-value">UDP 123</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Common Servers</div>
+                            <div class="panel-value">pool.ntp.org</div>
+                        </div>
+                        <div class="data-panel">
+                            <div class="panel-label">Alternatives</div>
+                            <div class="panel-value">time.google.com / time.nist.gov</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 06 — ROUTING & SWITCHING
+             ============================================================ -->
+        <section id="routing" class="section" data-sector="SECTOR-06 // ROUTING">
+            <div class="section-header">
+                <span class="section-number">06</span>
+                <div>
+                    <h2 class="section-title">Routing &amp; Switching</h2>
+                </div>
+            </div>
+            <p class="section-description">How packets find their way across networks through routing tables, dynamic protocols, VLANs, and Layer 2/3 forwarding decisions.</p>
+
+            <div class="section-content">
+
+                <!-- Routing Tables -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Routing Tables</h3>
+                    <p class="content-text">Every host and router maintains a routing table that determines where to forward packets. The <code>ip route</code> command displays the current routing decisions.</p>
+
+                    <pre><code>$ ip route show
+default via 192.168.1.1 dev eth0 proto dhcp metric 100
+10.0.0.0/8 via 10.1.1.1 dev tun0
+172.16.0.0/16 dev docker0 proto kernel scope link src 172.16.0.1
+192.168.1.0/24 dev eth0 proto kernel scope link src 192.168.1.100</code></pre>
+
+                    <ul class="content-list">
+                        <li><code>default via 192.168.1.1</code> &mdash; <strong>Default route</strong>. Gateway of last resort for all unknown destinations.</li>
+                        <li><code>10.0.0.0/8 via 10.1.1.1</code> &mdash; <strong>Static route</strong>. Traffic to 10.x.x.x goes through the VPN tunnel gateway.</li>
+                        <li><code>172.16.0.0/16 dev docker0</code> &mdash; <strong>Kernel route</strong>. Directly connected via Docker bridge interface.</li>
+                        <li><code>192.168.1.0/24 dev eth0</code> &mdash; <strong>Connected route</strong>. Local network directly attached to eth0.</li>
+                    </ul>
+
+                    <p class="content-text"><strong>Route codes</strong> (common in Cisco/routing daemon output):</p>
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">C</div>
+                            <div class="desc">Connected (directly attached)</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">S</div>
+                            <div class="desc">Static (manually configured)</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">O</div>
+                            <div class="desc">OSPF learned</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">B</div>
+                            <div class="desc">BGP learned</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">D</div>
+                            <div class="desc">EIGRP learned</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Static vs Dynamic Routing -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Static vs Dynamic Routing</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aspect</th>
+                                    <th>Static</th>
+                                    <th>Dynamic</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Config</td>
+                                    <td>Manual</td>
+                                    <td>Auto via protocol</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Updates</td>
+                                    <td>Manual when topology changes</td>
+                                    <td>Automatic adaptation</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Resources</td>
+                                    <td>Low (no protocol overhead)</td>
+                                    <td>CPU + bandwidth for updates</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Security</td>
+                                    <td>More secure (no advertisements)</td>
+                                    <td>Protocol exchanges visible</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Failover</td>
+                                    <td>No automatic rerouting</td>
+                                    <td>Automatic alternate paths</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Best For</td>
+                                    <td>Small / stub networks</td>
+                                    <td>Large enterprise networks</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- OSPF vs BGP -->
+                <div class="subsection">
+                    <h3 class="subsection-title">OSPF vs BGP</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>OSPF (IGP)</th>
+                                    <th>BGP (EGP)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Scope</td>
+                                    <td>Within an Autonomous System</td>
+                                    <td>Between Autonomous Systems</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Algorithm</td>
+                                    <td>Link-state (Dijkstra)</td>
+                                    <td>Path vector + policy</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Convergence</td>
+                                    <td>Fast (seconds)</td>
+                                    <td>Slower (policy evaluation)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Scale</td>
+                                    <td class="mono">~500 routers/area</td>
+                                    <td class="mono">Internet scale</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Use Case</td>
+                                    <td>Corporate LAN / Data Center</td>
+                                    <td>Internet edge, WAN peering</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Best Practice</div>
+                        <p>Use OSPF for internal routing within your network. Deploy BGP at the edge where you peer with ISPs or other autonomous systems. Many enterprise networks run both: OSPF internally, BGP externally.</p>
+                    </div>
+                </div>
+
+                <!-- VLANs -->
+                <div class="subsection">
+                    <h3 class="subsection-title">VLANs (802.1Q)</h3>
+                    <p class="content-text">Virtual LANs logically segment a physical network into separate broadcast domains. IEEE 802.1Q defines the standard by adding a <strong>4-byte tag</strong> to Ethernet frames containing a TPID (Tag Protocol Identifier) and TCI (Tag Control Information) with a VLAN ID ranging from <code>0&ndash;4094</code>.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <div class="cmd">Access Port</div>
+                            <div class="desc">Belongs to a single VLAN. Frames are untagged. Used for end devices (PCs, printers, phones).</div>
+                        </div>
+                        <div class="command-card">
+                            <div class="cmd">Trunk Port</div>
+                            <div class="desc">Carries multiple VLANs. Frames are tagged with 802.1Q headers. Used between switches and routers.</div>
+                        </div>
+                    </div>
+
+                    <ul class="content-list">
+                        <li><strong>Logical segmentation</strong> &mdash; Group users by function regardless of physical location</li>
+                        <li><strong>Reduced broadcast domains</strong> &mdash; Broadcasts stay within the VLAN, reducing network noise</li>
+                        <li><strong>Security isolation</strong> &mdash; Traffic between VLANs must pass through a router or L3 switch with ACLs</li>
+                    </ul>
+                </div>
+
+                <!-- ARP -->
+                <div class="subsection">
+                    <h3 class="subsection-title">ARP</h3>
+                    <p class="content-text">Address Resolution Protocol maps <strong>IP addresses to MAC addresses</strong> on a local network segment. It operates at Layer 2 and is essential for Ethernet communication.</p>
+
+                    <div class="encap-diagram">
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 1</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Host needs MAC for destination IP</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 2</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Broadcasts ARP request: "Who has 192.168.1.1?"</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 3</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Target replies with its MAC address (unicast)</span>
+                            </div>
+                        </div>
+                        <div class="encap-layer">
+                            <span class="layer-label">Step 4</span>
+                            <div class="layer-content">
+                                <span class="layer-block added">Requester caches in ARP table (5&ndash;20 min TTL)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <pre><code>ip neigh show                  # Show ARP table (modern)
+arp -a                          # Show ARP table (legacy)
+arping -I eth0 192.168.1.1    # ARP ping specific host
+ip neigh flush dev eth0         # Clear ARP cache</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Gratuitous ARP</div>
+                        <p>A gratuitous ARP is an unsolicited ARP reply broadcast by a host to announce its IP-to-MAC mapping. Used during failover (VRRP/HSRP), IP address changes, and NIC replacements to update other hosts' ARP caches immediately.</p>
+                    </div>
+                </div>
+
+                <!-- L2 vs L3 Switches -->
+                <div class="subsection">
+                    <h3 class="subsection-title">L2 vs L3 Switches</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Layer 2</th>
+                                    <th>Layer 3</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Forwarding</td>
+                                    <td>MAC-based</td>
+                                    <td>IP-based (routing)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Inter-VLAN</td>
+                                    <td>Cannot route between VLANs</td>
+                                    <td>Routes natively (SVI interfaces)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Protocols</td>
+                                    <td>STP, VLANs</td>
+                                    <td>OSPF, BGP, static routes</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Use Case</td>
+                                    <td>Access layer</td>
+                                    <td>Distribution / core layer</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Spanning Tree -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Spanning Tree (STP)</h3>
+                    <p class="content-text">Spanning Tree Protocol (IEEE 802.1D) <strong>prevents Layer 2 loops</strong> in networks with redundant paths. Without STP, broadcast storms would overwhelm the network.</p>
+
+                    <p class="content-text">STP elects a <strong>root bridge</strong> (lowest Bridge ID) and assigns port roles:</p>
+                    <ul class="content-list">
+                        <li><strong>Root Port</strong> &mdash; Best path toward the root bridge (one per non-root switch)</li>
+                        <li><strong>Designated Port</strong> &mdash; Best path away from root on each segment (forwarding)</li>
+                        <li><strong>Blocked Port</strong> &mdash; Redundant path, disabled to prevent loops</li>
+                    </ul>
+
+                    <p class="content-text"><strong>Port states</strong> (classic STP): Blocking &rarr; Listening &rarr; Learning &rarr; Forwarding. Total convergence time: <strong>30&ndash;50 seconds</strong>.</p>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Modern Alternative: RSTP</div>
+                        <p>Rapid Spanning Tree Protocol (IEEE 802.1w) converges in 1&ndash;2 seconds instead of STP's 30&ndash;50 seconds. It introduces new port roles (Alternate, Backup) and port states (Discarding, Learning, Forwarding). RSTP is backward-compatible with STP and should be used in all modern deployments.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 07 — FIREWALLS & SECURITY
+             ============================================================ -->
+        <section id="firewalls" class="section" data-sector="SECTOR-07 // SECURITY">
+            <div class="section-header">
+                <span class="section-number">07</span>
+                <div>
+                    <h2 class="section-title">Firewalls &amp; Security</h2>
+                </div>
+            </div>
+            <p class="section-description">Network security fundamentals &mdash; from packet filtering and stateful inspection to NAT traversal and zero trust architectures.</p>
+
+            <div class="section-content">
+
+                <!-- Stateful vs Stateless Firewalls -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Stateful vs Stateless Firewalls</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aspect</th>
+                                    <th>Stateless</th>
+                                    <th>Stateful</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Inspection</td>
+                                    <td>Individual packets</td>
+                                    <td>Connection state tracking</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Memory</td>
+                                    <td>No session state</td>
+                                    <td>Maintains connection tables</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Decision</td>
+                                    <td>Headers only (IP, port, protocol)</td>
+                                    <td>Context + state (NEW, ESTABLISHED, RELATED, INVALID)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Performance</td>
+                                    <td>Faster (less processing)</td>
+                                    <td>Slightly slower</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Security</td>
+                                    <td>Lower (no context)</td>
+                                    <td>Higher (session awareness)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Example</td>
+                                    <td>Traditional ACLs</td>
+                                    <td>iptables/nftables with conntrack</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Connection States</div>
+                        <p>Stateful firewalls track connections in four states: <strong>NEW</strong> (first packet), <strong>ESTABLISHED</strong> (ongoing), <strong>RELATED</strong> (associated, e.g. FTP data), <strong>INVALID</strong> (malformed).</p>
+                    </div>
+                </div>
+
+                <!-- Access Control Lists -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Access Control Lists (ACLs)</h3>
+                    <p class="content-text">Ordered permit/deny rules, applied to interfaces. Sequential evaluation, <strong>first match wins</strong>, implicit deny-all at end.</p>
+                </div>
+
+                <!-- iptables -->
+                <div class="subsection">
+                    <h3 class="subsection-title">iptables</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Chain</th>
+                                    <th>Purpose</th>
+                                    <th>Traffic</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">INPUT</td>
+                                    <td>Destined for local system</td>
+                                    <td>Incoming</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">OUTPUT</td>
+                                    <td>Generated by local system</td>
+                                    <td>Outgoing</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">FORWARD</td>
+                                    <td>Routed through system</td>
+                                    <td>Transit</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">PREROUTING</td>
+                                    <td>Before routing decision</td>
+                                    <td>DNAT</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">POSTROUTING</td>
+                                    <td>After routing decision</td>
+                                    <td>SNAT</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="content-text"><strong>Targets:</strong> ACCEPT, DROP, REJECT, LOG, MASQUERADE, DNAT, SNAT</p>
+
+                    <pre><code># Allow established connections
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# Allow SSH from specific subnet
+iptables -A INPUT -p tcp --dport 22 -s 10.0.0.0/8 -j ACCEPT
+
+# Allow HTTP/HTTPS
+iptables -A INPUT -p tcp -m multiport --dports 80,443 -j ACCEPT
+
+# Drop all other incoming
+iptables -A INPUT -j DROP
+
+# List rules with line numbers
+iptables -L -n -v --line-numbers
+
+# Save and restore
+iptables-save > /etc/iptables/rules.v4
+iptables-restore < /etc/iptables/rules.v4</code></pre>
+                </div>
+
+                <!-- nftables -->
+                <div class="subsection">
+                    <h3 class="subsection-title">nftables (Modern Replacement)</h3>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// nftables Adoption</div>
+                        <p>nftables is the default in Debian, Fedora, Ubuntu, RHEL 8+. iptables is in legacy mode. Kubernetes 1.33+ uses nftables.</p>
+                    </div>
+
+                    <p class="content-text">Key improvements: <strong>unified IPv4/IPv6/ARP</strong>, cleaner syntax, incremental updates, better performance.</p>
+
+                    <pre><code># Create table and chain
+nft add table inet filter
+nft add chain inet filter input { type filter hook input priority 0 \; policy drop \; }
+
+# Allow established
+nft add rule inet filter input ct state established,related accept
+
+# Allow SSH and HTTP
+nft add rule inet filter input tcp dport { 22, 80, 443 } accept
+
+# Allow ICMP
+nft add rule inet filter input icmp type echo-request accept
+
+# List rules
+nft list ruleset
+
+# Compare: iptables vs nftables
+# iptables -A INPUT -p tcp --dport 22 -j ACCEPT
+# nft add rule inet filter input tcp dport 22 accept</code></pre>
+                </div>
+
+                <!-- NAT/PAT -->
+                <div class="subsection">
+                    <h3 class="subsection-title">NAT/PAT</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Direction</th>
+                                    <th>Use Case</th>
+                                    <th>How It Works</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">SNAT</td>
+                                    <td>Outbound</td>
+                                    <td>Private &rarr; Public IP</td>
+                                    <td>Rewrites source IP</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">DNAT</td>
+                                    <td>Inbound</td>
+                                    <td>Port forwarding</td>
+                                    <td>Rewrites destination IP</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">MASQUERADE</td>
+                                    <td>Outbound</td>
+                                    <td>Dynamic public IP (DHCP)</td>
+                                    <td>SNAT with auto IP</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">PAT</td>
+                                    <td>Both</td>
+                                    <td>Many-to-one using ports</td>
+                                    <td>Maps internal hosts to ports</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <pre><code># SNAT: Static source translation
+iptables -t nat -A POSTROUTING -s 192.168.1.0/24 -o eth0 -j SNAT --to-source 203.0.113.10
+
+# MASQUERADE: Dynamic SNAT
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# DNAT: Port forwarding (public:443 &rarr; internal:8443)
+iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 443 -j DNAT --to-destination 192.168.1.10:8443
+
+# Enable IP forwarding
+sysctl -w net.ipv4.ip_forward=1
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf</code></pre>
+                </div>
+
+                <!-- Zero Trust Networking -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Zero Trust Networking</h3>
+                    <p class="content-text">Core principles:</p>
+                    <ul class="content-list">
+                        <li><strong>Never Trust, Always Verify</strong> &mdash; Authenticate every user, device, application</li>
+                        <li><strong>Least Privilege Access</strong> &mdash; Minimum permissions for minimum time</li>
+                        <li><strong>Assume Breach</strong> &mdash; Design for detection, isolation, containment</li>
+                    </ul>
+
+                    <p class="content-text">Key implementation:</p>
+                    <ul class="content-list">
+                        <li>Replace VPN with identity-aware proxies</li>
+                        <li>Micro-segmentation (VLANs, software-defined)</li>
+                        <li>MFA for all access</li>
+                        <li>Continuous monitoring (EDR/XDR)</li>
+                        <li>Service mesh for workload-to-workload auth</li>
+                    </ul>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">// Zero Trust Misconception</div>
+                        <p>Zero trust is NOT removing your firewall. It means no implicit trust zones &mdash; verify identity at every access point.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 08 — VPNs & TUNNELING
+             ============================================================ -->
+        <section id="vpns" class="section" data-sector="SECTOR-08 // VPN">
+            <div class="section-header">
+                <span class="section-number">08</span>
+                <div>
+                    <h2 class="section-title">VPNs &amp; Tunneling</h2>
+                </div>
+            </div>
+            <p class="section-description">Virtual private networks and tunneling protocols &mdash; from site-to-site IPSec to modern WireGuard and SSH port forwarding.</p>
+
+            <div class="section-content">
+
+                <!-- VPN Protocol Comparison -->
+                <div class="subsection">
+                    <h3 class="subsection-title">VPN Protocol Comparison</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Protocol</th>
+                                    <th>Speed</th>
+                                    <th>Security</th>
+                                    <th>Complexity</th>
+                                    <th>Best For</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">WireGuard</td>
+                                    <td>Excellent</td>
+                                    <td>Strong</td>
+                                    <td>Low</td>
+                                    <td>Default choice 2026</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">OpenVPN</td>
+                                    <td>Good</td>
+                                    <td>Strong</td>
+                                    <td>High</td>
+                                    <td>Compliance, legacy</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">IPSec</td>
+                                    <td>Good</td>
+                                    <td>Strong</td>
+                                    <td>High</td>
+                                    <td>Site-to-site</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">IKEv2/IPSec</td>
+                                    <td>Excellent</td>
+                                    <td>Strong</td>
+                                    <td>Medium</td>
+                                    <td>Mobile users</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">SSH Tunnels</td>
+                                    <td>Good</td>
+                                    <td>Strong</td>
+                                    <td>Low</td>
+                                    <td>Ad-hoc admin access</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-danger">
+                        <div class="alert-title">// Deprecated Protocol</div>
+                        <p>NEVER use PPTP &mdash; known security vulnerabilities. Deprecated by Microsoft.</p>
+                    </div>
+                </div>
+
+                <!-- IPSec -->
+                <div class="subsection">
+                    <h3 class="subsection-title">IPSec</h3>
+                    <p class="content-text"><strong>IKE Phases:</strong></p>
+                    <ul class="content-list">
+                        <li><strong>Phase 1</strong> &mdash; Negotiate encryption, auth, hashing, DH group &rarr; creates ISAKMP SA (control channel)</li>
+                        <li><strong>Phase 2</strong> &mdash; Negotiate IPSec params (ESP/AH) &rarr; creates IPSec SA (data tunnel)</li>
+                    </ul>
+
+                    <p class="content-text"><strong>Protocols:</strong></p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Protocol</th>
+                                    <th>Encryption</th>
+                                    <th>Auth</th>
+                                    <th>Integrity</th>
+                                    <th>Use</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">ESP</td>
+                                    <td>Yes</td>
+                                    <td>Yes</td>
+                                    <td>Yes</td>
+                                    <td>Standard (confidentiality + auth)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">AH</td>
+                                    <td>No</td>
+                                    <td>Yes</td>
+                                    <td>Yes</td>
+                                    <td>Legacy (auth only, rarely used)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p class="content-text"><strong>Modes:</strong></p>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Mode</th>
+                                    <th>IP Header</th>
+                                    <th>Use Case</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Transport</td>
+                                    <td>Original preserved</td>
+                                    <td>Host-to-host</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Tunnel</td>
+                                    <td>New header added</td>
+                                    <td>Site-to-site (most common)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- WireGuard -->
+                <div class="subsection">
+                    <h3 class="subsection-title">WireGuard</h3>
+                    <p class="content-text">Key advantages: <strong>~4,000 lines of code</strong> (vs OpenVPN ~100,000+), <strong>60% faster</strong> in real tests, kernel-level, modern crypto (ChaCha20, Curve25519), seamless roaming.</p>
+
+                    <pre><code># Server (/etc/wireguard/wg0.conf)
+[Interface]
+PrivateKey = &lt;server-private-key&gt;
+Address = 10.0.0.1/24
+ListenPort = 51820
+
+[Peer]
+PublicKey = &lt;client-public-key&gt;
+AllowedIPs = 10.0.0.2/32
+
+# Client
+[Interface]
+PrivateKey = &lt;client-private-key&gt;
+Address = 10.0.0.2/24
+DNS = 1.1.1.1
+
+[Peer]
+PublicKey = &lt;server-public-key&gt;
+Endpoint = vpn.example.com:51820
+AllowedIPs = 0.0.0.0/0
+PersistentKeepalive = 25</code></pre>
+
+                    <pre><code># Start/stop
+wg-quick up wg0
+wg-quick down wg0
+
+# Status
+wg show
+wg show wg0
+
+# Generate keys
+wg genkey | tee privatekey | wg pubkey > publickey</code></pre>
+                </div>
+
+                <!-- OpenVPN -->
+                <div class="subsection">
+                    <h3 class="subsection-title">OpenVPN</h3>
+                    <p class="content-text">Still relevant for: <strong>compliance requirements</strong>, TCP mode (WireGuard UDP only), restrictive firewalls (can run on TCP 443), existing PKI infrastructure.</p>
+
+                    <pre><code>port 1194
+proto udp
+dev tun
+ca ca.crt
+cert server.crt
+key server.key
+dh dh2048.pem
+server 10.8.0.0 255.255.255.0
+push "redirect-gateway def1"
+push "dhcp-option DNS 8.8.8.8"</code></pre>
+                </div>
+
+                <!-- SSH Tunneling -->
+                <div class="subsection">
+                    <h3 class="subsection-title">SSH Tunneling</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Flag</th>
+                                    <th>Type</th>
+                                    <th>Direction</th>
+                                    <th>Use Case</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">-L</td>
+                                    <td>Local Forward</td>
+                                    <td>Local &rarr; Remote</td>
+                                    <td>Access remote service locally</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">-R</td>
+                                    <td>Remote Forward</td>
+                                    <td>Remote &rarr; Local</td>
+                                    <td>Expose local service remotely</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">-D</td>
+                                    <td>Dynamic (SOCKS)</td>
+                                    <td>SOCKS proxy</td>
+                                    <td>Browser/app proxying</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <pre><code># Local: Access remote DB from localhost:3306
+ssh -L 3306:db-server:3306 user@jump-host
+
+# Remote: Share local web server on remote:8080
+ssh -R 8080:localhost:80 user@public-server
+
+# Dynamic SOCKS proxy on localhost:1080
+ssh -D 1080 user@proxy-server
+
+# Background tunnel (no shell)
+ssh -fN -L 8080:internal:80 user@gateway</code></pre>
+                </div>
+
+                <!-- When to Use Which -->
+                <div class="subsection">
+                    <h3 class="subsection-title">When to Use Which</h3>
+                    <ul class="content-list">
+                        <li><strong>Remote workers</strong> &mdash; WireGuard (primary), IKEv2 (mobile fallback)</li>
+                        <li><strong>Site-to-site</strong> &mdash; IPSec tunnel mode</li>
+                        <li><strong>Developers/admins</strong> &mdash; SSH tunneling for ad-hoc access</li>
+                        <li><strong>Compliance-heavy</strong> &mdash; OpenVPN with full PKI</li>
+                        <li><strong>Routing over WAN</strong> &mdash; GRE + IPSec (multicast support)</li>
+                    </ul>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 09 — LOAD BALANCING & HIGH AVAILABILITY
+             ============================================================ -->
+        <section id="load-balancing" class="section" data-sector="SECTOR-09 // LOAD BALANCING">
+            <div class="section-header">
+                <span class="section-number">09</span>
+                <div>
+                    <h2 class="section-title">Load Balancing &amp; High Availability</h2>
+                </div>
+            </div>
+            <p class="section-description">Distributing traffic across servers, health checking, session persistence, and ensuring uptime through redundancy patterns.</p>
+
+            <div class="section-content">
+
+                <!-- L4 vs L7 Load Balancing -->
+                <div class="subsection">
+                    <h3 class="subsection-title">L4 vs L7 Load Balancing</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Layer 4 (Transport)</th>
+                                    <th>Layer 7 (Application)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Decisions</td>
+                                    <td>IP + port</td>
+                                    <td>URL, headers, cookies, content</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Speed</td>
+                                    <td>Faster (no content inspection)</td>
+                                    <td>Slower (deep inspection)</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">SSL</td>
+                                    <td>Pass-through or terminate</td>
+                                    <td>Always terminate + re-encrypt</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Routing</td>
+                                    <td>All traffic for connection to same backend</td>
+                                    <td>Request-level routing</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Use Case</td>
+                                    <td>TCP/UDP services, databases</td>
+                                    <td>HTTP APIs, microservices</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Examples</td>
+                                    <td>HAProxy (TCP mode), LVS</td>
+                                    <td>Nginx, HAProxy (HTTP mode), Envoy</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Algorithms -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Algorithms</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Algorithm</th>
+                                    <th>How It Works</th>
+                                    <th>Best For</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="highlight">Round Robin</td>
+                                    <td>Sequential rotation</td>
+                                    <td>Equal-capacity servers</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Weighted Round Robin</td>
+                                    <td>Proportional by weight</td>
+                                    <td>Mixed-capacity servers</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Least Connections</td>
+                                    <td>Route to fewest active</td>
+                                    <td>Variable request duration</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">IP Hash</td>
+                                    <td>Hash source IP &rarr; consistent backend</td>
+                                    <td>Session persistence</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Least Response Time</td>
+                                    <td>Route to fastest responder</td>
+                                    <td>Latency-sensitive apps</td>
+                                </tr>
+                                <tr>
+                                    <td class="highlight">Random</td>
+                                    <td>Random selection</td>
+                                    <td>Large server pools</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Health Checks -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Health Checks</h3>
+                    <p class="content-text"><strong>Types:</strong> TCP connect, HTTP GET (check status code), custom scripts. <strong>Key parameters:</strong> interval, timeout, threshold (unhealthy after N failures), recovery threshold.</p>
+
+                    <pre><code>backend web_servers
+    option httpchk GET /health
+    http-check expect status 200
+    server web1 192.168.1.10:8080 check inter 5s fall 3 rise 2
+    server web2 192.168.1.11:8080 check inter 5s fall 3 rise 2
+    server web3 192.168.1.12:8080 check inter 5s fall 3 rise 2 backup</code></pre>
+                </div>
+
+                <!-- Session Persistence -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Session Persistence</h3>
+                    <p class="content-text"><strong>Methods:</strong></p>
+                    <ul class="content-list">
+                        <li><strong>Source IP</strong> &mdash; Hash client IP &rarr; same backend (breaks behind NAT)</li>
+                        <li><strong>Cookie-based</strong> &mdash; LB inserts/reads cookie with backend ID</li>
+                        <li><strong>URL parameter</strong> &mdash; Session ID in URL</li>
+                        <li><strong>SSL Session ID</strong> &mdash; TLS session &rarr; same backend</li>
+                    </ul>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Stateless Architecture</div>
+                        <p>Stateless architectures (shared session stores like Redis) eliminate the need for sticky sessions.</p>
+                    </div>
+                </div>
+
+                <!-- DNS Load Balancing -->
+                <div class="subsection">
+                    <h3 class="subsection-title">DNS Load Balancing</h3>
+                    <p class="content-text">How it works: Multiple A records for same domain, DNS rotates responses. <strong>Pros:</strong> Simple, no special infrastructure. <strong>Cons:</strong> No health checks, TTL caching delays failover, no session persistence.</p>
+                </div>
+
+                <!-- High Availability Patterns -->
+                <div class="subsection">
+                    <h3 class="subsection-title">High Availability Patterns</h3>
+                    <ul class="content-list">
+                        <li><strong>Active-Passive</strong> &mdash; Standby takes over on failure (VRRP/keepalived)</li>
+                        <li><strong>Active-Active</strong> &mdash; All nodes serve traffic simultaneously</li>
+                        <li><strong>Floating/Virtual IP</strong> &mdash; VIP moves between nodes via VRRP</li>
+                    </ul>
+
+                    <p class="content-text"><strong>VRRP/keepalived example:</strong></p>
+
+                    <pre><code># /etc/keepalived/keepalived.conf
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass secret123
+    }
+    virtual_ipaddress {
+        192.168.1.100/24
+    }
+}</code></pre>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================================
+             SECTION 10 — TROUBLESHOOTING TOOLKIT
+             ============================================================ -->
+        <section id="troubleshooting" class="section" data-sector="SECTOR-10 // TROUBLESHOOTING">
+            <div class="section-header">
+                <span class="section-number">10</span>
+                <div>
+                    <h2 class="section-title">Troubleshooting Toolkit</h2>
+                </div>
+            </div>
+            <p class="section-description">Comprehensive diagnostic reference &mdash; from systematic methodology to packet-level analysis with ping, traceroute, tcpdump, nmap, Wireshark, and more.</p>
+
+            <div class="section-content">
+
+                <!-- Troubleshooting Methodology -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Troubleshooting Methodology</h3>
+                    <p class="content-text">Decision flow for network issues &mdash; work from the bottom of the stack upward:</p>
+                    <ul class="content-list">
+                        <li><strong>1. Identify the problem</strong> &mdash; What exactly isn't working? (connectivity, DNS, specific service, slow performance)</li>
+                        <li><strong>2. Check local config</strong> &mdash; <code>ip addr</code>, <code>ip route</code>, <code>/etc/resolv.conf</code></li>
+                        <li><strong>3. Test connectivity</strong> &mdash; <code>ping localhost</code> &rarr; <code>ping gateway</code> &rarr; <code>ping external IP</code> &rarr; <code>ping domain</code></li>
+                        <li><strong>4. Check DNS</strong> &mdash; <code>dig example.com</code>, <code>nslookup</code></li>
+                        <li><strong>5. Check ports/services</strong> &mdash; <code>ss -tlnp</code>, <code>nmap</code></li>
+                        <li><strong>6. Trace the path</strong> &mdash; <code>traceroute</code>, <code>mtr</code></li>
+                        <li><strong>7. Capture traffic</strong> &mdash; <code>tcpdump</code>, Wireshark</li>
+                    </ul>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// Bottom-Up Rule</div>
+                        <p>Always start at the bottom of the stack and work up. If ping to the gateway fails, don't bother checking DNS.</p>
+                    </div>
+                </div>
+
+                <!-- ping -->
+                <div class="subsection">
+                    <h3 class="subsection-title">ping</h3>
+
+                    <pre><code># Basic connectivity test
+ping -c 4 192.168.1.1              # Send 4 packets
+ping -c 4 8.8.8.8                   # Test internet
+ping -c 4 example.com               # Test DNS + connectivity
+
+# Advanced options
+ping -i 0.2 host                    # 200ms interval (fast ping)
+ping -s 1472 -M do host             # MTU test (don't fragment)
+ping -t 5 host                      # Set TTL
+ping -W 2 host                      # 2-second timeout
+ping -f host                        # Flood ping (careful!)
+
+# Interpret results
+# 64 bytes from 8.8.8.8: icmp_seq=1 ttl=118 time=12.3 ms
+# time = round-trip latency
+# ttl  = hops remaining (start 64 or 128)
+# packet loss = reliability indicator</code></pre>
+                </div>
+
+                <!-- traceroute & mtr -->
+                <div class="subsection">
+                    <h3 class="subsection-title">traceroute &amp; mtr</h3>
+
+                    <pre><code># traceroute (uses UDP by default on Linux, ICMP on Windows)
+traceroute example.com               # Standard trace
+traceroute -I example.com            # Use ICMP instead of UDP
+traceroute -T -p 443 example.com    # TCP trace on port 443
+traceroute -n example.com            # Skip DNS resolution
+
+# mtr (combines ping + traceroute, continuous monitoring)
+mtr example.com                      # Interactive mode
+mtr -r -c 100 example.com           # Report mode, 100 cycles
+mtr -n example.com                   # No DNS resolution
+mtr --tcp -P 443 example.com        # TCP mode on port 443</code></pre>
+
+                    <p class="content-text"><strong>Reading mtr output:</strong> Key columns are <strong>Host</strong>, <strong>Loss%</strong>, <strong>Snt</strong> (sent), <strong>Last</strong>, <strong>Avg</strong>, <strong>Best</strong>, <strong>Wrst</strong> (worst), and <strong>StDev</strong>. High loss at one hop but not subsequent hops indicates ICMP rate limiting (normal). High loss from one hop onward indicates a real problem at that hop.</p>
+                </div>
+
+                <!-- tcpdump -->
+                <div class="subsection">
+                    <h3 class="subsection-title">tcpdump</h3>
+
+                    <pre><code># Basic capture
+tcpdump -i eth0                      # Capture all on interface
+tcpdump -i any                       # Capture on all interfaces
+tcpdump -i eth0 -n                   # Don't resolve hostnames
+tcpdump -i eth0 -c 100              # Capture 100 packets
+
+# Filters
+tcpdump -i eth0 host 192.168.1.100  # Specific host
+tcpdump -i eth0 port 80              # Specific port
+tcpdump -i eth0 src 10.0.0.1        # Source IP only
+tcpdump -i eth0 dst port 443        # Destination port
+tcpdump -i eth0 'tcp[tcpflags] &amp; tcp-syn != 0'  # SYN packets
+
+# Save and read
+tcpdump -i eth0 -w capture.pcap      # Write to file
+tcpdump -r capture.pcap              # Read from file
+tcpdump -r capture.pcap -A           # Read with ASCII output
+
+# Combine filters
+tcpdump -i eth0 'host 10.0.0.1 and port 443'
+tcpdump -i eth0 'src net 192.168.1.0/24 and dst port 80'</code></pre>
+                </div>
+
+                <!-- ss (Socket Statistics) -->
+                <div class="subsection">
+                    <h3 class="subsection-title">ss (Socket Statistics)</h3>
+
+                    <pre><code># Show listening sockets
+ss -tlnp                              # TCP listening, numeric, process
+ss -ulnp                              # UDP listening
+ss -tlnp | grep :80                  # Find what's on port 80
+
+# Show all connections
+ss -tan                               # All TCP, numeric
+ss -tan state established             # Only established
+ss -tan state time-wait              # Only TIME_WAIT
+
+# Show socket statistics
+ss -s                                 # Summary statistics
+
+# Filter by port or address
+ss -tn dst :443                      # Connections to port 443
+ss -tn src 192.168.1.100             # Connections from IP
+ss -tn 'dport == :80 or dport == :443'  # Multiple ports</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">// ss vs netstat</div>
+                        <p>ss replaces the legacy netstat command. Use <code>ss</code> on modern systems &mdash; it's faster and more feature-rich.</p>
+                    </div>
+                </div>
+
+                <!-- nmap -->
+                <div class="subsection">
+                    <h3 class="subsection-title">nmap</h3>
+
+                    <pre><code># Host discovery
+nmap -sn 192.168.1.0/24             # Ping sweep (no port scan)
+
+# Port scanning
+nmap -sS host                        # SYN scan (stealth, default)
+nmap -sT host                        # TCP connect scan
+nmap -sU host                        # UDP scan (slow)
+nmap -p 1-1000 host                  # Specific port range
+nmap -p 22,80,443 host              # Specific ports
+nmap -p- host                        # All 65535 ports
+
+# Service/version detection
+nmap -sV host                        # Service versions
+nmap -sV --version-intensity 5 host  # Aggressive detection
+nmap -O host                         # OS detection
+nmap -A host                         # Aggressive (OS + version + scripts + traceroute)
+
+# Output formats
+nmap -oN scan.txt host              # Normal output
+nmap -oX scan.xml host              # XML output
+nmap -oG scan.grep host             # Grepable output</code></pre>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">// Authorization Required</div>
+                        <p>Only scan networks you own or have explicit authorization to test. Unauthorized scanning may violate laws.</p>
+                    </div>
+                </div>
+
+                <!-- Wireshark Filters -->
+                <div class="subsection">
+                    <h3 class="subsection-title">Wireshark Filters</h3>
+                    <p class="content-text">Common display filters:</p>
+
+                    <pre><code># Protocol filters
+tcp                                   # All TCP traffic
+udp                                   # All UDP traffic
+dns                                   # DNS queries/responses
+http                                  # HTTP traffic
+tls                                   # TLS/SSL traffic
+
+# Address filters
+ip.addr == 192.168.1.100             # Source or destination
+ip.src == 10.0.0.1                   # Source only
+ip.dst == 10.0.0.1                   # Destination only
+
+# Port filters
+tcp.port == 443                      # Source or destination port
+tcp.dport == 80                      # Destination port only
+tcp.port in {80,443,8080}           # Multiple ports
+
+# Combined
+http &amp;&amp; ip.addr == 192.168.1.100    # HTTP from/to specific host
+tcp.flags.syn == 1                   # SYN packets only
+tcp.analysis.retransmission         # Retransmissions (troubleshooting)
+dns.flags.response == 0             # DNS queries only</code></pre>
+                </div>
+
+                <!-- curl for Network Testing -->
+                <div class="subsection">
+                    <h3 class="subsection-title">curl for Network Testing</h3>
+
+                    <pre><code># Basic HTTP testing
+curl -I https://example.com          # Headers only
+curl -v https://example.com          # Verbose (full handshake)
+curl -o /dev/null -s -w "HTTP %{http_code}\n" URL  # Status code only
+
+# Timing breakdown
+curl -o /dev/null -s -w "\
+  DNS:        %{time_namelookup}s\n\
+  Connect:    %{time_connect}s\n\
+  TLS:        %{time_appconnect}s\n\
+  TTFB:       %{time_starttransfer}s\n\
+  Total:      %{time_total}s\n" https://example.com
+
+# Testing specific features
+curl -4 example.com                   # Force IPv4
+curl -6 example.com                   # Force IPv6
+curl --resolve example.com:443:1.2.3.4 https://example.com  # Override DNS
+curl -k https://self-signed.example.com  # Skip TLS verification</code></pre>
+                </div>
+
+                <!-- ip Command Reference -->
+                <div class="subsection">
+                    <h3 class="subsection-title">ip Command Reference</h3>
+
+                    <pre><code># Interfaces
+ip addr show                         # Show all interfaces
+ip addr show dev eth0                # Specific interface
+ip link set eth0 up                  # Enable interface
+ip link set eth0 down                # Disable interface
+
+# IP addresses
+ip addr add 192.168.1.100/24 dev eth0    # Add IP
+ip addr del 192.168.1.100/24 dev eth0    # Remove IP
+
+# Routes
+ip route show                        # Show routing table
+ip route add 10.0.0.0/8 via 192.168.1.1  # Add route
+ip route del 10.0.0.0/8              # Delete route
+ip route add default via 192.168.1.1  # Set default gateway
+
+# ARP/Neighbors
+ip neigh show                        # Show ARP table
+ip neigh flush dev eth0              # Clear ARP cache</code></pre>
+                </div>
+
+            </div>
+        </section>
+
+        <footer class="site-footer">
+            <a href="index.html">[BACK TO TECH GUIDES]</a>
+            <div class="footer-meta">
+                NETOPS//FUNDAMENTALS v2.0 // NETWORK OPERATIONS REFERENCE //
+                ENTERPRISE IT // INFRASTRUCTURE // ALL PROTOCOLS OPERATIONAL
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
