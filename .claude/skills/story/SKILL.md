@@ -2,7 +2,7 @@
 name: story
 description: Build an interactive educational story with a style guide aesthetic
 argument-hint: <style-name> [topic-hint]
-disable-model-invocation: true
+allow-model-invocation: true
 ---
 
 # Build an Interactive Story

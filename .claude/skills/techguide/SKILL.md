@@ -2,7 +2,7 @@
 name: techguide
 description: Build a complete tech guide for a developer tool or language
 argument-hint: <topic> [style-name]
-disable-model-invocation: true
+allow-model-invocation: true
 ---
 
 # Build a Tech Guide

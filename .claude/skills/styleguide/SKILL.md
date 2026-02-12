@@ -2,7 +2,7 @@
 name: styleguide
 description: Build a complete CSS design system style guide
 argument-hint: <aesthetic-name>
-disable-model-invocation: true
+allow-model-invocation: true
 ---
 
 # Build a Style Guide
