@@ -1,8 +1,8 @@
 # Style Guide Pairings
 
-Master mapping of all 103 style guides and their usage across tech guides and stories.
+Master mapping of all 104 style guides and their usage across tech guides and stories.
 
-**Used:** 52 styles · **Available:** 51 styles
+**Used:** 52 styles · **Available:** 52 styles
 
 | Style | Tech Guide | Story |
 |-------|-----------|-------|
@@ -44,6 +44,7 @@ Master mapping of all 103 style guides and their usage across tech guides and st
 | dos-bios | curl & wget | |
 | editorial | | |
 | embroidery | | |
+| federal-night | | |
 | film-grain | | The First Reel |
 | frutiger-aero | VS Code | |
 | futurism | | |

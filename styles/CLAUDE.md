@@ -1,6 +1,6 @@
 # Style Guides
 
-103 self-contained HTML files, each showcasing a complete CSS design system.
+104 self-contained HTML files, each showcasing a complete CSS design system.
 
 ## What a Style Guide Is
 

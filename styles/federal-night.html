@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Federal Night — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Bitter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* === Typography === */
+            --font-display: 'Bitter', Georgia, serif;
+            --font-body: 'Source Sans 3', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'Roboto Mono', 'Courier New', monospace;
+
+            /* === Spacing (8px base grid) === */
+            --space-0: 0;
+            --space-px: 1px;
+            --space-0p5: 4px;
+            --space-1: 8px;
+            --space-1p5: 12px;
+            --space-2: 16px;
+            --space-3: 24px;
+            --space-4: 32px;
+            --space-5: 40px;
+            --space-6: 48px;
+            --space-8: 64px;
+            --space-10: 80px;
+
+            /* === Primary Palette === */
+            --blue-vivid: #2491ff;
+            --blue-bright: #58b4ff;
+            --blue-core: #005ea2;
+            --blue-deep: #1a4480;
+            --blue-darkest: #162e51;
+
+            /* === Background Layers === */
+            --bg-base: #0d1b2a;
+            --bg-elevated: #132338;
+            --bg-surface: #1a2e47;
+            --bg-surface-hover: #213756;
+            --bg-muted: #0a1420;
+
+            /* === Text Colors === */
+            --text-primary: #e8ecf1;
+            --text-secondary: #a0aec0;
+            --text-tertiary: #6b7a8d;
+            --text-inverse: #0d1b2a;
+            --text-link: #58b4ff;
+            --text-link-hover: #8bcfff;
+
+            /* === Accent Colors === */
+            --red-alert: #d83933;
+            --red-warm: #d54309;
+            --gold-star: #e5a000;
+            --gold-light: #ffbe2e;
+            --green-success: #00a91c;
+            --green-light: #4dd474;
+            --cyan-info: #00bde3;
+            --cyan-light: #52daf5;
+
+            /* === Hub / Category Colors (luminous for dark bg) === */
+            --hub-health: #5a7fd4;
+            --hub-education: #54a8a5;
+            --hub-disability: #d45a5a;
+            --hub-housing: #c49460;
+            --hub-pension: #5fa86a;
+            --hub-records: #a86fa3;
+            --hub-employment: #4a8fe8;
+            --hub-benefits: #d16ba5;
+
+            /* === Borders === */
+            --border-subtle: hsla(210, 40%, 60%, 0.12);
+            --border-default: hsla(210, 40%, 60%, 0.2);
+            --border-strong: hsla(210, 40%, 60%, 0.35);
+            --border-focus: var(--gold-star);
+
+            /* === Border Radius === */
+            --radius-sm: 4px;
+            --radius-md: 6px;
+            --radius: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-full: 999px;
+
+            /* === Shadows === */
+            --shadow-sm: 0 1px 3px hsla(210, 80%, 5%, 0.4);
+            --shadow-md: 0 4px 12px hsla(210, 80%, 5%, 0.5);
+            --shadow-lg: 0 8px 30px hsla(210, 80%, 5%, 0.6);
+            --shadow-glow-blue: 0 0 20px hsla(210, 100%, 50%, 0.15);
+            --shadow-glow-gold: 0 0 20px hsla(42, 100%, 50%, 0.15);
+
+            /* === Transitions === */
+            --transition-fast: 0.15s ease;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* === Reset === */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 17px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-base);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* === Container === */
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-4);
+        }
+
+        /* === Hero === */
+        .hero {
+            background: linear-gradient(135deg, var(--blue-darkest) 0%, var(--bg-base) 50%, var(--blue-deep) 100%);
+            padding: var(--space-10) var(--space-4);
+            margin: calc(-1 * var(--space-8)) calc(-1 * var(--space-4)) var(--space-8);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-default);
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 600px 400px at 20% 50%, hsla(210, 100%, 50%, 0.06), transparent),
+                radial-gradient(ellipse 500px 300px at 80% 30%, hsla(42, 100%, 50%, 0.04), transparent);
+            pointer-events: none;
+        }
+
+        .hero::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(0deg, hsla(210, 50%, 50%, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, hsla(210, 50%, 50%, 0.03) 1px, transparent 1px);
+            background-size: 32px 32px;
+            pointer-events: none;
+        }
+
+        .hero-content {
+            position: relative;
+            text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            padding: var(--space-1) var(--space-2);
+            background: hsla(210, 100%, 50%, 0.1);
+            border: 1px solid hsla(210, 100%, 50%, 0.25);
+            border-radius: var(--radius-full);
+            color: var(--blue-bright);
+            margin-bottom: var(--space-3);
+        }
+
+        .hero-badge::before {
+            content: '★';
+            font-size: 0.6rem;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+        }
+
+        .hero h1 .accent {
+            color: var(--blue-bright);
+        }
+
+        .hero-tagline {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-4);
+            line-height: 1.5;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-bar {
+            height: 3px;
+            width: 64px;
+            background: linear-gradient(90deg, var(--blue-vivid), var(--gold-star));
+            border-radius: 2px;
+            margin: 0 auto;
+        }
+
+        /* === Sections === */
+        .section {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--blue-vivid);
+            margin-bottom: var(--space-1);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .section-desc {
+            color: var(--text-secondary);
+            margin-top: var(--space-1p5);
+            max-width: 65ch;
+            line-height: 1.6;
+        }
+
+        /* === Grid Layouts === */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-3);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-3);
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-2);
+        }
+
+        .grid-6 {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: var(--space-2);
+        }
+
+        @media (max-width: 900px) {
+            .grid-4, .grid-6 { grid-template-columns: repeat(3, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: var(--space-4) var(--space-2); }
+            .hero { padding: var(--space-6) var(--space-2); margin: calc(-1 * var(--space-4)) calc(-1 * var(--space-2)) var(--space-4); }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .grid-4, .grid-6 { grid-template-columns: repeat(2, 1fr); }
+            .section { padding: var(--space-3); }
+        }
+
+        @media (max-width: 500px) {
+            .grid-4, .grid-6 { grid-template-columns: 1fr; }
+        }
+
+        /* === Color Swatches === */
+        .color-group-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-1p5);
+            margin-top: var(--space-3);
+        }
+
+        .color-group-label:first-child {
+            margin-top: 0;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: var(--space-2);
+        }
+
+        .color-swatch {
+            text-align: center;
+        }
+
+        .color-swatch .swatch {
+            height: 72px;
+            border-radius: var(--radius);
+            margin-bottom: var(--space-1);
+            border: 1px solid var(--border-subtle);
+            transition: transform var(--transition-fast), box-shadow var(--transition);
+        }
+
+        .color-swatch .swatch:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-md);
+        }
+
+        .color-swatch .name {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .color-swatch .hex {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+        }
+
+        /* === Typography Samples === */
+        .type-sample {
+            padding: var(--space-3);
+            background: var(--bg-surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-subtle);
+            margin-bottom: var(--space-2);
+        }
+
+        .type-sample .label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-1);
+        }
+
+        .type-sample .preview {
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .type-meta {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+        }
+
+        /* === Spacing Demo === */
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            margin-bottom: var(--space-1p5);
+        }
+
+        .spacing-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            width: 100px;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: linear-gradient(135deg, var(--blue-vivid), var(--blue-bright));
+            border-radius: var(--radius-sm);
+            opacity: 0.7;
+            transition: opacity var(--transition-fast);
+        }
+
+        .spacing-bar:hover {
+            opacity: 1;
+        }
+
+        .spacing-value {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-tertiary);
+            width: 50px;
+            flex-shrink: 0;
+        }
+
+        /* === Buttons === */
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            align-items: center;
+            margin-bottom: var(--space-3);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-1);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            line-height: 1;
+            padding: var(--space-1p5) var(--space-3);
+            border-radius: var(--radius-sm);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--blue-vivid);
+            color: #fff;
+            border-color: var(--blue-vivid);
+        }
+
+        .btn-primary:hover {
+            background: var(--blue-bright);
+            border-color: var(--blue-bright);
+            box-shadow: var(--shadow-glow-blue);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--blue-bright);
+            border-color: var(--blue-bright);
+        }
+
+        .btn-secondary:hover {
+            background: hsla(210, 100%, 50%, 0.1);
+            color: #fff;
+            border-color: #fff;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: var(--border-strong);
+        }
+
+        .btn-outline:hover {
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+            background: hsla(210, 40%, 60%, 0.08);
+        }
+
+        .btn-danger {
+            background: var(--red-alert);
+            color: #fff;
+            border-color: var(--red-alert);
+        }
+
+        .btn-danger:hover {
+            background: #e54942;
+            border-color: #e54942;
+            box-shadow: 0 0 20px hsla(2, 65%, 50%, 0.2);
+        }
+
+        .btn-gold {
+            background: var(--gold-star);
+            color: var(--bg-base);
+            border-color: var(--gold-star);
+            font-weight: 700;
+        }
+
+        .btn-gold:hover {
+            background: var(--gold-light);
+            border-color: var(--gold-light);
+            box-shadow: var(--shadow-glow-gold);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+            border-color: transparent;
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            background: hsla(210, 40%, 60%, 0.08);
+        }
+
+        .btn:disabled, .btn-disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .btn-sm {
+            font-size: 0.85rem;
+            padding: var(--space-1) var(--space-2);
+        }
+
+        .btn-lg {
+            font-size: 1.1rem;
+            padding: var(--space-2) var(--space-4);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        /* === Forms === */
+        .form-group {
+            margin-bottom: var(--space-3);
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-1);
+        }
+
+        .form-hint {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: var(--space-1);
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-primary);
+            background: var(--bg-surface);
+            border: 2px solid var(--border-default);
+            border-radius: var(--radius-sm);
+            padding: var(--space-1p5) var(--space-2);
+            transition: border-color var(--transition), box-shadow var(--transition);
+            outline: none;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: var(--blue-vivid);
+            box-shadow: 0 0 0 3px hsla(210, 100%, 50%, 0.2);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-tertiary);
+        }
+
+        .form-input-error {
+            border-color: var(--red-alert);
+        }
+
+        .form-input-error:focus {
+            box-shadow: 0 0 0 3px hsla(2, 65%, 50%, 0.2);
+        }
+
+        .form-error-msg {
+            font-size: 0.8rem;
+            color: var(--red-alert);
+            margin-top: var(--space-0p5);
+            font-weight: 600;
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23a0aec0' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            padding-right: 40px;
+        }
+
+        /* Checkbox & Radio */
+        .form-check {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-1p5);
+            margin-bottom: var(--space-1p5);
+            cursor: pointer;
+        }
+
+        .form-check input[type="checkbox"],
+        .form-check input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-strong);
+            background: var(--bg-surface);
+            flex-shrink: 0;
+            margin-top: 2px;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .form-check input[type="checkbox"] {
+            border-radius: var(--radius-sm);
+        }
+
+        .form-check input[type="radio"] {
+            border-radius: 50%;
+        }
+
+        .form-check input[type="checkbox"]:checked {
+            background: var(--blue-vivid);
+            border-color: var(--blue-vivid);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='10'%3E%3Cpath d='M1 5l3 3 7-7' stroke='white' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .form-check input[type="radio"]:checked {
+            border-color: var(--blue-vivid);
+            background: var(--bg-surface);
+            box-shadow: inset 0 0 0 4px var(--blue-vivid);
+        }
+
+        .form-check input:focus {
+            outline: 3px solid hsla(210, 100%, 50%, 0.3);
+            outline-offset: 2px;
+        }
+
+        .form-check-label {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+        }
+
+        /* === Cards === */
+        .card {
+            background: var(--bg-surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-subtle);
+            padding: var(--space-3);
+            transition: all var(--transition);
+        }
+
+        .card:hover {
+            border-color: var(--border-default);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-1p5);
+            margin-bottom: var(--space-2);
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-body {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .card-footer {
+            margin-top: var(--space-2);
+            padding-top: var(--space-2);
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: var(--space-0p5) var(--space-1);
+            border-radius: var(--radius-sm);
+            background: hsla(210, 100%, 50%, 0.1);
+            color: var(--blue-bright);
+        }
+
+        /* Hub-colored cards */
+        .card-hub {
+            border-left: 3px solid;
+        }
+
+        /* === Alerts === */
+        .alert {
+            padding: var(--space-2) var(--space-3);
+            border-radius: var(--radius);
+            border-left: 4px solid;
+            margin-bottom: var(--space-2);
+        }
+
+        .alert-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            margin-bottom: var(--space-0p5);
+        }
+
+        .alert-body {
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .alert-info {
+            background: hsla(190, 100%, 45%, 0.08);
+            border-color: var(--cyan-info);
+            color: var(--cyan-light);
+        }
+
+        .alert-info .alert-title { color: var(--cyan-info); }
+
+        .alert-success {
+            background: hsla(130, 100%, 33%, 0.08);
+            border-color: var(--green-success);
+            color: var(--green-light);
+        }
+
+        .alert-success .alert-title { color: var(--green-success); }
+
+        .alert-warning {
+            background: hsla(42, 100%, 55%, 0.08);
+            border-color: var(--gold-star);
+            color: var(--gold-light);
+        }
+
+        .alert-warning .alert-title { color: var(--gold-star); }
+
+        .alert-error {
+            background: hsla(2, 65%, 50%, 0.08);
+            border-color: var(--red-alert);
+            color: #f5918c;
+        }
+
+        .alert-error .alert-title { color: var(--red-alert); }
+
+        /* === Navigation Demo === */
+        .nav-demo {
+            background: var(--bg-surface);
+            border-radius: var(--radius);
+            padding: var(--space-2);
+            display: flex;
+            gap: var(--space-0p5);
+            overflow-x: auto;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .nav-link {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: var(--space-1) var(--space-2);
+            border-radius: var(--radius-sm);
+            text-decoration: none;
+            white-space: nowrap;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: hsla(210, 40%, 60%, 0.1);
+        }
+
+        .nav-link.active {
+            color: #fff;
+            background: var(--blue-vivid);
+        }
+
+        /* === Badges === */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 8px;
+            border-radius: var(--radius-full);
+        }
+
+        .badge-blue { background: hsla(210, 100%, 50%, 0.15); color: var(--blue-bright); }
+        .badge-gold { background: hsla(42, 100%, 50%, 0.15); color: var(--gold-star); }
+        .badge-green { background: hsla(130, 100%, 33%, 0.15); color: var(--green-light); }
+        .badge-red { background: hsla(2, 65%, 50%, 0.15); color: #f5918c; }
+        .badge-cyan { background: hsla(190, 100%, 45%, 0.12); color: var(--cyan-light); }
+
+        /* === Code Blocks === */
+        .code-block {
+            background: var(--bg-muted);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius);
+            padding: var(--space-2) var(--space-3);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            line-height: 1.7;
+        }
+
+        .code-inline {
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            background: var(--bg-surface);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            color: var(--blue-bright);
+        }
+
+        /* === Tables === */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .data-table th {
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-tertiary);
+            padding: var(--space-1p5) var(--space-2);
+            border-bottom: 2px solid var(--border-default);
+        }
+
+        .data-table td {
+            padding: var(--space-1p5) var(--space-2);
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+        }
+
+        .data-table tr:hover td {
+            background: hsla(210, 40%, 60%, 0.04);
+        }
+
+        /* === Progress Bars === */
+        .progress-track {
+            height: 8px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: var(--radius-full);
+            transition: width var(--transition-slow);
+        }
+
+        .progress-fill-blue { background: linear-gradient(90deg, var(--blue-core), var(--blue-vivid)); }
+        .progress-fill-gold { background: linear-gradient(90deg, var(--gold-star), var(--gold-light)); }
+        .progress-fill-green { background: linear-gradient(90deg, var(--green-success), var(--green-light)); }
+
+        /* === Dividers === */
+        .divider {
+            border: none;
+            height: 1px;
+            background: var(--border-subtle);
+            margin: var(--space-3) 0;
+        }
+
+        /* === Footer === */
+        .site-footer {
+            text-align: center;
+            padding: var(--space-6) var(--space-4);
+            margin-top: var(--space-4);
+            border-top: 1px solid var(--border-subtle);
+            color: var(--text-tertiary);
+            font-size: 0.85rem;
+        }
+
+        .site-footer .footer-bar {
+            height: 3px;
+            width: 48px;
+            background: linear-gradient(90deg, var(--blue-vivid), var(--gold-star));
+            border-radius: 2px;
+            margin: 0 auto var(--space-3);
+        }
+
+        /* === Utility === */
+        .text-blue { color: var(--blue-bright); }
+        .text-gold { color: var(--gold-star); }
+        .text-muted { color: var(--text-tertiary); }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: var(--space-2); }
+        .mt-3 { margin-top: var(--space-3); }
+        .mb-2 { margin-bottom: var(--space-2); }
+        .mb-3 { margin-bottom: var(--space-3); }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Hero -->
+        <header class="hero">
+            <div class="hero-content">
+                <div class="hero-badge">Design System</div>
+                <h1>Federal <span class="accent">Night</span></h1>
+                <p class="hero-tagline">A dark-themed design system inspired by government digital services. Accessible, structured, built for mission-critical interfaces.</p>
+                <div class="hero-bar"></div>
+            </div>
+        </header>
+
+        <!-- 01. Color Palette -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">01 — Foundation</div>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-desc">A palette rooted in trust and authority. Deep navy backgrounds with vivid blue and gold accents provide clear hierarchy and accessible contrast ratios against dark surfaces.</p>
+            </div>
+
+            <div class="color-group-label">Primary</div>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #2491ff;"></div>
+                    <div class="name">Blue Vivid</div>
+                    <div class="hex">#2491ff</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #58b4ff;"></div>
+                    <div class="name">Blue Bright</div>
+                    <div class="hex">#58b4ff</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #005ea2;"></div>
+                    <div class="name">Blue Core</div>
+                    <div class="hex">#005ea2</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #1a4480;"></div>
+                    <div class="name">Blue Deep</div>
+                    <div class="hex">#1a4480</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #162e51;"></div>
+                    <div class="name">Blue Darkest</div>
+                    <div class="hex">#162e51</div>
+                </div>
+            </div>
+
+            <div class="color-group-label">Backgrounds</div>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #0d1b2a; border-color: hsla(210,40%,60%,0.25);"></div>
+                    <div class="name">Base</div>
+                    <div class="hex">#0d1b2a</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #132338; border-color: hsla(210,40%,60%,0.25);"></div>
+                    <div class="name">Elevated</div>
+                    <div class="hex">#132338</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #1a2e47; border-color: hsla(210,40%,60%,0.25);"></div>
+                    <div class="name">Surface</div>
+                    <div class="hex">#1a2e47</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #0a1420; border-color: hsla(210,40%,60%,0.25);"></div>
+                    <div class="name">Muted</div>
+                    <div class="hex">#0a1420</div>
+                </div>
+            </div>
+
+            <div class="color-group-label">Accents & Alerts</div>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #e5a000;"></div>
+                    <div class="name">Gold Star</div>
+                    <div class="hex">#e5a000</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #d83933;"></div>
+                    <div class="name">Red Alert</div>
+                    <div class="hex">#d83933</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #00a91c;"></div>
+                    <div class="name">Green Success</div>
+                    <div class="hex">#00a91c</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #00bde3;"></div>
+                    <div class="name">Cyan Info</div>
+                    <div class="hex">#00bde3</div>
+                </div>
+            </div>
+
+            <div class="color-group-label">Hub Categories</div>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #5a7fd4;"></div>
+                    <div class="name">Health</div>
+                    <div class="hex">#5a7fd4</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #54a8a5;"></div>
+                    <div class="name">Education</div>
+                    <div class="hex">#54a8a5</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #d45a5a;"></div>
+                    <div class="name">Disability</div>
+                    <div class="hex">#d45a5a</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #c49460;"></div>
+                    <div class="name">Housing</div>
+                    <div class="hex">#c49460</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #5fa86a;"></div>
+                    <div class="name">Pension</div>
+                    <div class="hex">#5fa86a</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #a86fa3;"></div>
+                    <div class="name">Records</div>
+                    <div class="hex">#a86fa3</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #4a8fe8;"></div>
+                    <div class="name">Employment</div>
+                    <div class="hex">#4a8fe8</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch" style="background: #d16ba5;"></div>
+                    <div class="name">Benefits</div>
+                    <div class="hex">#d16ba5</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02. Typography -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">02 — Foundation</div>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-desc">Three typefaces form a clear hierarchy. Bitter for authoritative headings, Source Sans 3 for readable body text, Roboto Mono for data and code.</p>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">Display / H1 — Bitter 700</div>
+                <div class="preview" style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 700; line-height: 1.15; letter-spacing: -0.02em;">Mission-Critical Interfaces</div>
+                <div class="type-meta">font-size: 2.5rem · line-height: 1.15 · letter-spacing: -0.02em</div>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">H2 — Bitter 600</div>
+                <div class="preview" style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 600; line-height: 1.2;">Section Heading</div>
+                <div class="type-meta">font-size: 1.75rem · line-height: 1.2</div>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">H3 — Source Sans 3, 600</div>
+                <div class="preview" style="font-family: var(--font-body); font-size: 1.25rem; font-weight: 600; line-height: 1.3;">Subsection Title</div>
+                <div class="type-meta">font-size: 1.25rem · line-height: 1.3</div>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">Body Large — Source Sans 3, 400</div>
+                <div class="preview" style="font-family: var(--font-body); font-size: 1.15rem; line-height: 1.6;">Government digital services require design systems that prioritize clarity and accessibility above all else. Every element must serve the mission of helping citizens navigate complex processes with confidence.</div>
+                <div class="type-meta">font-size: 1.15rem · line-height: 1.6</div>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">Body — Source Sans 3, 400</div>
+                <div class="preview" style="font-family: var(--font-body); font-size: 1rem; line-height: 1.6;">The standard body text size provides comfortable reading at any distance. Designed for long-form content, form instructions, and descriptive passages. Line length should not exceed 72 characters for optimal readability.</div>
+                <div class="type-meta">font-size: 1rem · line-height: 1.6</div>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">Caption / Small — Source Sans 3, 400</div>
+                <div class="preview" style="font-family: var(--font-body); font-size: 0.85rem; line-height: 1.5; color: var(--text-secondary);">Supplementary information, timestamps, and metadata use a smaller size with reduced contrast to indicate secondary importance.</div>
+                <div class="type-meta">font-size: 0.85rem · line-height: 1.5</div>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">Monospace — Roboto Mono, 400</div>
+                <div class="preview" style="font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.6; color: var(--blue-bright);">const MISSION_STATUS = "ACTIVE";<br>console.log(`Uptime: ${days}d ${hours}h`);</div>
+                <div class="type-meta">font-size: 0.9rem · line-height: 1.6</div>
+            </div>
+
+            <div class="type-sample">
+                <div class="label">Overline / Label — Source Sans 3, 600</div>
+                <div class="preview" style="font-family: var(--font-body); font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.15em; color: var(--blue-vivid);">Section Label · Status Indicator</div>
+                <div class="type-meta">font-size: 0.7rem · font-weight: 600 · uppercase · letter-spacing: 0.15em</div>
+            </div>
+        </section>
+
+        <!-- 03. Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">03 — Foundation</div>
+                <h2 class="section-title">Spacing</h2>
+                <p class="section-desc">An 8px base grid provides consistent rhythm. Values scale predictably and align with standard screen dimensions.</p>
+            </div>
+
+            <div class="spacing-row">
+                <div class="spacing-label">space-0p5</div>
+                <div class="spacing-bar" style="width: 4px;"></div>
+                <div class="spacing-value">4px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-1</div>
+                <div class="spacing-bar" style="width: 8px;"></div>
+                <div class="spacing-value">8px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-1p5</div>
+                <div class="spacing-bar" style="width: 12px;"></div>
+                <div class="spacing-value">12px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-2</div>
+                <div class="spacing-bar" style="width: 16px;"></div>
+                <div class="spacing-value">16px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-3</div>
+                <div class="spacing-bar" style="width: 24px;"></div>
+                <div class="spacing-value">24px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-4</div>
+                <div class="spacing-bar" style="width: 32px;"></div>
+                <div class="spacing-value">32px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-5</div>
+                <div class="spacing-bar" style="width: 40px;"></div>
+                <div class="spacing-value">40px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-6</div>
+                <div class="spacing-bar" style="width: 48px;"></div>
+                <div class="spacing-value">48px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-8</div>
+                <div class="spacing-bar" style="width: 64px;"></div>
+                <div class="spacing-value">64px</div>
+            </div>
+            <div class="spacing-row">
+                <div class="spacing-label">space-10</div>
+                <div class="spacing-bar" style="width: 80px;"></div>
+                <div class="spacing-value">80px</div>
+            </div>
+        </section>
+
+        <!-- 04. Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">04 — Components</div>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-desc">Six variants cover every interaction pattern. Primary for key actions, secondary for alternatives, gold for high-visibility calls to action.</p>
+            </div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2);">Variants</h3>
+            <div class="button-row">
+                <button class="btn btn-primary">Primary</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-outline">Outline</button>
+                <button class="btn btn-gold">Gold Action</button>
+                <button class="btn btn-danger">Danger</button>
+                <button class="btn btn-ghost">Ghost</button>
+            </div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2); margin-top: var(--space-3);">Sizes</h3>
+            <div class="button-row">
+                <button class="btn btn-primary btn-sm">Small</button>
+                <button class="btn btn-primary">Default</button>
+                <button class="btn btn-primary btn-lg">Large</button>
+            </div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2); margin-top: var(--space-3);">States</h3>
+            <div class="button-row">
+                <button class="btn btn-primary">Active</button>
+                <button class="btn btn-primary btn-disabled" disabled>Disabled</button>
+                <button class="btn btn-secondary btn-disabled" disabled>Disabled</button>
+            </div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2); margin-top: var(--space-3);">Full Width</h3>
+            <button class="btn btn-primary btn-full btn-lg">Submit Application</button>
+        </section>
+
+        <!-- 05. Forms -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">05 — Components</div>
+                <h2 class="section-title">Forms</h2>
+                <p class="section-desc">Form elements designed for clarity in low-light interfaces. Strong focus indicators and accessible error states ensure usability.</p>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <span class="form-hint">As it appears on your government ID</span>
+                        <input type="text" class="form-input" placeholder="Jane A. Doe" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" placeholder="jane.doe@agency.gov" />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select class="form-select">
+                            <option value="">Select department...</option>
+                            <option>Office of Information Technology</option>
+                            <option>Office of Finance</option>
+                            <option>Office of Operations</option>
+                            <option>Office of Human Resources</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Access Level</label>
+                        <span class="form-hint">Select the level required for this request</span>
+                        <input type="text" class="form-input form-input-error" value="UNAUTHORIZED" />
+                        <div class="form-error-msg">Access level not recognized. Contact your security administrator.</div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea class="form-textarea" placeholder="Provide any additional context for this request..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Notification Preferences</label>
+                        <label class="form-check">
+                            <input type="checkbox" checked />
+                            <span class="form-check-label">Email notifications</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="checkbox" checked />
+                            <span class="form-check-label">System alerts</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="checkbox" />
+                            <span class="form-check-label">Weekly digest</span>
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <label class="form-check">
+                            <input type="radio" name="priority" checked />
+                            <span class="form-check-label">Standard Processing</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="radio" name="priority" />
+                            <span class="form-check-label">Expedited Review</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="radio" name="priority" />
+                            <span class="form-check-label">Emergency — Requires Supervisor Approval</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06. Cards -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">06 — Components</div>
+                <h2 class="section-title">Cards</h2>
+                <p class="section-desc">Cards organize content into scannable units. Hub-colored left borders provide instant category recognition.</p>
+            </div>
+
+            <div class="grid-3">
+                <div class="card card-hub" style="border-left-color: var(--hub-health);">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: hsla(222, 55%, 59%, 0.15); color: var(--hub-health);">⚕</div>
+                        <div class="card-title">Healthcare</div>
+                    </div>
+                    <div class="card-body">Access health benefits, schedule appointments, and manage prescriptions through a unified portal.</div>
+                    <div class="card-footer">
+                        <span class="card-tag">12 Services</span>
+                        <span class="badge badge-green">Active</span>
+                    </div>
+                </div>
+
+                <div class="card card-hub" style="border-left-color: var(--hub-education);">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: hsla(178, 35%, 49%, 0.15); color: var(--hub-education);">◈</div>
+                        <div class="card-title">Education</div>
+                    </div>
+                    <div class="card-body">GI Bill benefits, tuition assistance, and vocational training programs for eligible service members.</div>
+                    <div class="card-footer">
+                        <span class="card-tag">8 Programs</span>
+                        <span class="badge badge-blue">Updated</span>
+                    </div>
+                </div>
+
+                <div class="card card-hub" style="border-left-color: var(--hub-employment);">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: hsla(214, 78%, 60%, 0.15); color: var(--hub-employment);">▲</div>
+                        <div class="card-title">Employment</div>
+                    </div>
+                    <div class="card-body">Career counseling, job placement services, and employer partnerships for transitioning members.</div>
+                    <div class="card-footer">
+                        <span class="card-tag">6 Resources</span>
+                        <span class="badge badge-gold">Featured</span>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="divider" />
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2);">Compact Cards</h3>
+            <div class="grid-2">
+                <div class="card" style="padding: var(--space-2);">
+                    <div class="card-header" style="margin-bottom: var(--space-1);">
+                        <div class="card-title" style="font-size: 0.95rem;">System Status</div>
+                    </div>
+                    <div class="card-body" style="font-size: 0.85rem;">All systems operational. Last check: 2 minutes ago.</div>
+                </div>
+                <div class="card" style="padding: var(--space-2);">
+                    <div class="card-header" style="margin-bottom: var(--space-1);">
+                        <div class="card-title" style="font-size: 0.95rem;">Pending Reviews</div>
+                    </div>
+                    <div class="card-body" style="font-size: 0.85rem;">14 access requests awaiting supervisor approval.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 07. Alerts -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">07 — Components</div>
+                <h2 class="section-title">Alerts</h2>
+                <p class="section-desc">Four severity levels provide clear system communication. Each uses a distinct color and left-border accent for rapid scanning.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <div class="alert-title">Informational</div>
+                <div class="alert-body">Scheduled maintenance window: Saturday 0200-0600 EST. Non-critical systems may be temporarily unavailable.</div>
+            </div>
+
+            <div class="alert alert-success">
+                <div class="alert-title">Success</div>
+                <div class="alert-body">Your access request has been approved. New credentials have been sent to your registered email.</div>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-title">Warning</div>
+                <div class="alert-body">Your PIV certificate expires in 14 days. Visit the badging office to renew before expiration to avoid access disruption.</div>
+            </div>
+
+            <div class="alert alert-error">
+                <div class="alert-title">Error</div>
+                <div class="alert-body">Authentication failed. Your account has been temporarily locked after 5 unsuccessful attempts. Contact the help desk at ext. 4357.</div>
+            </div>
+        </section>
+
+        <!-- 08. Navigation -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">08 — Components</div>
+                <h2 class="section-title">Navigation</h2>
+                <p class="section-desc">Tab-style navigation for sectioned interfaces. Active states use vivid blue for clear wayfinding.</p>
+            </div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2);">Tab Navigation</h3>
+            <nav class="nav-demo" style="margin-bottom: var(--space-3);">
+                <a href="#" class="nav-link active">Dashboard</a>
+                <a href="#" class="nav-link">Applications</a>
+                <a href="#" class="nav-link">Documents</a>
+                <a href="#" class="nav-link">Messages</a>
+                <a href="#" class="nav-link">Settings</a>
+            </nav>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2);">Badges & Status Indicators</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: var(--space-1p5);">
+                <span class="badge badge-blue">Active Duty</span>
+                <span class="badge badge-gold">Pending Review</span>
+                <span class="badge badge-green">Approved</span>
+                <span class="badge badge-red">Denied</span>
+                <span class="badge badge-cyan">In Processing</span>
+            </div>
+        </section>
+
+        <!-- 09. Data Display -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">09 — Components</div>
+                <h2 class="section-title">Data Display</h2>
+                <p class="section-desc">Tables, code blocks, and progress indicators for presenting structured information in dark interfaces.</p>
+            </div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2);">Data Table</h3>
+            <div style="overflow-x: auto; margin-bottom: var(--space-4);">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>System</th>
+                            <th>Status</th>
+                            <th>Uptime</th>
+                            <th>Last Incident</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="font-weight: 600; color: var(--text-primary);">Auth Gateway</td>
+                            <td><span class="badge badge-green">Operational</span></td>
+                            <td>99.98%</td>
+                            <td>14 days ago</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: var(--text-primary);">Document Service</td>
+                            <td><span class="badge badge-green">Operational</span></td>
+                            <td>99.95%</td>
+                            <td>31 days ago</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: var(--text-primary);">Benefits Portal</td>
+                            <td><span class="badge badge-gold">Degraded</span></td>
+                            <td>98.72%</td>
+                            <td>2 hours ago</td>
+                        </tr>
+                        <tr>
+                            <td style="font-weight: 600; color: var(--text-primary);">Notification Engine</td>
+                            <td><span class="badge badge-green">Operational</span></td>
+                            <td>99.99%</td>
+                            <td>62 days ago</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2);">Code Block</h3>
+            <div class="code-block" style="margin-bottom: var(--space-4);">
+<span style="color: var(--text-tertiary);"># System health check</span>
+$ curl -s https://api.service.gov/health | jq .
+{
+  <span style="color: var(--blue-bright);">"status"</span>: <span style="color: var(--green-light);">"healthy"</span>,
+  <span style="color: var(--blue-bright);">"uptime"</span>: <span style="color: var(--gold-star);">99.98</span>,
+  <span style="color: var(--blue-bright);">"version"</span>: <span style="color: var(--green-light);">"3.2.1"</span>,
+  <span style="color: var(--blue-bright);">"last_deploy"</span>: <span style="color: var(--green-light);">"2026-02-12T08:00:00Z"</span>
+}</div>
+
+            <h3 style="font-family: var(--font-body); font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); margin-bottom: var(--space-2);">Progress Indicators</h3>
+            <div style="margin-bottom: var(--space-2);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-0p5);">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Application Processing</span>
+                    <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--blue-bright);">78%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill progress-fill-blue" style="width: 78%;"></div>
+                </div>
+            </div>
+            <div style="margin-bottom: var(--space-2);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-0p5);">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Security Clearance Review</span>
+                    <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--gold-star);">45%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill progress-fill-gold" style="width: 45%;"></div>
+                </div>
+            </div>
+            <div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: var(--space-0p5);">
+                    <span style="font-size: 0.85rem; color: var(--text-secondary);">Benefits Enrollment</span>
+                    <span style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--green-light);">100%</span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill progress-fill-green" style="width: 100%;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 10. Design Principles -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">10 — Philosophy</div>
+                <h2 class="section-title">Design Principles</h2>
+                <p class="section-desc">The values that guide every design decision in this system.</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: hsla(210, 100%, 50%, 0.12); color: var(--blue-bright); font-size: 1.2rem;">◆</div>
+                        <div class="card-title">Accessible First</div>
+                    </div>
+                    <div class="card-body">Every color combination meets WCAG AA contrast minimums. Focus states are always visible. No information is conveyed by color alone. Dark themes must not sacrifice readability.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: hsla(42, 100%, 50%, 0.12); color: var(--gold-star); font-size: 1.2rem;">◇</div>
+                        <div class="card-title">Clear Hierarchy</div>
+                    </div>
+                    <div class="card-body">Three distinct text colors, sized typography scale, and consistent spacing create unambiguous visual hierarchy. Users should never wonder what to read first.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: hsla(130, 100%, 33%, 0.12); color: var(--green-light); font-size: 1.2rem;">◈</div>
+                        <div class="card-title">Structured Trust</div>
+                    </div>
+                    <div class="card-body">Government interfaces carry an implicit responsibility. Clean grid alignment, consistent component patterns, and predictable interactions build confidence in the system.</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-icon" style="background: hsla(190, 100%, 45%, 0.12); color: var(--cyan-light); font-size: 1.2rem;">○</div>
+                        <div class="card-title">Reduced Fatigue</div>
+                    </div>
+                    <div class="card-body">Dark backgrounds reduce eye strain during extended sessions. Muted surfaces with careful contrast prevent the harsh feel of pure-black interfaces while maintaining readability.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="site-footer">
+            <div class="footer-bar"></div>
+            <p>Federal Night — A dark-themed government design system</p>
+            <p style="margin-top: var(--space-1); color: var(--text-tertiary); font-size: 0.8rem;">Source Sans 3 · Bitter · Roboto Mono · 8px Grid</p>
+        </footer>
+
+    </div>
+</body>
+</html>
