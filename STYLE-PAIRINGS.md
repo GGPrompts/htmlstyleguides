@@ -46,6 +46,7 @@ Master mapping of all 105 style guides and their usage across tech guides and st
 | editorial | | |
 | embroidery | | |
 | federal-night | | |
+| fire-and-heat | | |
 | film-grain | | The First Reel |
 | frutiger-aero | VS Code | |
 | futurism | | |

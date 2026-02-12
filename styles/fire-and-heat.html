@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fire & Heat — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800;900&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           FIRE & HEAT DESIGN SYSTEM
+           Volcanic forge aesthetic — molten metal, glowing embers,
+           heat distortion. Dark obsidian grounds, ember to white-hot.
+        ================================================================ */
+
+        /* --- DESIGN TOKENS / CSS VARIABLES --- */
+        :root {
+            /* Color Palette */
+            --ember: #FF4500;
+            --ember-light: #FF6B3A;
+            --ember-dark: #CC3700;
+            --molten: #FF8C00;
+            --molten-light: #FFA940;
+            --molten-dark: #CC7000;
+            --white-hot: #FFD54F;
+            --white-hot-light: #FFE082;
+            --crimson-deep: #8B1A1A;
+            --crimson-light: #A52A2A;
+            --charcoal: #1A1210;
+            --charcoal-light: #241A16;
+            --ash: #2D2520;
+            --ash-light: #3D332C;
+            --smoke: #C4A882;
+            --smoke-light: #D4BFA0;
+            --smoke-dark: #9E8A6E;
+            --white: #ffffff;
+
+            /* Semantic */
+            --bg: var(--charcoal);
+            --bg-alt: var(--ash);
+            --bg-card: var(--ash-light);
+            --text: var(--smoke);
+            --text-light: var(--smoke-light);
+            --text-muted: var(--smoke-dark);
+            --accent: var(--ember);
+            --accent-secondary: var(--molten);
+            --accent-highlight: var(--white-hot);
+
+            /* Typography */
+            --font-display: 'Cinzel', serif;
+            --font-body: 'Source Sans 3', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 32px;
+            --space-xl: 64px;
+            --space-2xl: 96px;
+
+            /* Borders & Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --border-subtle: 1px solid rgba(255, 69, 0, 0.15);
+            --border-ember: 1px solid rgba(255, 69, 0, 0.3);
+
+            /* Shadows & Glows */
+            --glow-subtle: 0 0 12px rgba(255, 69, 0, 0.15);
+            --glow-medium: 0 0 20px rgba(255, 69, 0, 0.3);
+            --glow-intense: 0 0 30px rgba(255, 69, 0, 0.45), 0 0 60px rgba(255, 140, 0, 0.2);
+            --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+            /* Transitions */
+            --transition-fast: 0.2s ease;
+            --transition-medium: 0.35s ease;
+        }
+
+        /* --- RESET & BASE --- */
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text);
+            background:
+                radial-gradient(ellipse 800px 500px at 15% 20%, rgba(139, 26, 26, 0.08), transparent 60%),
+                radial-gradient(ellipse 600px 400px at 85% 70%, rgba(255, 69, 0, 0.06), transparent 55%),
+                var(--bg);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* Subtle heat shimmer overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 400px 300px at 50% 40%, rgba(255, 140, 0, 0.03), transparent 60%),
+                radial-gradient(ellipse 500px 350px at 70% 80%, rgba(139, 26, 26, 0.04), transparent 55%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* --- LAYOUT --- */
+
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- TYPOGRAPHY --- */
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--text-light);
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            letter-spacing: 0.03em;
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 3vw, 2.25rem);
+            font-weight: 800;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        h5 {
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        h6 {
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        p {
+            margin-bottom: var(--space-md);
+            max-width: 65ch;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.9em;
+            background: rgba(255, 69, 0, 0.08);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            color: var(--ember-light);
+        }
+
+        /* --- HEADER --- */
+
+        header {
+            padding: var(--space-2xl) 0 var(--space-xl);
+            text-align: center;
+            position: relative;
+            border-bottom: var(--border-subtle);
+        }
+
+        header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--crimson-deep),
+                var(--ember),
+                var(--molten),
+                var(--ember),
+                var(--crimson-deep),
+                transparent
+            );
+            opacity: 0.7;
+        }
+
+        header h1 {
+            color: var(--ember);
+            text-shadow:
+                0 0 40px rgba(255, 69, 0, 0.3),
+                0 0 80px rgba(255, 69, 0, 0.1);
+            margin-bottom: var(--space-md);
+        }
+
+        .tagline {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            color: var(--smoke-dark);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            max-width: 540px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* Ember dot separator in header */
+        .ember-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--ember);
+            border-radius: 50%;
+            margin: var(--space-lg) auto var(--space-md);
+            box-shadow: var(--glow-medium);
+            animation: ember-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes ember-pulse {
+            0%, 100% {
+                opacity: 0.6;
+                box-shadow: var(--glow-subtle);
+            }
+            50% {
+                opacity: 1;
+                box-shadow: var(--glow-intense);
+            }
+        }
+
+        /* --- SECTION STRUCTURE --- */
+
+        section {
+            padding: var(--space-2xl) 0;
+            border-bottom: var(--border-subtle);
+            position: relative;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-xl);
+        }
+
+        .section-number {
+            display: block;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--ember);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-header h2 {
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-header h2::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 3px;
+            margin-top: var(--space-md);
+            background: linear-gradient(90deg, var(--ember), var(--molten), transparent);
+            border-radius: 2px;
+        }
+
+        .section-description {
+            color: var(--smoke-dark);
+            font-size: 1rem;
+            margin-top: var(--space-md);
+            max-width: 55ch;
+        }
+
+        /* --- 01. COLOR PALETTE --- */
+
+        .color-group {
+            margin-bottom: var(--space-xl);
+        }
+
+        .color-group-title {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--smoke-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .color-swatch {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--ash);
+            border: var(--border-subtle);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glow-subtle);
+        }
+
+        .color-swatch-block {
+            height: 100px;
+            position: relative;
+        }
+
+        .color-swatch-block::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.15), transparent);
+            pointer-events: none;
+        }
+
+        .color-swatch-info {
+            padding: var(--space-sm) var(--space-md);
+        }
+
+        .color-swatch-name {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 2px;
+        }
+
+        .color-swatch-hex {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--smoke-dark);
+        }
+
+        .color-swatch-desc {
+            font-size: 0.75rem;
+            color: var(--smoke-dark);
+            margin-top: var(--space-xs);
+            line-height: 1.4;
+        }
+
+        /* --- 02. TYPOGRAPHY --- */
+
+        .type-specimen {
+            background: var(--ash);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+
+        .type-specimen-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--ember);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+        }
+
+        .type-specimen-sample {
+            margin-bottom: var(--space-sm);
+        }
+
+        .type-specimen-meta {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--smoke-dark);
+            margin-top: var(--space-md);
+        }
+
+        .heading-scale {
+            margin-top: var(--space-xl);
+        }
+
+        .heading-scale-item {
+            display: flex;
+            align-items: baseline;
+            gap: var(--space-lg);
+            padding: var(--space-md) 0;
+            border-bottom: 1px solid rgba(255, 69, 0, 0.06);
+        }
+
+        .heading-scale-item:last-child {
+            border-bottom: none;
+        }
+
+        .heading-scale-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--smoke-dark);
+            min-width: 40px;
+            flex-shrink: 0;
+        }
+
+        .body-text-demo {
+            background: var(--ash);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            margin-top: var(--space-xl);
+        }
+
+        .body-text-demo p {
+            color: var(--text);
+        }
+
+        .body-text-demo .text-italic {
+            font-style: italic;
+            color: var(--smoke-dark);
+        }
+
+        .body-text-demo .text-bold {
+            font-weight: 700;
+            color: var(--text-light);
+        }
+
+        blockquote {
+            border-left: 3px solid var(--ember);
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-lg) 0;
+            background: rgba(255, 69, 0, 0.04);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            font-style: italic;
+            color: var(--smoke-light);
+        }
+
+        blockquote cite {
+            display: block;
+            font-style: normal;
+            font-size: 0.85rem;
+            color: var(--smoke-dark);
+            margin-top: var(--space-sm);
+        }
+
+        blockquote cite::before {
+            content: '\2014\00a0';
+        }
+
+        /* --- 03. SPACING --- */
+
+        .spacing-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .spacing-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--smoke-dark);
+            min-width: 90px;
+            flex-shrink: 0;
+        }
+
+        .spacing-label span {
+            color: var(--ember-light);
+        }
+
+        .spacing-bar {
+            height: 28px;
+            background: linear-gradient(90deg, var(--crimson-deep), var(--ember), var(--molten));
+            border-radius: var(--radius-sm);
+            position: relative;
+            transition: box-shadow var(--transition-fast);
+        }
+
+        .spacing-bar:hover {
+            box-shadow: var(--glow-medium);
+        }
+
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .spacing-value {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--smoke-dark);
+            min-width: 44px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* --- 04. BUTTONS --- */
+
+        .button-group {
+            margin-bottom: var(--space-xl);
+        }
+
+        .button-group-title {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--ember);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-lg);
+        }
+
+        .button-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-md);
+        }
+
+        /* Base button */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-body);
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            border-radius: var(--radius-md);
+            transition:
+                background var(--transition-fast),
+                box-shadow var(--transition-medium),
+                transform var(--transition-fast),
+                color var(--transition-fast),
+                border-color var(--transition-fast);
+            text-decoration: none;
+            line-height: 1;
+            letter-spacing: 0.02em;
+        }
+
+        .btn:focus-visible {
+            outline: 2px solid var(--ember-light);
+            outline-offset: 2px;
+            box-shadow: var(--glow-medium);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Sizes */
+        .btn-sm {
+            font-size: 0.8rem;
+            padding: var(--space-sm) var(--space-md);
+        }
+
+        .btn-md {
+            font-size: 0.9rem;
+            padding: 12px 24px;
+        }
+
+        .btn-lg {
+            font-size: 1rem;
+            padding: var(--space-md) var(--space-lg);
+        }
+
+        /* Primary button */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--ember-dark), var(--ember), var(--molten-dark));
+            color: var(--white);
+            box-shadow: 0 2px 10px rgba(255, 69, 0, 0.25);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--ember), var(--ember-light), var(--molten));
+            box-shadow: var(--glow-intense);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            box-shadow: 0 1px 6px rgba(255, 69, 0, 0.2);
+        }
+
+        /* Secondary button */
+        .btn-secondary {
+            background: transparent;
+            color: var(--ember-light);
+            border: 2px solid var(--ember);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 69, 0, 0.08);
+            border-color: var(--ember-light);
+            box-shadow: var(--glow-medium);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary:active {
+            background: rgba(255, 69, 0, 0.12);
+        }
+
+        /* Ghost button */
+        .btn-ghost {
+            background: transparent;
+            color: var(--smoke);
+            border: none;
+            box-shadow: none;
+        }
+
+        .btn-ghost:hover {
+            color: var(--ember-light);
+            background: rgba(255, 69, 0, 0.06);
+            box-shadow: var(--glow-subtle);
+        }
+
+        /* Disabled state */
+        .btn:disabled,
+        .btn.btn-disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        /* --- RESPONSIVE --- */
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 var(--space-md);
+            }
+
+            header {
+                padding: var(--space-xl) 0 var(--space-lg);
+            }
+
+            section {
+                padding: var(--space-xl) 0;
+            }
+
+            .section-header {
+                margin-bottom: var(--space-lg);
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                gap: var(--space-sm);
+            }
+
+            .color-swatch-block {
+                height: 72px;
+            }
+
+            .heading-scale-item {
+                flex-direction: column;
+                gap: var(--space-xs);
+            }
+
+            .spacing-row {
+                gap: var(--space-md);
+            }
+
+            .spacing-label {
+                min-width: 70px;
+                font-size: 0.7rem;
+            }
+
+            .button-row {
+                gap: var(--space-sm);
+            }
+
+            .type-specimen {
+                padding: var(--space-md);
+            }
+        }
+
+        /* --- 05. FORMS --- */
+
+        .form-demo {
+            background: var(--ash);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-lg);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .form-group-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--smoke-light);
+            letter-spacing: 0.02em;
+        }
+
+        .form-input,
+        .form-textarea,
+        .form-select {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--text-light);
+            background: var(--ash-light);
+            border: 1px solid rgba(255, 69, 0, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 10px var(--space-md);
+            outline: none;
+            transition:
+                border-color var(--transition-fast),
+                box-shadow var(--transition-medium),
+                background var(--transition-fast);
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--smoke-dark);
+            opacity: 0.7;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
+            border-color: var(--ember);
+            box-shadow: var(--glow-medium);
+            background: var(--ash);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+            line-height: 1.6;
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23FF6B3A' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+            cursor: pointer;
+        }
+
+        .form-select option {
+            background: var(--ash);
+            color: var(--text-light);
+        }
+
+        /* Custom Checkbox */
+        .form-check-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .form-check-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+            font-size: 0.9rem;
+            color: var(--smoke-light);
+            transition: color var(--transition-fast);
+        }
+
+        .form-check-label:hover {
+            color: var(--text-light);
+        }
+
+        .form-check-input {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 69, 0, 0.3);
+            border-radius: var(--radius-sm);
+            background: var(--ash-light);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition:
+                background var(--transition-fast),
+                border-color var(--transition-fast),
+                box-shadow var(--transition-fast);
+        }
+
+        .form-check-input:checked {
+            background: var(--ember);
+            border-color: var(--ember);
+            box-shadow: var(--glow-subtle);
+        }
+
+        .form-check-input:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            width: 4px;
+            height: 8px;
+            border: solid var(--white);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .form-check-input:focus {
+            box-shadow: var(--glow-medium);
+            border-color: var(--ember);
+        }
+
+        /* Custom Radio */
+        .form-radio-input {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 69, 0, 0.3);
+            border-radius: 50%;
+            background: var(--ash-light);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition:
+                background var(--transition-fast),
+                border-color var(--transition-fast),
+                box-shadow var(--transition-fast);
+        }
+
+        .form-radio-input:checked {
+            border-color: var(--ember);
+            box-shadow: var(--glow-subtle);
+        }
+
+        .form-radio-input:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--ember);
+            box-shadow: 0 0 6px rgba(255, 69, 0, 0.4);
+        }
+
+        .form-radio-input:focus {
+            box-shadow: var(--glow-medium);
+            border-color: var(--ember);
+        }
+
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-sm);
+        }
+
+        /* --- 06. CARDS & PANELS --- */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            position: relative;
+            transition:
+                transform var(--transition-fast),
+                box-shadow var(--transition-medium);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--ember-dark), transparent);
+            opacity: 0.4;
+            transition: opacity var(--transition-medium);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--glow-medium);
+        }
+
+        .card:hover::after {
+            opacity: 0.8;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            color: var(--smoke);
+            line-height: 1.6;
+            margin-bottom: var(--space-md);
+        }
+
+        .card-link {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--ember-light);
+            text-decoration: none;
+            transition: color var(--transition-fast);
+        }
+
+        .card-link:hover {
+            color: var(--molten-light);
+            text-decoration: underline;
+        }
+
+        .card-link:focus-visible {
+            outline: 2px solid var(--ember-light);
+            outline-offset: 2px;
+            border-radius: var(--radius-sm);
+        }
+
+        /* Featured card */
+        .card-featured {
+            border-top: 3px solid transparent;
+            border-image: linear-gradient(90deg, var(--crimson-deep), var(--ember), var(--molten), var(--white-hot), var(--molten), var(--ember), var(--crimson-deep)) 1;
+        }
+
+        .card-featured::after {
+            opacity: 0.6;
+            box-shadow: 0 4px 20px rgba(255, 69, 0, 0.15);
+        }
+
+        .card-featured .card-badge {
+            display: inline-block;
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--white-hot);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 3px 8px;
+            background: rgba(255, 69, 0, 0.12);
+            border: 1px solid rgba(255, 69, 0, 0.25);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        /* Stat card */
+        .card-stat {
+            text-align: center;
+            padding: var(--space-lg) var(--space-md);
+        }
+
+        .card-stat-value {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--ember);
+            line-height: 1;
+            margin-bottom: var(--space-sm);
+            text-shadow: 0 0 20px rgba(255, 69, 0, 0.3);
+        }
+
+        .card-stat-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--smoke-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* Image card */
+        .card-image {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .card-image-header {
+            height: 160px;
+            background: linear-gradient(135deg, var(--crimson-deep), var(--ember-dark), var(--ember), var(--molten-dark));
+            position: relative;
+        }
+
+        .card-image-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(to top, var(--bg-card), transparent);
+        }
+
+        .card-image-body {
+            padding: var(--space-md) var(--space-lg) var(--space-lg);
+        }
+
+        /* --- 07. ALERTS / NOTIFICATIONS --- */
+
+        .alert {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            border-left: 4px solid;
+            position: relative;
+        }
+
+        .alert-icon {
+            font-size: 1.3rem;
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: var(--space-xs);
+        }
+
+        .alert-text {
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin: 0;
+            max-width: none;
+        }
+
+        /* Info */
+        .alert-info {
+            background: rgba(196, 168, 130, 0.06);
+            border-color: var(--smoke-dark);
+        }
+
+        .alert-info .alert-icon {
+            color: var(--smoke);
+        }
+
+        .alert-info .alert-title {
+            color: var(--smoke-light);
+        }
+
+        .alert-info .alert-text {
+            color: var(--smoke-dark);
+        }
+
+        /* Warning */
+        .alert-warning {
+            background: rgba(255, 140, 0, 0.06);
+            border-color: var(--molten);
+        }
+
+        .alert-warning .alert-icon {
+            color: var(--molten);
+        }
+
+        .alert-warning .alert-title {
+            color: var(--molten-light);
+        }
+
+        .alert-warning .alert-text {
+            color: var(--smoke);
+        }
+
+        /* Danger */
+        .alert-danger {
+            background: rgba(255, 69, 0, 0.06);
+            border-color: var(--ember);
+        }
+
+        .alert-danger .alert-icon {
+            color: var(--ember);
+        }
+
+        .alert-danger .alert-title {
+            color: var(--ember-light);
+        }
+
+        .alert-danger .alert-text {
+            color: var(--smoke);
+        }
+
+        /* Critical */
+        .alert-critical {
+            background: rgba(255, 213, 79, 0.06);
+            border-color: var(--white-hot);
+            box-shadow: 0 0 20px rgba(255, 213, 79, 0.08);
+        }
+
+        .alert-critical .alert-icon {
+            color: var(--white-hot);
+            text-shadow: 0 0 10px rgba(255, 213, 79, 0.5);
+        }
+
+        .alert-critical .alert-title {
+            color: var(--white-hot);
+        }
+
+        .alert-critical .alert-text {
+            color: var(--smoke-light);
+        }
+
+        /* --- 08. NAVIGATION --- */
+
+        .nav-demo {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            border: var(--border-subtle);
+        }
+
+        .nav-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--ash);
+            padding: 0 var(--space-lg);
+            position: relative;
+        }
+
+        .nav-bar::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--crimson-deep),
+                var(--ember),
+                var(--molten),
+                var(--ember),
+                var(--crimson-deep),
+                transparent
+            );
+            opacity: 0.5;
+        }
+
+        .nav-logo {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--ember);
+            padding: var(--space-md) 0;
+            text-decoration: none;
+            text-shadow: 0 0 20px rgba(255, 69, 0, 0.2);
+            transition: color var(--transition-fast);
+        }
+
+        .nav-logo:focus-visible {
+            outline: 2px solid var(--ember-light);
+            outline-offset: 2px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            list-style: none;
+        }
+
+        .nav-link {
+            display: block;
+            padding: var(--space-md) var(--space-md);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--smoke);
+            text-decoration: none;
+            position: relative;
+            transition:
+                color var(--transition-fast),
+                background var(--transition-fast);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            right: 50%;
+            height: 2px;
+            background: var(--ember);
+            transition: all var(--transition-medium);
+            opacity: 0;
+        }
+
+        .nav-link:hover {
+            color: var(--ember-light);
+            background: rgba(255, 69, 0, 0.04);
+        }
+
+        .nav-link:hover::after {
+            left: var(--space-md);
+            right: var(--space-md);
+            opacity: 1;
+            box-shadow: 0 0 8px rgba(255, 69, 0, 0.3);
+        }
+
+        .nav-link:focus-visible {
+            outline: 2px solid var(--ember-light);
+            outline-offset: -2px;
+        }
+
+        .nav-link.active {
+            color: var(--ember);
+        }
+
+        .nav-link.active::after {
+            left: var(--space-md);
+            right: var(--space-md);
+            opacity: 1;
+            background: linear-gradient(90deg, var(--ember), var(--molten));
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.4);
+        }
+
+        /* --- FOOTER --- */
+
+        footer {
+            padding: var(--space-xl) 0 var(--space-2xl);
+            text-align: center;
+        }
+
+        .footer-rule {
+            border: none;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--crimson-deep),
+                var(--ember),
+                var(--molten),
+                var(--white-hot),
+                var(--molten),
+                var(--ember),
+                var(--crimson-deep),
+                transparent
+            );
+            margin-bottom: var(--space-xl);
+            opacity: 0.6;
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--ember);
+            margin-bottom: var(--space-sm);
+            text-shadow: 0 0 30px rgba(255, 69, 0, 0.2);
+        }
+
+        .footer-tagline {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--smoke-dark);
+            font-style: italic;
+            margin: 0;
+        }
+
+        /* --- RESPONSIVE (Sections 05-08) --- */
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-bar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 0;
+            }
+
+            .nav-logo {
+                padding: var(--space-md) var(--space-md);
+                text-align: center;
+                border-bottom: 1px solid rgba(255, 69, 0, 0.1);
+            }
+
+            .nav-links {
+                flex-direction: column;
+            }
+
+            .nav-link {
+                padding: var(--space-sm) var(--space-md);
+                text-align: center;
+            }
+
+            .nav-link::after {
+                bottom: auto;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 2px;
+            }
+
+            .nav-link:hover::after,
+            .nav-link.active::after {
+                left: 0;
+                right: 0;
+            }
+
+            .card-stat-value {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- HEADER -->
+        <header>
+            <h1>Fire &amp; Heat</h1>
+            <div class="ember-dot"></div>
+            <p class="tagline">A volcanic forge aesthetic built from molten metal, glowing embers, and heat distortion. Dark obsidian grounds give way to colors that progress from deep crimson through orange to white-hot yellow.</p>
+        </header>
+
+        <!-- 01. COLOR PALETTE -->
+        <section id="color-palette">
+            <div class="section-header">
+                <span class="section-number">01</span>
+                <h2>Color Palette</h2>
+                <p class="section-description">The spectrum of fire, from the deep crimson of cooling embers to the searing white-hot center of a forge. Structural colors are drawn from charcoal, ash, and smoke.</p>
+            </div>
+
+            <!-- Fire Colors -->
+            <div class="color-group">
+                <h3 class="color-group-title">Fire Colors</h3>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--ember);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Ember</div>
+                            <div class="color-swatch-hex">#FF4500</div>
+                            <div class="color-swatch-desc">Primary accent, call-to-action</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--ember-light);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Ember Light</div>
+                            <div class="color-swatch-hex">#FF6B3A</div>
+                            <div class="color-swatch-desc">Hover states, highlights</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--ember-dark);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Ember Dark</div>
+                            <div class="color-swatch-hex">#CC3700</div>
+                            <div class="color-swatch-desc">Active states, pressed</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--molten);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Molten</div>
+                            <div class="color-swatch-hex">#FF8C00</div>
+                            <div class="color-swatch-desc">Secondary accent, warmth</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--molten-light);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Molten Light</div>
+                            <div class="color-swatch-hex">#FFA940</div>
+                            <div class="color-swatch-desc">Gradients, glow accents</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--molten-dark);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Molten Dark</div>
+                            <div class="color-swatch-hex">#CC7000</div>
+                            <div class="color-swatch-desc">Depth tones, gradients</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--white-hot);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">White Hot</div>
+                            <div class="color-swatch-hex">#FFD54F</div>
+                            <div class="color-swatch-desc">Peak highlights, emphasis</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--white-hot-light);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">White Hot Light</div>
+                            <div class="color-swatch-hex">#FFE082</div>
+                            <div class="color-swatch-desc">Bright highlights, sparks</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--crimson-deep);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Crimson Deep</div>
+                            <div class="color-swatch-hex">#8B1A1A</div>
+                            <div class="color-swatch-desc">Dying embers, deep glow</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--crimson-light);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Crimson Light</div>
+                            <div class="color-swatch-hex">#A52A2A</div>
+                            <div class="color-swatch-desc">Warm underlighting</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Structural Colors -->
+            <div class="color-group">
+                <h3 class="color-group-title">Structural Colors</h3>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--charcoal);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Charcoal</div>
+                            <div class="color-swatch-hex">#1A1210</div>
+                            <div class="color-swatch-desc">Primary background</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--charcoal-light);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Charcoal Light</div>
+                            <div class="color-swatch-hex">#241A16</div>
+                            <div class="color-swatch-desc">Elevated backgrounds</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--ash);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Ash</div>
+                            <div class="color-swatch-hex">#2D2520</div>
+                            <div class="color-swatch-desc">Card backgrounds, panels</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--ash-light);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Ash Light</div>
+                            <div class="color-swatch-hex">#3D332C</div>
+                            <div class="color-swatch-desc">Hover surfaces, borders</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--smoke);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Smoke</div>
+                            <div class="color-swatch-hex">#C4A882</div>
+                            <div class="color-swatch-desc">Primary body text</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--smoke-light);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Smoke Light</div>
+                            <div class="color-swatch-hex">#D4BFA0</div>
+                            <div class="color-swatch-desc">Headings, emphasis text</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--smoke-dark);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Smoke Dark</div>
+                            <div class="color-swatch-hex">#9E8A6E</div>
+                            <div class="color-swatch-desc">Muted text, captions</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Semantic Colors -->
+            <div class="color-group">
+                <h3 class="color-group-title">Semantic Colors</h3>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--bg);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Background</div>
+                            <div class="color-swatch-hex">--bg</div>
+                            <div class="color-swatch-desc">Page background</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--bg-alt);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Background Alt</div>
+                            <div class="color-swatch-hex">--bg-alt</div>
+                            <div class="color-swatch-desc">Alternate sections</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--accent);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Accent</div>
+                            <div class="color-swatch-hex">--accent</div>
+                            <div class="color-swatch-desc">Primary interactive color</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--accent-secondary);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Accent Secondary</div>
+                            <div class="color-swatch-hex">--accent-secondary</div>
+                            <div class="color-swatch-desc">Warm secondary actions</div>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-swatch-block" style="background: var(--accent-highlight);"></div>
+                        <div class="color-swatch-info">
+                            <div class="color-swatch-name">Accent Highlight</div>
+                            <div class="color-swatch-hex">--accent-highlight</div>
+                            <div class="color-swatch-desc">Peak visual emphasis</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02. TYPOGRAPHY -->
+        <section id="typography">
+            <div class="section-header">
+                <span class="section-number">02</span>
+                <h2>Typography</h2>
+                <p class="section-description">Three typefaces forged to serve distinct roles: Cinzel commands attention in display contexts, Source Sans 3 carries the weight of body text, and JetBrains Mono marks the technical.</p>
+            </div>
+
+            <!-- Display Font -->
+            <div class="type-specimen">
+                <div class="type-specimen-label">Display &mdash; Cinzel</div>
+                <div class="type-specimen-sample">
+                    <h1 style="margin-bottom: var(--space-sm);">Forged in Fire</h1>
+                </div>
+                <div class="type-specimen-meta">
+                    Cinzel 900 / clamp(2.5rem, 5vw, 4rem) / letter-spacing: 0.03em
+                </div>
+            </div>
+
+            <!-- Body Font -->
+            <div class="type-specimen">
+                <div class="type-specimen-label">Body &mdash; Source Sans 3</div>
+                <div class="type-specimen-sample">
+                    <p style="font-size: 1.15rem; margin: 0; max-width: none; color: var(--text-light);">The quick brown fox jumps over the lazy dog. Every letter is shaped by the heat of purpose, tempered by the discipline of legibility. In the forge of design, clarity is the sharpest blade.</p>
+                </div>
+                <div class="type-specimen-meta">
+                    Source Sans 3 400 / 1.15rem / line-height: 1.6
+                </div>
+            </div>
+
+            <!-- Mono Font -->
+            <div class="type-specimen">
+                <div class="type-specimen-label">Monospace &mdash; JetBrains Mono</div>
+                <div class="type-specimen-sample">
+                    <p style="font-family: var(--font-mono); font-size: 0.95rem; margin: 0; max-width: none; color: var(--ember-light);">const forge = { temperature: 1538, unit: 'celsius' };</p>
+                </div>
+                <div class="type-specimen-meta">
+                    JetBrains Mono 400 / 0.95rem / Used in code, labels, metadata
+                </div>
+            </div>
+
+            <!-- Heading Scale -->
+            <div class="heading-scale">
+                <div class="heading-scale-item">
+                    <span class="heading-scale-label">H1</span>
+                    <h1 style="margin: 0;">Volcanic Forge</h1>
+                </div>
+                <div class="heading-scale-item">
+                    <span class="heading-scale-label">H2</span>
+                    <h2 style="margin: 0;">Volcanic Forge</h2>
+                </div>
+                <div class="heading-scale-item">
+                    <span class="heading-scale-label">H3</span>
+                    <h3 style="margin: 0;">Volcanic Forge</h3>
+                </div>
+                <div class="heading-scale-item">
+                    <span class="heading-scale-label">H4</span>
+                    <h4 style="margin: 0;">Volcanic Forge</h4>
+                </div>
+                <div class="heading-scale-item">
+                    <span class="heading-scale-label">H5</span>
+                    <h5 style="margin: 0;">Volcanic Forge</h5>
+                </div>
+                <div class="heading-scale-item">
+                    <span class="heading-scale-label">H6</span>
+                    <h6 style="margin: 0;">Volcanic Forge</h6>
+                </div>
+            </div>
+
+            <!-- Body Text Demo -->
+            <div class="body-text-demo">
+                <p>The art of metalworking is as old as civilization itself. From the first copper tools hammered by Neolithic craftsmen to the towering steel frameworks of modern cities, humanity has shaped its world through fire and force.</p>
+                <p class="text-italic">Italic text whispers like rising heat, carrying secondary information without demanding full attention.</p>
+                <p><span class="text-bold">Bold text strikes like a hammer on the anvil</span> -- drawing the eye with certainty and weight.</p>
+                <p>Inline <code>code elements</code> mark the technical vocabulary of our craft, standing apart from the surrounding prose.</p>
+                <blockquote>
+                    The smith who tempers iron with patience will outlast the one who relies on force alone. Every great design system is forged through iteration, each pass through the fire refining what came before.
+                    <cite>The Forge Master's Codex</cite>
+                </blockquote>
+            </div>
+        </section>
+
+        <!-- 03. SPACING -->
+        <section id="spacing">
+            <div class="section-header">
+                <span class="section-number">03</span>
+                <h2>Spacing</h2>
+                <p class="section-description">A consistent spatial rhythm built on a 4px base unit. Each step doubles in heat, from the tight ember of xs to the expansive glow of 2xl.</p>
+            </div>
+
+            <div class="spacing-scale">
+                <div class="spacing-row">
+                    <div class="spacing-label">xs <span>(4px)</span></div>
+                    <div class="spacing-bar" style="width: 4px;"></div>
+                    <span class="spacing-value">4px</span>
+                </div>
+                <div class="spacing-row">
+                    <div class="spacing-label">sm <span>(8px)</span></div>
+                    <div class="spacing-bar" style="width: 8px;"></div>
+                    <span class="spacing-value">8px</span>
+                </div>
+                <div class="spacing-row">
+                    <div class="spacing-label">md <span>(16px)</span></div>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">16px</span>
+                </div>
+                <div class="spacing-row">
+                    <div class="spacing-label">lg <span>(32px)</span></div>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">32px</span>
+                </div>
+                <div class="spacing-row">
+                    <div class="spacing-label">xl <span>(64px)</span></div>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">64px</span>
+                </div>
+                <div class="spacing-row">
+                    <div class="spacing-label">2xl <span>(96px)</span></div>
+                    <div class="spacing-bar" style="width: 96px;"></div>
+                    <span class="spacing-value">96px</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04. BUTTONS -->
+        <section id="buttons">
+            <div class="section-header">
+                <span class="section-number">04</span>
+                <h2>Buttons</h2>
+                <p class="section-description">Three tiers of button intensity -- primary commands burn brightest, secondary outlines simmer at the edge, and ghost buttons glow only when touched.</p>
+            </div>
+
+            <!-- Primary Buttons -->
+            <div class="button-group">
+                <div class="button-group-title">Primary</div>
+                <div class="button-row">
+                    <button class="btn btn-primary btn-sm">Small</button>
+                    <button class="btn btn-primary btn-md">Medium</button>
+                    <button class="btn btn-primary btn-lg">Large</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-primary btn-md btn-disabled" disabled>Disabled</button>
+                </div>
+            </div>
+
+            <!-- Secondary Buttons -->
+            <div class="button-group">
+                <div class="button-group-title">Secondary</div>
+                <div class="button-row">
+                    <button class="btn btn-secondary btn-sm">Small</button>
+                    <button class="btn btn-secondary btn-md">Medium</button>
+                    <button class="btn btn-secondary btn-lg">Large</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-secondary btn-md btn-disabled" disabled>Disabled</button>
+                </div>
+            </div>
+
+            <!-- Ghost Buttons -->
+            <div class="button-group">
+                <div class="button-group-title">Ghost</div>
+                <div class="button-row">
+                    <button class="btn btn-ghost btn-sm">Small</button>
+                    <button class="btn btn-ghost btn-md">Medium</button>
+                    <button class="btn btn-ghost btn-lg">Large</button>
+                </div>
+                <div class="button-row">
+                    <button class="btn btn-ghost btn-md btn-disabled" disabled>Disabled</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 05. FORMS -->
+        <section id="forms">
+            <div class="section-header">
+                <span class="section-number">05</span>
+                <h2>Forms</h2>
+                <p class="section-description">Input fields forged from dark ash, framed in ember borders that flare on focus. Every interaction leaves a heat signature.</p>
+            </div>
+
+            <div class="form-demo">
+                <form class="form-grid" onsubmit="return false;">
+
+                    <!-- Text Input -->
+                    <div class="form-group">
+                        <label class="form-label" for="form-name">Full Name</label>
+                        <input class="form-input" type="text" id="form-name" placeholder="Enter your name">
+                    </div>
+
+                    <!-- Email Input -->
+                    <div class="form-group">
+                        <label class="form-label" for="form-email">Email Address</label>
+                        <input class="form-input" type="email" id="form-email" placeholder="you@example.com">
+                    </div>
+
+                    <!-- Select Dropdown -->
+                    <div class="form-group">
+                        <label class="form-label" for="form-role">Forge Role</label>
+                        <select class="form-select" id="form-role">
+                            <option value="" disabled selected>Select a role</option>
+                            <option value="smith">Blacksmith</option>
+                            <option value="caster">Metal Caster</option>
+                            <option value="smelter">Smelter Operator</option>
+                            <option value="apprentice">Apprentice</option>
+                        </select>
+                    </div>
+
+                    <!-- Textarea -->
+                    <div class="form-group">
+                        <label class="form-label" for="form-message">Message</label>
+                        <textarea class="form-textarea" id="form-message" placeholder="Describe your experience with the forge..."></textarea>
+                    </div>
+
+                    <!-- Checkbox Group -->
+                    <div class="form-group">
+                        <span class="form-label">Specializations</span>
+                        <div class="form-check-group">
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="spec" value="blade">
+                                Blade Forging
+                            </label>
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="spec" value="armor">
+                                Armor Smithing
+                            </label>
+                            <label class="form-check-label">
+                                <input class="form-check-input" type="checkbox" name="spec" value="jewelry">
+                                Jewelry Casting
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Radio Group -->
+                    <div class="form-group">
+                        <span class="form-label">Heat Preference</span>
+                        <div class="form-check-group">
+                            <label class="form-check-label">
+                                <input class="form-radio-input" type="radio" name="heat" value="low">
+                                Low Heat (600-800 C)
+                            </label>
+                            <label class="form-check-label">
+                                <input class="form-radio-input" type="radio" name="heat" value="medium">
+                                Medium Heat (800-1100 C)
+                            </label>
+                            <label class="form-check-label">
+                                <input class="form-radio-input" type="radio" name="heat" value="high">
+                                White Hot (1100+ C)
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-md" type="submit">Submit to the Forge</button>
+                        <button class="btn btn-ghost btn-md" type="reset">Reset</button>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <!-- 06. CARDS & PANELS -->
+        <section id="cards">
+            <div class="section-header">
+                <span class="section-number">06</span>
+                <h2>Cards &amp; Panels</h2>
+                <p class="section-description">Containers shaped from the dark matter of the forge. Each card rests on a bed of cooling embers, glowing brighter when attention draws near.</p>
+            </div>
+
+            <div class="card-grid">
+
+                <!-- Basic Card -->
+                <div class="card">
+                    <h3 class="card-title">The Anvil</h3>
+                    <p class="card-text">The foundation of every forge. A basic card holds content with quiet authority, asking nothing more than to be read and understood.</p>
+                    <a href="#" class="card-link">Learn more &rarr;</a>
+                </div>
+
+                <!-- Featured Card -->
+                <div class="card card-featured">
+                    <span class="card-badge">Featured</span>
+                    <h3 class="card-title">Damascus Steel</h3>
+                    <p class="card-text">Layers of metal folded and welded under extreme heat, creating patterns as unique as fingerprints. Featured cards carry the full spectrum of forge light.</p>
+                    <a href="#" class="card-link">Explore the process &rarr;</a>
+                </div>
+
+                <!-- Stat Cards -->
+                <div class="card card-stat">
+                    <div class="card-stat-value">1538</div>
+                    <div class="card-stat-label">Degrees Celsius</div>
+                    <p class="card-text" style="margin-top: var(--space-md); margin-bottom: 0;">Melting point of iron -- the threshold where solid becomes liquid and possibility is born.</p>
+                </div>
+
+                <!-- Image Card -->
+                <div class="card card-image">
+                    <div class="card-image-header"></div>
+                    <div class="card-image-body">
+                        <h3 class="card-title">Into the Crucible</h3>
+                        <p class="card-text" style="margin-bottom: 0;">A gradient header simulates the view through a forge window -- crimson depths giving way to molten orange at the core.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 07. ALERTS / NOTIFICATIONS -->
+        <section id="alerts">
+            <div class="section-header">
+                <span class="section-number">07</span>
+                <h2>Alerts &amp; Notifications</h2>
+                <p class="section-description">Severity mapped to the heat spectrum. Cool smoke carries routine information, while white-hot intensity signals critical urgency.</p>
+            </div>
+
+            <!-- Info -->
+            <div class="alert alert-info">
+                <span class="alert-icon">&#x2139;</span>
+                <div class="alert-content">
+                    <div class="alert-title">System Maintenance Scheduled</div>
+                    <p class="alert-text">The forge cooling system will undergo routine maintenance on Saturday at 02:00. Expect brief downtime for temperature recalibration.</p>
+                </div>
+            </div>
+
+            <!-- Warning -->
+            <div class="alert alert-warning">
+                <span class="alert-icon">&#x26A0;</span>
+                <div class="alert-content">
+                    <div class="alert-title">Temperature Approaching Threshold</div>
+                    <p class="alert-text">Core temperature has reached 1,200 C and is climbing. Ventilation systems operating at 85% capacity. Monitor output closely.</p>
+                </div>
+            </div>
+
+            <!-- Danger -->
+            <div class="alert alert-danger">
+                <span class="alert-icon">&#x25C6;</span>
+                <div class="alert-content">
+                    <div class="alert-title">Critical System Failure Detected</div>
+                    <p class="alert-text">Primary containment breach in Sector 7. Automated shutoff protocols have been triggered. Evacuate non-essential personnel immediately.</p>
+                </div>
+            </div>
+
+            <!-- Critical -->
+            <div class="alert alert-critical">
+                <span class="alert-icon">&#x26A1;</span>
+                <div class="alert-content">
+                    <div class="alert-title">Meltdown Imminent</div>
+                    <p class="alert-text">Core integrity below 15%. All containment barriers have failed. Immediate action required -- initiate emergency quench protocol.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08. NAVIGATION -->
+        <section id="navigation">
+            <div class="section-header">
+                <span class="section-number">08</span>
+                <h2>Navigation</h2>
+                <p class="section-description">A navigation bar that rests on a bed of embers. Active states burn with purpose, and hover interactions leave glowing trails.</p>
+            </div>
+
+            <div class="nav-demo">
+                <nav class="nav-bar">
+                    <a href="#" class="nav-logo">FORGE</a>
+                    <ul class="nav-links">
+                        <li><a href="#" class="nav-link active">Dashboard</a></li>
+                        <li><a href="#" class="nav-link">Projects</a></li>
+                        <li><a href="#" class="nav-link">Resources</a></li>
+                        <li><a href="#" class="nav-link">Analytics</a></li>
+                        <li><a href="#" class="nav-link">Settings</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            <hr class="footer-rule">
+            <h2 class="footer-title">Fire &amp; Heat</h2>
+            <p class="footer-tagline">Forged in flame. Tempered by design.</p>
+        </footer>
+
+    </div><!-- .container -->
+</body>
+</html>
