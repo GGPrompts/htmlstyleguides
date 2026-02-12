@@ -27,7 +27,7 @@ Master mapping of all 103 style guides and their usage across tech guides and st
 | civic | | |
 | claymorphism | | |
 | coffee-shop | | |
-| coffee | | The Bean |
+| coffee | Java | The Bean |
 | concrete-brutalist | | |
 | constructivism | | |
 | copper-verdigris | Rust | Liberty |
