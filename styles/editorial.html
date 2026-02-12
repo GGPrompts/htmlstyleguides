@@ -531,9 +531,56 @@
             color: var(--accent);
             margin: var(--space-6) 0;
         }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: var(--space-4);
+            right: var(--space-4);
+            z-index: 100;
+            font-family: var(--font-sans);
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: var(--space-2) var(--space-4);
+            border: 1px solid var(--rule);
+            background: var(--cream);
+            color: var(--ink-light);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--ink);
+            color: var(--ink);
+        }
+
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --cream: #1a1a1a;
+            --paper: #222222;
+            --ink: #f0ece6;
+            --ink-light: #c8c4bc;
+            --ink-muted: #7a7770;
+            --accent: #d44040;
+            --rule: #3a3835;
+        }
+
+        [data-theme="dark"] .theme-toggle {
+            background: #222222;
+            border-color: #3a3835;
+            color: #7a7770;
+        }
+
+        [data-theme="dark"] .theme-toggle:hover {
+            border-color: #f0ece6;
+            color: #f0ece6;
+        }
     </style>
 </head>
 <body>
+    <button class="theme-toggle" onclick="toggleTheme()">Dark Mode</button>
+
     <div class="container">
         <!-- Masthead -->
         <header class="masthead">
@@ -756,5 +803,18 @@
             <p>A design system celebrating the craft of long-form reading</p>
         </footer>
     </div>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const btn = document.querySelector('.theme-toggle');
+            if (html.getAttribute('data-theme') === 'dark') {
+                html.removeAttribute('data-theme');
+                btn.textContent = 'Dark Mode';
+            } else {
+                html.setAttribute('data-theme', 'dark');
+                btn.textContent = 'Light Mode';
+            }
+        }
+    </script>
 </body>
 </html>
