@@ -2,7 +2,7 @@
 
 Master mapping of all 104 style guides and their usage across tech guides and stories.
 
-**Used:** 53 styles · **Available:** 51 styles
+**Used:** 54 styles · **Available:** 50 styles
 
 | Style | Tech Guide | Story |
 |-------|-----------|-------|
@@ -91,7 +91,7 @@ Master mapping of all 104 style guides and their usage across tech guides and st
 | scandi-cozy | | |
 | sketch | | The First Line |
 | solarpunk | Ansible | |
-| stained-glass | | |
+| stained-glass | PKI & Certificates | |
 | streamline-moderne | | The Express |
 | suprematism | | |
 | swiss-international | Python & pip | |
