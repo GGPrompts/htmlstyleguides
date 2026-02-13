@@ -45,7 +45,7 @@ Master mapping of all 105 style guides and their usage across tech guides and st
 | dos-bios | curl & wget | |
 | editorial | | |
 | embroidery | | |
-| federal-night | | |
+| federal-night | Rationalization & Decommissioning | |
 | fire-and-heat | | |
 | film-grain | | The First Reel |
 | frutiger-aero | VS Code | |
