@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Last Semester — A Bauhaus Interactive History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bauhaus-red: #E53935;
+            --bauhaus-yellow: #FDD835;
+            --bauhaus-blue: #1E88E5;
+            --black: #000000;
+            --white: #FFFFFF;
+            --gray-50: #FAFAFA;
+            --gray-100: #F5F5F5;
+            --gray-200: #EEEEEE;
+            --gray-300: #E0E0E0;
+            --gray-400: #BDBDBD;
+            --gray-500: #9E9E9E;
+            --gray-600: #757575;
+            --gray-700: #616161;
+            --gray-800: #424242;
+            --gray-900: #212121;
+            --font-sans: 'DM Sans', 'Futura', 'Century Gothic', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--black);
+            background: var(--white);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        /* ═══════════ TITLE SCREEN ═══════════ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90vh;
+            text-align: center;
+            position: relative;
+        }
+
+        .title-shapes {
+            display: flex;
+            gap: 1.5rem;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .title-shapes .shape-circle {
+            width: 60px; height: 60px;
+            background: var(--bauhaus-red);
+            border-radius: 50%;
+        }
+
+        .title-shapes .shape-square {
+            width: 60px; height: 60px;
+            background: var(--bauhaus-blue);
+        }
+
+        .title-shapes .shape-triangle {
+            width: 0; height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 52px solid var(--bauhaus-yellow);
+        }
+
+        .title-screen h1 {
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .title-subtitle {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--bauhaus-red);
+            margin-bottom: 0.5rem;
+        }
+
+        .title-period {
+            font-size: 1rem;
+            color: var(--gray-600);
+            margin-bottom: 2.5rem;
+            max-width: 500px;
+        }
+
+        .title-start {
+            padding: 12px 40px;
+            font-family: var(--font-sans);
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 3px solid var(--black);
+            background: var(--black);
+            color: var(--white);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start:hover {
+            background: var(--white);
+            color: var(--black);
+        }
+
+        .title-credits {
+            margin-top: 3rem;
+            font-size: 0.75rem;
+            color: var(--gray-400);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        /* ═══════════ SCENE WRAPPER ═══════════ */
+        .scene-wrapper { display: none; }
+        .scene-wrapper.active { display: block; }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            border-bottom: 4px solid var(--black);
+        }
+
+        .scene-era {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+        }
+
+        .scene-lessons {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--bauhaus-blue);
+        }
+
+        /* ═══════════ SCENE TYPES ═══════════ */
+        .scene-content { animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Chapter heading */
+        .chapter-heading {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .chapter-number {
+            font-size: 5rem;
+            font-weight: 800;
+            color: var(--gray-200);
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            z-index: 0;
+            line-height: 1;
+        }
+
+        .chapter-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+            position: relative;
+            z-index: 1;
+        }
+
+        .chapter-year {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--bauhaus-red);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Narration block */
+        .narration {
+            margin-bottom: 1.5rem;
+            max-width: 60ch;
+        }
+
+        .narration p {
+            margin-bottom: 1rem;
+            font-size: 1.05rem;
+            line-height: 1.7;
+            color: var(--gray-800);
+        }
+
+        .narration p:last-child { margin-bottom: 0; }
+
+        /* Lesson card (historical fact) */
+        .lesson-card {
+            border: 3px solid var(--black);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            background: var(--white);
+        }
+
+        .lesson-card:hover {
+            box-shadow: 6px 6px 0 var(--black);
+            transform: translate(-3px, -3px);
+        }
+
+        .lesson-card .lesson-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--bauhaus-blue);
+            margin-bottom: 0.75rem;
+        }
+
+        .lesson-card p {
+            color: var(--gray-700);
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .lesson-card p:last-child { margin-bottom: 0; }
+
+        /* Geometric shape accent */
+        .lesson-shape {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 36px;
+            height: 36px;
+        }
+
+        .lesson-shape.circle { border-radius: 50%; background: var(--bauhaus-red); }
+        .lesson-shape.square { background: var(--bauhaus-blue); }
+        .lesson-shape.triangle {
+            width: 0; height: 0; background: transparent;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-bottom: 31px solid var(--bauhaus-yellow);
+        }
+
+        /* Quote block */
+        .quote-block {
+            border-left: 4px solid var(--bauhaus-red);
+            padding-left: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .quote-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
+        }
+
+        .quote-author {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--gray-500);
+        }
+
+        /* Composition block (for Kandinsky lesson) */
+        .composition-demo {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 4px;
+            background: var(--black);
+            border: 4px solid var(--black);
+            aspect-ratio: 4/3;
+            margin-bottom: 1.5rem;
+            max-width: 400px;
+        }
+
+        .comp-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .comp-cell:nth-child(1) { background: var(--bauhaus-red); }
+        .comp-cell:nth-child(2) { background: var(--white); }
+        .comp-cell:nth-child(3) { background: var(--bauhaus-yellow); }
+        .comp-cell:nth-child(4) { background: var(--bauhaus-blue); }
+
+        .comp-cell .inner-circle { width: 50%; height: 50%; background: var(--black); border-radius: 50%; }
+        .comp-cell .inner-triangle {
+            width: 0; height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 52px solid var(--black);
+        }
+        .comp-cell .inner-square { width: 50%; height: 50%; background: var(--black); }
+        .comp-cell .inner-ring { width: 50%; height: 50%; border: 4px solid var(--white); border-radius: 50%; }
+
+        /* Principle boxes */
+        .principles-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .principle-box {
+            position: relative;
+            padding-left: 3rem;
+        }
+
+        .principle-marker {
+            position: absolute;
+            left: 0; top: 0;
+            width: 28px; height: 28px;
+        }
+
+        .principle-marker.circle { border-radius: 50%; background: var(--bauhaus-red); }
+        .principle-marker.square { background: var(--bauhaus-blue); }
+        .principle-marker.triangle {
+            width: 0; height: 0; background: transparent;
+            border-left: 14px solid transparent;
+            border-right: 14px solid transparent;
+            border-bottom: 24px solid var(--bauhaus-yellow);
+        }
+
+        .principle-box h4 {
+            font-size: 0.875rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.25rem;
+        }
+
+        .principle-box p {
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        /* Dark scene (Nazi era) */
+        .dark-scene {
+            background: var(--black);
+            color: var(--white);
+            padding: 2rem;
+            margin: -2rem;
+            margin-bottom: 0;
+            padding-bottom: 3rem;
+        }
+
+        .dark-scene .chapter-number { color: var(--gray-800); }
+        .dark-scene .chapter-title { color: var(--white); }
+        .dark-scene .chapter-year { color: var(--bauhaus-red); }
+        .dark-scene .narration p { color: var(--gray-300); }
+
+        .dark-scene .lesson-card {
+            border-color: var(--gray-700);
+            background: var(--gray-900);
+        }
+
+        .dark-scene .lesson-card .lesson-label { color: var(--bauhaus-red); }
+        .dark-scene .lesson-card p { color: var(--gray-400); }
+        .dark-scene .lesson-card:hover { box-shadow: 6px 6px 0 var(--gray-700); }
+
+        .dark-scene .quote-block { border-color: var(--bauhaus-red); }
+        .dark-scene .quote-author { color: var(--gray-500); }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 2px solid var(--black);
+        }
+
+        .badge-red { border-color: var(--bauhaus-red); color: var(--bauhaus-red); }
+        .badge-blue { border-color: var(--bauhaus-blue); color: var(--bauhaus-blue); }
+        .badge-yellow { border-color: var(--bauhaus-yellow); background: var(--bauhaus-yellow); color: var(--black); }
+        .badge-filled { background: var(--black); color: var(--white); }
+
+        .badge-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; }
+
+        /* Divider */
+        .divider {
+            height: 4px;
+            background: var(--black);
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 16px; height: 16px;
+            background: var(--bauhaus-red);
+            border-radius: 50%;
+        }
+
+        .divider::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 50%;
+            transform: translateY(-50%);
+            width: 16px; height: 16px;
+            background: var(--bauhaus-blue);
+        }
+
+        /* Ending */
+        .ending-block {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+
+        .ending-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--bauhaus-red);
+            margin-bottom: 0.5rem;
+        }
+
+        .ending-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: -0.03em;
+            margin-bottom: 1.5rem;
+        }
+
+        .ending-block .narration {
+            max-width: 55ch;
+            margin: 0 auto 1.5rem;
+        }
+
+        .ending-shapes {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .ending-shapes div:nth-child(1) { width: 24px; height: 24px; background: var(--bauhaus-red); border-radius: 50%; }
+        .ending-shapes div:nth-child(2) { width: 24px; height: 24px; background: var(--bauhaus-blue); }
+        .ending-shapes div:nth-child(3) {
+            width: 0; height: 0;
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-bottom: 21px solid var(--bauhaus-yellow);
+        }
+
+        /* ═══════════ CHOICES ═══════════ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            opacity: 0;
+            animation: choicesIn 0.5s ease-out 0.6s forwards;
+        }
+
+        @keyframes choicesIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            font-family: var(--font-sans);
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border: 3px solid var(--black);
+            background: var(--white);
+            color: var(--black);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--black);
+            transition: left 0.15s ease;
+            z-index: 0;
+        }
+
+        .choice-btn span { position: relative; z-index: 1; }
+
+        .choice-btn:hover::before { left: 0; }
+        .choice-btn:hover { color: var(--white); }
+
+        .dark-scene .choice-btn {
+            border-color: var(--gray-600);
+            background: var(--gray-900);
+            color: var(--white);
+        }
+
+        .dark-scene .choice-btn::before { background: var(--white); }
+        .dark-scene .choice-btn:hover { color: var(--black); }
+
+        .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            border: 2px solid currentColor;
+            font-size: 0.75rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Knowledge sidebar */
+        .knowledge-tracker {
+            position: fixed;
+            top: 1.5rem; right: 1.5rem;
+            z-index: 100;
+            display: none;
+        }
+
+        .knowledge-tracker.active { display: block; }
+
+        .knowledge-toggle {
+            padding: 6px 14px;
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 2px solid var(--black);
+            background: var(--white);
+            color: var(--black);
+            cursor: pointer;
+        }
+
+        .knowledge-toggle:hover { background: var(--gray-100); }
+
+        .knowledge-panel {
+            display: none;
+            margin-top: 0.5rem;
+            background: var(--white);
+            border: 3px solid var(--black);
+            padding: 1rem;
+            max-width: 260px;
+            max-height: 450px;
+            overflow-y: auto;
+            box-shadow: 6px 6px 0 var(--black);
+        }
+
+        .knowledge-panel.open { display: block; animation: panelIn 0.25s ease-out; }
+        @keyframes panelIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .knowledge-panel h4 {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--gray-500);
+            margin-bottom: 0.75rem;
+        }
+
+        .knowledge-item {
+            font-size: 0.85rem;
+            color: var(--gray-700);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--gray-200);
+            line-height: 1.4;
+        }
+
+        .knowledge-item:last-child { border-bottom: none; }
+        .no-knowledge { font-size: 0.85rem; color: var(--gray-400); }
+
+        /* Game controls */
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 4px solid var(--black);
+        }
+
+        .dark-scene .game-controls { border-color: var(--gray-700); }
+
+        .ctrl-btn {
+            padding: 8px 16px;
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 2px solid var(--gray-300);
+            background: transparent;
+            color: var(--gray-500);
+            cursor: pointer;
+        }
+
+        .ctrl-btn:hover { border-color: var(--black); color: var(--black); }
+        .dark-scene .ctrl-btn { border-color: var(--gray-700); color: var(--gray-600); }
+        .dark-scene .ctrl-btn:hover { border-color: var(--white); color: var(--white); }
+
+        /* Transition */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active { animation: bauTransition 1s ease-in-out; }
+
+        .transition-overlay .trans-block {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+        }
+
+        .transition-overlay .trans-block:nth-child(1) { background: var(--bauhaus-red); animation: blockWipe 1s ease-in-out; }
+        .transition-overlay .trans-block:nth-child(2) { background: var(--bauhaus-yellow); animation: blockWipe 1s ease-in-out 0.1s; }
+        .transition-overlay .trans-block:nth-child(3) { background: var(--bauhaus-blue); animation: blockWipe 1s ease-in-out 0.2s; }
+
+        @keyframes blockWipe {
+            0% { transform: translateX(-100%); }
+            30% { transform: translateX(0); }
+            50% { transform: translateX(0); }
+            80% { transform: translateX(100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        @keyframes bauTransition {
+            0% { opacity: 1; } 100% { opacity: 1; }
+        }
+
+        /* Audio placeholder */
+        .audio-placeholder {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+            padding: 8px 12px;
+            border: 2px solid var(--gray-200);
+            opacity: 0.4;
+        }
+
+        .audio-placeholder span {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-400);
+        }
+
+        @media (max-width: 600px) {
+            .game-container { padding: 1rem; }
+            .principles-grid { grid-template-columns: 1fr; }
+            .title-shapes .shape-circle, .title-shapes .shape-square { width: 40px; height: 40px; }
+            .dark-scene { margin: -1rem; padding: 1.5rem; }
+        }
+
+        ::selection { background: var(--bauhaus-yellow); color: var(--black); }
+    </style>
+</head>
+<body>
+    <div class="transition-overlay" id="transition">
+        <div class="trans-block"></div>
+        <div class="trans-block"></div>
+        <div class="trans-block"></div>
+    </div>
+
+    <div class="knowledge-tracker" id="knowledgeTracker">
+        <button class="knowledge-toggle" id="knowledgeToggle">Lessons <span id="factCount">0</span></button>
+        <div class="knowledge-panel" id="knowledgePanel">
+            <h4>Knowledge Collected</h4>
+            <div id="knowledgeList"><p class="no-knowledge">No lessons yet...</p></div>
+        </div>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+        <div class="title-screen" id="titleScreen">
+            <div class="title-shapes">
+                <div class="shape-circle"></div>
+                <div class="shape-square"></div>
+                <div class="shape-triangle"></div>
+            </div>
+            <div class="title-subtitle">An Interactive History</div>
+            <h1>The Last<br>Semester</h1>
+            <p class="title-period">Germany, 1919-1933. You are a student at the most radical art school in history. The Nazis want it destroyed. What will you save?</p>
+            <button class="title-start" id="startBtn">Begin</button>
+            <p class="title-credits">Weimar &middot; Dessau &middot; Berlin</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header" id="sceneHeader">
+                <span class="scene-era" id="sceneEra">WEIMAR, 1919</span>
+            </div>
+
+            <div class="audio-placeholder">
+                <span>&#9654; Voice narration — coming soon</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls" id="gameControls">
+                <button class="ctrl-btn" id="restartBtn">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const STORY = {
+        founding: {
+            era: 'WEIMAR, 1919', dark: false,
+            content: `
+                <div class="chapter-heading">
+                    <span class="chapter-number">01</span>
+                    <div class="chapter-year">April 1, 1919</div>
+                    <div class="chapter-title">A New Unity</div>
+                </div>
+                <div class="narration">
+                    <p>Germany is broken. The Great War ended five months ago. The Kaiser has fled. The economy is in ruins. In the small city of <strong>Weimar</strong>, a young architect named <strong>Walter Gropius</strong> has an audacious idea.</p>
+                    <p>He opens a school. Not just any school — a school that will unite <strong>art, craft, and technology</strong> into one discipline. He calls it the <strong>Staatliches Bauhaus</strong>.</p>
+                    <p>You are among the first students. You've come from across Germany, drawn by Gropius's manifesto: <em>"Let us create a new guild of craftsmen, without the class distinctions that raise an arrogant barrier between craftsman and artist."</em></p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Walter_Gropius_Foto_1920.jpg/600px-Walter_Gropius_Foto_1920.jpg" alt="Walter Gropius portrait from 1919" style="max-width: 100%; height: auto; border: 3px solid #000;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Walter Gropius, Founder of the Bauhaus, 1919</div>
+                </div>
+                <div class="quote-block">
+                    <div class="quote-text">"The ultimate aim of all creative activity is the building."</div>
+                    <div class="quote-author">Walter Gropius, Bauhaus Manifesto, 1919</div>
+                </div>
+                <div class="lesson-card">
+                    <div class="lesson-shape circle"></div>
+                    <div class="lesson-label">Historical Context</div>
+                    <p>The Bauhaus was founded in Weimar, Germany — the same city where the new democratic constitution was being written. It represented a radical break from the past: no more stuffy academies, no separation between "fine art" and practical craft.</p>
+                    <p>Gropius believed that after the devastation of WWI, design could help rebuild society. <strong>Good design, accessible to everyone, could make the world more humane.</strong></p>
+                </div>
+            `,
+            fact: 'The Bauhaus was founded on April 1, 1919, in Weimar, Germany. Its name means "Building House" — from the German Bau (building) + Haus (house).',
+            choices: [
+                { text: 'Choose a workshop: Metal', next: 'workshop_metal' },
+                { text: 'Choose a workshop: Weaving', next: 'workshop_weaving' },
+                { text: 'Choose a workshop: Architecture', next: 'workshop_architecture' }
+            ]
+        },
+
+        workshop_metal: {
+            era: 'WEIMAR, 1920',
+            content: `
+                <div class="chapter-heading">
+                    <span class="chapter-number">02</span>
+                    <div class="chapter-year">The Metal Workshop</div>
+                    <div class="chapter-title">Form in Steel</div>
+                </div>
+                <div class="narration">
+                    <p>You enter the metal workshop under master <strong>László Moholy-Nagy</strong>. The room is spare — workbenches, tools, raw metal. No decoration anywhere.</p>
+                    <p>Your first assignment: design a teapot. But Moholy-Nagy has rules. <strong>No ornament. No curves that don't serve a purpose. Every line must justify its existence.</strong></p>
+                    <p>Your classmate <strong>Marianne Brandt</strong> creates a tea infuser that looks like it was made by a machine — but every piece was handcrafted. It will become one of the most famous objects of the 20th century.</p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Marianne-brandt.jpg/640px-Marianne-brandt.jpg" alt="Marianne Brandt tea infuser, model MT 49" style="max-width: 100%; height: auto; border: 3px solid #000;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Marianne Brandt, Tea Infuser MT 49, 1924</div>
+                </div>
+                <div class="lesson-card">
+                    <div class="lesson-shape square"></div>
+                    <div class="lesson-label">Design Principle</div>
+                    <p><strong>Form follows function.</strong> This is the core idea of Bauhaus design. Every element must serve a purpose. If a handle exists, it's for gripping. If a spout curves, it's for pouring. Nothing is decorative.</p>
+                    <p>Marianne Brandt's tea infuser (1924) is still manufactured today. She was one of the few women allowed into the metal workshop — the Bauhaus talked about equality but often fell short.</p>
+                </div>
+            `,
+            fact: 'Marianne Brandt\'s 1924 tea infuser is still in production today. "Form follows function" meant every design element must justify its existence.',
+            choices: [
+                { text: 'Continue your studies', next: 'kandinsky' }
+            ]
+        },
+
+        workshop_weaving: {
+            era: 'WEIMAR, 1920',
+            content: `
+                <div class="chapter-heading">
+                    <span class="chapter-number">02</span>
+                    <div class="chapter-year">The Weaving Workshop</div>
+                    <div class="chapter-title">Threads of Revolution</div>
+                </div>
+                <div class="narration">
+                    <p>The weaving workshop is where most women at the Bauhaus end up — not entirely by choice. Despite Gropius's talk of equality, female students are "encouraged" toward textiles.</p>
+                    <p>But the women turn this into power. Under <strong>Gunta Stölzl</strong>, the weaving workshop becomes the most commercially successful department in the entire school.</p>
+                    <p>You learn to think of textiles as <strong>architecture in miniature</strong> — every thread a structural decision, every pattern a mathematical expression. Stölzl's students don't make tapestries. They engineer fabrics.</p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c8/Hochwebstuhl_DSC9016.jpg/800px-Hochwebstuhl_DSC9016.jpg" alt="Bauhaus weaving workshop interior" style="max-width: 100%; height: auto; border: 3px solid #000;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">The Weaving Workshop at Bauhaus Dessau</div>
+                </div>
+                <div class="lesson-card">
+                    <div class="lesson-shape triangle"></div>
+                    <div class="lesson-label">Design Principle</div>
+                    <p><strong>Unity of art and craft.</strong> The Bauhaus rejected the idea that "fine art" (painting, sculpture) was superior to "craft" (weaving, pottery). A perfectly designed fabric was as valid as a painting.</p>
+                    <p>Gunta Stölzl became the only woman to hold a full professorship at the Bauhaus. Her geometric textile patterns influenced fabric design for the next century.</p>
+                </div>
+            `,
+            fact: 'Gunta Stölzl was the only female professor at the Bauhaus. The weaving workshop was the school\'s most commercially successful department.',
+            choices: [
+                { text: 'Continue your studies', next: 'kandinsky' }
+            ]
+        },
+
+        workshop_architecture: {
+            era: 'WEIMAR, 1921',
+            content: `
+                <div class="chapter-heading">
+                    <span class="chapter-number">02</span>
+                    <div class="chapter-year">The Architecture Workshop</div>
+                    <div class="chapter-title">Building the Future</div>
+                </div>
+                <div class="narration">
+                    <p>You study directly under <strong>Walter Gropius</strong>. His vision is radical: buildings should be honest about what they are. <strong>No fake columns. No decorative facades. If a building is made of concrete and glass, show the concrete and glass.</strong></p>
+                    <p>He's designing a new building for the school — a structure that will embody every Bauhaus principle. Walls of glass. Open floor plans. A building that looks like nothing anyone has ever seen.</p>
+                    <p>Your first project: design a chair. But not a beautiful chair — a chair that can be manufactured by machines and bought by ordinary working people.</p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/Bauhaus_Chair_Breuer.png/640px-Bauhaus_Chair_Breuer.png" alt="Marcel Breuer's Wassily Chair design" style="max-width: 100%; height: auto; border: 3px solid #000;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Marcel Breuer, Wassily Chair, 1925</div>
+                </div>
+                <div class="lesson-card">
+                    <div class="lesson-shape circle"></div>
+                    <div class="lesson-label">Design Principle</div>
+                    <p><strong>Truth to materials.</strong> Materials should express their own nature. Steel should look like steel, not be painted to look like wood. Glass should be celebrated, not hidden behind curtains.</p>
+                    <p><strong>Design for mass production.</strong> Before the Bauhaus, good design was only for the rich. Gropius believed that industrial manufacturing could bring beautiful, functional objects to everyone.</p>
+                </div>
+            `,
+            fact: 'Gropius believed good design should be for everyone, not just the wealthy. "Truth to materials" meant steel should look like steel, glass like glass.',
+            choices: [
+                { text: 'Continue your studies', next: 'kandinsky' }
+            ]
+        },
+
+        kandinsky: {
+            era: 'WEIMAR, 1922',
+            content: `
+                <div class="chapter-heading">
+                    <span class="chapter-number">03</span>
+                    <div class="chapter-year">1922</div>
+                    <div class="chapter-title">Kandinsky's Lesson</div>
+                </div>
+                <div class="narration">
+                    <p>A new master arrives: <strong>Wassily Kandinsky</strong>, the Russian painter who invented abstract art. He teaches you something that will change how you see the world.</p>
+                    <p>He stands before the class with three shapes drawn on the blackboard: a circle, a square, and a triangle. He asks: <em>"Which color belongs to which shape?"</em></p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Vassily_Kandinsky%2C_1913_-_Color_Study%2C_Squares_with_Concentric_Circles.jpg/640px-Vassily_Kandinsky%2C_1913_-_Color_Study%2C_Squares_with_Concentric_Circles.jpg" alt="Kandinsky's Color Study with Concentric Circles" style="max-width: 100%; height: auto; border: 3px solid #000;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">Wassily Kandinsky, Color Study with Concentric Circles, 1913</div>
+                </div>
+                <div class="composition-demo">
+                    <div class="comp-cell"><div class="inner-circle"></div></div>
+                    <div class="comp-cell"><div class="inner-triangle"></div></div>
+                    <div class="comp-cell"><div class="inner-square"></div></div>
+                    <div class="comp-cell"><div class="inner-ring"></div></div>
+                </div>
+                <div class="lesson-card">
+                    <div class="lesson-shape circle"></div>
+                    <div class="lesson-label">Color and Shape Theory</div>
+                    <p>Kandinsky taught that <strong>colors and shapes have inherent psychological associations</strong>:</p>
+                    <p><strong style="color: var(--bauhaus-red);">Red = Square</strong> — Stability, weight, earthiness. Red is grounded and solid.</p>
+                    <p><strong style="color: var(--bauhaus-yellow);">Yellow = Triangle</strong> — Energy, sharpness, aggression. Yellow radiates outward like pointed angles.</p>
+                    <p><strong style="color: var(--bauhaus-blue);">Blue = Circle</strong> — Depth, calm, infinity. Blue recedes into space like a circle has no beginning or end.</p>
+                    <p>This wasn't just theory — it became the visual language of the Bauhaus, and it still influences graphic design, branding, and UI design today.</p>
+                </div>
+            `,
+            fact: 'Kandinsky\'s color-shape theory: Red=Square (stability), Yellow=Triangle (energy), Blue=Circle (infinity). This still influences modern design and branding.',
+            choices: [
+                { text: 'The school moves to Dessau', next: 'dessau' }
+            ]
+        },
+
+        dessau: {
+            era: 'DESSAU, 1925',
+            content: `
+                <div class="chapter-heading">
+                    <span class="chapter-number">04</span>
+                    <div class="chapter-year">1925</div>
+                    <div class="chapter-title">The Glass Cathedral</div>
+                </div>
+                <div class="badge-row">
+                    <span class="badge badge-blue">DESSAU ERA</span>
+                    <span class="badge badge-yellow">NEW BUILDING</span>
+                </div>
+                <div class="narration">
+                    <p>Conservative politicians in Weimar force the school to close. But the city of <strong>Dessau</strong> offers a new home — and funding to build a purpose-designed campus.</p>
+                    <p>When the new building is finished in 1926, it stuns the world. <strong>A glass curtain wall wraps around the workshop wing.</strong> There are no load-bearing walls on the exterior — the steel frame does all the work. At night, the building glows like a lantern.</p>
+                    <p>It is the most influential building of the 20th century. Every glass office tower you've ever seen descends from this moment.</p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Dessau_Bauhaus-Geb%C3%A4ude_asv2024-06_img1.jpg/800px-Dessau_Bauhaus-Geb%C3%A4ude_asv2024-06_img1.jpg" alt="Bauhaus building in Dessau with glass curtain wall" style="max-width: 100%; height: auto; border: 3px solid #000;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; text-transform: uppercase; letter-spacing: 0.1em;">The Bauhaus Building, Dessau, 1926</div>
+                </div>
+                <div class="lesson-card">
+                    <div class="lesson-shape square"></div>
+                    <div class="lesson-label">Architecture Revolution</div>
+                    <p>The Dessau Bauhaus building introduced concepts we now take for granted: <strong>open floor plans, curtain wall construction, flat roofs, and the idea that a building's structure should be visible rather than hidden.</strong></p>
+                    <p>It became a UNESCO World Heritage Site in 1996. When you look at any modern glass-and-steel building — from Apple Park to your local office — you're seeing the Bauhaus DNA.</p>
+                </div>
+                <div class="principles-grid">
+                    <div class="principle-box">
+                        <div class="principle-marker circle"></div>
+                        <h4>Gesamtkunstwerk</h4>
+                        <p>"Total work of art" — everything in the building was designed together: furniture, lighting, signage, door handles.</p>
+                    </div>
+                    <div class="principle-box">
+                        <div class="principle-marker square"></div>
+                        <h4>Geometric Purity</h4>
+                        <p>Basic shapes — circle, square, triangle — were the building blocks. Complex forms arose from simple geometric combinations.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'The Dessau Bauhaus building (1926) introduced the glass curtain wall. It\'s a UNESCO World Heritage Site and ancestor of every modern glass skyscraper.',
+            choices: [
+                { text: 'But dark clouds are gathering...', next: 'tension' }
+            ]
+        },
+
+        tension: {
+            era: 'DESSAU, 1930', dark: true,
+            content: `
+                <div class="dark-scene">
+                    <div class="chapter-heading">
+                        <span class="chapter-number">05</span>
+                        <div class="chapter-year">1930-1932</div>
+                        <div class="chapter-title">The Darkness Comes</div>
+                    </div>
+                    <div class="badge-row">
+                        <span class="badge" style="border-color: var(--bauhaus-red); color: var(--bauhaus-red);">NAZI PRESSURE</span>
+                        <span class="badge" style="border-color: var(--gray-600); color: var(--gray-500);">SCHOOL UNDER THREAT</span>
+                    </div>
+                    <div class="narration">
+                        <p>The <strong>National Socialist (Nazi) Party</strong> is rising in Germany. They despise the Bauhaus. To them, it represents everything wrong with modern culture: internationalism, abstract art, functional design that rejects German tradition.</p>
+                        <p>Gropius has already left. The new director, <strong>Ludwig Mies van der Rohe</strong>, tries to keep the school alive by making it "apolitical." It doesn't work.</p>
+                        <p>Nazi students disrupt classes. The Dessau city council, now controlled by Nazis, votes to close the school. Students are called <em>"cultural Bolsheviks."</em> Your professors — many of them Jewish or foreign-born — are threatened.</p>
+                    </div>
+                    <div class="lesson-card">
+                        <div class="lesson-shape circle"></div>
+                        <div class="lesson-label">Historical Context</div>
+                        <p>The Nazis saw modernism as <strong>"degenerate art"</strong> (Entartete Kunst). They believed art should glorify the German nation, not challenge it. The Bauhaus — with its international faculty, abstract aesthetics, and socialist ideals — was a prime target.</p>
+                        <p>In 1932, Mies moved the school to an abandoned telephone factory in <strong>Berlin</strong> as a last resort. It would survive less than a year.</p>
+                    </div>
+                    <div class="quote-block">
+                        <div class="quote-text">"I would rather close the Bauhaus than give in to the demands of the Nazis."</div>
+                        <div class="quote-author">Ludwig Mies van der Rohe, 1933</div>
+                    </div>
+                </div>
+            `,
+            fact: 'The Nazis called Bauhaus students "cultural Bolsheviks" and classified modernism as "degenerate art." The school was forced from Dessau to Berlin in 1932.',
+            choices: [
+                { text: 'Flee to America — save the knowledge', next: 'ending_america' },
+                { text: 'Stay until the end — bear witness', next: 'ending_witness' },
+                { text: 'Take the ideas underground', next: 'ending_underground' }
+            ]
+        },
+
+        ending_america: {
+            era: 'THE DIASPORA, 1933+', dark: false,
+            content: `
+                <div class="ending-block">
+                    <div class="ending-label">Epilogue</div>
+                    <div class="ending-title">The Seeds Scatter</div>
+                    <div class="narration">
+                        <p>On July 20, 1933, the Bauhaus votes to dissolve itself rather than submit to Nazi control. But you and your teachers don't give up — you scatter.</p>
+                        <p><strong>Gropius</strong> goes to Harvard, where he rebuilds the architecture program in the Bauhaus image. <strong>Mies van der Rohe</strong> goes to Chicago, where he designs the Illinois Institute of Technology and inspires a generation of skyscrapers. <strong>Josef and Anni Albers</strong> go to <strong>Black Mountain College</strong> in North Carolina, where they teach a young Robert Rauschenberg.</p>
+                        <p><strong>Moholy-Nagy</strong> opens the New Bauhaus in Chicago (now IIT Institute of Design).</p>
+                        <p>The Nazis destroyed the building. But they couldn't destroy the idea. Every city skyline in the world, every clean sans-serif font, every "form follows function" product you own — that's the Bauhaus, scattered by persecution, taking root everywhere.</p>
+                    </div>
+                </div>
+                <div class="lesson-card">
+                    <div class="lesson-shape circle"></div>
+                    <div class="lesson-label">The Bauhaus Legacy</div>
+                    <p>The diaspora paradoxically made the Bauhaus <strong>more</strong> influential than it would have been otherwise. By scattering to America, Israel, and beyond, former Bauhaus members planted modernist design principles across the entire world.</p>
+                    <p>Apple's design language, IKEA's democratic design philosophy, the typography on your phone — all trace back to ideas taught in a small German school that existed for just 14 years.</p>
+                </div>
+                <div class="ending-block">
+                    <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--gray-400);">The End</div>
+                    <div class="ending-shapes"><div></div><div></div><div></div></div>
+                </div>
+            `,
+            fact: 'The Bauhaus diaspora spread modernism worldwide. Gropius went to Harvard, Mies to Chicago, Albers to Black Mountain College. The school lasted 14 years but changed design forever.',
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        },
+
+        ending_witness: {
+            era: 'BERLIN, 1933', dark: true,
+            content: `
+                <div class="dark-scene">
+                    <div class="ending-block">
+                        <div class="ending-label">Epilogue</div>
+                        <div class="ending-title" style="color: var(--white);">The Final Day</div>
+                        <div class="narration">
+                            <p>April 11, 1933. The Gestapo raids the Berlin Bauhaus. They search the building, confiscate materials, and seal the doors. Students are interrogated.</p>
+                            <p>On July 20, the faculty votes. The resolution is simple: <strong>the Bauhaus will dissolve itself</strong>. They will not give the Nazis the satisfaction of being shut down.</p>
+                            <p>You are there for the last day. You watch as professors pack their papers, students embrace for the final time, and the lights go out in the telephone factory that was the Bauhaus's last home.</p>
+                            <p>But you carry something that can't be confiscated: <strong>knowledge</strong>. The principles of form, function, and beauty that you learned in those workshops. The Nazis can close a building. They cannot unlearn an idea.</p>
+                        </div>
+                    </div>
+                    <div class="lesson-card">
+                        <div class="lesson-shape square"></div>
+                        <div class="lesson-label">Historical Fact</div>
+                        <p>The Bauhaus existed for exactly <strong>14 years</strong> (1919-1933). In that time, it produced fewer than 1,300 students. Yet those students and teachers went on to reshape architecture, graphic design, industrial design, typography, and art education for the entire world.</p>
+                        <p>The Dessau building survived WWII and was restored. Today it operates as a museum and design school — the Bauhaus lives again in its original home.</p>
+                    </div>
+                    <div class="ending-block">
+                        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--gray-600);">The End</div>
+                        <div class="ending-shapes"><div></div><div></div><div></div></div>
+                    </div>
+                </div>
+            `,
+            fact: 'The Bauhaus dissolved itself on July 20, 1933, rather than submit to Nazi control. It produced fewer than 1,300 students but reshaped the entire world of design.',
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        },
+
+        ending_underground: {
+            era: 'GERMANY, 1933+', dark: true,
+            content: `
+                <div class="dark-scene">
+                    <div class="ending-block">
+                        <div class="ending-label">Epilogue</div>
+                        <div class="ending-title" style="color: var(--white);">The Hidden Curriculum</div>
+                        <div class="narration">
+                            <p>Not everyone leaves. Some former Bauhaus students stay in Germany, working quietly. They take jobs in industry, in anonymous design studios, in teaching positions where they smuggle modernist ideas into the curriculum under different names.</p>
+                            <p><strong>Wilhelm Wagenfeld</strong>, who studied at the Bauhaus, designs lamps and glassware for German factories throughout the Nazi era and beyond. His designs are so purely functional that the ideology is invisible — and unstoppable.</p>
+                            <p>After the war, when Germany rebuilds, the Bauhaus ideas re-emerge. The <strong>Ulm School of Design</strong> (1953-1968) carries the torch directly, training the designers who create the visual identity of Braun, Lufthansa, and the Munich Olympics.</p>
+                            <p>Ideas, it turns out, are harder to kill than buildings.</p>
+                        </div>
+                    </div>
+                    <div class="lesson-card">
+                        <div class="lesson-shape triangle"></div>
+                        <div class="lesson-label">The Quiet Legacy</div>
+                        <p>The <strong>Ulm School</strong> (Hochschule für Gestaltung) was explicitly modeled on the Bauhaus. Its graduates designed the Braun products that <strong>Jony Ive cited as the primary inspiration for Apple's design language</strong>.</p>
+                        <p>So the line runs: Bauhaus → Ulm → Braun → Apple. The phone in your pocket is the great-grandchild of a school the Nazis tried to destroy.</p>
+                    </div>
+                    <div class="ending-block">
+                        <div style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.2em; color: var(--gray-600);">The End</div>
+                        <div class="ending-shapes"><div></div><div></div><div></div></div>
+                    </div>
+                </div>
+            `,
+            fact: 'Bauhaus → Ulm School → Braun → Apple. Jony Ive cited Braun (designed by Ulm graduates) as his primary inspiration. Your phone descends from the Bauhaus.',
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        }
+    };
+
+    // ═══════════ ENGINE ═══════════
+    const engine = {
+        currentScene: null,
+        facts: [],
+        panelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('knowledgeToggle').addEventListener('click', () => this.togglePanel());
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[parseInt(e.key) - 1]) btns[parseInt(e.key) - 1].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('knowledgeTracker').classList.add('active');
+            this.goTo('founding');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.facts = [];
+            this.panelOpen = false;
+            document.getElementById('knowledgePanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('knowledgeTracker').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('gameContainer').className = 'game-container';
+            this.updateUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(id) {
+            if (id === '_restart') { this.restart(); return; }
+            const scene = STORY[id];
+            if (!scene) return;
+
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.remove('active');
+                void overlay.offsetWidth;
+                overlay.classList.add('active');
+                setTimeout(() => { this.render(id, scene); window.scrollTo({ top: 0 }); }, 400);
+                setTimeout(() => overlay.classList.remove('active'), 1000);
+            } else {
+                this.render(id, scene);
+            }
+            this.currentScene = id;
+        },
+
+        render(id, scene) {
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = id.startsWith('ending') ? 'none' : '';
+
+            document.getElementById('sceneEra').textContent = scene.era;
+
+            if (scene.fact && !this.facts.includes(scene.fact)) {
+                this.facts.push(scene.fact);
+            }
+            this.updateUI();
+
+            let html = '<div class="scene-content">';
+            html += scene.content;
+
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((c, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${c.next}')">`;
+                    html += `<span class="choice-key"><span>${i + 1}</span></span>`;
+                    html += `<span>${c.text}</span>`;
+                    html += `</button>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            document.getElementById('sceneContent').innerHTML = html;
+        },
+
+        updateUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+            const list = document.getElementById('knowledgeList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-knowledge">No lessons yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => `<div class="knowledge-item">${f}</div>`).join('');
+            }
+        },
+
+        togglePanel() {
+            this.panelOpen = !this.panelOpen;
+            document.getElementById('knowledgePanel').classList.toggle('open', this.panelOpen);
+        }
+    };
+
+    engine.init();
+    </script>
+</body>
+</html>

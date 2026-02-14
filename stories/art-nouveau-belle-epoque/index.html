@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belle Epoque — An Art Nouveau Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+    <style>
+        /* ═══════════════════════════════════════════
+           ART NOUVEAU — CSS FROM STYLE GUIDE
+        ═══════════════════════════════════════════ */
+        :root {
+            --font-display: 'Cinzel Decorative', serif;
+            --font-heading: 'Playfair Display', Georgia, serif;
+            --font-body: 'Cormorant Garamond', Georgia, serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+            --space-10: 128px;
+
+            --sage: #8B9F7C;
+            --sage-light: #A8B89A;
+            --sage-dark: #5D7050;
+            --sage-wash: rgba(139, 159, 124, 0.15);
+
+            --dusty-rose: #C4A4A4;
+            --dusty-rose-light: #D9C4C4;
+            --dusty-rose-dark: #A07878;
+            --dusty-rose-wash: rgba(196, 164, 164, 0.2);
+
+            --gold: #C9A227;
+            --gold-light: #E0C35C;
+            --gold-dark: #9A7B1A;
+            --gold-wash: rgba(201, 162, 39, 0.15);
+
+            --ivory: #F5F0E6;
+            --ivory-warm: #EDE5D8;
+            --cream: #FFFEF5;
+
+            --burgundy: #6B2D3C;
+            --burgundy-light: #8B4D5C;
+            --burgundy-dark: #4A1E2A;
+            --burgundy-wash: rgba(107, 45, 60, 0.12);
+
+            --teal: #4A7C7C;
+            --teal-light: #6A9C9C;
+            --teal-dark: #2A5C5C;
+            --teal-wash: rgba(74, 124, 124, 0.15);
+
+            --text-primary: #2D2A26;
+            --text-secondary: #524F4A;
+            --text-muted: #7A7672;
+            --text-light: #A8A5A0;
+            --text-on-dark: var(--ivory);
+
+            --shadow-soft: rgba(45, 42, 38, 0.08);
+            --shadow-medium: rgba(45, 42, 38, 0.15);
+            --shadow-warm: rgba(201, 162, 39, 0.2);
+
+            --transition-slow: 0.5s ease;
+            --transition-base: 0.3s ease;
+            --transition-fast: 0.15s ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--ivory);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Organic Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+            background-image:
+                radial-gradient(ellipse at 0% 20%, var(--sage-wash) 0%, transparent 40%),
+                radial-gradient(ellipse at 100% 80%, var(--dusty-rose-wash) 0%, transparent 35%),
+                radial-gradient(ellipse at 50% 100%, var(--gold-wash) 0%, transparent 30%);
+        }
+
+        /* Vine Borders */
+        .vine-border {
+            position: fixed;
+            width: 60px;
+            height: 100%;
+            top: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .vine-border-left {
+            left: 0;
+            background:
+                repeating-linear-gradient(180deg, transparent 0px, transparent 80px, var(--sage-wash) 80px, var(--sage-wash) 82px),
+                linear-gradient(90deg, var(--sage-wash) 0%, transparent 100%);
+        }
+
+        .vine-border-right {
+            right: 0;
+            background:
+                repeating-linear-gradient(180deg, transparent 0px, transparent 80px, var(--dusty-rose-wash) 80px, var(--dusty-rose-wash) 82px),
+                linear-gradient(270deg, var(--dusty-rose-wash) 0%, transparent 100%);
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 2;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 var(--space-7);
+        }
+
+        /* Ornament Divider */
+        .ornament {
+            text-align: center;
+            padding: var(--space-5) 0;
+            color: var(--gold);
+            font-size: 1.5rem;
+            letter-spacing: 0.5em;
+            position: relative;
+        }
+
+        .ornament::before, .ornament::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 120px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+
+        .ornament::before { right: calc(50% + 60px); }
+        .ornament::after { left: calc(50% + 60px); }
+
+        /* Section */
+        .section {
+            padding: var(--space-8) 0;
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+            position: relative;
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--gold);
+            letter-spacing: 0.3em;
+            margin-bottom: var(--space-2);
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 50ch;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            padding: var(--space-10) 0 var(--space-9);
+            text-align: center;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 300px; height: 100%;
+            background:
+                radial-gradient(ellipse at 50% 30%, var(--gold-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 30% 70%, var(--sage-wash) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 70%, var(--dusty-rose-wash) 0%, transparent 40%);
+            filter: blur(30px);
+            z-index: -1;
+        }
+
+        .header-ornament {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            color: var(--gold);
+            letter-spacing: 0.3em;
+            margin-bottom: var(--space-4);
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-4);
+            text-shadow: 2px 2px 4px var(--shadow-soft);
+            line-height: 1.2;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        .header-flourish {
+            margin-top: var(--space-6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .flourish-line {
+            width: 80px; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            border-radius: 50%;
+        }
+
+        .flourish-flower {
+            width: 20px; height: 20px;
+            position: relative;
+        }
+
+        .flourish-flower::before {
+            content: '';
+            position: absolute;
+            width: 100%; height: 100%;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+            transform: rotate(45deg);
+        }
+
+        .flourish-flower::after {
+            content: '';
+            position: absolute;
+            width: 8px; height: 8px;
+            background: var(--burgundy);
+            border-radius: 50%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Curved Frame */
+        .curved-frame {
+            position: relative;
+            padding: var(--space-6);
+            background: linear-gradient(145deg, var(--cream) 0%, var(--ivory-warm) 100%);
+            border-radius: 50% 50% 45% 45% / 5% 5% 5% 5%;
+            box-shadow: 0 4px 20px var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .curved-frame::before {
+            content: '';
+            position: absolute;
+            top: -3px; left: -3px; right: -3px; bottom: -3px;
+            border: 2px solid var(--gold);
+            border-radius: inherit;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-5);
+        }
+
+        @media (max-width: 900px) {
+            .card-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: linear-gradient(160deg, var(--cream) 0%, var(--ivory-warm) 100%);
+            padding: var(--space-6);
+            position: relative;
+            text-align: center;
+            transition: all var(--transition-base);
+            border-radius: 50% 50% 45% 45% / 8% 8% 5% 5%;
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--sage), var(--gold), var(--dusty-rose));
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -50%; right: -50%;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse, var(--gold-wash) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            pointer-events: none;
+        }
+
+        .card:hover { transform: translateY(-6px); box-shadow: 0 12px 35px var(--shadow-medium); }
+        .card:hover::after { opacity: 1; }
+
+        .card-icon {
+            width: 60px; height: 60px;
+            margin: 0 auto var(--space-4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: var(--gold);
+            background: linear-gradient(145deg, var(--gold-wash), transparent);
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card-content {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Vine Divider */
+        .vine-divider {
+            height: 40px;
+            position: relative;
+            margin: var(--space-7) 0;
+        }
+
+        .vine-divider::before {
+            content: '';
+            position: absolute;
+            top: 50%; left: 10%; right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent 0%, var(--sage-wash) 15%, var(--sage) 30%, var(--gold) 50%,
+                var(--dusty-rose) 70%, var(--dusty-rose-wash) 85%, transparent 100%);
+            border-radius: 50%;
+        }
+
+        .vine-divider::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 16px; height: 16px;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+            border: 2px solid var(--cream);
+            box-shadow: 0 2px 8px var(--shadow-warm);
+        }
+
+        .curl-left, .curl-right {
+            position: absolute;
+            width: 30px; height: 30px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .curl-left {
+            left: calc(10% - 15px);
+            border-left: 2px solid var(--sage);
+            border-top: 2px solid var(--sage);
+            border-radius: 50% 0 0 0;
+        }
+
+        .curl-right {
+            right: calc(10% - 15px);
+            border-right: 2px solid var(--dusty-rose);
+            border-top: 2px solid var(--dusty-rose);
+            border-radius: 0 50% 0 0;
+        }
+
+        /* Badges */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: var(--space-4);
+            margin: var(--space-4) 0;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            border-radius: 50% 50% 45% 45% / 80% 80% 60% 60%;
+            position: relative;
+        }
+
+        .badge::before {
+            content: '';
+            position: absolute;
+            left: -6px; top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 8px; height: 8px;
+            background: inherit;
+            border-radius: 50% 0 50% 0;
+            border: inherit;
+            border-right: none;
+            border-bottom: none;
+        }
+
+        .badge-sage {
+            background: linear-gradient(135deg, var(--sage-wash), var(--sage-light));
+            color: var(--sage-dark);
+            border: 1px solid var(--sage);
+        }
+
+        .badge-rose {
+            background: linear-gradient(135deg, var(--dusty-rose-wash), var(--dusty-rose-light));
+            color: var(--dusty-rose-dark);
+            border: 1px solid var(--dusty-rose);
+        }
+
+        .badge-gold {
+            background: linear-gradient(135deg, var(--gold-wash), var(--gold-light));
+            color: var(--gold-dark);
+            border: 1px solid var(--gold);
+        }
+
+        .badge-burgundy {
+            background: linear-gradient(135deg, var(--burgundy), var(--burgundy-light));
+            color: var(--cream);
+            border: 1px solid var(--burgundy);
+        }
+
+        /* Quote Block */
+        .quote-block {
+            padding: var(--space-7);
+            position: relative;
+            text-align: center;
+            margin: var(--space-6) 0;
+        }
+
+        .quote-block::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 80%; height: 100%;
+            background:
+                radial-gradient(ellipse at 30% 20%, var(--dusty-rose-wash) 0%, transparent 40%),
+                radial-gradient(ellipse at 70% 80%, var(--sage-wash) 0%, transparent 40%);
+            filter: blur(20px);
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .quote-block blockquote {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-style: italic;
+            font-weight: 400;
+            color: var(--burgundy);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .quote-block cite {
+            display: block;
+            margin-top: var(--space-4);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-style: normal;
+            color: var(--text-muted);
+        }
+
+        .quote-mark {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--gold);
+            line-height: 1;
+            opacity: 0.5;
+        }
+
+        /* Ornate Frame */
+        .ornate-frame {
+            position: relative;
+            padding: var(--space-7);
+            background: var(--cream);
+            border: 1px solid var(--gold-wash);
+            box-shadow: 0 4px 25px var(--shadow-soft);
+        }
+
+        .ornate-frame::before, .ornate-frame::after {
+            content: '';
+            position: absolute;
+            width: 60px; height: 60px;
+            border: 2px solid var(--gold);
+            opacity: 0.6;
+        }
+
+        .ornate-frame::before {
+            top: -8px; left: -8px;
+            border-right: none; border-bottom: none;
+            border-top-left-radius: 20px;
+        }
+
+        .ornate-frame::after {
+            bottom: -8px; right: -8px;
+            border-left: none; border-top: none;
+            border-bottom-right-radius: 20px;
+        }
+
+        /* Whiplash */
+        .whiplash {
+            position: relative;
+            padding-left: var(--space-7);
+        }
+
+        .whiplash::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: linear-gradient(180deg, var(--sage) 0%, var(--gold) 30%, var(--dusty-rose) 60%, var(--burgundy) 100%);
+            border-radius: 50%;
+        }
+
+        .whiplash::after {
+            content: '';
+            position: absolute;
+            left: -4px; top: -8px;
+            width: 12px; height: 12px;
+            background: var(--sage);
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(-45deg);
+        }
+
+        /* Nature List */
+        .nature-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .nature-list li {
+            padding: var(--space-3) 0 var(--space-3) var(--space-6);
+            position: relative;
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+        }
+
+        .nature-list li::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 10px; height: 10px;
+            background: linear-gradient(135deg, var(--sage), var(--gold));
+            border-radius: 50% 0 50% 0;
+        }
+
+        .nature-list li:nth-child(2)::before { background: linear-gradient(135deg, var(--gold), var(--dusty-rose)); }
+        .nature-list li:nth-child(3)::before { background: linear-gradient(135deg, var(--dusty-rose), var(--burgundy)); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-6);
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(145deg, var(--burgundy) 0%, var(--burgundy-light) 50%, var(--burgundy) 100%);
+            color: var(--text-on-dark);
+            box-shadow: 0 4px 15px var(--burgundy-wash), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left var(--transition-slow);
+            z-index: -1;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--burgundy-wash), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary:hover::before { left: 100%; }
+
+        .btn-secondary {
+            background: linear-gradient(145deg, var(--sage) 0%, var(--sage-light) 50%, var(--sage) 100%);
+            color: var(--cream);
+            box-shadow: 0 4px 15px var(--sage-wash), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px var(--sage-wash), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--burgundy);
+            border: 2px solid var(--burgundy);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: var(--burgundy-wash);
+            transform: translateY(-2px);
+        }
+
+        .btn-leaf {
+            border-radius: 50% 0 50% 0;
+            padding: var(--space-3) var(--space-7);
+        }
+
+        /* Typography */
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            color: var(--burgundy);
+            line-height: 1.1;
+        }
+
+        .type-heading {
+            font-family: var(--font-heading);
+            font-size: 2.5rem;
+            font-weight: 500;
+            color: var(--burgundy);
+            line-height: 1.2;
+        }
+
+        .type-subheading {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 400;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            font-weight: 400;
+            color: var(--text-primary);
+            line-height: 1.8;
+            max-width: 60ch;
+        }
+
+        .type-label {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--gold-dark);
+            margin-bottom: var(--space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .type-label::before {
+            content: '';
+            width: 20px; height: 1px;
+            background: var(--gold);
+        }
+
+        /* Footer */
+        .footer {
+            padding: var(--space-9) 0 var(--space-8);
+            text-align: center;
+            position: relative;
+        }
+
+        .footer-ornament { margin-bottom: var(--space-5); }
+
+        .footer-flower {
+            width: 50px; height: 50px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .footer-flower::before, .footer-flower::after {
+            content: '';
+            position: absolute;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+        }
+
+        .footer-flower::before {
+            width: 24px; height: 24px;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .footer-flower::after {
+            width: 24px; height: 24px;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%) rotate(90deg);
+        }
+
+        .footer-petal-left, .footer-petal-right {
+            position: absolute;
+            width: 20px; height: 20px;
+            background: var(--dusty-rose);
+            border-radius: 50% 0 50% 0;
+            top: 50%;
+        }
+
+        .footer-petal-left { left: 0; transform: translateY(-50%) rotate(-45deg); }
+        .footer-petal-right { right: 0; transform: translateY(-50%) rotate(45deg); }
+
+        .footer-center {
+            position: absolute;
+            width: 14px; height: 14px;
+            background: var(--sage);
+            border-radius: 50%;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            letter-spacing: 0.15em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-3);
+        }
+
+        .footer p {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-style: italic;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .footer-vines {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-2);
+            margin-top: var(--space-5);
+        }
+
+        .footer-leaf {
+            width: 12px; height: 16px;
+            background: var(--sage);
+            border-radius: 50% 0 50% 0;
+            opacity: 0.6;
+        }
+
+        .footer-leaf:nth-child(2) { transform: rotate(30deg); background: var(--gold); }
+        .footer-leaf:nth-child(3) { transform: rotate(-15deg); background: var(--dusty-rose); }
+        .footer-leaf:nth-child(4) { transform: rotate(45deg); background: var(--sage); }
+        .footer-leaf:nth-child(5) { transform: rotate(-30deg); background: var(--gold); }
+
+        /* Utility */
+        .text-center { text-align: center; }
+        .mt-6 { margin-top: var(--space-6); }
+        .mb-6 { margin-bottom: var(--space-6); }
+
+        /* Floral Corners */
+        .floral-corner {
+            position: absolute;
+            width: 80px; height: 80px;
+            opacity: 0.6;
+        }
+
+        .floral-corner::before, .floral-corner::after {
+            content: '';
+            position: absolute;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+        }
+
+        .floral-corner::before {
+            width: 40px; height: 40px;
+            top: 0; left: 0;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        .floral-corner::after {
+            width: 30px; height: 30px;
+            top: 15px; left: 15px;
+            border-right-color: transparent;
+            border-bottom-color: transparent;
+        }
+
+        .floral-tl { top: 0; left: 0; }
+        .floral-tr { top: 0; right: 0; transform: scaleX(-1); }
+        .floral-bl { bottom: 0; left: 0; transform: scaleY(-1); }
+        .floral-br { bottom: 0; right: 0; transform: scale(-1); }
+
+        /* ═══════════════════════════════════════════
+           STORY-SPECIFIC STYLES
+        ═══════════════════════════════════════════ */
+
+        /* Title Screen */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+            padding: var(--space-8) 0;
+        }
+
+        .title-screen .header-ornament {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            color: var(--gold);
+            letter-spacing: 0.3em;
+            margin-bottom: var(--space-5);
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 7vw, 3.8rem);
+            font-weight: 400;
+            letter-spacing: 0.15em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-3);
+            text-shadow: 2px 2px 4px var(--shadow-soft);
+            line-height: 1.2;
+        }
+
+        .title-screen .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-5);
+        }
+
+        .title-tagline {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 500px;
+            margin-bottom: var(--space-7);
+            line-height: 1.6;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4) var(--space-8);
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            border: 2px solid var(--burgundy);
+            background: linear-gradient(145deg, var(--burgundy) 0%, var(--burgundy-light) 50%, var(--burgundy) 100%);
+            color: var(--text-on-dark);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+            box-shadow: 0 4px 15px var(--burgundy-wash), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left var(--transition-slow);
+        }
+
+        .title-start:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px var(--burgundy-wash), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .title-start:hover::before { left: 100%; }
+
+        .title-credits {
+            margin-top: var(--space-7);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--text-light);
+            letter-spacing: 0.1em;
+        }
+
+        /* Scene Wrapper */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: var(--space-5);
+        }
+
+        .scene-wrapper.active { display: flex; }
+
+        /* Scene Header */
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-6);
+            border-bottom: 2px solid var(--gold-wash);
+        }
+
+        .scene-era {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--gold);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-style: italic;
+            color: var(--dusty-rose-dark);
+            letter-spacing: 0.05em;
+        }
+
+        /* Scene Content Area */
+        #sceneContent { margin-bottom: var(--space-6); }
+
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scene body text */
+        .scene-prose {
+            margin-bottom: var(--space-6);
+        }
+
+        .scene-prose p {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-prose p:last-child { margin-bottom: 0; }
+
+        /* Fact Box */
+        .fact-box {
+            background: linear-gradient(145deg, var(--cream) 0%, var(--ivory-warm) 100%);
+            padding: var(--space-5);
+            margin: var(--space-5) 0;
+            position: relative;
+            border-left: 3px solid var(--gold);
+            border-radius: 0 20px 20px 0 / 0 8% 8% 0;
+            box-shadow: 0 2px 12px var(--shadow-soft);
+        }
+
+        .fact-label {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            letter-spacing: 0.25em;
+            color: var(--gold-dark);
+            text-transform: uppercase;
+            margin-bottom: var(--space-2);
+        }
+
+        .fact-box p {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        /* Fact toast */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: linear-gradient(135deg, var(--gold-wash), var(--gold-light));
+            color: var(--gold-dark);
+            padding: var(--space-2) var(--space-5) var(--space-2) var(--space-4);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            margin-top: var(--space-5);
+            border: 1px solid var(--gold);
+            border-radius: 50% 50% 45% 45% / 80% 80% 60% 60%;
+            animation: factSlideIn 0.6s ease-out;
+        }
+
+        .fact-found::before {
+            content: '';
+            width: 10px; height: 10px;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+            transform: rotate(45deg);
+            flex-shrink: 0;
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Choices */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-4);
+            margin-top: var(--space-6);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.6s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-4) var(--space-5);
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            border: 2px solid var(--sage-wash);
+            background: linear-gradient(160deg, var(--cream) 0%, var(--ivory-warm) 100%);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            border-radius: 50% 50% 45% 45% / 8% 8% 5% 5%;
+            box-shadow: 0 2px 10px var(--shadow-soft);
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--sage), var(--gold), var(--dusty-rose));
+            transform: scaleX(0);
+            transition: transform var(--transition-base);
+            transform-origin: left;
+            border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px var(--shadow-medium);
+        }
+
+        .choice-btn:hover::before { transform: scaleX(1); }
+
+        .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            border: 2px solid var(--gold);
+            border-radius: 50%;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--gold-dark);
+            margin-right: var(--space-4);
+            flex-shrink: 0;
+            transition: all var(--transition-base);
+        }
+
+        .choice-btn:hover .choice-key {
+            background: var(--gold);
+            color: var(--cream);
+        }
+
+        /* Transition Overlay */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: floralTransition 1.4s ease-in-out;
+        }
+
+        @keyframes floralTransition {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            50% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-vines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 50% 50%, var(--ivory) 0%, var(--ivory-warm) 40%, var(--ivory) 100%);
+        }
+
+        .transition-vines::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 30%, var(--sage-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, var(--dusty-rose-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, var(--gold-wash) 0%, transparent 40%);
+            animation: vinesPulse 1.4s ease-in-out;
+        }
+
+        .transition-vines::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px; height: 40px;
+            background: var(--gold);
+            border-radius: 50% 0 50% 0;
+            box-shadow: 0 0 40px var(--gold-wash), 0 0 80px var(--gold-wash);
+            animation: vinesPetal 1.4s ease-in-out;
+        }
+
+        @keyframes vinesPulse {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(1.2); }
+        }
+
+        @keyframes vinesPetal {
+            0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(0); }
+            50% { opacity: 1; transform: translate(-50%, -50%) rotate(180deg) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) rotate(360deg) scale(0); }
+        }
+
+        /* Knowledge Tracker (Sidebar) */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: linear-gradient(145deg, var(--cream) 0%, var(--ivory-warm) 100%);
+            border: 1px solid var(--gold);
+            color: var(--gold-dark);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            margin-left: auto;
+            border-radius: 50% 50% 45% 45% / 60% 60% 40% 40%;
+            box-shadow: 0 2px 10px var(--shadow-soft);
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: var(--gold-dark);
+            box-shadow: 0 4px 15px var(--shadow-warm);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-3);
+            background: var(--cream);
+            border: 1px solid var(--gold-wash);
+            padding: var(--space-5);
+            box-shadow: 0 4px 25px var(--shadow-soft);
+            border-radius: 0 0 20px 20px / 0 0 8% 8%;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--gold-dark);
+            margin-bottom: var(--space-4);
+        }
+
+        .fact-item {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: var(--space-2) 0 var(--space-2) var(--space-5);
+            border-bottom: 1px solid var(--gold-wash);
+            position: relative;
+            animation: factSlideIn 0.4s ease-out;
+        }
+
+        .fact-item::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 8px; height: 8px;
+            background: linear-gradient(135deg, var(--sage), var(--gold));
+            border-radius: 50% 0 50% 0;
+        }
+
+        .fact-item:nth-child(even)::before { background: linear-gradient(135deg, var(--gold), var(--dusty-rose)); }
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-style: italic;
+            color: var(--text-light);
+        }
+
+        /* Game Controls */
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-4);
+            margin-top: var(--space-6);
+            padding-top: var(--space-5);
+            border-top: 2px solid var(--gold-wash);
+        }
+
+        .ctrl-btn {
+            padding: var(--space-2) var(--space-5);
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            border: 1px solid var(--sage);
+            background: transparent;
+            color: var(--sage-dark);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            border-radius: 50% 0 50% 0;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--burgundy);
+            color: var(--burgundy);
+            background: var(--burgundy-wash);
+        }
+
+        /* Ending scene */
+        .scene-ending-wrap {
+            text-align: center;
+            padding: var(--space-7) var(--space-5);
+        }
+
+        .ending-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--gold);
+            margin-bottom: var(--space-4);
+        }
+
+        .ending-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 5vw, 2.5rem);
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            color: var(--burgundy);
+            margin-bottom: var(--space-6);
+            text-shadow: 2px 2px 4px var(--shadow-soft);
+        }
+
+        .the-end {
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            font-style: italic;
+            letter-spacing: 0.2em;
+            color: var(--text-light);
+            margin-top: var(--space-7);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--ivory-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--sage-light); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--sage); }
+        ::selection { background: var(--gold-wash); color: var(--burgundy-dark); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { padding: 0 var(--space-5); }
+            .vine-border { display: none; }
+            .ornate-frame { padding: var(--space-5); }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 220px; }
+            .card-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    <div class="vine-border vine-border-left"></div>
+    <div class="vine-border vine-border-right"></div>
+
+    <!-- Transition Overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-vines"></div>
+    </div>
+
+    <!-- Knowledge/Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span>Discoveries</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Historical Knowledge</h4>
+            <div id="factList">
+                <p class="no-facts">No discoveries yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="header-ornament">~ Paris, 1890 ~</div>
+            <h1>Belle Epoque</h1>
+            <p class="header-subtitle">An Art Nouveau Interactive Story</p>
+            <div class="header-flourish">
+                <div class="flourish-line"></div>
+                <div class="flourish-flower"></div>
+                <div class="flourish-line"></div>
+            </div>
+            <p class="title-tagline">"In every curve of a vine, in every petal of a flower, there lives a truth that straight lines can never tell."</p>
+            <button class="title-start" id="startBtn">Enter Paris</button>
+            <p class="title-credits">A story of art, ambition, and the fleeting nature of beauty</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-era" id="sceneEra">Paris, 1890</span>
+            </div>
+            <div id="sceneContent"></div>
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Begin Anew</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  BELLE EPOQUE — Story Data
+    // ═══════════════════════════════════════════════════════════════
+
+    const STORY = {
+
+        // ── SCENE 1: Arrival ──────────────────────────────
+        arrival: {
+            era: 'Paris, 1890',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter I</p>
+                    <h2 class="section-title">Arrival</h2>
+                    <p class="section-subtitle">The Gare de Lyon, a city reborn</p>
+                </div>
+
+                <div class="curved-frame">
+                    <div class="scene-prose">
+                        <p>The locomotive exhaled a great sigh of steam as you stepped onto the platform of the Gare de Lyon. Paris. The name alone had drawn you from Prague, from Brussels, from a life of provincial obscurity and half-finished canvases.</p>
+                        <p>Above the rooftops, the iron lattice of the Eiffel Tower — still scandalous, barely a year old — pierced a sky the color of absinthe. Everywhere, the city hummed with reinvention. France had emerged from its devastating defeat in the Franco-Prussian War of 1870-71 — a catastrophe that left 138,871 dead and 143,000 wounded — and channeled its grief into a cultural renaissance.</p>
+                        <p>They were calling it <em>La Belle Epoque</em>. The Beautiful Age. And you had come to make your mark upon it.</p>
+                    </div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Paris's population surged 64% between 1872 and 1911, driven by urbanization, electric streetlights (installed 1878), and the construction of the Metro beginning in 1898 — transforming it into the "City of Light."</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="ornate-frame">
+                    <div class="scene-prose">
+                        <p>You carried a leather portfolio and a letter of introduction. The question was where to present yourself. Two paths stretched before you in this city of possibilities.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Paris grew 64% between 1872-1911, becoming the "City of Light" after France\'s devastating loss in the Franco-Prussian War (1870-71)',
+            choices: [
+                { text: 'Seek the bohemian studios of Montmartre', next: 'montmartre' },
+                { text: 'Present yourself at the Academie des Beaux-Arts', next: 'academie' }
+            ]
+        },
+
+        // ── SCENE 2A: Montmartre ──────────────────────────
+        montmartre: {
+            era: 'Montmartre, 1891',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter II</p>
+                    <h2 class="section-title">The Green Hour</h2>
+                    <p class="section-subtitle">Montmartre, where the century turns in absinthe and song</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="scene-prose">
+                        <p>You climbed the winding streets to Montmartre, where the air smelled of turpentine, cheap wine, and ambition. In the Cafe de la Nouvelle Athenes, the famous <em>l'heure verte</em> — the green hour — was underway. Parisians filled the terraces, louching water over sugar cubes into glasses of emerald absinthe.</p>
+                        <p>At a corner table, a small man with pince-nez spectacles and an enormous personality was sketching dancers with furious speed. You recognized him from the newspapers: <strong>Henri de Toulouse-Lautrec</strong>.</p>
+                    </div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Absinthe consumption in France exploded from 2 million liters annually by 1899 to an astonishing 36 million liters by 1910. The "green hour" became inseparable from bohemian artists including Toulouse-Lautrec, Degas, and Van Gogh.</p>
+                </div>
+
+                <div class="quote-block">
+                    <p class="quote-mark">"</p>
+                    <blockquote>He gestured toward his sketchpad. "You see these dancers? Tomorrow their faces will be plastered across every wall in Paris. Three thousand prints, pasted overnight. That is the future of art — not in galleries. On the streets."</blockquote>
+                    <cite>The words of a man who would die at 36, but whose art would outlive him by centuries</cite>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/%28Albi%29_Moulin-rouge._La_Goulue_et_Valentin_le_desoss%C3%A9_-_Toulouse-Lautrec_1891_-_Inv.138.jpg/600px-%28Albi%29_Moulin-rouge._La_Goulue_et_Valentin_le_desoss%C3%A9_-_Toulouse-Lautrec_1891_-_Inv.138.jpg" alt="Henri de Toulouse-Lautrec's Moulin Rouge poster featuring La Goulue and Valentin le Désossé, 1891" style="max-width: 100%; height: auto; border: 2px solid #C9A227; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #8B9F7C; font-style: italic;">Henri de Toulouse-Lautrec, Moulin Rouge: La Goulue (1891) - 3,000 copies plastered across Paris overnight</div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">~</div>
+                    <h3 class="card-title">The Moulin Rouge</h3>
+                    <div class="card-content">In 1891, Toulouse-Lautrec created his legendary lithograph advertising "La Goulue" at the Moulin Rouge. Three thousand prints were pasted across Paris streets overnight, making him a household name and defining Belle Epoque visual culture.</div>
+                </div>
+            `,
+            fact: 'In 1891, Toulouse-Lautrec\'s Moulin Rouge poster — 3,000 prints pasted overnight — revolutionized poster art and launched a visual revolution',
+            choices: [
+                { text: 'Continue', next: 'sarah_bernhardt' }
+            ]
+        },
+
+        // ── SCENE 2B: Academie ──────────────────────────
+        academie: {
+            era: 'Academie des Beaux-Arts, 1891',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter II</p>
+                    <h2 class="section-title">The Academy</h2>
+                    <p class="section-subtitle">Where tradition and revolution share uneasy corridors</p>
+                </div>
+
+                <div class="curved-frame">
+                    <div class="scene-prose">
+                        <p>The Academie des Beaux-Arts was a temple to tradition — its marble halls echoing with the ghosts of Ingres and David. Your portfolio was examined, your technique assessed, your potential weighed against centuries of convention.</p>
+                        <p>But even here, whispers of change crept through the drafty studios. The professors spoke disdainfully of a new movement gathering force outside these walls — artists who drew inspiration not from classical antiquity, but from nature itself. Sinuous curves, flowing lines, organic forms.</p>
+                    </div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Art Nouveau emerged between 1890 and 1910 as a rebellion against academic eclecticism, employing sinuous organic lines and nature-inspired forms in architecture, posters, jewelry, and decorative arts.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="quote-block">
+                    <p class="quote-mark">"</p>
+                    <blockquote>A fellow student pressed a poster into your hands one evening — a vision of a woman wreathed in flowers, her robes cascading in impossible, beautiful curves. "Toulouse-Lautrec," he whispered. "Three thousand prints, pasted across Paris in a single night. This is what art looks like now."</blockquote>
+                    <cite>The poster that launched a revolution in visual culture, 1891</cite>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">~</div>
+                    <h3 class="card-title">A New Vision</h3>
+                    <div class="card-content">You realized that the future of art lived not in the Academy's dusty halls, but on the streets of Montmartre. By 1891, Toulouse-Lautrec had proven that poster art could be fine art — and the public agreed.</div>
+                </div>
+            `,
+            fact: 'Art Nouveau (1890-1910) rebelled against academic tradition, drawing on organic lines and nature-inspired forms for architecture, posters, and decorative arts',
+            choices: [
+                { text: 'Continue', next: 'sarah_bernhardt' }
+            ]
+        },
+
+        // ── SCENE 3: Sarah Bernhardt ──────────────────────
+        sarah_bernhardt: {
+            era: 'Theatre de la Renaissance, 1893',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter III</p>
+                    <h2 class="section-title">The Divine Sarah</h2>
+                    <p class="section-subtitle">The most famous woman in the world needs a poster</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="floral-corner floral-tl"></div>
+                    <div class="floral-corner floral-br"></div>
+                    <div class="scene-prose">
+                        <p>Your work had begun to attract attention — small commissions, magazine illustrations, a decorative panel for a brasserie. But nothing prepared you for the letter that arrived on a December morning, sealed with wax and bearing the crest of the Theatre de la Renaissance.</p>
+                        <p><strong>Sarah Bernhardt</strong> wished to see your portfolio.</p>
+                        <p>Bernhardt. The Divine Sarah. The most famous actress in the world — she who had reigned supreme for over fifty years, performing both female and male roles, including a legendary turn as Hamlet. She was not merely an actress; she was a force of nature.</p>
+                    </div>
+                </div>
+
+                <div class="badge-row">
+                    <span class="badge badge-gold">1844 - 1923</span>
+                    <span class="badge badge-burgundy">50+ Year Career</span>
+                    <span class="badge badge-rose">Theatre Legend</span>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Sarah Bernhardt (1844-1923) reigned as the undisputed star of Belle Epoque theater for over 50 years, starring in groundbreaking plays and revolutionizing theatrical roles by performing both female and male characters, including Hamlet.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Alfons_Mucha_-_1894_-_Gismonda.jpg/600px-Alfons_Mucha_-_1894_-_Gismonda.jpg" alt="Alphonse Mucha's iconic Gismonda poster featuring Sarah Bernhardt, 1894" style="max-width: 100%; height: auto; border: 2px solid #C9A227; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #8B9F7C; font-style: italic;">Alphonse Mucha, Gismonda (1894) - The poster that launched Mucha's career and defined Art Nouveau poster design</div>
+                </div>
+
+                <div class="whiplash">
+                    <div class="scene-prose">
+                        <p>Backstage, amid the chaos of costumes and greasepaint, you presented your work. She examined each piece in silence — an eternity — then turned to you with eyes that seemed to contain every emotion she had ever performed.</p>
+                        <p>"I need a poster for my next production. Something that captures not merely my face, but my <em>essence</em>." She paused. "Can you do that?"</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Sarah Bernhardt (1844-1923) reigned as the greatest actress of the Belle Epoque for over 50 years, performing both female and male roles',
+            choices: [
+                { text: 'Accept the commission with passionate confidence', next: 'studio' },
+                { text: 'Hesitate — confess your doubts about capturing such a legend', next: 'studio' }
+            ]
+        },
+
+        // ── SCENE 4: The Studio ──────────────────────────
+        studio: {
+            era: 'Montmartre Studio, January 1894',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter IV</p>
+                    <h2 class="section-title">The Studio</h2>
+                    <p class="section-subtitle">Creation and rivalry, January 1894</p>
+                </div>
+
+                <div class="curved-frame">
+                    <div class="scene-prose">
+                        <p>Your attic studio in Montmartre became a world unto itself — candles burning through the night, lithographic stones inked and re-inked, sketches pinned to every surface. Sarah Bernhardt's face emerged from the stone in fragments: the imperious brow, the cascade of hair, the hands that could command ten thousand souls from a stage.</p>
+                        <p>And then, on <strong>January 6, 1894</strong>, the news arrived like a thunderclap.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">!</div>
+                    <h3 class="card-title">Mucha's Triumph</h3>
+                    <div class="card-content">Czech-born artist Alphonse Mucha had just completed a poster for Bernhardt's production of <em>Gismonda</em>. Overnight, it became the most talked-about image in Paris. Collectors peeled the posters from walls. "Le style Mucha" was born.</div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>On January 6, 1894, Alphonse Mucha (1860-1939) gained international fame when Sarah Bernhardt commissioned him to create a poster for <em>Gismonda</em>, launching "le style Mucha" and making him synonymous with Art Nouveau.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="whiplash">
+                    <div class="scene-prose">
+                        <p>You stood before your own unfinished work, measuring it against the genius of Mucha's vision. His flowing lines, his haloed figures, his fusion of decoration and meaning — it was everything Art Nouveau aspired to be. And now you had to decide: follow the master, or forge your own path?</p>
+                    </div>
+                </div>
+            `,
+            fact: 'On January 6, 1894, Alphonse Mucha\'s poster for Gismonda launched "le style Mucha" and made him synonymous with Art Nouveau',
+            choices: [
+                { text: 'Study Mucha\'s technique and build upon his vision', next: 'commercial_path' },
+                { text: 'Forge your own artistic language — something entirely new', next: 'original_path' }
+            ]
+        },
+
+        // ── SCENE 5A: Commercial Path ──────────────────────
+        commercial_path: {
+            era: 'Paris, 1894-1895',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter V</p>
+                    <h2 class="section-title">Le Style</h2>
+                    <p class="section-subtitle">In the master's shadow, success blooms quickly</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="scene-prose">
+                        <p>You studied Mucha's methods with the devotion of a monk copying scripture. The sinuous curves, the floral halos, the Byzantine grandeur married to modern sensibility — you absorbed it all, then added your own voice. Your poster, when it was finally pasted across the boulevards, drew gasps of recognition.</p>
+                        <p>Commissions poured in. Advertisements for biscuit companies, perfume houses, even the new electrical companies illuminating the city. Your name appeared in the same breath as Mucha's — a comparison that was both flattering and suffocating.</p>
+                    </div>
+                </div>
+
+                <div class="badge-row">
+                    <span class="badge badge-gold">Rising Star</span>
+                    <span class="badge badge-sage">Commercial Success</span>
+                    <span class="badge badge-rose">Mucha's Shadow</span>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a3/Lavirotte_Building_%40_Paris_%2831331966341%29.jpg/600px-Lavirotte_Building_%40_Paris_%2831331966341%29.jpg" alt="Jules Lavirotte's Art Nouveau building at 29 Avenue Rapp, Paris" style="max-width: 100%; height: auto; border: 2px solid #C9A227; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #8B9F7C; font-style: italic;">Jules Lavirotte's masterpiece at 29 Avenue Rapp (1901) - Art Nouveau leaps from poster to architecture</div>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="card">
+                    <div class="card-icon">~</div>
+                    <h3 class="card-title">The Price of Imitation</h3>
+                    <div class="card-content">Success was intoxicating, but a nagging voice whispered: Were you an artist, or merely a very talented copyist? Mucha himself, you heard, had glanced at your work and said nothing. His silence was louder than any criticism.</div>
+                </div>
+            `,
+            fact: 'Art Nouveau poster art became a lucrative commercial industry — artists were commissioned by biscuit companies, perfumeries, and electrical firms across Paris',
+            choices: [
+                { text: 'Continue', next: 'cinema' }
+            ]
+        },
+
+        // ── SCENE 5B: Original Path ──────────────────────
+        original_path: {
+            era: 'Paris, 1894-1895',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter V</p>
+                    <h2 class="section-title">The Vine Unfurls</h2>
+                    <p class="section-subtitle">An original voice finds its form</p>
+                </div>
+
+                <div class="curved-frame">
+                    <div class="scene-prose">
+                        <p>Rather than follow Mucha's flowing Byzantine style, you turned to nature itself. Long walks through the Jardin des Plantes, sketching the veins of leaves, the spiral of a fiddlehead fern, the way wisteria draped itself across a trellis with careless elegance.</p>
+                        <p>Your poster was unlike anything Paris had seen. Where Mucha was ornate, you were wild. Where he idealized, you observed. The critics were divided — some called it brilliant, others called it unfinished. Bernhardt herself pronounced it "truthful, which is a rarer thing than beautiful."</p>
+                    </div>
+                </div>
+
+                <div class="badge-row">
+                    <span class="badge badge-sage">Original Voice</span>
+                    <span class="badge badge-burgundy">Controversial</span>
+                    <span class="badge badge-gold">Truthful Beauty</span>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="whiplash">
+                    <div class="scene-prose">
+                        <p>The commercial commissions were fewer, the money thinner. But when you walked through Montmartre at night, past walls covered in lithographic dreams, your own work stood apart. It was <em>yours</em>. That had to count for something.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Art Nouveau drew its organic lines directly from nature — artists studied the veins of leaves, spiral of ferns, and drape of wisteria for their design vocabulary',
+            choices: [
+                { text: 'Continue', next: 'cinema' }
+            ]
+        },
+
+        // ── SCENE 6: Cinema ──────────────────────────
+        cinema: {
+            era: 'Grand Cafe, December 28, 1895',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter VI</p>
+                    <h2 class="section-title">Moving Pictures</h2>
+                    <p class="section-subtitle">The birth of cinema, Boulevard des Capucines</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="floral-corner floral-tl"></div>
+                    <div class="floral-corner floral-br"></div>
+                    <div class="scene-prose">
+                        <p>The invitation read simply: <em>"A demonstration of the Cinematographe. Grand Cafe, 14 Boulevard des Capucines. December 28, 1895."</em></p>
+                        <p>In a darkened basement room, you sat among thirty-three paying spectators as Auguste and Louis Lumiere projected flickering light onto a white sheet. Workers leaving a factory. A train arriving at a station. The audience gasped, some flinching as the locomotive seemed to barrel toward them.</p>
+                        <p>You sat in stunned silence. Here was something entirely new — images that <em>moved</em>. Art freed from the prison of stillness.</p>
+                    </div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>On December 28, 1895, the Lumiere brothers screened "Workers Leaving the Lumiere Factory" at the Grand Cafe on Boulevard des Capucines in Paris — marking the birth of cinema as a public medium. They had patented their Cinematographe on February 13, 1895.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="quote-block">
+                    <p class="quote-mark">"</p>
+                    <blockquote>Walking home through gas-lit streets, you felt the ground shift beneath your feet. If images could move, what was the future of the poster? Of the painting? Of Art Nouveau itself?</blockquote>
+                    <cite>A question that would define the coming century</cite>
+                </div>
+            `,
+            fact: 'On December 28, 1895, the Lumiere brothers screened the first public cinema at the Grand Cafe — 33 spectators witnessed the birth of moving pictures',
+            choices: [
+                { text: 'Embrace the new — investigate how art might merge with cinema', next: 'metro' },
+                { text: 'Recommit to the poster — the moving image is a novelty, not art', next: 'metro' }
+            ]
+        },
+
+        // ── SCENE 7: Metro ──────────────────────────
+        metro: {
+            era: 'Paris Streets, 1898-1900',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter VII</p>
+                    <h2 class="section-title">The Metro Rises</h2>
+                    <p class="section-subtitle">Hector Guimard transforms Paris</p>
+                </div>
+
+                <div class="curved-frame">
+                    <div class="scene-prose">
+                        <p>By 1898, Paris was tearing itself open. Trenches scarred the boulevards as workers laid the tracks for a marvel of engineering: the <strong>Metropolitan</strong>. And rising from the construction chaos like iron flowers, the Metro station entrances designed by architect <strong>Hector Guimard</strong> began to emerge.</p>
+                        <p>You stood before the entrance at Porte Dauphine and felt your breath catch. Cast iron twisted into organic forms — stems, leaves, dragonfly wings. The lamps glowed like exotic seed pods. Art Nouveau had leapt from the poster and the drawing room and planted itself in the living city.</p>
+                    </div>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Paris_Metro_2_Porte_Dauphine_Libellule.JPG/800px-Paris_Metro_2_Porte_Dauphine_Libellule.JPG" alt="Hector Guimard's Art Nouveau Metro entrance at Porte Dauphine, known as the Dragonfly" style="max-width: 100%; height: auto; border: 2px solid #C9A227; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #8B9F7C; font-style: italic;">Hector Guimard's Porte Dauphine Metro entrance (1900-1912) - Cast iron transformed into organic Art Nouveau forms</div>
+                </div>
+
+                <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="card">
+                        <div class="card-icon">~</div>
+                        <h3 class="card-title">Guimard's Vision</h3>
+                        <div class="card-content">Between 1900 and 1912, 141 of Guimard's ornamental Metro stations were installed across Paris. Each entrance was a miniature masterpiece of organic design.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">*</div>
+                        <h3 class="card-title">The Exposition Approaches</h3>
+                        <div class="card-content">The first Metro line opened July 19, 1900 — from Porte de Vincennes to Porte Maillot — timed to serve the crowds of the approaching Exposition Universelle.</div>
+                    </div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>The Paris Metro inaugurated on July 19, 1900. Between 1900 and 1912, architect Hector Guimard designed 141 ornamental cast iron Art Nouveau station entrances, transforming the city's underground infrastructure into living art.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="whiplash">
+                    <div class="scene-prose">
+                        <p>Art Nouveau was everywhere now — on buildings, in shop windows, woven into ironwork and glassware and furniture. The movement you had devoted your life to was no longer revolutionary. It was <em>mainstream</em>. And the greatest showcase of the age was about to open its gates.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Hector Guimard designed 141 cast iron Art Nouveau Metro entrances for Paris (1900-1912); the first line opened July 19, 1900',
+            choices: [
+                { text: 'Prepare your finest work for the Exposition Universelle', next: 'exposition' }
+            ]
+        },
+
+        // ── SCENE 8: Exposition ──────────────────────────
+        exposition: {
+            era: 'Exposition Universelle, April 15, 1900',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter VIII</p>
+                    <h2 class="section-title">The World's Fair</h2>
+                    <p class="section-subtitle">50.8 million visitors, one decisive moment</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="floral-corner floral-tl"></div>
+                    <div class="floral-corner floral-tr" style="transform: scaleX(-1);"></div>
+                    <div class="floral-corner floral-bl" style="transform: scaleY(-1);"></div>
+                    <div class="floral-corner floral-br" style="transform: scale(-1);"></div>
+                    <div class="scene-prose">
+                        <p>The Exposition Universelle opened on <strong>April 15, 1900</strong>, and Paris became the center of the universe. Across 120 hectares, the marvels of the new century were displayed: Rudolf Diesel's revolutionary engine, the Palace of Electricity blazing with 5,000 incandescent bulbs, the moving sidewalk that carried visitors along the Seine.</p>
+                        <p>Over its seven months, <strong>50.8 million visitors</strong> would pass through its gates — and they would see Art Nouveau's finest hour. Every pavilion, every kiosk, every decorative panel celebrated the organic, the natural, the sinuously beautiful.</p>
+                    </div>
+                </div>
+
+                <div class="badge-row">
+                    <span class="badge badge-gold">50.8 Million Visitors</span>
+                    <span class="badge badge-burgundy">120 Hectares</span>
+                    <span class="badge badge-sage">April - November 1900</span>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/67/Vue_panoramique_de_l%27exposition%2C_1900.jpg/800px-Vue_panoramique_de_l%27exposition%2C_1900.jpg" alt="Panoramic view of the 1900 Exposition Universelle in Paris" style="max-width: 100%; height: auto; border: 2px solid #C9A227; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #8B9F7C; font-style: italic;">Panoramic view of the Exposition Universelle (1900) - 50.8 million visitors witnessed Art Nouveau's triumph</div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>The Exposition Universelle ran from April 15 to November 12, 1900, welcoming 50.8 million visitors across 120 hectares. It coincided with the 2nd modern Olympic Games and introduced the public to the diesel engine.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="scene-prose">
+                    <p>Your own work hung among the decorative arts exhibits. But the figure who drew the greatest crowds was not a poster artist. It was the sculptor <strong>Auguste Rodin</strong>, who had built an entire personal pavilion at the Place de l'Alma.</p>
+                </div>
+            `,
+            fact: 'The 1900 Exposition Universelle welcomed 50.8 million visitors across 120 hectares, showcasing Art Nouveau\'s triumph alongside the diesel engine and the 2nd modern Olympics',
+            choices: [
+                { text: 'Visit Rodin\'s pavilion', next: 'rodin' }
+            ]
+        },
+
+        // ── SCENE 9: Rodin ──────────────────────────
+        rodin: {
+            era: 'Rodin\'s Pavilion, Place de l\'Alma, 1900',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter IX</p>
+                    <h2 class="section-title">The Master</h2>
+                    <p class="section-subtitle">150 sculptures, one conversation that changes everything</p>
+                </div>
+
+                <div class="curved-frame">
+                    <div class="scene-prose">
+                        <p>Rodin's pavilion was a revelation. One hundred and fifty sculptures filled the space — bronze and marble bodies that seemed to breathe, to struggle, to ache with life. Here was <em>The Thinker</em>, <em>The Kiss</em>, fragments of <em>The Gates of Hell</em> — works that rejected the polished idealization of academic sculpture in favor of raw, imperfect truth.</p>
+                        <p>You found the master himself in a corner, a stocky man of sixty with a white beard and hands that had shaped the century. He was arguing amiably with a young student about the purpose of art.</p>
+                    </div>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/The_Thinker%2C_Rodin.jpg/600px-The_Thinker%2C_Rodin.jpg" alt="Auguste Rodin's iconic sculpture The Thinker" style="max-width: 100%; height: auto; border: 2px solid #C9A227; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #8B9F7C; font-style: italic;">Auguste Rodin, The Thinker (Le Penseur) - Raw truth over polished idealization</div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Auguste Rodin (1840-1917) established a personal pavilion at the Place de l'Alma during the 1900 Exposition, displaying 150 sculptures and cementing his reputation as the era's most innovative sculptor.</p>
+                </div>
+
+                <div class="quote-block">
+                    <p class="quote-mark">"</p>
+                    <blockquote>He turned to you, as if sensing your inner turmoil. "You are a poster artist, yes? I can see it in your eyes — the struggle between beauty and truth. Let me tell you something: beauty that lies is worthless. But truth, even when it is ugly — that endures."</blockquote>
+                    <cite>Auguste Rodin, at his pavilion during the 1900 Exposition Universelle</cite>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="whiplash">
+                    <div class="scene-prose">
+                        <p>His words lodged in your mind like a splinter. All around you, Art Nouveau was being celebrated as the height of beauty. But was it <em>true</em>? Or was it a gorgeous mask painted over the anxieties of a changing world?</p>
+                        <p>The Exposition would close in November. Mucha's latest posters dominated every surface. Your own work had been noticed but not celebrated. The moment that would define your legacy was slipping away.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Auguste Rodin displayed 150 sculptures at his personal pavilion during the 1900 Exposition, championing raw truth over idealized beauty',
+            choices: [
+                { text: 'Seek out Mucha for a reckoning between rivals', next: 'mucha_confrontation' },
+                { text: 'Return to your studio and create one final, definitive work', next: 'final_work' }
+            ]
+        },
+
+        // ── SCENE 10A: Mucha Confrontation ──────────────
+        mucha_confrontation: {
+            era: 'Exposition Universelle, Summer 1900',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter X</p>
+                    <h2 class="section-title">The Rival</h2>
+                    <p class="section-subtitle">Two visions of Art Nouveau face each other</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="scene-prose">
+                        <p>You found Alphonse Mucha in the Bosnia-Herzegovina pavilion, where he was overseeing the installation of an enormous mural. He was forty years old, at the height of his fame, and he looked exhausted.</p>
+                        <p>To your surprise, he greeted you warmly. "I know your work," he said, in Czech-accented French. "I have watched you grow." He gestured around the pavilion. "All of this — the posters, the decorations, the celebrity — it is not what I set out to do."</p>
+                    </div>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/19/JOB%2C_cigarette_paper_advertisement_by_Alfons_Mucha%2C_1898.jpg/600px-JOB%2C_cigarette_paper_advertisement_by_Alfons_Mucha%2C_1898.jpg" alt="Alphonse Mucha's Job cigarette paper poster, 1898" style="max-width: 100%; height: auto; border: 2px solid #C9A227; border-radius: 8px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #8B9F7C; font-style: italic;">Alphonse Mucha, Job Cigarette Paper (1898) - "Le style Mucha" became a brand</div>
+                </div>
+
+                <div class="quote-block">
+                    <p class="quote-mark">"</p>
+                    <blockquote>"I wanted to create art for the people. Beauty that did not require a gallery or a patron. But now..." He looked at his hands. "Now I am a brand. <em>Le style Mucha.</em> They do not see me. They see a style they can copy and sell."</blockquote>
+                    <cite>Alphonse Mucha, 1900</cite>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="whiplash">
+                    <div class="scene-prose">
+                        <p>In that moment, the rivalry dissolved. You were not competitors. You were fellow travelers on a road that was already ending. The question now was not who was the better artist, but what would you each become when Art Nouveau was over.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'By 1900, Mucha felt trapped by his own fame — he later abandoned poster art entirely to paint the epic "Slav Epic," a series of 20 monumental paintings',
+            choices: [
+                { text: 'Embrace commercial success — make Art Nouveau immortal through mass production', next: 'ending_fame' },
+                { text: 'Follow Rodin\'s counsel — abandon decoration for truth', next: 'ending_truth' },
+                { text: 'Adapt and evolve — carry Art Nouveau\'s spirit into new forms', next: 'ending_evolution' }
+            ]
+        },
+
+        // ── SCENE 10B: Final Work ──────────────────────
+        final_work: {
+            era: 'Montmartre Studio, Autumn 1900',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Chapter X</p>
+                    <h2 class="section-title">The Final Poster</h2>
+                    <p class="section-subtitle">One last work before the century turns</p>
+                </div>
+
+                <div class="curved-frame">
+                    <div class="scene-prose">
+                        <p>While the Exposition drew its final crowds, you locked yourself in your studio. Rodin's words echoed: <em>truth endures</em>. Mucha's posters glowed from every wall in Paris. The Lumiere brothers' cinema was drawing audiences by the thousands. The world was moving forward.</p>
+                        <p>You worked through October, through November. On the day the Exposition closed — <strong>November 12, 1900</strong> — you completed a poster that synthesized everything you had learned. Not Mucha's ornamental grandeur. Not academic tradition. Something that used Art Nouveau's organic language to tell a <em>human</em> truth.</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">*</div>
+                    <h3 class="card-title">The Closing of an Era</h3>
+                    <div class="card-content">The Exposition Universelle closed on November 12, 1900. It had been Art Nouveau's greatest showcase — and, though no one knew it yet, its last triumphant moment. Within a decade, the movement would vanish almost entirely from European design.</div>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="whiplash">
+                    <div class="scene-prose">
+                        <p>With your definitive work complete, you faced the question every artist must eventually answer: What comes next?</p>
+                    </div>
+                </div>
+            `,
+            fact: 'The Exposition closed November 12, 1900 — it was Art Nouveau\'s last great triumph before the movement vanished within a decade',
+            choices: [
+                { text: 'Pursue fame — sell your art to the commercial world while the style still lives', next: 'ending_fame' },
+                { text: 'Pursue truth — follow Rodin into fine art, leaving posters behind', next: 'ending_truth' },
+                { text: 'Pursue evolution — carry Art Nouveau\'s organic spirit into the coming modernism', next: 'ending_evolution' }
+            ]
+        },
+
+        // ── ENDING A: Fame ──────────────────────────
+        ending_fame: {
+            era: 'Paris, 1910',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Epilogue</p>
+                    <h2 class="section-title">The Gilded Cage</h2>
+                    <p class="section-subtitle">1910 — The movement dies, but the posters remain</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="floral-corner floral-tl"></div>
+                    <div class="floral-corner floral-br"></div>
+                    <div class="scene-prose">
+                        <p>You chose fame, and fame obliged. For a decade, your posters graced the salons and the streets. Your flowing lines and floral borders became synonymous with Parisian elegance. You grew wealthy. You grew comfortable. You grew, perhaps, a little bored.</p>
+                        <p>By <strong>1910</strong>, the world had moved on. Art Nouveau had vanished almost entirely from the European design landscape, replaced by cleaner, harder lines — the first stirrings of Art Deco and modernism. Your commissions dried up. The style that had made you was now dismissed as fussy, excessive, <em>old</em>.</p>
+                    </div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>By 1910, Art Nouveau had vanished almost entirely from European design, replaced by modernist and Art Deco movements. Yet its influence on poster art, architecture, and decorative design remained foundational to 20th-century aesthetics.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="scene-ending-wrap">
+                    <div class="ending-label">Fin</div>
+                    <div class="ending-title">The Gilded Cage</div>
+                    <div class="scene-prose" style="max-width: 550px; margin: 0 auto;">
+                        <p>You look back on the Belle Epoque from the window of your comfortable apartment on the Rue de Rivoli. The posters are yellowing. Mucha has abandoned commercial art entirely, devoting himself to painting the <em>Slav Epic</em> — twenty monumental canvases about his homeland. Even Bernhardt, now sixty-six and performing with a prosthetic leg, refuses to stop.</p>
+                        <p>You made beautiful things. The world moved on. But sometimes, walking past a Metro entrance where Guimard's iron vines still twist toward the sky, you remember what it felt like to believe that beauty alone could save the world.</p>
+                    </div>
+                    <div class="the-end">~ The End ~</div>
+                </div>
+
+                <div class="footer">
+                    <div class="footer-ornament">
+                        <div class="footer-flower">
+                            <div class="footer-petal-left"></div>
+                            <div class="footer-petal-right"></div>
+                            <div class="footer-center"></div>
+                        </div>
+                    </div>
+                    <div class="footer-vines">
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                    </div>
+                </div>
+            `,
+            fact: 'By 1910, Art Nouveau vanished from European design — but its influence on poster art, architecture, and decorative design remained foundational to 20th-century aesthetics',
+            choices: [
+                { text: 'Begin Anew', next: '_restart' }
+            ]
+        },
+
+        // ── ENDING B: Truth ──────────────────────────
+        ending_truth: {
+            era: 'Paris, 1910',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Epilogue</p>
+                    <h2 class="section-title">The Truthful Line</h2>
+                    <p class="section-subtitle">1910 — Art endures where beauty fades</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="floral-corner floral-tl"></div>
+                    <div class="floral-corner floral-br"></div>
+                    <div class="scene-prose">
+                        <p>You walked away from poster art. Rodin's words had planted a seed that no amount of commercial success could uproot: <em>truth endures</em>. You turned to painting, to sculpture, to the raw expression of human experience unadorned by floral borders and gilded frames.</p>
+                        <p>The transition was brutal. Your old patrons were baffled. Your new work was too honest for the Belle Epoque's taste for beauty. You were poor again — back to the attic studio, the cold nights, the candles burning down to their wicks.</p>
+                        <p>But Toulouse-Lautrec, who died in <strong>1901</strong> at just thirty-six, had shown you something: a short life of truth is worth more than a long life of decoration.</p>
+                    </div>
+                </div>
+
+                <div class="fact-box">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Henri de Toulouse-Lautrec died on September 9, 1901, at the age of 36. Despite his brief life, his approximately 737 canvases, 275 watercolors, and 363 prints and posters fundamentally transformed the relationship between fine art and commercial design.</p>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="scene-ending-wrap">
+                    <div class="ending-label">Fin</div>
+                    <div class="ending-title">The Truthful Line</div>
+                    <div class="scene-prose" style="max-width: 550px; margin: 0 auto;">
+                        <p>By 1910, your paintings hang in small galleries visited by serious people. Art Nouveau is dead, but you are alive — truly alive, creating work that does not flatter or decorate but simply <em>says what is so</em>.</p>
+                        <p>You think of Rodin, still sculpting at seventy. Of Mucha, painting his epic. Of Bernhardt, performing from a wheelchair. Each of them chose truth over comfort. The vine withers, but the root survives.</p>
+                    </div>
+                    <div class="the-end">~ The End ~</div>
+                </div>
+
+                <div class="footer">
+                    <div class="footer-ornament">
+                        <div class="footer-flower">
+                            <div class="footer-petal-left"></div>
+                            <div class="footer-petal-right"></div>
+                            <div class="footer-center"></div>
+                        </div>
+                    </div>
+                    <div class="footer-vines">
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                    </div>
+                </div>
+            `,
+            fact: 'Toulouse-Lautrec died in 1901 at 36, leaving 737 canvases, 275 watercolors, and 363 prints — transforming the relationship between fine art and commercial design',
+            choices: [
+                { text: 'Begin Anew', next: '_restart' }
+            ]
+        },
+
+        // ── ENDING C: Evolution ──────────────────────────
+        ending_evolution: {
+            era: 'Paris, 1910',
+            content: `
+                <div class="section-header">
+                    <p class="section-number">Epilogue</p>
+                    <h2 class="section-title">The Eternal Spring</h2>
+                    <p class="section-subtitle">1910 — Art Nouveau dies, but its spirit lives on</p>
+                </div>
+
+                <div class="ornate-frame">
+                    <div class="floral-corner floral-tl"></div>
+                    <div class="floral-corner floral-br"></div>
+                    <div class="scene-prose">
+                        <p>You chose the hardest path: to evolve. To carry the organic spirit of Art Nouveau forward into whatever came next, without clinging to its specific forms. You studied the new movements emerging in Vienna, in Munich, in Barcelona, where Gaudi's impossible buildings proved that organic architecture had a future beyond Guimard's Metro stations.</p>
+                        <p>By 1910, while others mourned Art Nouveau's death, you were already working in a new language — cleaner, bolder, but still alive with the natural rhythms you had absorbed in Montmartre's cafes and the Jardin des Plantes. The vine had shed its flowers, but the stem grew stronger.</p>
+                    </div>
+                </div>
+
+                <div class="card-grid" style="grid-template-columns: 1fr 1fr;">
+                    <div class="card">
+                        <div class="card-icon">~</div>
+                        <h3 class="card-title">Legacy</h3>
+                        <div class="card-content">Art Nouveau's influence lived on in Art Deco, in the organic modernism of Alvar Aalto, in the psychedelic art of the 1960s, and in every designer who has looked to nature for form.</div>
+                    </div>
+                    <div class="card">
+                        <div class="card-icon">*</div>
+                        <h3 class="card-title">The City Remembers</h3>
+                        <div class="card-content">Today, 86 of Guimard's original Metro entrances still stand in Paris. They are protected monuments — proof that beauty, once planted in iron and stone, refuses to die.</div>
+                    </div>
+                </div>
+
+                <div class="vine-divider"><div class="curl-left"></div><div class="curl-right"></div></div>
+
+                <div class="scene-ending-wrap">
+                    <div class="ending-label">Fin</div>
+                    <div class="ending-title">The Eternal Spring</div>
+                    <div class="scene-prose" style="max-width: 550px; margin: 0 auto;">
+                        <p>You stand at a Metro entrance on a spring morning in 1910. Guimard's iron vines twist above you, green with verdigris now, more beautiful for their age. A young student pauses to sketch them.</p>
+                        <p>The Belle Epoque is over. But its lesson endures: that art should be woven into life itself — not locked behind museum walls, but growing in the streets, blooming in the iron, flourishing wherever people live and move and dream.</p>
+                        <p>Like Paris itself, always reinventing. Always in spring.</p>
+                    </div>
+                    <div class="the-end">~ The End ~</div>
+                </div>
+
+                <div class="footer">
+                    <div class="footer-ornament">
+                        <div class="footer-flower">
+                            <div class="footer-petal-left"></div>
+                            <div class="footer-petal-right"></div>
+                            <div class="footer-center"></div>
+                        </div>
+                    </div>
+                    <div class="footer-vines">
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                        <div class="footer-leaf"></div>
+                    </div>
+                </div>
+            `,
+            fact: '86 of Guimard\'s original Metro entrances still stand in Paris today as protected monuments — Art Nouveau\'s living legacy in the modern city',
+            choices: [
+                { text: 'Begin Anew', next: '_restart' }
+            ]
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STORY ENGINE
+    // ═══════════════════════════════════════════════════════════════
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('arrival');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Floral transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 600);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1400);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update era display
+            if (scene.era) {
+                document.getElementById('sceneEra').textContent = scene.era;
+            }
+
+            let html = '<div class="scene-content">';
+
+            // Content — raw HTML using Art Nouveau CSS classes
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += `${choice.text}`;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No discoveries yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => `<div class="fact-item">${f}</div>`).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

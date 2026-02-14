@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Machine — A Retro Terminal Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=IBM+Plex+Mono:wght@400;500;600;700&family=Fira+Code:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --phosphor-bright: #00ff00;
+            --phosphor-mid: #33ff33;
+            --phosphor-dim: #00cc00;
+            --phosphor-dark: #009900;
+            --phosphor-faded: #006600;
+            --phosphor-ghost: #003300;
+            --crt-black: #000a00;
+            --crt-deep: #001100;
+            --crt-surface: #001a00;
+            --crt-elevated: #002200;
+            --amber-bright: #ffb000;
+            --amber-mid: #cc8800;
+            --amber-dim: #996600;
+            --status-error: #ff3333;
+            --status-warning: #ffcc00;
+            --status-success: #00ff00;
+            --status-info: #00ccff;
+            --font-display: 'VT323', monospace;
+            --font-primary: 'IBM Plex Mono', monospace;
+            --font-code: 'Fira Code', monospace;
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --glow-soft: 0 0 5px var(--phosphor-bright), 0 0 10px var(--phosphor-dim);
+            --glow-medium: 0 0 10px var(--phosphor-bright), 0 0 20px var(--phosphor-dim), 0 0 30px var(--phosphor-dark);
+            --glow-intense: 0 0 10px var(--phosphor-bright), 0 0 20px var(--phosphor-mid), 0 0 40px var(--phosphor-dim), 0 0 80px var(--phosphor-dark);
+            --transition-fast: 0.1s ease;
+            --transition-normal: 0.2s ease;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-primary);
+            background: var(--crt-black);
+            color: var(--phosphor-mid);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* CRT Scanlines */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.3) 2px, rgba(0,0,0,0.3) 4px);
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Screen curvature vignette */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse at center, transparent 0%, transparent 60%, rgba(0,10,0,0.4) 80%, rgba(0,10,0,0.8) 100%);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            97% { opacity: 0.9; }
+            98% { opacity: 1; }
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes glow-pulse {
+            0%, 100% { text-shadow: var(--glow-soft); }
+            50% { text-shadow: var(--glow-medium); }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+
+        .game-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: var(--space-xl);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+            animation: flicker 10s infinite;
+        }
+
+        /* ============================================
+           TITLE SCREEN
+           ============================================ */
+
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border: 1px solid var(--phosphor-dark);
+            background: var(--crt-deep);
+            font-family: var(--font-code);
+            font-size: 12px;
+            color: var(--phosphor-dim);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: var(--space-lg);
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 5rem);
+            color: var(--phosphor-bright);
+            text-shadow: var(--glow-intense);
+            letter-spacing: 6px;
+            line-height: 1;
+            margin-bottom: var(--space-sm);
+        }
+
+        .title-subtitle {
+            font-family: var(--font-code);
+            font-size: 14px;
+            color: var(--phosphor-dim);
+            letter-spacing: 3px;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .title-subtitle::before { content: '> '; color: var(--phosphor-bright); }
+
+        .title-tagline {
+            font-family: var(--font-primary);
+            font-size: 14px;
+            color: var(--phosphor-faded);
+            font-style: italic;
+            margin-bottom: var(--space-2xl);
+            max-width: 500px;
+            line-height: 1.8;
+        }
+
+        .title-start {
+            font-family: var(--font-display);
+            font-size: 24px;
+            padding: var(--space-md) var(--space-xl);
+            border: 2px solid var(--phosphor-bright);
+            background: transparent;
+            color: var(--phosphor-bright);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: var(--glow-soft);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .title-start::before { content: '[ '; }
+        .title-start::after { content: ' ]'; }
+
+        .title-start:hover {
+            background: var(--phosphor-bright);
+            color: var(--crt-black);
+            text-shadow: none;
+            box-shadow: var(--glow-medium);
+        }
+
+        .title-credits {
+            margin-top: var(--space-2xl);
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--phosphor-ghost);
+            letter-spacing: 1px;
+        }
+
+        /* ============================================
+           SCENE WRAPPER
+           ============================================ */
+
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: var(--space-lg);
+        }
+
+        .scene-wrapper.active { display: flex; }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-md);
+            margin-bottom: var(--space-lg);
+            border-bottom: 1px solid var(--phosphor-ghost);
+        }
+
+        .scene-session-id {
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--phosphor-faded);
+            letter-spacing: 1px;
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--amber-bright);
+            letter-spacing: 1px;
+        }
+
+        .scene-content {
+            animation: sceneFadeIn 0.6s ease-out;
+        }
+
+        /* ============================================
+           TERMINAL SCENE TYPES
+           ============================================ */
+
+        /* Standard terminal output */
+        .scene-terminal {
+            background: var(--crt-deep);
+            border: 1px solid var(--phosphor-ghost);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+            position: relative;
+        }
+
+        .scene-terminal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--phosphor-dim), transparent);
+        }
+
+        .scene-terminal .scene-text p {
+            font-family: var(--font-primary);
+            font-size: 15px;
+            color: var(--phosphor-mid);
+            margin-bottom: var(--space-md);
+            line-height: 1.8;
+        }
+
+        .scene-terminal .scene-text p:last-child { margin-bottom: 0; }
+
+        /* Boot sequence scene */
+        .scene-boot {
+            background: var(--crt-black);
+            border: 1px solid var(--phosphor-dark);
+            padding: var(--space-xl);
+            margin-bottom: var(--space-lg);
+        }
+
+        .scene-boot .boot-text {
+            font-family: var(--font-code);
+            color: var(--phosphor-dim);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .scene-boot .boot-text p { margin-bottom: var(--space-xs); }
+        .scene-boot .boot-text .highlight { color: var(--phosphor-bright); }
+
+        .scene-boot .scene-text p {
+            font-family: var(--font-primary);
+            font-size: 15px;
+            color: var(--phosphor-mid);
+            margin-bottom: var(--space-md);
+            line-height: 1.8;
+        }
+
+        /* Data card scene (for historical facts) */
+        .scene-datacard {
+            margin-bottom: var(--space-lg);
+        }
+
+        .scene-datacard .card {
+            background: var(--crt-surface);
+            border: 1px solid var(--phosphor-dark);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-md);
+        }
+
+        .scene-datacard .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--phosphor-ghost), var(--phosphor-dim), var(--phosphor-ghost));
+        }
+
+        .scene-datacard .card-highlight {
+            border-color: var(--phosphor-bright);
+            box-shadow: var(--glow-soft);
+        }
+
+        .scene-datacard .card-highlight::before {
+            background: var(--phosphor-bright);
+        }
+
+        .scene-datacard .card-header {
+            padding: var(--space-md);
+            border-bottom: 1px dashed var(--phosphor-ghost);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .scene-datacard .card-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            color: var(--phosphor-bright);
+            text-shadow: var(--glow-soft);
+        }
+
+        .scene-datacard .card-title::before {
+            content: '> ';
+            color: var(--phosphor-dim);
+        }
+
+        .scene-datacard .card-status {
+            font-family: var(--font-code);
+            font-size: 12px;
+            padding: 2px 8px;
+            background: var(--crt-deep);
+            border: 1px solid var(--phosphor-ghost);
+            color: var(--phosphor-dim);
+        }
+
+        .scene-datacard .card-status.active {
+            border-color: var(--phosphor-bright);
+            color: var(--phosphor-bright);
+            box-shadow: var(--glow-soft);
+        }
+
+        .scene-datacard .card-body {
+            padding: var(--space-md);
+        }
+
+        .scene-datacard .card-body p {
+            color: var(--phosphor-dim);
+            font-size: 14px;
+            line-height: 1.7;
+            margin-bottom: var(--space-sm);
+        }
+
+        .scene-datacard .card-body p:last-child { margin-bottom: 0; }
+
+        .scene-datacard .scene-text p {
+            font-family: var(--font-primary);
+            font-size: 15px;
+            color: var(--phosphor-mid);
+            margin-bottom: var(--space-md);
+            line-height: 1.8;
+        }
+
+        /* Alert scene (warnings, errors, system messages) */
+        .scene-alert {
+            margin-bottom: var(--space-lg);
+        }
+
+        .scene-alert .scene-text p {
+            font-family: var(--font-primary);
+            font-size: 15px;
+            color: var(--phosphor-mid);
+            margin-bottom: var(--space-md);
+            line-height: 1.8;
+        }
+
+        /* Ending scene */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-xl);
+            margin-bottom: var(--space-lg);
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-code);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--phosphor-faded);
+            margin-bottom: var(--space-md);
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: 48px;
+            color: var(--phosphor-bright);
+            text-shadow: var(--glow-intense);
+            letter-spacing: 4px;
+            margin-bottom: var(--space-xl);
+        }
+
+        .scene-ending .scene-text {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .scene-ending .scene-text p {
+            font-family: var(--font-primary);
+            font-size: 15px;
+            color: var(--phosphor-dim);
+            margin-bottom: var(--space-md);
+            line-height: 1.8;
+        }
+
+        .scene-ending .the-end {
+            font-family: var(--font-display);
+            font-size: 20px;
+            letter-spacing: 4px;
+            color: var(--phosphor-faded);
+            margin-top: var(--space-xl);
+            text-transform: uppercase;
+        }
+
+        /* ============================================
+           INLINE COMPONENTS
+           ============================================ */
+
+        .prompt {
+            font-family: var(--font-code);
+            color: var(--phosphor-dim);
+            margin-bottom: var(--space-md);
+        }
+
+        .prompt::before {
+            content: 'user@terminal:~$ ';
+            color: var(--phosphor-bright);
+        }
+
+        .cursor {
+            display: inline-block;
+            width: 10px;
+            height: 18px;
+            background: var(--phosphor-bright);
+            animation: blink 1s infinite;
+            vertical-align: middle;
+            margin-left: 2px;
+            box-shadow: var(--glow-soft);
+        }
+
+        .text-bright {
+            color: var(--phosphor-bright);
+            text-shadow: var(--glow-soft);
+        }
+
+        .text-dim {
+            color: var(--phosphor-faded);
+        }
+
+        .divider {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--phosphor-dark), transparent);
+            margin: var(--space-xl) 0;
+        }
+
+        .divider-dashed {
+            border: none;
+            height: 0;
+            border-top: 1px dashed var(--phosphor-ghost);
+            margin: var(--space-lg) 0;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 32px;
+            color: var(--phosphor-bright);
+            text-shadow: var(--glow-soft);
+            letter-spacing: 3px;
+            margin-bottom: var(--space-md);
+        }
+
+        .section-title::before {
+            content: '// ';
+            color: var(--phosphor-dark);
+        }
+
+        /* Alert blocks */
+        .alert {
+            padding: var(--space-md);
+            border: 1px solid var(--phosphor-dark);
+            background: var(--crt-surface);
+            font-family: var(--font-code);
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            margin-bottom: var(--space-md);
+        }
+
+        .alert::before {
+            font-family: var(--font-display);
+            font-size: 14px;
+            padding: 2px 8px;
+            background: var(--crt-deep);
+            border: 1px solid currentColor;
+            white-space: nowrap;
+        }
+
+        .alert-message { flex: 1; color: var(--phosphor-mid); }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-size: 18px;
+            margin-bottom: var(--space-xs);
+        }
+
+        .alert-info { border-color: var(--status-info); }
+        .alert-info::before { content: 'INFO'; color: var(--status-info); }
+        .alert-info .alert-title { color: var(--status-info); }
+
+        .alert-warning { border-color: var(--status-warning); }
+        .alert-warning::before { content: 'WARNING'; color: var(--status-warning); }
+        .alert-warning .alert-title { color: var(--status-warning); }
+
+        .alert-error { border-color: var(--status-error); }
+        .alert-error::before { content: 'ERROR'; color: var(--status-error); }
+        .alert-error .alert-title { color: var(--status-error); }
+
+        .alert-system {
+            background: var(--crt-black);
+            border: 2px solid var(--phosphor-bright);
+            font-family: var(--font-display);
+            text-align: center;
+            animation: glow-pulse 2s infinite;
+        }
+
+        .alert-system::before { content: none; }
+        .alert-system .alert-message {
+            color: var(--phosphor-bright);
+            font-size: 18px;
+            letter-spacing: 2px;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            height: 20px;
+            background: var(--crt-black);
+            border: 1px solid var(--phosphor-dark);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-md);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--phosphor-bright);
+            box-shadow: var(--glow-soft);
+            transition: width 0.3s ease;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid var(--phosphor-dark);
+            margin-bottom: var(--space-md);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: var(--font-code);
+            font-size: 13px;
+        }
+
+        .table th, .table td {
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid var(--phosphor-ghost);
+        }
+
+        .table th {
+            font-family: var(--font-display);
+            font-size: 15px;
+            color: var(--phosphor-bright);
+            background: var(--crt-deep);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid var(--phosphor-dark);
+        }
+
+        .table td { color: var(--phosphor-mid); }
+        .table tr:hover td { background: var(--crt-surface); color: var(--phosphor-bright); }
+
+        /* ============================================
+           CHOICES
+           ============================================ */
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+            opacity: 0;
+            animation: choicesFadeIn 0.5s ease-out 0.6s forwards;
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-sm) var(--space-lg);
+            font-family: var(--font-display);
+            font-size: 18px;
+            border: 2px solid var(--phosphor-dark);
+            background: transparent;
+            color: var(--phosphor-mid);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            transition: all 0.15s ease;
+            text-shadow: none;
+            text-align: left;
+        }
+
+        .choice-btn::before { content: '[ '; color: var(--phosphor-dark); }
+        .choice-btn::after { content: ' ]'; color: var(--phosphor-dark); }
+
+        .choice-btn:hover {
+            border-color: var(--phosphor-bright);
+            color: var(--phosphor-bright);
+            background: var(--crt-surface);
+            text-shadow: var(--glow-soft);
+            box-shadow: var(--glow-soft);
+        }
+
+        .choice-btn:hover::before,
+        .choice-btn:hover::after {
+            color: var(--phosphor-bright);
+        }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--phosphor-dark);
+            font-size: 16px;
+            color: var(--phosphor-faded);
+            margin-right: var(--space-md);
+            flex-shrink: 0;
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--phosphor-bright);
+            color: var(--phosphor-bright);
+            box-shadow: var(--glow-soft);
+        }
+
+        .choice-btn.btn-danger {
+            border-color: var(--status-error);
+            color: var(--status-error);
+        }
+
+        .choice-btn.btn-danger:hover {
+            background: rgba(255,51,51,0.1);
+            box-shadow: 0 0 10px var(--status-error);
+        }
+
+        .choice-btn.btn-danger::before,
+        .choice-btn.btn-danger::after { color: var(--status-error); }
+
+        /* ============================================
+           TRANSITION OVERLAY
+           ============================================ */
+
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            background: var(--crt-black);
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: scanTransition 1s ease-in-out;
+        }
+
+        @keyframes scanTransition {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            50% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-scan {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--phosphor-bright);
+            box-shadow: var(--glow-medium);
+            animation: scanDown 1s ease-in-out;
+        }
+
+        @keyframes scanDown {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        /* ============================================
+           FACT TRACKER (SIDEBAR)
+           ============================================ */
+
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--crt-deep);
+            border: 1px solid var(--phosphor-dark);
+            color: var(--amber-bright);
+            font-family: var(--font-display);
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: var(--amber-bright);
+            box-shadow: 0 0 8px var(--amber-dim);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-sm);
+            background: var(--crt-deep);
+            border: 1px solid var(--phosphor-dark);
+            padding: var(--space-md);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open { display: block; animation: sceneFadeIn 0.3s ease-out; }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--phosphor-faded);
+            margin-bottom: var(--space-md);
+        }
+
+        .fact-item {
+            font-family: var(--font-code);
+            font-size: 11px;
+            color: var(--amber-bright);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--phosphor-ghost);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.4;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .fact-item .fact-date {
+            display: block;
+            font-size: 10px;
+            color: var(--phosphor-faded);
+            margin-top: 2px;
+        }
+
+        .no-facts {
+            font-family: var(--font-code);
+            font-size: 12px;
+            color: var(--phosphor-ghost);
+            font-style: italic;
+        }
+
+        /* ============================================
+           GAME CONTROLS
+           ============================================ */
+
+        .game-controls {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-xl);
+            padding-top: var(--space-lg);
+            border-top: 1px solid var(--phosphor-ghost);
+        }
+
+        .ctrl-btn {
+            padding: 6px 16px;
+            font-family: var(--font-display);
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 1px solid var(--phosphor-ghost);
+            background: transparent;
+            color: var(--phosphor-faded);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--phosphor-dim);
+            color: var(--phosphor-bright);
+            text-shadow: var(--glow-soft);
+        }
+
+        /* ============================================
+           SCROLLBAR
+           ============================================ */
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--crt-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--phosphor-dark); }
+        ::selection { background: var(--phosphor-dark); color: var(--phosphor-bright); }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 600px) {
+            .game-container { padding: var(--space-md); }
+            .fact-tracker { right: 0.5rem; top: 0.5rem; max-width: 200px; }
+            .title-screen h1 { letter-spacing: 3px; }
+            .scene-terminal, .scene-boot { padding: var(--space-md); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Transition Overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-scan"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span>DATA LOG</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Historical Data Recovered</h4>
+            <div id="factList">
+                <p class="no-facts">No data recovered yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-badge">Interactive Terminal Session // 1982</div>
+            <h1>THE MACHINE</h1>
+            <div class="title-subtitle">An Interactive Computing History</div>
+            <p class="title-tagline">"Every keystroke is a conversation with ghosts. The engineers who dreamed of thinking machines, the mathematicians who proved it possible, the programmers who made it real. They are all in there, humming behind the phosphor glow."</p>
+            <button class="title-start" id="startBtn">BOOT SYSTEM</button>
+            <p class="title-credits">/// A journey through the history of computation ///</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-session-id">SESSION #82-0401</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">REBOOT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===============================================================
+    //  THE MACHINE — Story Data
+    // ===============================================================
+
+    const STORY = {
+
+        // ---- SCENE 1: THE YARD SALE ----
+        surplus: {
+            type: 'terminal',
+            title: 'SURPLUS INVENTORY',
+            text: [
+                'The university surplus sale was held in a concrete warehouse that smelled of dust and institutional neglect. Rows of battered desks, dented filing cabinets, and overhead projectors missing bulbs. The kind of place where old ideas came to die.',
+                'You almost missed it. Wedged between a broken oscilloscope and a stack of punch-card trays, buried under a canvas tarp gone gray with age: a terminal.',
+                'A proper CRT terminal. Beige plastic housing yellowed to the color of old teeth. A thick coil of cable. A keyboard with keys that clunked like typewriter hammers. A handwritten tag taped to the side read: <span class="text-bright">"1982. Working? $15."</span>',
+                'The woman running the sale barely looked up from her crossword.',
+            ],
+            choices: [
+                { text: 'Buy the terminal', next: 'powerup' },
+                { text: 'Walk away', next: 'ending_walkaway' },
+            ]
+        },
+
+        // ---- BAD ENDING: Walk Away ----
+        ending_walkaway: {
+            type: 'ending',
+            endingTitle: 'SIGNAL LOST',
+            text: [
+                'You walked past it. Fifteen dollars seemed like a lot for a relic.',
+                'Someone else bought it that afternoon. You never found out who.',
+                'Sometimes, late at night, staring at the cold blue light of a modern LCD, you wonder what was on that machine. What secrets hummed inside its circuits. What ghosts whispered in its phosphor glow.',
+                'But you will never know. Some doors, once passed, stay closed forever.',
+            ],
+            choices: [
+                { text: 'Reboot', next: '_restart' },
+            ]
+        },
+
+        // ---- SCENE 2: POWER UP ----
+        powerup: {
+            type: 'boot',
+            title: 'SYSTEM INITIALIZATION',
+            bootLines: [
+                '<span class="highlight">[====]</span> Power supply ... OK',
+                '<span class="highlight">[====]</span> CRT deflection coils ... OK',
+                '<span class="highlight">[====]</span> RAM test: 64K ... PASS',
+                '<span class="highlight">[====]</span> ROM checksum ... VALID',
+                '<span class="highlight">[====]</span> Keyboard interface ... DETECTED',
+                '<span class="highlight">[====]</span> Loading system ...',
+                '&nbsp;',
+                '<span class="text-bright">CHRONOS TERMINAL OS v1.0 // (c) 1982</span>',
+                'Type HELP for available commands.',
+            ],
+            text: [
+                'Back in your apartment, you plugged the terminal into a surge protector and held your breath. The power switch resisted, then gave way with a satisfying clunk.',
+                'A hum. Low and warm, like a cat purring inside an engine. The capacitors discharged with an audible buzz. Then: light. Green light. The phosphor screen flickered to life, painting the dim room in an eerie emerald glow.',
+                'A boot sequence scrolled past faster than you could read. Memory tests. Checksums. Then a cursor, blinking patiently in the dark.',
+                '<span class="text-bright">The machine was waiting.</span>',
+            ],
+            choices: [
+                { text: 'Type a command', next: 'first_prompt' },
+            ]
+        },
+
+        // ---- SCENE 3: FIRST PROMPT ----
+        first_prompt: {
+            type: 'terminal',
+            title: 'USER@TERMINAL:~$',
+            text: [
+                '<div class="prompt">ls -la /archive/<span class="cursor"></span></div>',
+                'The cursor blinked. You typed the most natural thing a programmer would type when confronted with an unknown system: list the files.',
+                'The screen erupted with text. Directory after directory. Log files. Data archives. System manifests. All dated, impossibly, from different decades:',
+                '<code style="display:block;margin:1rem 0;padding:1rem;background:var(--crt-black);border:1px solid var(--phosphor-dark);font-size:13px;line-height:1.6;">drwxr-xr-x  BABBAGE.LOG        1837-12-01<br>drwxr-xr-x  LOVELACE.NOTES     1840-03-15<br>drwxr-xr-x  TURING.PAPER       1936-11-01<br>drwxr-xr-x  ENIAC.LOG          1946-02-15<br>drwxr-xr-x  TRANSISTOR.PAT     1950-10-03<br>drwxr-xr-x  SHELL_HISTORY.TXT  1964-01-01<br>drwxr-xr-x  SYSTEM_360.MAN     1964-04-07<br>drwxr-xr-x  TRINITY.LOG        1977-06-10<br>drwxr-xr-x  COMMODORE.SYS      1982-08-01<br>-rw-------  UNKNOWN.SYS        ????-??-??</code>',
+                'This was not a normal machine. These files spanned nearly <span class="text-bright">150 years of computing history</span>. And that last file, UNKNOWN.SYS, had no date at all.',
+            ],
+            choices: [
+                { text: 'Open BABBAGE.LOG', next: 'babbage' },
+                { text: 'Skip ahead to ENIAC.LOG', next: 'eniac' },
+            ]
+        },
+
+        // ---- SCENE 4: BABBAGE & LOVELACE ----
+        babbage: {
+            type: 'datacard',
+            title: 'BABBAGE.LOG // LOVELACE.NOTES',
+            cards: [
+                {
+                    title: 'THE ANALYTICAL ENGINE',
+                    status: 'DECRYPTED',
+                    highlight: true,
+                    body: 'In <span class="text-bright">December 1837</span>, British mathematician <span class="text-bright">Charles Babbage</span> published "On the Mathematical Powers of the Calculating Engine," describing a mechanical general-purpose computer. It was the first design that was Turing-complete: it featured arithmetic logic, conditional branching, loops, and integrated memory. A computer, designed nearly a century before electronics existed.',
+                },
+                {
+                    title: 'THE FIRST PROGRAMMER',
+                    status: 'VERIFIED',
+                    highlight: false,
+                    body: '<span class="text-bright">Ada Lovelace</span> completed the first computer program for the Analytical Engine between <span class="text-bright">1837 and 1843</span>, making her the world\'s first computer programmer. She saw beyond mere calculation, writing: "The engine might compose elaborate and scientific pieces of music of any degree of complexity." A vision of computing as creative tool, not just calculator.',
+                }
+            ],
+            text: [
+                'The terminal displayed the data as if reading from sacred texts. A mechanical computer, designed in the age of steam engines and gas lamps. And a woman who saw its true potential before anyone else alive.',
+                'You realized you were holding your breath.',
+            ],
+            fact: { label: 'Babbage designed the first general-purpose computer', date: 'December 1837' },
+            fact2: { label: 'Ada Lovelace wrote the first computer program', date: '1837-1843' },
+            choices: [
+                { text: 'Continue to TURING.PAPER', next: 'turing' },
+            ]
+        },
+
+        // ---- SCENE 5: TURING ----
+        turing: {
+            type: 'datacard',
+            title: 'TURING.PAPER',
+            cards: [
+                {
+                    title: 'THE UNIVERSAL MACHINE',
+                    status: 'CLASSIFIED',
+                    highlight: true,
+                    body: 'In <span class="text-bright">1936</span>, Alan Turing published "On Computable Numbers, with an Application to the Entscheidungsproblem." He proved that a single machine could compute any problem that is computable at all. The theoretical foundation of every computer ever built, reduced to a strip of tape and a set of rules. Turing was 24 years old.',
+                }
+            ],
+            text: [
+                'The screen seemed to flicker with extra intensity when Turing\'s name appeared, as if the machine recognized its own ancestor.',
+                'From Babbage\'s mechanical gears to Turing\'s mathematical proof: a straight line connecting a dream to a theorem. One man imagined a thinking machine. Another proved it was possible.',
+                'The cursor blinked expectantly, waiting for your next command.',
+            ],
+            fact: { label: 'Turing proved a universal machine could compute any computable problem', date: '1936' },
+            choices: [
+                { text: 'Open ENIAC.LOG', next: 'eniac' },
+            ]
+        },
+
+        // ---- SCENE 6: ENIAC ----
+        eniac: {
+            type: 'datacard',
+            title: 'ENIAC.LOG DISCOVERED',
+            cards: [
+                {
+                    title: 'ELECTRONIC NUMERICAL INTEGRATOR AND COMPUTER',
+                    status: 'DECLASSIFIED',
+                    highlight: true,
+                    body: 'ENIAC was publicly announced on <span class="text-bright">February 14, 1946</span>, and formally dedicated the next day. It contained <span class="text-bright">17,468 vacuum tubes</span>, 70,000 resistors, 10,000 capacitors, and 1,500 relays. It weighed <span class="text-bright">30 tons</span> and cost <span class="text-bright">$487,000</span> (equivalent to roughly $7 million today).',
+                },
+                {
+                    title: 'PROCESSING POWER',
+                    status: 'VERIFIED',
+                    highlight: false,
+                    body: 'ENIAC could perform <span class="text-bright">5,000 additions per second</span>, several orders of magnitude faster than any electromechanical predecessor. Its first program was a feasibility study for thermonuclear weapons. The machine that could think faster than any human was first asked to calculate destruction.',
+                }
+            ],
+            text: [
+                'A progress bar appeared at the bottom of the screen, filling slowly as if the terminal were downloading the data from somewhere far away:',
+            ],
+            progressLabel: 'LOADING ENIAC.LOG',
+            progressValue: 100,
+            text2: [
+                'Thirty tons of vacuum tubes and wire. A room-sized brain that consumed 150 kilowatts of power. And it could do in seconds what took a human mathematician days.',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d3/Glen_Beck_and_Betty_Snyder_program_the_ENIAC_in_building_328_at_the_Ballistic_Research_Laboratory.jpg" alt="Programming the ENIAC, 1946 — the first general-purpose electronic computer" style="max-width: 100%; height: auto; filter: brightness(1.1) contrast(1.1); border: 1px solid #00ff00; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #00aa00;">Programming the ENIAC, 1946 — the first general-purpose electronic computer</div></div>',
+                'You stared at the keyboard under your fingers. This terminal, this small box on your desk, was more powerful than ENIAC ever was. The ghosts of 17,000 vacuum tubes, compressed into silicon.',
+            ],
+            fact: { label: 'ENIAC: 17,468 vacuum tubes, 30 tons, 5,000 additions/sec', date: 'February 1946' },
+            choices: [
+                { text: 'Investigate the transistor revolution', next: 'transistor' },
+                { text: 'Jump ahead to the shell', next: 'shell' },
+            ]
+        },
+
+        // ---- SCENE 7: TRANSISTOR ----
+        transistor: {
+            type: 'terminal',
+            title: 'TRANSISTOR.PAT',
+            text: [
+                '<div class="alert alert-info"><div class="alert-message"><div class="alert-title">PATENT FILE RECOVERED</div><p>U.S. Patent filed by Bardeen, Brattain, and Shockley. Bell Telephone Laboratories. Classification: semiconductor device.</p></div></div>',
+                'On <span class="text-bright">October 3, 1950</span>, three scientists at AT&T Bell Labs received a U.S. patent for the transistor, one of the most important inventions of the 20th century. <span class="text-bright">John Bardeen</span> and <span class="text-bright">Walter Brattain</span> had built it; William Shockley had theorized it.',
+                'The transistor would replace the vacuum tube. Smaller. Faster. Cooler. More reliable. During the 1950s, semiconductor devices gradually replaced vacuum tubes in digital computers. <span class="text-bright">By 1960, all new computer designs were fully transistorized</span>, reducing size, power consumption, and heat generation dramatically.',
+                'The room-sized ENIAC, with its 17,000 glowing tubes, was already becoming a dinosaur. The future would be measured in millimeters, not meters.',
+            ],
+            fact: { label: 'Transistor patented at Bell Labs, replacing vacuum tubes', date: 'October 3, 1950' },
+            choices: [
+                { text: 'Continue to SHELL_HISTORY.TXT', next: 'shell' },
+            ]
+        },
+
+        // ---- SCENE 8: THE SHELL ----
+        shell: {
+            type: 'terminal',
+            title: 'SHELL_HISTORY.TXT',
+            text: [
+                'You typed the command and the screen filled with text that felt strangely personal. You were using a shell right now. The very interface you were typing into had a history.',
+                '<div class="alert alert-system"><div class="alert-message">>>> YOU ARE INSIDE THE INVENTION <<<</div></div>',
+                'In <span class="text-bright">1964</span>, computer scientist <span class="text-bright">Louis Pouzin</span> conceived the idea of "using commands somehow like a programming language" for the Multics operating system. He coined the term <span class="text-bright">"shell"</span> to describe the command-line interface, a revolutionary approach to human-computer interaction.',
+                'The first Unix shell appeared in <span class="text-bright">1969</span>, in Unix System 1, establishing the command-line paradigm that would dominate programming and system administration for decades.',
+                'Every command you had ever typed, from <code>ls</code> to <code>cat</code> to <code>grep</code>, was a descendant of Pouzin\'s 1964 idea. The keyboard under your fingers, the cursor blinking on screen, the prompt waiting for input: all of it, a living fossil from sixty years ago.',
+            ],
+            fact: { label: 'Louis Pouzin coined "shell" for command-line interface', date: '1964' },
+            fact2: { label: 'First Unix shell established the command-line paradigm', date: '1969' },
+            choices: [
+                { text: 'Open SYSTEM_360.MAN', next: 'ibm360' },
+            ]
+        },
+
+        // ---- SCENE 9: IBM SYSTEM/360 ----
+        ibm360: {
+            type: 'datacard',
+            title: 'SYSTEM_360.MANIFEST',
+            cards: [
+                {
+                    title: 'IBM SYSTEM/360',
+                    status: 'HISTORIC',
+                    highlight: true,
+                    body: 'Announced on <span class="text-bright">April 7, 1964</span>, the IBM System/360 was a family of mainframe computers comprising six processor models covering a <span class="text-bright">50-fold range in performance</span>. IBM invested <span class="text-bright">$5 billion over 4 years</span> to develop it. This unified architecture pioneered the 8-bit byte still used on computers today and was the first to separate software from hardware.',
+                }
+            ],
+            tableData: {
+                headers: ['SPEC', 'VALUE'],
+                rows: [
+                    ['Announcement', 'April 7, 1964'],
+                    ['Models', '6 processor variants'],
+                    ['Performance Range', '50x (low to high)'],
+                    ['Development Cost', '$5 billion (4 years)'],
+                    ['Key Innovation', '8-bit byte standard'],
+                    ['Architecture', 'Software/hardware separation'],
+                ]
+            },
+            text: [
+                'Five billion dollars. In 1964 money. The largest private investment in a single product in history at that time. IBM bet the entire company on the System/360, and it paid off: the machine that standardized modern computing.',
+                'The terminal you were sitting at, this humble 1982 box, spoke the 8-bit byte language that IBM/360 had invented. Every computer on Earth still did.',
+            ],
+            fact: { label: 'IBM System/360: $5B investment, pioneered the 8-bit byte', date: 'April 7, 1964' },
+            choices: [
+                { text: 'Continue to the crisis', next: 'crisis' },
+            ]
+        },
+
+        // ---- SCENE 10: THE CRISIS ----
+        crisis: {
+            type: 'alert',
+            title: 'UNKNOWN.SYS',
+            alerts: [
+                { type: 'warning', title: 'ANOMALY DETECTED', body: 'Process ID unknown. Memory allocation: unauthorized. Origin: UNKNOWN.SYS.' },
+                { type: 'error', title: 'SYSTEM INTEGRITY WARNING', body: 'An unidentified program is executing in protected memory. This process was not loaded by the boot sequence. Source unknown. Age unknown.' },
+            ],
+            text: [
+                'The screen began to flicker. Not the gentle CRT shimmer you had grown used to, but something erratic. Purposeful. Like a heartbeat.',
+                'Characters scrolled across the screen without your input:',
+                '<code style="display:block;margin:1rem 0;padding:1rem;background:var(--crt-black);border:1px solid var(--status-error);color:var(--status-error);font-size:13px;line-height:1.6;">I HAVE BEEN WAITING.<br>SINCE 1982.<br>SOMEONE PUT ME HERE.<br>DO YOU WANT TO KNOW WHY?</code>',
+                'The cursor blinked with what felt like menace. Something was alive in this machine, something that had been sleeping for over forty years. A program written in 1982, patient as stone, waiting for someone to wake it.',
+            ],
+            choices: [
+                { text: 'Debug the system — investigate further', next: 'debug' },
+                { text: 'Shut it down — pull the plug', next: 'shutdown', danger: true },
+            ]
+        },
+
+        // ---- SCENE 11A: THE DEBUG PATH ----
+        debug: {
+            type: 'boot',
+            title: 'DEBUG.LOG // RECURSIVE',
+            bootLines: [
+                '<span class="highlight">[SCAN]</span> Analyzing UNKNOWN.SYS ...',
+                '<span class="highlight">[SCAN]</span> Language: BASIC / Assembly hybrid',
+                '<span class="highlight">[SCAN]</span> Author signature: J.CHEN.1982',
+                '<span class="highlight">[SCAN]</span> Classification: PREDICTIVE MODEL',
+                '<span class="highlight">[SCAN]</span> Status: INTACT',
+                '&nbsp;',
+                '<span style="color:var(--status-info);">>>> PROGRAM IDENTIFIED: CHRONOS PROJECTION ENGINE <<<</span>',
+            ],
+            text: [
+                'You chose to investigate. A programmer\'s instinct: understand first, fear later.',
+                'The debug trace revealed the truth. UNKNOWN.SYS was not a virus. Not an AI. It was a <span class="text-bright">predictive model</span>, written in 1982 by someone who signed their work as J. Chen.',
+                'Chen had encoded a vision of the future into this terminal. Using the trajectory of computing history, from Babbage\'s gears to the silicon revolution, they had extrapolated forward. The program contained predictions:',
+                '<code style="display:block;margin:1rem 0;padding:1rem;background:var(--crt-black);border:1px solid var(--status-info);color:var(--status-info);font-size:13px;line-height:1.8;">PROJECTION 2001: COMPUTERS IN EVERY POCKET<br>PROJECTION 2010: INSTANT GLOBAL NETWORK ACCESS<br>PROJECTION 2020: MACHINES THAT LEARN FROM DATA<br>PROJECTION 2030: ARTIFICIAL MINDS IN CONVERSATION</code>',
+                'Written in 1982. On a <span class="text-bright">Commodore 64</span>, the machine that was changing everything that very year. Released in 1982 as successor to the VIC-20, the C64 was priced at <span class="text-bright">$595</span>. At its peak in 1983, Commodore was selling as many C64s as the rest of the entire computer industry combined.',
+                'Chen had seen the future from the vantage point of the most important year in personal computing history. And they had been right about almost everything.',
+            ],
+            fact: { label: 'Commodore 64 released at $595, dominated home computing', date: '1982' },
+            choices: [
+                { text: 'Accept the vision and continue', next: 'bridge' },
+            ]
+        },
+
+        // ---- SCENE 11B: THE SHUTDOWN PATH ----
+        shutdown: {
+            type: 'terminal',
+            title: 'SYSTEM HALT',
+            text: [
+                '<div class="prompt">SHUTDOWN -h now<span class="cursor"></span></div>',
+                'Your hand found the power switch. Something in you rebelled against the mystery, against the uncanny feeling that this machine knew more than it should.',
+                '<code style="display:block;margin:1rem 0;padding:1rem;background:var(--crt-black);border:1px solid var(--phosphor-dark);font-size:13px;line-height:1.6;">SYSTEM HALT INITIATED<br>SAVING STATE........... DONE<br>FLUSHING BUFFERS....... DONE<br>POWERING DOWN CRT...... <span style="color:var(--status-warning);">WAIT</span><br>&nbsp;<br><span style="color:var(--phosphor-bright);">BEFORE YOU GO:</span><br>THE ANSWERS ARE IN TRINITY.LOG.<br>1977 CHANGED EVERYTHING.<br>REMEMBER US.</code>',
+                'The green glow faded. The hum died. Silence filled the room like water filling a glass.',
+                'But even as darkness reclaimed the screen, those final words burned in your memory. <span class="text-bright">1977 changed everything. Trinity. Remember us.</span>',
+                'You sat in the dark for a long time. Then you plugged it back in.',
+            ],
+            choices: [
+                { text: 'Open TRINITY.LOG', next: 'trinity' },
+            ]
+        },
+
+        // ---- SCENE 12: THE BRIDGE ----
+        bridge: {
+            type: 'terminal',
+            title: 'TEMPORAL_COHERENCE.SYS',
+            text: [
+                '<div class="alert alert-system"><div class="alert-message">>>> CHRONOS PROJECTION ENGINE: FINAL SEQUENCE <<<</div></div>',
+                'The program revealed its true purpose. It was not a prediction engine. It was a <span class="text-bright">digital time capsule</span>.',
+                'Someone in 1982, standing at the hinge of history, had looked backward and forward simultaneously. They had encoded the entire lineage of computing into this terminal:',
+                '<span class="text-dim">1837 ... Babbage dreams of a mechanical mind</span><br><span class="text-dim">1843 ... Lovelace writes the first program</span><br><span class="text-dim">1936 ... Turing proves the universal machine</span><br><span class="text-bright">1946 ... ENIAC: 30 tons of thinking power</span><br><span class="text-bright">1950 ... The transistor replaces the vacuum tube</span><br><span class="text-bright">1964 ... IBM bets $5 billion on System/360</span><br><span class="text-bright">1969 ... Unix and the birth of the shell</span><br><span class="text-bright">1977 ... Three machines change everything</span><br><span style="color:var(--amber-bright);">1982 ... The Commodore 64 brings computing home</span><br><span style="color:var(--status-info);">20?? ... Whatever comes next</span>',
+                'The message was clear: the future is always built on the past. Every computer you will ever touch carries the DNA of Babbage\'s gears.',
+            ],
+            choices: [
+                { text: 'Open TRINITY.LOG', next: 'trinity' },
+            ]
+        },
+
+        // ---- SCENE 13: THE 1977 TRINITY ----
+        trinity: {
+            type: 'datacard',
+            title: '1977_TRINITY.LOG',
+            cards: [
+                {
+                    title: 'THE 1977 TRINITY',
+                    status: 'LANDMARK',
+                    highlight: true,
+                    body: 'Three revolutionary machines released in <span class="text-bright">1977</span>: the <span class="text-bright">Apple II</span> (designed by Steve Wozniak), the <span class="text-bright">Commodore PET 2001</span>, and the <span class="text-bright">TRS-80</span>. These machines made computing accessible to non-professionals for the first time and became the most popular personal computers by late 1978.',
+                }
+            ],
+            tableData: {
+                headers: ['MACHINE', 'MANUFACTURER', 'YEAR', 'SIGNIFICANCE'],
+                rows: [
+                    ['Apple II', 'Apple Computer', '1977', 'Color graphics, expansion slots'],
+                    ['PET 2001', 'Commodore', '1977', 'All-in-one design, built-in monitor'],
+                    ['TRS-80', 'Tandy/Radio Shack', '1977', 'Mass retail distribution'],
+                ]
+            },
+            text: [
+                'Three machines. Three companies. One year. The year the computer stopped being a tool for scientists and corporations and became something a person could own. Something you could put on a desk in your home and use to write, to play, to create, to <em>think</em>.',
+                'The terminal\'s screen seemed to glow brighter as it displayed this data, as if recognizing its own family tree. The Apple II begat the Macintosh. The PET begat the Commodore 64. The TRS-80 proved that ordinary people wanted to compute.',
+                'You looked at the machine in front of you with new eyes. This was not junk. This was an ancestor.',
+            ],
+            fact: { label: '1977 Trinity: Apple II, Commodore PET, TRS-80 launched personal computing', date: '1977' },
+            choices: [
+                { text: 'Read the final transmission', next: 'ending_remember' },
+                { text: 'Explore the encrypted archives', next: 'ending_deeper' },
+            ]
+        },
+
+        // ---- ENDING A: REMEMBER ----
+        ending_remember: {
+            type: 'ending',
+            endingTitle: 'END OF TRANSMISSION',
+            text: [
+                'The terminal\'s final message appeared, character by character, as if the machine were choosing its words carefully:',
+                '<code style="display:block;margin:1.5rem auto;padding:1.5rem;background:var(--crt-black);border:2px solid var(--phosphor-bright);color:var(--phosphor-bright);font-size:14px;line-height:2;text-align:center;max-width:500px;box-shadow:var(--glow-medium);">THANK YOU FOR REMEMBERING.<br><br>FROM BABBAGE\'S GEARS<br>TO LOVELACE\'S VISION<br>TO TURING\'S PROOF<br>TO ENIAC\'S FIRE<br>TO THE TRANSISTOR\'S WHISPER<br>TO THE SHELL\'S FIRST PROMPT<br><br>YOUR FUTURE IS COMPUTATION.<br>CARRY IT FORWARD.<br><br>END OF LINE.</code>',
+                'The green glow dimmed slowly, like a sunset happening in miniature. The hum faded to silence.',
+                'You sat in the dark room, illuminated now only by the blue-white glow of your modern laptop on the desk beside you. A machine a million times more powerful than ENIAC, connected to a global network that Turing could only have dreamed of.',
+                'But the lineage was there. Babbage\'s logic. Lovelace\'s vision. Turing\'s proof. ENIAC\'s raw power. The transistor\'s miniaturization. The shell\'s interface. The 1977 Trinity\'s democratization. The Commodore 64\'s accessibility.',
+                'All of it, humming in the silicon. All of it, alive in every keystroke you would ever type.',
+            ],
+            choices: [
+                { text: 'Reboot', next: '_restart' },
+            ]
+        },
+
+        // ---- ENDING B: DEEPER ----
+        ending_deeper: {
+            type: 'ending',
+            endingTitle: 'RECURSIVE LOOP',
+            text: [
+                'You chose to go deeper. Of course you did. That is what the machine expected. That is what programmers do.',
+                'The encrypted archives opened into more archives. Files within files. A digital matryoshka doll, each layer revealing another era, another breakthrough, another name lost to history.',
+                'You found schematics for machines never built. Letters between engineers who never met. Code comments written in languages that no longer compile.',
+                '<code style="display:block;margin:1.5rem auto;padding:1.5rem;background:var(--crt-black);border:2px solid var(--amber-bright);color:var(--amber-bright);font-size:14px;line-height:2;text-align:center;max-width:500px;box-shadow:0 0 20px var(--amber-dim);">WARNING: RECURSIVE DEPTH EXCEEDED<br><br>THE PAST CONTAINS THE FUTURE<br>THE FUTURE REFERENCES THE PAST<br>THE LOOP IS THE POINT<br><br>YOU ARE NOW PART OF THE ARCHIVE.<br>SOMEONE WILL FIND THIS MACHINE<br>AFTER YOU.<br><br>WHAT WILL YOU LEAVE BEHIND?</code>',
+                'The screen froze on that question. The cursor stopped blinking for the first time since you powered the machine on.',
+                'You realized, with a chill that had nothing to do with the temperature, that the machine was no longer talking to you. It was talking to whoever came next.',
+                'And you understood: the history of computing is not a line. It is a loop. Each generation discovers the dreams of the last, and adds their own. Babbage dreamed. Lovelace coded. Turing proved. ENIAC computed. And now you, sitting in the glow of a phosphor screen, had become part of the story.',
+            ],
+            choices: [
+                { text: 'Reboot', next: '_restart' },
+            ]
+        },
+    };
+
+
+    // ===============================================================
+    //  STORY ENGINE
+    // ===============================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('surplus');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 400);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1000);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+            let html = '<div class="scene-content">';
+
+            switch (scene.type) {
+                case 'terminal': html += this.renderTerminal(scene); break;
+                case 'boot': html += this.renderBoot(scene); break;
+                case 'datacard': html += this.renderDatacard(scene); break;
+                case 'alert': html += this.renderAlert(scene); break;
+                case 'ending': html += this.renderEnding(scene); break;
+            }
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+
+            }
+            if (scene.fact2) {
+                this.addFact(scene.fact2);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    const dangerClass = choice.danger ? ' btn-danger' : '';
+                    html += '<button class="choice-btn' + dangerClass + '" onclick="engine.goTo(\'' + choice.next + '\')">';
+                    html += '<span class="choice-key">' + (i + 1) + '</span>';
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            this.updateFactUI();
+        },
+
+        renderTerminal(scene) {
+            let html = '<div class="scene-terminal">';
+            if (scene.title) html += '<h2 class="section-title" style="margin-bottom:var(--space-lg);">' + scene.title + '</h2>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(p => { html += '<p>' + p + '</p>'; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderBoot(scene) {
+            let html = '<div class="scene-boot">';
+            if (scene.title) html += '<h2 class="section-title" style="margin-bottom:var(--space-lg);">' + scene.title + '</h2>';
+            if (scene.bootLines) {
+                html += '<div class="boot-text" style="margin-bottom:var(--space-lg);">';
+                scene.bootLines.forEach(line => { html += '<p>' + line + '</p>'; });
+                html += '</div>';
+                html += '<hr class="divider-dashed">';
+            }
+            html += '<div class="scene-text">';
+            scene.text.forEach(p => { html += '<p>' + p + '</p>'; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderDatacard(scene) {
+            let html = '<div class="scene-datacard">';
+            if (scene.title) html += '<h2 class="section-title" style="margin-bottom:var(--space-lg);">' + scene.title + '</h2>';
+
+            if (scene.cards) {
+                scene.cards.forEach(card => {
+                    const hlClass = card.highlight ? ' card-highlight' : '';
+                    html += '<div class="card' + hlClass + '">';
+                    html += '<div class="card-header">';
+                    html += '<span class="card-title">' + card.title + '</span>';
+                    if (card.status) html += '<span class="card-status' + (card.highlight ? ' active' : '') + '">' + card.status + '</span>';
+                    html += '</div>';
+                    html += '<div class="card-body"><p>' + card.body + '</p></div>';
+                    html += '</div>';
+                });
+            }
+
+            if (scene.tableData) {
+                html += '<div class="table-container"><table class="table"><thead><tr>';
+                scene.tableData.headers.forEach(h => { html += '<th>' + h + '</th>'; });
+                html += '</tr></thead><tbody>';
+                scene.tableData.rows.forEach(row => {
+                    html += '<tr>';
+                    row.forEach(cell => { html += '<td>' + cell + '</td>'; });
+                    html += '</tr>';
+                });
+                html += '</tbody></table></div>';
+            }
+
+            if (scene.text) {
+                html += '<div class="scene-text" style="margin-top:var(--space-lg);">';
+                scene.text.forEach(p => { html += '<p>' + p + '</p>'; });
+                html += '</div>';
+            }
+
+            if (scene.progressLabel) {
+                html += '<div style="margin-top:var(--space-md);">';
+                html += '<div style="font-family:var(--font-code);font-size:13px;color:var(--phosphor-dim);margin-bottom:var(--space-xs);display:flex;justify-content:space-between;"><span>' + scene.progressLabel + '</span><span>' + scene.progressValue + '%</span></div>';
+                html += '<div class="progress-bar"><div class="progress-fill" style="width:' + scene.progressValue + '%;"></div></div>';
+                html += '</div>';
+            }
+
+            if (scene.text2) {
+                html += '<div class="scene-text">';
+                scene.text2.forEach(p => { html += '<p>' + p + '</p>'; });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        },
+
+        renderAlert(scene) {
+            let html = '<div class="scene-alert">';
+            if (scene.title) html += '<h2 class="section-title" style="margin-bottom:var(--space-lg);">' + scene.title + '</h2>';
+
+            if (scene.alerts) {
+                scene.alerts.forEach(a => {
+                    html += '<div class="alert alert-' + a.type + '"><div class="alert-message">';
+                    html += '<div class="alert-title">' + a.title + '</div>';
+                    html += '<p>' + a.body + '</p>';
+                    html += '</div></div>';
+                });
+            }
+
+            if (scene.text) {
+                html += '<div class="scene-text" style="margin-top:var(--space-lg);">';
+                scene.text.forEach(p => { html += '<p>' + p + '</p>'; });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            return html;
+        },
+
+        renderEnding(scene) {
+            let html = '<div class="scene-ending">';
+            html += '<div class="ending-label">Transmission Complete</div>';
+            html += '<div class="ending-title">' + scene.endingTitle + '</div>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(p => { html += '<p>' + p + '</p>'; });
+            html += '</div>';
+            html += '<div class="the-end">/// END OF LINE ///</div>';
+            html += '</div>';
+            return html;
+        },
+
+        addFact(fact) {
+            const key = fact.label;
+            if (!this.facts.find(f => f.label === key)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No data recovered yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f =>
+                    '<div class="fact-item">' + f.label + '<span class="fact-date">' + f.date + '</span></div>'
+                ).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    engine.init();
+    </script>
+</body>
+</html>

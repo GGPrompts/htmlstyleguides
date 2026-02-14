@@ -1,0 +1,1886 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Network — A Cyberpunk Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           CYBERPUNK_2087 DESIGN SYSTEM — Story Build
+        ================================================================ */
+
+        :root {
+            --neon-pink: #ff2a6d;
+            --neon-pink-glow: rgba(255, 42, 109, 0.7);
+            --neon-cyan: #05d9e8;
+            --neon-cyan-glow: rgba(5, 217, 232, 0.7);
+            --neon-green: #39ff14;
+            --neon-green-glow: rgba(57, 255, 20, 0.6);
+            --neon-yellow: #f9f002;
+            --neon-yellow-glow: rgba(249, 240, 2, 0.6);
+            --neon-purple: #d300c5;
+            --neon-purple-glow: rgba(211, 0, 197, 0.6);
+            --neon-orange: #ff6b35;
+
+            --bg-void: #0a0a0f;
+            --bg-deep: #0d0d14;
+            --bg-primary: #12121a;
+            --bg-secondary: #1a1a25;
+            --bg-elevated: #222230;
+            --bg-surface: #2a2a3a;
+
+            --text-primary: #e0e0e8;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+
+            --border-dim: rgba(5, 217, 232, 0.15);
+            --border-glow: rgba(5, 217, 232, 0.4);
+
+            --gradient-cyberpunk: linear-gradient(135deg, var(--neon-pink), var(--neon-purple), var(--neon-cyan));
+            --gradient-danger: linear-gradient(135deg, var(--neon-pink), var(--neon-orange));
+            --gradient-holographic: linear-gradient(135deg,
+                rgba(5, 217, 232, 0.3),
+                rgba(255, 42, 109, 0.3),
+                rgba(57, 255, 20, 0.3),
+                rgba(211, 0, 197, 0.3)
+            );
+
+            --font-display: 'Orbitron', sans-serif;
+            --font-body: 'Rajdhani', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+
+            --glow-cyan: 0 0 10px var(--neon-cyan-glow), 0 0 30px var(--neon-cyan-glow);
+            --glow-pink: 0 0 10px var(--neon-pink-glow), 0 0 30px var(--neon-pink-glow);
+            --glow-green: 0 0 10px var(--neon-green-glow), 0 0 30px var(--neon-green-glow);
+            --glow-yellow: 0 0 10px var(--neon-yellow-glow), 0 0 30px var(--neon-yellow-glow);
+
+            --transition-fast: 0.1s ease;
+            --transition-base: 0.25s ease;
+
+            --clip-corner: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+            --clip-corner-sm: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+        }
+
+        /* --- KEYFRAMES --- */
+        @keyframes glitch {
+            0%, 100% { text-shadow: -2px 0 var(--neon-cyan), 2px 0 var(--neon-pink); transform: translate(0); }
+            10% { text-shadow: 2px 0 var(--neon-cyan), -2px 0 var(--neon-pink); transform: translate(-2px, 1px); }
+            20% { text-shadow: -3px 0 var(--neon-pink), 3px 0 var(--neon-cyan); transform: translate(2px, -1px); }
+            30% { text-shadow: 0 -2px var(--neon-green), 0 2px var(--neon-purple); transform: translate(0, 2px); }
+            40% { text-shadow: -2px 0 var(--neon-cyan), 2px 0 var(--neon-pink); transform: translate(-1px, -1px); }
+            50% { text-shadow: 2px 2px var(--neon-pink), -2px -2px var(--neon-cyan); transform: translate(1px, 0); }
+        }
+
+        @keyframes glitch-flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; transform: translateX(-2px); }
+            94% { opacity: 1; transform: translateX(0); }
+            95% { opacity: 0.9; }
+            96% { opacity: 1; transform: translateX(1px); }
+            97% { opacity: 0.95; transform: translateX(0); }
+        }
+
+        @keyframes neon-pulse {
+            0%, 100% { box-shadow: 0 0 5px var(--neon-cyan-glow), 0 0 15px var(--neon-cyan-glow); }
+            50% { box-shadow: 0 0 10px var(--neon-cyan-glow), 0 0 30px var(--neon-cyan-glow), 0 0 50px var(--neon-cyan-glow); }
+        }
+
+        @keyframes holographic {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes corrupt {
+            0%, 100% { clip-path: inset(0 0 0 0); }
+            5% { clip-path: inset(10% 0 85% 0); }
+            10% { clip-path: inset(40% 0 50% 0); }
+            15% { clip-path: inset(80% 0 5% 0); }
+            20% { clip-path: inset(0 0 0 0); }
+        }
+
+        @keyframes rain-drop {
+            0% { transform: translateY(-100px); opacity: 0; }
+            10% { opacity: 1; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+
+        @keyframes cursor-blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        @keyframes loading-scan {
+            0% { left: -30%; }
+            100% { left: 100%; }
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes transitionGlitch {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            50% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* --- RESET --- */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 500;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-void);
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: 0.5px;
+        }
+
+        /* Scanlines */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.03) 2px, rgba(0, 0, 0, 0.03) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Vignette */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 42, 109, 0.08), transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(5, 217, 232, 0.08), transparent 50%),
+                radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        /* Rain */
+        .rain-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .rain-drop {
+            position: absolute;
+            width: 1px;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, var(--neon-cyan), transparent);
+            animation: rain-drop 1s linear infinite;
+            opacity: 0.3;
+        }
+
+        /* Noise */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            opacity: 0.02;
+            pointer-events: none;
+            z-index: 9997;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* ═══════════════════════════════════════════
+           LAYOUT
+        ═══════════════════════════════════════════ */
+        .game-container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ═══════════════════════════════════════════
+           TITLE SCREEN
+        ═══════════════════════════════════════════ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+        }
+
+        .title-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .title-label::before {
+            content: '//';
+            color: var(--neon-pink);
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 10vw, 5rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            line-height: 1;
+            background: var(--gradient-cyberpunk);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: holographic 8s ease infinite, glitch 4s steps(1) infinite;
+            animation-delay: 0s, 2s;
+            margin-bottom: var(--space-3);
+        }
+
+        .title-subtitle {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            margin-bottom: var(--space-7);
+        }
+
+        .title-tagline {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-7);
+            max-width: 500px;
+            line-height: 1.7;
+        }
+
+        .title-start {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: var(--space-4) var(--space-7);
+            background: transparent;
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-fast);
+            clip-path: var(--clip-corner-sm);
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: var(--neon-cyan);
+            transition: left var(--transition-fast);
+            z-index: -1;
+        }
+
+        .title-start:hover {
+            color: var(--bg-void);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .title-start:hover::before { left: 0; }
+
+        .title-credits {
+            margin-top: var(--space-7);
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE CONTAINER
+        ═══════════════════════════════════════════ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 1rem;
+        }
+
+        .scene-wrapper.active { display: flex; }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-5);
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .scene-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--neon-cyan), var(--neon-pink), var(--neon-cyan), transparent);
+        }
+
+        .scene-session-id {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--neon-pink);
+            letter-spacing: 1px;
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--neon-green);
+            letter-spacing: 1px;
+        }
+
+        .scene-content { animation: sceneFadeIn 0.8s ease-out; }
+
+        /* ═══════════════════════════════════════════
+           SCENE TYPES
+        ═══════════════════════════════════════════ */
+
+        /* Terminal scene */
+        .scene-terminal {
+            background: var(--bg-deep);
+            border: 1px solid var(--border-dim);
+            font-family: var(--font-mono);
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-terminal .terminal-header {
+            background: var(--bg-primary);
+            padding: var(--space-2) var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .scene-terminal .terminal-dot {
+            width: 10px;
+            height: 10px;
+        }
+
+        .scene-terminal .terminal-dot:nth-child(1) { background: var(--neon-pink); }
+        .scene-terminal .terminal-dot:nth-child(2) { background: var(--neon-yellow); }
+        .scene-terminal .terminal-dot:nth-child(3) { background: var(--neon-green); }
+
+        .scene-terminal .terminal-title {
+            margin-left: var(--space-3);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .scene-terminal .terminal-body {
+            padding: var(--space-5);
+            font-size: 0.88rem;
+            line-height: 1.8;
+        }
+
+        .scene-terminal .terminal-body p {
+            margin-bottom: var(--space-3);
+        }
+
+        .terminal-prompt { color: var(--neon-cyan); }
+        .terminal-command { color: var(--text-primary); }
+        .terminal-output { color: var(--text-secondary); padding-left: var(--space-4); }
+        .terminal-success { color: var(--neon-green); }
+        .terminal-error { color: var(--neon-pink); }
+
+        .terminal-cursor {
+            display: inline-block;
+            width: 8px; height: 14px;
+            background: var(--neon-cyan);
+            animation: cursor-blink 1s steps(1) infinite;
+            vertical-align: text-bottom;
+            margin-left: 2px;
+        }
+
+        /* Card scene */
+        .scene-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-dim);
+            padding: var(--space-6);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+            clip-path: var(--clip-corner);
+        }
+
+        .scene-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: var(--gradient-cyberpunk);
+        }
+
+        .scene-card .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--space-4);
+            color: var(--text-primary);
+        }
+
+        .scene-card .scene-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .scene-card .scene-text p {
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-card .scene-text p:last-child { margin-bottom: 0; }
+
+        /* Card highlight (danger variant) */
+        .scene-card-highlight {
+            border-color: var(--neon-pink);
+        }
+
+        .scene-card-highlight::before {
+            background: var(--gradient-danger);
+        }
+
+        /* Alert scene */
+        .scene-alert {
+            padding: var(--space-5);
+            border: 1px solid var(--border-dim);
+            background: var(--bg-secondary);
+            margin-bottom: var(--space-5);
+            position: relative;
+        }
+
+        .scene-alert::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0;
+            width: 3px; height: 100%;
+        }
+
+        .scene-alert-danger::before { background: var(--neon-pink); }
+        .scene-alert-info::before { background: var(--neon-cyan); }
+        .scene-alert-success::before { background: var(--neon-green); }
+        .scene-alert-warning::before { background: var(--neon-yellow); }
+
+        .scene-alert .alert-title {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--space-3);
+        }
+
+        .scene-alert .scene-text {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .scene-alert .scene-text p {
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-alert .scene-text p:last-child { margin-bottom: 0; }
+
+        /* Ending scene */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-8) var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--neon-pink);
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 5vw, 2.5rem);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: var(--gradient-cyberpunk);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: holographic 8s ease infinite;
+            margin-bottom: var(--space-6);
+        }
+
+        .scene-ending .scene-text {
+            max-width: 550px;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .scene-ending .scene-text p {
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-ending .the-end {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            color: var(--text-muted);
+            margin-top: var(--space-6);
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           INLINE COMPONENTS
+        ═══════════════════════════════════════════ */
+
+        /* Scene title */
+        .scene-title-bar {
+            font-family: var(--font-display);
+            font-size: clamp(1.2rem, 3vw, 1.6rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-5);
+            padding-bottom: var(--space-3);
+            border-bottom: 1px solid var(--border-dim);
+            position: relative;
+        }
+
+        .scene-title-bar::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 0;
+            width: 80px; height: 1px;
+            background: var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .scene-title-bar.glitch-text {
+            animation: glitch 4s steps(1) infinite;
+        }
+
+        /* Badges */
+        .badge {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: var(--space-1) var(--space-3);
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .badge-pink { border-color: var(--neon-pink); color: var(--neon-pink); }
+        .badge-green { border-color: var(--neon-green); color: var(--neon-green); }
+        .badge-yellow { border-color: var(--neon-yellow); color: var(--neon-yellow); }
+        .badge-purple { border-color: var(--neon-purple); color: var(--neon-purple); }
+
+        .badge-filled { background: var(--neon-cyan); color: var(--bg-void); }
+        .badge-pink.badge-filled { background: var(--neon-pink); color: var(--bg-void); }
+        .badge-green.badge-filled { background: var(--neon-green); color: var(--bg-void); }
+        .badge-yellow.badge-filled { background: var(--neon-yellow); color: var(--bg-void); }
+
+        /* Progress bar */
+        .progress-container { margin: var(--space-4) 0; }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-deep);
+            border: 1px solid var(--border-dim);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+            position: relative;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: loading-scan 1.5s linear infinite;
+        }
+
+        /* Data decoration */
+        .data-decoration {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            opacity: 0.4;
+            letter-spacing: 2px;
+            overflow: hidden;
+            white-space: nowrap;
+            margin: var(--space-4) 0;
+        }
+
+        /* Text utilities */
+        .text-cyan { color: var(--neon-cyan); }
+        .text-pink { color: var(--neon-pink); }
+        .text-green { color: var(--neon-green); }
+        .text-yellow { color: var(--neon-yellow); }
+        .text-purple { color: var(--neon-purple); }
+        .text-muted { color: var(--text-muted); }
+
+        .glow-cyan { text-shadow: var(--glow-cyan); }
+        .glow-pink { text-shadow: var(--glow-pink); }
+
+        .effect-glitch { animation: glitch 2s steps(1) infinite; color: var(--text-primary); }
+        .effect-corrupt { animation: corrupt 3s steps(1) infinite; color: var(--neon-pink); }
+        .effect-flicker { animation: glitch-flicker 2s steps(1) infinite; }
+
+        .effect-holographic {
+            background: var(--gradient-cyberpunk);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: holographic 4s ease infinite;
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT FOUND TOAST
+        ═══════════════════════════════════════════ */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: var(--neon-green);
+            color: var(--bg-void);
+            padding: 6px 16px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: var(--space-4);
+            animation: factSlideIn 0.6s ease-out;
+            clip-path: var(--clip-corner-sm);
+        }
+
+        /* ═══════════════════════════════════════════
+           CHOICES
+        ═══════════════════════════════════════════ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: 2px solid var(--border-dim);
+            background: transparent;
+            color: var(--neon-cyan);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            clip-path: var(--clip-corner-sm);
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--neon-cyan);
+            transition: left var(--transition-fast);
+            z-index: -1;
+        }
+
+        .choice-btn:hover {
+            color: var(--bg-void);
+            border-color: var(--neon-cyan);
+            box-shadow: var(--glow-cyan);
+        }
+
+        .choice-btn:hover::before { left: 0; }
+        .choice-btn:active { transform: scale(0.98); }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            border: 1px solid currentColor;
+            font-size: 0.7rem;
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--bg-void);
+        }
+
+        /* Danger choice variant */
+        .choice-btn-danger {
+            color: var(--neon-pink);
+            border-color: rgba(255, 42, 109, 0.3);
+        }
+
+        .choice-btn-danger::before { background: var(--neon-pink); }
+
+        .choice-btn-danger:hover {
+            border-color: var(--neon-pink);
+            box-shadow: var(--glow-pink);
+        }
+
+        /* ═══════════════════════════════════════════
+           TRANSITION OVERLAY
+        ═══════════════════════════════════════════ */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: transitionGlitch 1s ease-in-out;
+        }
+
+        .transition-glitch-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-void);
+        }
+
+        .transition-glitch-lines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent 0px, transparent 2px,
+                rgba(5, 217, 232, 0.03) 2px, rgba(5, 217, 232, 0.03) 4px
+            );
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT TRACKER (SIDEBAR)
+        ═══════════════════════════════════════════ */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: 6px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-dim);
+            color: var(--neon-green);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+            clip-path: var(--clip-corner-sm);
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: var(--neon-green);
+            box-shadow: var(--glow-green);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-2);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-dim);
+            padding: var(--space-4);
+            clip-path: var(--clip-corner);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .fact-item {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--neon-cyan);
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--border-dim);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.5;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ═══════════════════════════════════════════
+           GAME CONTROLS
+        ═══════════════════════════════════════════ */
+        .game-controls {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .ctrl-btn {
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid var(--border-dim);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            clip-path: var(--clip-corner-sm);
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+        }
+
+        /* ═══════════════════════════════════════════
+           SCROLLBAR
+        ═══════════════════════════════════════════ */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--bg-elevated); border: 1px solid var(--border-dim); }
+        ::selection { background: var(--neon-pink); color: var(--bg-void); }
+
+        /* ═══════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .game-container { padding: 1rem; }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .choice-btn { font-size: 0.7rem; padding: var(--space-3) var(--space-4); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Rain -->
+    <div class="rain-container" id="rainContainer"></div>
+    <!-- Noise -->
+    <div class="noise-overlay"></div>
+
+    <!-- Transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-glitch-bg"></div>
+        <div class="transition-glitch-lines"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span>Archive</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Decrypted Archives</h4>
+            <div id="factList">
+                <p class="no-facts">No data recovered...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-label">Interactive Archive v2.087</div>
+            <h1>The Network</h1>
+            <div class="title-subtitle">Trace the hidden history of the internet</div>
+            <p class="title-tagline">A mysterious data packet arrives in your secure drop. Inside: fragments of a shadow history stretching back to the birth of the digital age. Someone wants you to know the truth. The question is whether the truth will set you free — or get you killed.</p>
+            <button class="title-start" id="startBtn">Jack In</button>
+            <p class="title-credits">// A story of hackers, cryptographers, and the crash that changed everything //</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-session-id">SESSION://NETRUNNER_<span id="sessionId">7734</span></span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Disconnect</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  THE NETWORK — Story Data
+    // ═══════════════════════════════════════════════════════════════
+
+    const STORY = {
+
+        // ---- SCENE 1: INBOX_FRAGMENT ----
+        inbox: {
+            title: 'The Arrival',
+            content: `
+                <div class="scene-title-bar glitch-text">INBOX_FRAGMENT</div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">SECURE_DROP://INCOMING</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p><span class="terminal-prompt">sys@node:~$</span> <span class="terminal-command">check_inbox --encrypted</span></p>
+                        <p class="terminal-output">Scanning secure channels...</p>
+                        <p class="terminal-output"><span class="terminal-success">1 NEW PACKET DETECTED</span></p>
+                        <p class="terminal-output">Origin: <span class="text-pink">UNKNOWN</span></p>
+                        <p class="terminal-output">Timestamp: <span class="text-yellow">PRE-MILLENNIUM</span></p>
+                        <p class="terminal-output">Encryption: <span class="text-purple">PGP-LEGACY / 4096-BIT</span></p>
+                        <p class="terminal-output">Size: 2.7TB compressed</p>
+                        <p class="terminal-output terminal-error">WARNING: Metadata corrupted. Source routing fragmentary.</p>
+                        <p><span class="terminal-prompt">sys@node:~$</span> <span class="terminal-cursor"></span></p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The packet materialized in your secure drop at 03:47 AM — no sender address, no routing chain, just raw encrypted data wrapped in protocols so old they predate modern TLS. Someone used legacy PGP to lock it down.</p>
+                        <p>Your decryption tools flagged something strange: fragments of the archive are timestamped from the 1960s. Before the web. Before email. Before most people had even heard the word "computer."</p>
+                        <p>Whatever this is, someone went to extraordinary lengths to get it to you. And they used encryption strong enough that not even state-level actors could crack it.</p>
+                    </div>
+                </div>
+                <div class="data-decoration">01001100 01001111 01000111 01001001 01001110 00101110 00101110 00101110</div>
+            `,
+            fact: 'PGP (Pretty Good Privacy) was released in 1991 by Phil Zimmermann, putting military-grade encryption in civilian hands for the first time',
+            choices: [
+                { text: 'Decrypt the packet', next: 'server_breach' },
+                { text: 'Trace the source first', next: 'trace_source' }
+            ]
+        },
+
+        // ---- SCENE 2a: TRACE SOURCE ----
+        trace_source: {
+            title: 'Dead Ends',
+            content: `
+                <div class="scene-title-bar">TRACE_ROUTE</div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">NETRUNNER://TRACEROUTE</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p><span class="terminal-prompt">sys@node:~$</span> <span class="terminal-command">traceroute --deep packet_origin</span></p>
+                        <p class="terminal-output">Hop 1: 10.0.0.1 ... <span class="terminal-success">OK</span></p>
+                        <p class="terminal-output">Hop 2: 172.16.0.1 ... <span class="terminal-success">OK</span></p>
+                        <p class="terminal-output">Hop 3: *.*.*.* ... <span class="terminal-error">BLACKHOLED</span></p>
+                        <p class="terminal-output">Hop 4: *.*.*.* ... <span class="terminal-error">BLACKHOLED</span></p>
+                        <p class="terminal-output terminal-error">TRACE TERMINATED: Route passes through decommissioned ARPANET nodes.</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>Your trace hits a wall almost immediately. The routing passes through network nodes that no longer exist — decommissioned segments of the original ARPANET infrastructure.</p>
+                        <p>ARPANET. The Advanced Research Projects Agency Network. The precursor to everything. On <span class="text-cyan">October 29, 1969</span>, student <span class="text-cyan">Charles Kline</span> at UCLA sent the very first ARPANET message to Stanford Research Institute. He tried to type "LOGIN" but the system crashed after just two letters: <span class="text-cyan effect-glitch" style="font-family: var(--font-display); font-size: 1.1em;">"LO"</span></p>
+                        <p>Whoever sent this packet routed it through ghost infrastructure. The digital equivalent of mailing a letter through a post office that burned down fifty years ago.</p>
+                        <p>The only way forward is to open it.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'On October 29, 1969, at 10:30 PM, Charles Kline sent the first ARPANET message from UCLA to Stanford. He typed "LOGIN" but only "LO" transmitted before the system crashed',
+            choices: [
+                { text: 'Decrypt the packet', next: 'server_breach' }
+            ]
+        },
+
+        // ---- SCENE 2b: SERVER BREACH ----
+        server_breach: {
+            title: 'Legacy Infrastructure',
+            content: `
+                <div class="scene-title-bar glitch-text">SERVER_BREACH</div>
+                <div class="scene-alert scene-alert-warning">
+                    <div class="alert-title"><span class="text-yellow">System Notice</span></div>
+                    <div class="scene-text">
+                        <p>Decryption initiated. The packet unfolds into a directory structure — thousands of files, organized chronologically. It is a digital archive of internet history, stored on what appears to be an abandoned corporate server.</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The archive is massive. Decades of documents, transcripts, internal memos, and classified communications. The server itself is running on hardware so old it predates modern virtualization.</p>
+                        <p>A blinking cursor at the top of the directory reads:</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://ROOT</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-cyan">"The history they don't want you to remember."</p>
+                        <p class="terminal-output">/archive/1963_phreaking/</p>
+                        <p class="terminal-output">/archive/1969_arpanet/</p>
+                        <p class="terminal-output">/archive/1984_2600_magazine/</p>
+                        <p class="terminal-output">/archive/1988_morris_worm/</p>
+                        <p class="terminal-output">/archive/1989_www_proposal/</p>
+                        <p class="terminal-output">/archive/1991_pgp_release/</p>
+                        <p class="terminal-output">/archive/1993_web_free/</p>
+                        <p class="terminal-output">/archive/1995_dotcom_boom/</p>
+                        <p class="terminal-output">/archive/2000_crash/</p>
+                        <p class="terminal-output terminal-error">WARNING: Security AI detected. Access logging initiated.</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span class="text-muted">ARCHIVE_DOWNLOAD</span>
+                        <span class="text-cyan">12%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 12%;"></div>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>You can feel the corporate security AI probing the edges of your connection. It knows someone is here. You have time, but not unlimited time.</p>
+                        <p>The earliest files date back to <span class="text-cyan">1963</span>. The phreaking era. Before the internet existed, a different kind of hacker was exploring a different kind of network: the telephone system.</p>
+                    </div>
+                </div>
+            `,
+            choices: [
+                { text: 'Open the phreaking archive', next: 'phreaking' },
+                { text: 'Skip ahead to ARPANET genesis', next: 'arpanet' }
+            ]
+        },
+
+        // ---- SCENE 3: PHREAKING HISTORY ----
+        phreaking: {
+            title: 'The Whistle',
+            content: `
+                <div class="scene-title-bar">THE_WHISTLE // 1963</div>
+                <div class="scene-card">
+                    <div class="card-title"><span class="badge badge-filled">Declassified</span> Phreaking Origins</div>
+                    <div class="scene-text">
+                        <p>The first file opens with a name that would become legend: <span class="text-cyan">John Thomas Draper</span>, known to the underground as <span class="text-cyan">Captain Crunch</span>.</p>
+                        <p>In <span class="text-cyan">1963</span>, Draper made a discovery that would seed an entire subculture. A toy whistle included in boxes of Cap'n Crunch cereal emitted a precise <span class="text-cyan">2600-hertz tone</span> — the exact frequency AT&T's long-distance telephone system used as a control signal.</p>
+                        <p>By blowing this whistle into a phone receiver, Draper could bypass the billing system entirely. Free long-distance calls. A toy whistle from a cereal box had cracked the most powerful telecommunications network on Earth.</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://PHREAKING/INTERVIEW_TRANSCRIPT</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-cyan">"It wasn't about free phone calls. It was about understanding the system. The phone network was this enormous machine, and we were the first people to realize you could talk to it."</p>
+                        <p class="terminal-output text-muted">-- J.T. Draper, interview fragment, undated</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The movement Draper spawned — <span class="text-cyan">phreaking</span> — became the philosophical ancestor of modern hacking. It wasn't about theft. It was about exploration. Understanding how systems worked by probing their edges.</p>
+                        <p>Two decades later, in <span class="text-cyan">January 1984</span>, the underground found its voice: <span class="text-cyan">2600: The Hacker Quarterly</span> published its first issue, named after that same 2600-hertz tone. Edited by a figure known only as <span class="text-cyan">Emmanuel Goldstein</span> — a pen name borrowed from Orwell — the magazine became the bible of information freedom and digital resistance.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'In 1963, John Draper discovered a Cap\'n Crunch cereal whistle emitted a 2600-hertz tone that could bypass AT&T\'s long-distance billing system, founding the "phreaking" movement',
+            choices: [
+                { text: 'Continue to ARPANET files', next: 'arpanet' },
+                { text: 'Jump ahead to encryption wars', next: 'encryption' }
+            ]
+        },
+
+        // ---- SCENE 4: ARPANET GENESIS ----
+        arpanet: {
+            title: 'First Contact',
+            content: `
+                <div class="scene-title-bar">FIRST_CONTACT // 1969</div>
+                <div class="scene-card">
+                    <div class="card-title"><span class="badge">Declassified</span> ARPANET Genesis</div>
+                    <div class="scene-text">
+                        <p><span class="text-cyan">October 29, 1969. 10:30 PM.</span></p>
+                        <p>In a lab at UCLA, a young programmer named <span class="text-cyan">Charles Kline</span> sat at an SDS Sigma 7 computer and attempted to send a message to a machine at Stanford Research Institute, 350 miles away. He was trying to type "LOGIN."</p>
+                        <p>He got as far as <span class="text-cyan effect-glitch" style="font-family: var(--font-display); font-size: 1.2em;">"LO"</span> before the system crashed.</p>
+                        <p>It was the first message ever sent over the ARPANET — the network that would evolve into the internet. And it failed halfway through. A fitting metaphor for every digital system that would follow: ambitious, fragile, and profoundly transformative despite its imperfections.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/b/bf/Arpanet_logical_map%2C_march_1977.png" alt="ARPANET logical map, March 1977" style="max-width: 100%; height: auto; border: 1px solid var(--neon-cyan); opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; font-family: 'Share Tech Mono', monospace;">ARPANET logical map, March 1977</div></div>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://ARPANET/MEMO_1969</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-cyan">"We set up a telephone connection between us and the guys at SRI... We typed the L and we asked on the phone, 'Do you see the L?' 'Yes, we see the L,' came the response. We typed the O, and asked, 'Do you see the O?' 'Yes, we see the O.' Then we typed the G, and the system crashed."</p>
+                        <p class="terminal-output text-muted">-- Charles Kline, recollection of the first ARPANET transmission</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The archived documents reveal something the history books often skip: the early ARPANET engineers were <span class="text-cyan">idealists</span>. They believed in open access, shared resources, collaborative research. The network was built on trust — no passwords, no firewalls, no encryption.</p>
+                        <p>But buried deeper in the archive, you find internal memos from military contractors. Even then, some people saw the network not as a tool for liberation, but as infrastructure for <span class="text-pink">control</span>.</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span class="text-muted">ARCHIVE_DOWNLOAD</span>
+                        <span class="text-cyan">34%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 34%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: 'On October 29, 1969, at 10:30 PM, Charles Kline sent the first ARPANET message from UCLA to Stanford. He typed "LOGIN" but only "LO" transmitted before the system crashed',
+            choices: [
+                { text: 'Follow the idealists — encryption uprising', next: 'encryption' },
+                { text: 'Follow the money — web liberation', next: 'web_liberation' }
+            ]
+        },
+
+        // ---- SCENE 5: ENCRYPTION UPRISING ----
+        encryption: {
+            title: 'Cypherpunk Manifesto',
+            content: `
+                <div class="scene-title-bar">CYPHERPUNK_MANIFESTO // 1991</div>
+                <div class="scene-alert scene-alert-danger">
+                    <div class="alert-title"><span class="text-pink">Security Alert</span></div>
+                    <div class="scene-text">
+                        <p>The corporate AI has intensified its scanning. Your connection is being probed. Proceed with caution.</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="card-title"><span class="badge badge-pink">Encrypted</span> The Crypto Wars</div>
+                    <div class="scene-text">
+                        <p>The archive jumps forward to <span class="text-cyan">1991</span>. A software engineer named <span class="text-cyan">Phil Zimmermann</span> was about to change the balance of power between citizens and governments forever.</p>
+                        <p>Zimmermann released <span class="text-cyan">Pretty Good Privacy (PGP)</span> — encryption software so strong that the US government classified it as a <span class="text-pink">munition</span>. The same legal category as missiles and tanks. For the first time in history, ordinary people could communicate with military-grade secrecy.</p>
+                        <p>The government launched a criminal investigation against Zimmermann that lasted three years. They wanted to prosecute him for "exporting weapons" — because someone had uploaded PGP to the internet, making it available worldwide.</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://CRYPTO/CYPHERPUNK_MANIFESTO</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-cyan">"Privacy is necessary for an open society in the electronic age. Privacy is not secrecy. A private matter is something one doesn't want the whole world to know, but a secret matter is something one doesn't want anybody to know. Privacy is the power to selectively reveal oneself to the world."</p>
+                        <p class="terminal-output text-muted">-- Eric Hughes, A Cypherpunk's Manifesto, 1993</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The <span class="text-cyan">cypherpunk movement</span> emerged from this fight. They believed that cryptography was the last defense of individual freedom in the digital age. Without encryption, every communication, every transaction, every thought expressed online would be visible to anyone with the power to look.</p>
+                        <p>Meanwhile, in <span class="text-cyan">1988</span>, a different kind of event had already proven how vulnerable the network was. Robert Tappan Morris, a graduate student at Cornell, released what became known as the <span class="text-pink">Morris Worm</span> — a self-replicating program that infected approximately <span class="text-cyan">6,000 computers</span> across ARPANET. Morris became the <span class="text-cyan">first person convicted</span> under the Computer Fraud and Abuse Act on <span class="text-cyan">November 2, 1988</span>.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Robert Tappan Morris released the Morris Worm on November 2, 1988, infecting ~6,000 ARPANET computers. He became the first person convicted under the Computer Fraud and Abuse Act',
+            choices: [
+                { text: 'Continue to web liberation', next: 'web_liberation' },
+                { text: 'Jump to the dot-com boom', next: 'internet_boom' }
+            ]
+        },
+
+        // ---- SCENE 6: WEB LIBERATION ----
+        web_liberation: {
+            title: 'The Free Code',
+            content: `
+                <div class="scene-title-bar">THE_FREE_CODE // 1989-1993</div>
+                <div class="scene-card">
+                    <div class="card-title"><span class="badge badge-green badge-filled">Verified</span> The Invention of the Web</div>
+                    <div class="scene-text">
+                        <p>In <span class="text-cyan">March 1989</span>, a British scientist working at CERN in Switzerland wrote a document with an unassuming title: <span class="text-cyan">"Information Management: A Proposal."</span> He originally called his idea "Mesh."</p>
+                        <p>His name was <span class="text-cyan">Tim Berners-Lee</span>, and what he proposed would become the <span class="text-cyan">World Wide Web</span>.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/8/83/Tim_Berners-Lee-Knight-crop.jpg" alt="Tim Berners-Lee — inventor of the World Wide Web" style="max-width: 100%; height: auto; border: 1px solid var(--neon-cyan); opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; font-family: 'Share Tech Mono', monospace;">Tim Berners-Lee — inventor of the World Wide Web</div></div>
+                        <p>By <span class="text-cyan">late 1990</span>, Berners-Lee had built the first web browser, the first web server, and the first version of HTML — all running on a NeXT computer at CERN. The first web page went live by the end of the year.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/First_Web_Server.jpg" alt="Tim Berners-Lee's NeXT computer — the first web server, 1990" style="max-width: 100%; height: auto; border: 1px solid var(--neon-cyan); opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; font-family: 'Share Tech Mono', monospace;">Tim Berners-Lee's NeXT computer — the first web server, 1990</div></div>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://WWW/CERN_MEMO_1993</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-green">CERN OFFICIAL ANNOUNCEMENT</p>
+                        <p class="terminal-output text-green">DATE: April 30, 1993</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output text-cyan">"CERN relinquishes all intellectual property rights to this code, both source and binary form, and permission is granted for anyone to use, duplicate, modify and redistribute it."</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output text-green">STATUS: PUBLIC DOMAIN</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>On <span class="text-cyan">April 30, 1993</span>, CERN made one of the most consequential decisions in human history: they released the World Wide Web software into the <span class="text-cyan">public domain</span>. Free. For anyone. No license fees, no royalties, no restrictions.</p>
+                        <p>This single act sparked an explosion of creativity and innovation. Within months, new browsers appeared. Websites multiplied from dozens to hundreds to thousands. The democratic internet the early pioneers had dreamed of was becoming real.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ea/NCSA_Mosaic_Browser_Screenshot.png" alt="NCSA Mosaic — the browser that brought the web to the masses, 1993" style="max-width: 100%; height: auto; border: 1px solid var(--neon-cyan); opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(5, 217, 232, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; font-family: 'Share Tech Mono', monospace;">NCSA Mosaic — the browser that brought the web to the masses, 1993</div></div>
+                        <p>But the archive contains a darker thread. Alongside the euphoria of open access, you find evidence that the <span class="text-pink">European Data Protection Directive of 1995</span> was already grappling with a fundamental tension: the same open network that liberated information also made personal data vulnerable to exploitation on an unprecedented scale.</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span class="text-muted">ARCHIVE_DOWNLOAD</span>
+                        <span class="text-cyan">58%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 58%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: 'On April 30, 1993, CERN released the World Wide Web into the public domain — free for anyone, with no fees. Tim Berners-Lee had built the first browser, server, and HTML on a NeXT computer in 1990',
+            choices: [
+                { text: 'Follow the gold rush', next: 'internet_boom' },
+                { text: 'Investigate the surveillance thread', next: 'surveillance' }
+            ]
+        },
+
+        // ---- SCENE 7: INTERNET BOOM ----
+        internet_boom: {
+            title: 'Gold Rush',
+            content: `
+                <div class="scene-title-bar">GOLD_RUSH // 1995-2000</div>
+                <div class="scene-card">
+                    <div class="card-title"><span class="badge badge-yellow badge-filled">Warning</span> Dot-Com Bubble</div>
+                    <div class="scene-text">
+                        <p>The archive's next section reads like a fever dream. By <span class="text-cyan">1995</span>, venture capital was flooding into internet startups at an unprecedented rate. Companies with no revenue, no business model, and sometimes no actual product were valued at billions of dollars.</p>
+                        <p>The files contain IPO announcements, stock charts, and internal emails that chronicle the madness:</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://DOTCOM/MARKET_DATA</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-green">NASDAQ COMPOSITE INDEX</p>
+                        <p class="terminal-output">1995: ~1,000 points</p>
+                        <p class="terminal-output">1997: ~1,500 points</p>
+                        <p class="terminal-output">1999: ~4,000 points</p>
+                        <p class="terminal-output text-yellow">March 10, 2000: 5,048.62 points</p>
+                        <p class="terminal-output text-muted">---</p>
+                        <p class="terminal-output text-pink">600% increase in 5 years</p>
+                        <p class="terminal-output text-pink">Total venture capital deployed: unprecedented</p>
+                        <p class="terminal-output terminal-error">BUBBLE CRITICAL MASS DETECTED</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>You scroll through the archived documents and find the names of companies that burned through millions in months: Pets.com, Webvan, Kozmo.com, eToys. Each one a monument to the belief that the internet had repealed the laws of economics.</p>
+                        <p>But buried among the hype, you find something else: emails from analysts who saw the crash coming. Who warned that companies valued at billions with zero profit couldn't sustain. They were ignored. Called dinosaurs. Told they "didn't get it."</p>
+                        <p>Meanwhile, at <span class="text-cyan">2600: The Hacker Quarterly</span> — still publishing since its <span class="text-cyan">January 1984</span> launch, still edited by <span class="text-cyan">Emmanuel Goldstein</span> — the underground watched the gold rush with a mix of horror and dark amusement. The network they had explored as pioneers was being colonized by people who saw only dollar signs.</p>
+                    </div>
+                </div>
+            `,
+            fact: '2600: The Hacker Quarterly first published in January 1984, named after the 2600-hertz phreaker frequency, edited by Emmanuel Goldstein (a pen name from Orwell). It became the underground bible of digital resistance',
+            choices: [
+                { text: 'Watch it all crash', next: 'bubble_burst' },
+                { text: 'Look into the hackers instead', next: 'hacker_legends' }
+            ]
+        },
+
+        // ---- SCENE 8: BUBBLE BURST ----
+        bubble_burst: {
+            title: 'The Crash',
+            content: `
+                <div class="scene-title-bar glitch-text">THE_CRASH // 2000-2002</div>
+                <div class="scene-alert scene-alert-danger">
+                    <div class="alert-title"><span class="text-pink effect-corrupt">CRITICAL ALERT</span></div>
+                    <div class="scene-text">
+                        <p>The corporate security AI has escalated its response. Your download is being throttled. You can feel the ICE probing your defenses.</p>
+                    </div>
+                </div>
+                <div class="scene-card scene-card-highlight">
+                    <div class="card-title"><span class="badge badge-pink badge-filled">Critical</span> Market Collapse</div>
+                    <div class="scene-text">
+                        <p>On <span class="text-pink">March 10, 2000</span>, the NASDAQ Composite peaked at <span class="text-pink">5,048.62 points</span>. It had risen 600% in five years.</p>
+                        <p>Then it fell.</p>
+                        <p>And kept falling.</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://CRASH/TIMELINE</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-pink">NASDAQ DECLINE TIMELINE:</p>
+                        <p class="terminal-output">March 2000: 5,048.62 <span class="text-yellow">[PEAK]</span></p>
+                        <p class="terminal-output">December 2000: 2,470.52 <span class="text-pink">[-51%]</span></p>
+                        <p class="terminal-output">September 2001: 1,498.80 <span class="text-pink">[-70%]</span></p>
+                        <p class="terminal-output">October 2002: 1,139.90 <span class="text-pink">[-76.81%]</span></p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output terminal-error">TOTAL VALUE DESTROYED: $1.755 TRILLION</p>
+                        <p class="terminal-output terminal-error">INTERNET STOCKS DECLINED: 75% FROM HIGHS</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output text-muted">Pets.com: BANKRUPT</p>
+                        <p class="terminal-output text-muted">Webvan: BANKRUPT</p>
+                        <p class="terminal-output text-muted">WorldCom: BANKRUPT (fraud)</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The NASDAQ plummeted <span class="text-pink">76.81%</span> from its peak to its trough on October 4, 2002, wiping out <span class="text-pink">$1.755 trillion</span> in market value. Internet stocks declined 75% from their highs. Companies that had been worth billions evaporated overnight.</p>
+                        <p>The crash wasn't just financial. It was ideological. The dream that the internet would democratize wealth, that anyone with a good idea could become a millionaire — that dream died in the wreckage of Pets.com's IPO and WorldCom's accounting fraud.</p>
+                        <p>But the archive shows something the mainstream narrative missed: while the gold-rushers burned, the <span class="text-cyan">builders kept building</span>. Open-source projects. Infrastructure. The technologies that would eventually become the backbone of the modern web. The crash cleared the speculators and left the people who actually cared about the network.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'The NASDAQ peaked at 5,048.62 on March 10, 2000, then crashed 76.81% by October 2002, wiping out $1.755 trillion. Companies like Pets.com, Webvan, and WorldCom collapsed',
+            choices: [
+                { text: 'Investigate the surveillance apparatus', next: 'surveillance' },
+                { text: 'Look into the hacker legends', next: 'hacker_legends' }
+            ]
+        },
+
+        // ---- SCENE 9: SURVEILLANCE ----
+        surveillance: {
+            title: 'The Hidden Infrastructure',
+            content: `
+                <div class="scene-title-bar glitch-text">HIDDEN_INFRASTRUCTURE</div>
+                <div class="scene-alert scene-alert-danger">
+                    <div class="alert-title"><span class="text-pink">ICE Breach Warning</span></div>
+                    <div class="scene-text">
+                        <p>Multiple intrusion countermeasure systems have locked onto your session. The security AI knows exactly where you are. Time is running out.</p>
+                    </div>
+                </div>
+                <div class="scene-card scene-card-highlight">
+                    <div class="card-title"><span class="badge badge-pink">Compromised</span> Parallel Architecture</div>
+                    <div class="scene-text">
+                        <p>This section of the archive is the most heavily encrypted — and the most disturbing. While the internet expanded as a tool for freedom, communication, and commerce, a parallel infrastructure was being constructed in the shadows.</p>
+                        <p>The <span class="text-pink">European Data Protection Directive of 1995</span> was the first major legal framework attempting to protect personal data in the digital age. But the archived documents show it was also a response to capabilities that already existed — surveillance systems that could monitor network traffic at scale.</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://CLASSIFIED/SURVEILLANCE</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-pink">CLASSIFIED — INTERNAL MEMO</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output">"The same infrastructure that enables open communication enables comprehensive monitoring. Every packet has a sender. Every connection has a log. The architecture of freedom is also the architecture of surveillance."</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output text-muted">Source: Redacted corporate memo, c. 1996</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The contradiction is devastating: <span class="text-cyan">freedom and control</span> developed simultaneously, using the same networks, the same protocols, the same infrastructure. The idealists who built the open internet also built the panopticon. Not intentionally. But inevitably.</p>
+                        <p>This is why Phil Zimmermann created PGP. This is why the cypherpunks fought for encryption. They saw what was coming before anyone else did: that in a networked world, privacy would have to be actively defended or it would cease to exist.</p>
+                        <p>You are now deep enough in the archive to see the full picture. The question is: what do you do with it?</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span class="text-muted">ARCHIVE_DOWNLOAD</span>
+                        <span class="text-cyan">87%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 87%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: 'The European Data Protection Directive of 1995 was the first major legal framework protecting personal data in the digital age, establishing principles still followed today',
+            choices: [
+                { text: 'Review hacker profiles before deciding', next: 'hacker_legends' },
+                { text: 'Go straight to the decision', next: 'decision' }
+            ]
+        },
+
+        // ---- SCENE 10: HACKER LEGENDS ----
+        hacker_legends: {
+            title: 'Icons and Martyrs',
+            content: `
+                <div class="scene-title-bar">ICONS_AND_MARTYRS</div>
+                <div class="scene-card">
+                    <div class="card-title"><span class="badge badge-purple">Classified</span> Kevin Mitnick</div>
+                    <div class="scene-text">
+                        <p>The archive contains profiles of the individuals who defined hacker culture. Not criminals — or not only criminals. Pioneers. People who saw the network as a frontier to be explored, not a system to be obeyed.</p>
+                        <p><span class="text-cyan">Kevin Mitnick</span> — perhaps the most famous hacker in history. In <span class="text-cyan">1989</span>, he infiltrated <span class="text-cyan">Digital Equipment Corporation's</span> network, copying their proprietary operating system software. He spent years evading the FBI, becoming a folk hero in the underground and a bogeyman in the media.</p>
+                        <p>His trial in the mid-1990s captivated the nation and forced a public reckoning with the question: when does curiosity become crime?</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">ARCHIVE://PROFILES/LEGENDS</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-cyan">CAPTAIN CRUNCH (John Draper)</p>
+                        <p class="terminal-output">Status: Phreaking pioneer. Later arrested, served time.</p>
+                        <p class="terminal-output">Legacy: Founded the movement that preceded all digital hacking.</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output text-cyan">KEVIN MITNICK</p>
+                        <p class="terminal-output">Status: Infiltrated DEC systems in 1989. Most-wanted hacker.</p>
+                        <p class="terminal-output">Legacy: His trial defined the legal boundaries of digital exploration.</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output text-cyan">PHIL ZIMMERMANN</p>
+                        <p class="terminal-output">Status: PGP creator. Investigated by US government for 3 years.</p>
+                        <p class="terminal-output">Legacy: Made encryption a civil right.</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output text-cyan">TIM BERNERS-LEE</p>
+                        <p class="terminal-output">Status: Invented the World Wide Web. Gave it away for free.</p>
+                        <p class="terminal-output">Legacy: The single most consequential act of digital generosity in history.</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>These were the people who shaped the digital world. Some broke laws. Some made laws. Some gave away things worth billions. All of them understood something that most people still don't: that the architecture of the network <span class="text-cyan">is</span> the architecture of power.</p>
+                        <p>Whoever controls the network controls the future. And right now, you're holding the evidence that proves it.</p>
+                        <p>The download is almost complete. The security AI is closing in. You need to make a decision.</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span class="text-muted">ARCHIVE_DOWNLOAD</span>
+                        <span class="text-cyan">94%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 94%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: 'Kevin Mitnick infiltrated Digital Equipment Corporation\'s systems in 1989, evading the FBI for years. His mid-1990s trial became one of the most famous hacking cases in history',
+            choices: [
+                { text: 'It is time to decide', next: 'decision' }
+            ]
+        },
+
+        // ---- SCENE 11: THE DECISION ----
+        decision: {
+            title: 'The Decision',
+            content: `
+                <div class="scene-title-bar glitch-text">DECISION_POINT</div>
+                <div class="scene-alert scene-alert-danger">
+                    <div class="alert-title"><span class="text-pink effect-corrupt">CRITICAL: ICE CONVERGENCE IMMINENT</span></div>
+                    <div class="scene-text">
+                        <p>Multiple corporate security systems have triangulated your position. Estimated time to full lockout: <span class="text-pink">3 minutes</span>. Whatever you are going to do, do it now.</p>
+                    </div>
+                </div>
+                <div class="scene-card">
+                    <div class="scene-text">
+                        <p>The download reaches <span class="text-green">100%</span>.</p>
+                        <p>You have the complete archive. Every document, every memo, every classified communication. The full shadow history of the internet — from a cereal box whistle in 1963 to the trillion-dollar crash of 2000. From ARPANET's first "LO" to the surveillance apparatus that grew in its shadow.</p>
+                        <p>The evidence is damning. It shows how digital liberation and corporate control have always been locked in struggle. How the same networks built for freedom became instruments of surveillance. How the idealism of the early pioneers was co-opted by speculators and spies.</p>
+                    </div>
+                </div>
+                <div class="scene-terminal">
+                    <div class="terminal-header">
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-dot"></span>
+                        <span class="terminal-title">SYSTEM://DECISION</span>
+                    </div>
+                    <div class="terminal-body">
+                        <p class="terminal-output text-yellow">ARCHIVE STATUS: COMPLETE</p>
+                        <p class="terminal-output text-yellow">SECURITY STATUS: COMPROMISED</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output">Option A: <span class="text-cyan">RELEASE_ALL</span> — Broadcast archive to distributed networks</p>
+                        <p class="terminal-output">Option B: <span class="text-pink">DELETE_ALL</span> — Purge archive and cover tracks</p>
+                        <p class="terminal-output">Option C: <span class="text-green">ENCRYPT_CACHE</span> — Hide archive for future release</p>
+                        <p class="terminal-output">---</p>
+                        <p class="terminal-output terminal-error">WARNING: All actions are irreversible.</p>
+                    </div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-label">
+                        <span class="text-muted">ARCHIVE_DOWNLOAD</span>
+                        <span class="text-green">100%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+            `,
+            choices: [
+                { text: 'Release everything', next: 'ending_release', class: 'choice-btn' },
+                { text: 'Delete everything', next: 'ending_delete', class: 'choice-btn-danger' },
+                { text: 'Encrypt and hide for later', next: 'ending_cache', class: 'choice-btn' }
+            ]
+        },
+
+        // ---- ENDING A: RELEASE ----
+        ending_release: {
+            title: 'The Broadcast',
+            content: `
+                <div class="scene-title-bar glitch-text">BROADCAST_INITIATED</div>
+                <div class="scene-alert scene-alert-success">
+                    <div class="alert-title"><span class="text-green">Archive Released</span></div>
+                    <div class="scene-text">
+                        <p>Distributing to 14,000 nodes across 47 countries. Estimated propagation time: 6 hours. Recall: impossible.</p>
+                    </div>
+                </div>
+                <div class="scene-ending">
+                    <div class="ending-label">// Transmission Complete //</div>
+                    <div class="ending-title">The Signal</div>
+                    <div class="scene-text">
+                        <p>You release everything. Every document, every classified memo, every piece of evidence showing the parallel histories of digital freedom and digital control. The archive propagates across distributed networks, copied and recopied until no single authority can ever erase it.</p>
+                        <p>Within hours, it is everywhere. Forums, news sites, academic servers, underground networks. The shadow history of the internet is no longer a shadow.</p>
+                        <p>The consequences are immediate. Corporate security traces your identity within days. Your accounts are frozen. Your name appears on lists you will never see. You become a ghost in the system — hunted but untouchable, because the information is already free.</p>
+                        <p>In the underground, they call you a legend. Your handle appears in the same breath as Draper, Mitnick, Zimmermann. You gave away something priceless, just like Berners-Lee gave away the web in 1993.</p>
+                        <p>Personal freedom lost. Collective memory preserved.</p>
+                        <p>The network remembers everything. And now, so does everyone else.</p>
+                    </div>
+                    <div class="the-end">// End of Line //</div>
+                </div>
+                <div class="data-decoration">01010100 01010010 01010101 01010100 01001000 00100000 01010111 01000001 01001110 01010100 01010011 00100000 01010100 01001111 00100000 01000010 01000101 00100000 01000110 01010010 01000101 01000101</div>
+            `,
+            choices: [
+                { text: 'Jack in again', next: '_restart' }
+            ]
+        },
+
+        // ---- ENDING B: DELETE ----
+        ending_delete: {
+            title: 'The Silence',
+            content: `
+                <div class="scene-title-bar"><span class="effect-corrupt">PURGE_INITIATED</span></div>
+                <div class="scene-alert scene-alert-danger">
+                    <div class="alert-title"><span class="text-pink">Archive Destroyed</span></div>
+                    <div class="scene-text">
+                        <p>Executing 7-pass secure wipe. All data irrecoverable. Traces scrubbed from session logs.</p>
+                    </div>
+                </div>
+                <div class="scene-ending">
+                    <div class="ending-label">// Signal Lost //</div>
+                    <div class="ending-title">The Void</div>
+                    <div class="scene-text">
+                        <p>You delete everything. Seven-pass secure wipe. The archive — decades of hidden history, the struggles and sacrifices of pioneers who believed the network should belong to everyone — is gone. Irrecoverable.</p>
+                        <p>You scrub your session logs, wipe your access trails, and disconnect. The corporate security AI finds nothing when it finally reaches your last known position. Just empty sectors and null data.</p>
+                        <p>You survive. Your identity remains hidden. Your accounts stay active. Your life continues exactly as before.</p>
+                        <p>Except now you know. You know that Charles Kline typed "LO" into a machine in 1969 and changed the world. You know that a cereal box whistle cracked a telephone network. You know that Berners-Lee gave away the web for free, and that the crash of 2000 destroyed $1.755 trillion in dreams.</p>
+                        <p>You know all of this, and no one else ever will. The archive is gone. The history stays buried.</p>
+                        <p>Some nights, alone with the glow of your terminal, you wonder: did you choose safety, or complicity?</p>
+                    </div>
+                    <div class="the-end">// End of Line //</div>
+                </div>
+                <div class="data-decoration">00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000</div>
+            `,
+            choices: [
+                { text: 'Jack in again', next: '_restart' }
+            ]
+        },
+
+        // ---- ENDING C: CACHE ----
+        ending_cache: {
+            title: 'The Seed',
+            content: `
+                <div class="scene-title-bar">CACHE_ENCRYPTED</div>
+                <div class="scene-alert scene-alert-info">
+                    <div class="alert-title"><span class="text-cyan">Archive Cached</span></div>
+                    <div class="scene-text">
+                        <p>Encrypting with 4096-bit PGP. Distributing encrypted fragments across 200 dormant servers. Time-locked release: undetermined.</p>
+                    </div>
+                </div>
+                <div class="scene-ending">
+                    <div class="ending-label">// Standing By //</div>
+                    <div class="ending-title">The Sleeper</div>
+                    <div class="scene-text">
+                        <p>You choose the middle path — the cypherpunk path. You encrypt the entire archive using the same kind of PGP encryption that Zimmermann created in 1991, the software so powerful the government classified it as a weapon.</p>
+                        <p>Then you split it into fragments and scatter them across two hundred dormant servers around the world. Each piece is useless without the others. And only you hold the key.</p>
+                        <p>The corporate security AI finds traces of your intrusion but nothing to recover. The archive appears to have been destroyed. You disappear back into the network.</p>
+                        <p>Months pass. The world continues. The same tensions that the archive documented — freedom versus control, privacy versus surveillance, idealism versus profit — continue to play out across the network that Charles Kline's "LO" message first brought to life.</p>
+                        <p>And somewhere in the depths of the infrastructure, encrypted and waiting, the shadow history sleeps. A time capsule from the digital frontier. Ready to be released when the moment is right.</p>
+                        <p>You check your secure drop every morning. Waiting for the sign. The whistle that will crack the system open once more.</p>
+                        <p>After all, that is how it has always started. A signal. A frequency. A voice in the dark, saying: <span class="text-cyan">the truth wants to be free</span>.</p>
+                    </div>
+                    <div class="the-end">// End of Line //</div>
+                </div>
+                <div class="data-decoration">01000101 01001110 01000011 01010010 01011001 01010000 01010100 01000101 01000100 00101110 00101110 00101110 01010111 01000001 01001001 01010100 01001001 01001110 01000111</div>
+            `,
+            choices: [
+                { text: 'Jack in again', next: '_restart' }
+            ]
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STORY ENGINE
+    // ═══════════════════════════════════════════════════════════════
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn, .choice-btn-danger');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            document.getElementById('sessionId').textContent = Math.floor(1000 + Math.random() * 9000);
+            this.goTo('inbox');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 400);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1000);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+            let html = '<div class="scene-content">';
+
+            // Scene content (raw HTML)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact && !this.facts.includes(scene.fact)) {
+                this.addFact(scene.fact);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    const btnClass = choice.class || 'choice-btn';
+                    html += `<button class="${btnClass}" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No data recovered...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => '<div class="fact-item">' + f + '</div>').join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Rain effect
+    function createRain() {
+        const container = document.getElementById('rainContainer');
+        for (let i = 0; i < 50; i++) {
+            const drop = document.createElement('div');
+            drop.className = 'rain-drop';
+            drop.style.left = Math.random() * 100 + '%';
+            drop.style.animationDelay = Math.random() * 2 + 's';
+            drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+            drop.style.height = (Math.random() * 20 + 10) + 'px';
+            container.appendChild(drop);
+        }
+    }
+
+    // Boot
+    createRain();
+    engine.init();
+    </script>
+</body>
+</html>

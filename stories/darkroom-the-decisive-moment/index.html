@@ -1,0 +1,1687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Decisive Moment — A Darkroom Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+            --font-typewriter: 'Special Elite', 'Courier New', monospace;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --darkroom-black: #0d0a08;
+            --darkroom-near-black: #151110;
+            --darkroom-dark: #1a1513;
+            --darkroom-charcoal: #231d1a;
+            --darkroom-warm-gray: #2d2522;
+            --darkroom-medium-gray: #3d3330;
+            --darkroom-light-gray: #5a4d48;
+            --darkroom-pale: #8a7a72;
+
+            --safelight-deep: #4a0d0d;
+            --safelight-dark: #6b1515;
+            --safelight-red: #8b1e1e;
+            --safelight-medium: #a52a2a;
+            --safelight-bright: #c43c3c;
+            --safelight-glow: #d94545;
+
+            --amber-deep: #3d2810;
+            --amber-dark: #5c3d18;
+            --amber-medium: #7a5020;
+            --amber-light: #9a6830;
+            --sepia: #8b7355;
+            --cream: #c4b49a;
+
+            --negative-orange: #c97a4a;
+            --negative-cyan: #4a8a9a;
+            --film-edge: #2a2420;
+
+            --text-primary: #c4b8b0;
+            --text-secondary: #8a7a72;
+            --text-muted: #5a4d48;
+            --text-glow: var(--safelight-glow);
+            --bg-primary: var(--darkroom-black);
+            --bg-secondary: var(--darkroom-near-black);
+            --bg-elevated: var(--darkroom-dark);
+            --border-color: var(--darkroom-warm-gray);
+            --border-subtle: var(--darkroom-charcoal);
+            --accent: var(--safelight-red);
+            --accent-glow: var(--safelight-glow);
+
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+            --transition-slow: 0.4s ease;
+
+            --glow-subtle: 0 0 10px rgba(139, 30, 30, 0.3);
+            --glow-medium: 0 0 20px rgba(139, 30, 30, 0.4), 0 0 40px rgba(139, 30, 30, 0.2);
+            --glow-strong: 0 0 30px rgba(139, 30, 30, 0.5), 0 0 60px rgba(139, 30, 30, 0.3), 0 0 90px rgba(139, 30, 30, 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-mono);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(139, 30, 30, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 30, 30, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(139, 30, 30, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-typewriter);
+            font-weight: 400;
+            line-height: 1.2;
+            letter-spacing: 0.02em;
+            color: var(--text-primary);
+        }
+
+        h1 { font-size: clamp(2.5rem, 6vw, 4.5rem); margin-bottom: var(--space-6); text-shadow: 0 0 30px rgba(139, 30, 30, 0.4); }
+        h2 { font-size: 2rem; margin-bottom: var(--space-5); }
+        h3 { font-size: 1.25rem; margin-bottom: var(--space-4); }
+
+        p { margin-bottom: var(--space-4); max-width: 65ch; }
+
+        .lead { font-size: 1.1rem; line-height: 1.7; color: var(--text-secondary); }
+        .small { font-size: 0.875rem; }
+        .uppercase { text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.75rem; font-weight: 500; }
+
+        .safelight-dot {
+            width: 10px; height: 10px;
+            background: var(--safelight-red);
+            border-radius: 50%;
+            box-shadow: var(--glow-medium);
+            animation: pulse 3s ease-in-out infinite;
+            display: inline-block;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; box-shadow: var(--glow-subtle); }
+            50% { opacity: 1; box-shadow: var(--glow-medium); }
+        }
+
+        @keyframes pulseStrong {
+            0%, 100% { opacity: 0.7; box-shadow: var(--glow-medium); }
+            50% { opacity: 1; box-shadow: var(--glow-strong); }
+        }
+
+        /* Card */
+        .card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            padding: var(--space-6);
+            transition: all var(--transition-base);
+            position: relative;
+            margin-bottom: var(--space-5);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--safelight-red), transparent);
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+        .card:hover { border-color: var(--border-color); transform: translateY(-2px); }
+        .card:hover::before { opacity: 0.6; }
+        .card-number {
+            font-family: var(--font-typewriter);
+            font-size: 3rem; line-height: 1;
+            color: var(--safelight-dark);
+            margin-bottom: var(--space-4);
+            text-shadow: 0 0 20px rgba(139, 30, 30, 0.3);
+        }
+        .card h3 { margin-bottom: var(--space-3); color: var(--text-primary); }
+        .card p { color: var(--text-secondary); margin-bottom: 0; font-size: 0.9rem; }
+
+        /* Badges */
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: var(--space-1) var(--space-3);
+            font-size: 0.65rem; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            font-family: var(--font-mono);
+            border: 1px solid var(--border-color);
+            background: var(--bg-elevated);
+            color: var(--text-secondary);
+        }
+        .badge-safelight { background: var(--safelight-deep); border-color: var(--safelight-dark); color: var(--safelight-glow); box-shadow: var(--glow-subtle); }
+        .badge-amber { background: var(--amber-deep); border-color: var(--amber-dark); color: var(--amber-light); }
+        .badge-negative { background: var(--film-edge); border-color: var(--darkroom-medium-gray); color: var(--negative-orange); }
+        .badge-sepia { background: transparent; border-color: var(--sepia); color: var(--sepia); }
+
+        /* Film Negative */
+        .film-negative {
+            background: var(--film-edge);
+            padding: var(--space-4);
+            border: 2px solid var(--darkroom-medium-gray);
+            position: relative;
+            margin-bottom: var(--space-5);
+        }
+        .film-negative::before, .film-negative::after {
+            content: '';
+            position: absolute; top: 0; bottom: 0; width: 20px;
+            background: repeating-linear-gradient(to bottom, var(--darkroom-charcoal) 0px, var(--darkroom-charcoal) 8px, var(--film-edge) 8px, var(--film-edge) 12px);
+        }
+        .film-negative::before { left: 0; }
+        .film-negative::after { right: 0; }
+        .film-negative-content {
+            margin: 0 var(--space-6);
+            padding: var(--space-4);
+            background: var(--darkroom-near-black);
+            color: var(--negative-orange);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        /* Exposure Info */
+        .exposure-info {
+            display: flex; gap: var(--space-6); padding: var(--space-4);
+            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            font-family: var(--font-mono); font-size: 0.8rem;
+            margin-bottom: var(--space-5); flex-wrap: wrap;
+        }
+        .exposure-item { display: flex; flex-direction: column; gap: var(--space-1); }
+        .exposure-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+        .exposure-value { color: var(--safelight-glow); }
+
+        /* Timer Display */
+        .timer-display {
+            font-family: var(--font-mono); font-size: 2rem;
+            color: var(--safelight-glow); text-shadow: var(--glow-medium);
+            letter-spacing: 0.1em; padding: var(--space-4);
+            background: var(--darkroom-near-black); border: 1px solid var(--safelight-dark);
+            display: inline-block; margin-bottom: var(--space-5);
+        }
+
+        /* Process Steps */
+        .process-steps {
+            display: flex; gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+        .process-step {
+            flex: 1; text-align: center; padding: var(--space-3);
+            background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+            position: relative;
+        }
+        .process-step.active { border-color: var(--safelight-red); box-shadow: var(--glow-subtle); }
+        .process-step-number { font-size: 0.65rem; color: var(--text-muted); margin-bottom: var(--space-1); }
+        .process-step-name { font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.1em; }
+        .process-step.active .process-step-name { color: var(--safelight-glow); }
+
+        /* Contact Sheet */
+        .contact-sheet {
+            display: grid; grid-template-columns: repeat(4, 1fr);
+            gap: 2px; background: var(--darkroom-charcoal);
+            padding: var(--space-3); border: 3px solid var(--film-edge);
+            margin-bottom: var(--space-5);
+        }
+        .contact-frame {
+            aspect-ratio: 3/2; background: var(--darkroom-near-black);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: var(--text-muted);
+            position: relative; overflow: hidden;
+        }
+        .contact-frame::after {
+            content: attr(data-frame);
+            position: absolute; bottom: 2px; right: 4px;
+            font-size: 0.6rem; color: var(--negative-orange);
+            font-family: var(--font-mono);
+        }
+
+        /* Developer Tray */
+        .developer-tray {
+            background: var(--darkroom-charcoal);
+            border: 3px solid var(--darkroom-medium-gray);
+            padding: var(--space-5); position: relative;
+            overflow: hidden; margin-bottom: var(--space-5);
+        }
+        .developer-tray::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(139, 30, 30, 0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* Glow Block */
+        .glow-block {
+            width: 48px; height: 48px;
+            background: var(--safelight-red);
+            box-shadow: var(--glow-strong);
+            margin-bottom: var(--space-5);
+        }
+
+        /* Divider */
+        .divider {
+            height: 1px; background: var(--border-subtle);
+            margin: var(--space-7) 0; position: relative;
+        }
+        .divider::after {
+            content: '';
+            position: absolute; top: 0; left: 25%; right: 25%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--safelight-red), transparent);
+            opacity: 0.4;
+        }
+
+        /* Chemical Formula */
+        .chemical-formula {
+            font-family: var(--font-mono); font-size: 0.8rem;
+            color: var(--amber-light); background: var(--amber-deep);
+            padding: var(--space-2) var(--space-3); display: inline-block;
+            border-left: 2px solid var(--amber-medium);
+        }
+
+        .text-glow { color: var(--safelight-glow); text-shadow: var(--glow-subtle); }
+        .text-amber { color: var(--amber-light); }
+        .text-sepia { color: var(--sepia); }
+
+        /* ===============================================
+           GAME LAYOUT
+        =============================================== */
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===============================================
+           TITLE SCREEN
+        =============================================== */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2rem;
+            padding: 6px 16px;
+            background: var(--safelight-deep);
+            border: 1px solid var(--safelight-dark);
+            color: var(--safelight-glow);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            box-shadow: var(--glow-subtle);
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-typewriter);
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 400;
+            letter-spacing: 0.02em;
+            line-height: 1.1;
+            margin-bottom: 0.5rem;
+            color: var(--safelight-glow);
+            text-shadow: 0 0 30px rgba(139, 30, 30, 0.4);
+        }
+
+        .title-subtitle {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--amber-light);
+            margin-bottom: 2.5rem;
+        }
+
+        .title-tagline {
+            font-family: var(--font-typewriter);
+            color: var(--text-secondary);
+            margin-bottom: 3rem;
+            max-width: 500px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 48px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            border: 1px solid var(--safelight-red);
+            background: var(--safelight-deep);
+            color: var(--safelight-glow);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--safelight-dark);
+            transition: left 0.25s ease;
+            z-index: -1;
+        }
+
+        .title-start:hover {
+            color: var(--text-primary);
+            border-color: var(--safelight-bright);
+            box-shadow: var(--glow-medium);
+        }
+
+        .title-start:hover::before { left: 0; }
+
+        .title-credits {
+            margin-top: 3rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .title-film-strip {
+            display: flex; align-items: center; gap: var(--space-2);
+            padding: var(--space-2) 0; justify-content: center;
+            opacity: 0.3; margin-bottom: 2rem;
+        }
+        .film-hole {
+            width: 8px; height: 12px;
+            background: var(--darkroom-charcoal);
+            border-radius: 2px;
+        }
+
+        /* ===============================================
+           SCENE CONTAINER
+        =============================================== */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 1rem;
+        }
+        .scene-wrapper.active { display: flex; }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+            position: relative;
+        }
+        .scene-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px; left: 25%; right: 25%; height: 1px;
+            background: linear-gradient(90deg, transparent, var(--safelight-red), transparent);
+            opacity: 0.3;
+        }
+
+        .scene-roll-number {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--safelight-red);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .scene-fact-count {
+            font-size: 0.7rem;
+            color: var(--amber-light);
+            letter-spacing: 0.1em;
+        }
+
+        /* ===============================================
+           SCENE CONTENT TYPES
+        =============================================== */
+
+        /* Darkroom scene (main wrapper) */
+        .scene-darkroom {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            padding: 2rem;
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .scene-darkroom .scene-text p { margin-bottom: 1rem; }
+        .scene-darkroom .scene-text p:last-child { margin-bottom: 0; }
+
+        /* Development scene (with tray) */
+        .scene-development {
+            background: var(--darkroom-charcoal);
+            border: 3px solid var(--darkroom-medium-gray);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+        .scene-development::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(139, 30, 30, 0.06) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .scene-development .scene-text { position: relative; z-index: 2; }
+        .scene-development .scene-text p { margin-bottom: 1rem; }
+
+        /* Historical card scene */
+        .scene-historical {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+        .scene-historical::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, var(--safelight-red), transparent);
+            opacity: 0.5;
+        }
+        .scene-historical .scene-text p { margin-bottom: 1rem; }
+
+        /* Ending scene */
+        .scene-ending {
+            text-align: center;
+            padding: 3rem 2rem;
+            margin-bottom: 1.5rem;
+        }
+        .scene-ending .ending-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--safelight-glow);
+            margin-bottom: 1rem;
+        }
+        .scene-ending .ending-title {
+            font-family: var(--font-typewriter);
+            font-size: 2.5rem;
+            letter-spacing: 0.02em;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 30px rgba(139, 30, 30, 0.4);
+            color: var(--safelight-glow);
+        }
+        .scene-ending .scene-text { max-width: 550px; margin: 0 auto; }
+        .scene-ending .scene-text p { margin-bottom: 1rem; color: var(--text-secondary); }
+        .scene-ending .the-end {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: var(--text-muted);
+            margin-top: 2rem;
+            text-transform: uppercase;
+        }
+
+        /* ===============================================
+           FACT FOUND TOAST
+        =============================================== */
+        .fact-found {
+            display: inline-block;
+            background: var(--amber-deep);
+            border-left: 3px solid var(--amber-medium);
+            color: var(--amber-light);
+            padding: 8px 16px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            margin-top: 1.5rem;
+            animation: factSlideIn 0.6s ease-out;
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===============================================
+           CHOICES
+        =============================================== */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--safelight-red);
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+            transform-origin: bottom;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--safelight-red);
+            background: rgba(139, 30, 30, 0.08);
+            padding-left: 28px;
+            box-shadow: var(--glow-subtle);
+        }
+
+        .choice-btn:hover::before { transform: scaleY(1); }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px; height: 22px;
+            border: 1px solid var(--darkroom-medium-gray);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--safelight-red);
+            color: var(--safelight-glow);
+        }
+
+        /* ===============================================
+           TRANSITION
+        =============================================== */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            background: var(--darkroom-black);
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: darkroomFade 1.0s ease-in-out;
+        }
+
+        @keyframes darkroomFade {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            60% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* ===============================================
+           FACT TRACKER (SIDEBAR)
+        =============================================== */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            color: var(--amber-light);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: var(--amber-medium);
+            box-shadow: 0 0 10px rgba(122, 80, 32, 0.3);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: 0.5rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 1rem;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .fact-item {
+            font-size: 0.72rem;
+            color: var(--amber-light);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-subtle);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.4;
+        }
+        .fact-item:last-child { border-bottom: none; }
+        .fact-item .fact-date {
+            font-size: 0.6rem;
+            color: var(--safelight-glow);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .no-facts {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ===============================================
+           CONTROLS
+        =============================================== */
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .ctrl-btn {
+            padding: 8px 16px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid var(--border-subtle);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--safelight-red);
+            color: var(--text-primary);
+        }
+
+        /* Scene fade in */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Journal text */
+        .journal-text {
+            font-family: var(--font-typewriter);
+            color: var(--cream);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            padding: var(--space-4);
+            background: rgba(61, 40, 16, 0.3);
+            border-left: 2px solid var(--amber-medium);
+            margin: var(--space-4) 0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--darkroom-medium-gray); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--safelight-dark); }
+        ::selection { background: var(--safelight-dark); color: var(--text-primary); }
+
+        /* ===============================================
+           RESPONSIVE
+        =============================================== */
+        @media (max-width: 600px) {
+            .game-container { padding: 1rem; }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 220px; }
+            .process-steps { flex-wrap: wrap; }
+            .process-step { flex: 1 1 40%; }
+            .exposure-info { gap: var(--space-3); }
+            .contact-sheet { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Transition overlay -->
+    <div class="transition-overlay" id="transition"></div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span class="safelight-dot" style="width:6px;height:6px;"></span>
+            <span>Discoveries</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Historical Facts Uncovered</h4>
+            <div id="factList">
+                <p class="no-facts">No discoveries yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-film-strip">
+                <span class="film-hole"></span><span class="film-hole"></span><span class="film-hole"></span>
+                <span class="film-hole"></span><span class="film-hole"></span><span class="film-hole"></span>
+                <span class="film-hole"></span><span class="film-hole"></span><span class="film-hole"></span>
+                <span class="film-hole"></span><span class="film-hole"></span><span class="film-hole"></span>
+            </div>
+            <div class="title-badge">
+                <span class="safelight-dot" style="width:6px;height:6px;"></span>
+                Safelight Active
+            </div>
+            <h1>The Decisive Moment</h1>
+            <div class="title-subtitle">An Interactive Darkroom Story</div>
+            <p class="title-tagline">"The simultaneous recognition, in a fraction of a second, of the significance of an event as well as of a precise organization of forms which give that event its proper expression."</p>
+            <button class="title-start" id="startBtn">Enter the Darkroom</button>
+            <p class="title-credits">A story of light, chemistry, and memory</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-roll-number">
+                    <span class="safelight-dot" style="width:6px;height:6px;"></span>
+                    Roll #001
+                </span>
+
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===============================================================
+    //  THE DECISIVE MOMENT — Story Data
+    // ===============================================================
+
+    const STORY = {
+
+        // --- SCENE 1: The Inheritance ---
+        darkroom_01: {
+            type: 'darkroom',
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">Red Light in the Basement</h3>
+                <div class="scene-text">
+                    <p>The house smells of dust and old paper. Your grandfather passed three weeks ago, and the estate lawyer handed you the keys with a note: <em>"He wanted you to have the basement."</em></p>
+                    <p>You descend the narrow stairs. At the bottom, your hand finds a switch. A single bulb ignites overhead — not white, but a deep, penetrating red. A safelight. The signature illumination of a photographic darkroom.</p>
+                    <div class="glow-block" style="margin: var(--space-5) 0;"></div>
+                    <p>The red glow reveals an entire world down here. Enlargers mounted on heavy wooden tables. Shallow trays lined up in rows. Bottles of chemicals, some still sealed, others half-used. Tongs, thermometers, drying clips strung on wire like holiday lights for ghosts.</p>
+                    <p>And on the center table: a locked wooden box. Heavy. Old. The key hangs from a hook on the wall, labeled in your grandfather's hand: <em>"Open when ready."</em></p>
+                </div>
+            `,
+            choices: [
+                { text: 'Turn the key and open the box', next: 'darkroom_02' },
+                { text: 'Examine the darkroom equipment first', next: 'darkroom_02b' }
+            ]
+        },
+
+        // --- SCENE 2a: The Box ---
+        darkroom_02: {
+            type: 'darkroom',
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">The Box of Canisters</h3>
+                <div class="scene-text">
+                    <p>The lock turns with a satisfying click. Inside, nestled in velvet-lined compartments, you find them: twelve film canisters, each labeled in your grandfather's meticulous handwriting. Dates span from the 1920s to 1960. Beside them, a leather-bound journal.</p>
+                    <p>You open the journal to the first page. The handwriting is young and sharp:</p>
+                    <div class="journal-text">
+                        "Photography is not about cameras. It is about light, chemistry, and time. To understand where we are going, we must first understand where we came from. These rolls contain my life's study — the complete history of the photographic art, recreated and documented by my own hand."
+                    </div>
+                    <p>A loose photograph slips from between the pages. A young man in a darkroom, chemicals staining his fingers, grinning at the camera. On the back, in faded pencil: <em>"Paris, 1945."</em></p>
+                    <p>Your grandfather. Decades before you knew him.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Read the journal entries in chronological order', next: 'darkroom_03' },
+                { text: 'Begin developing the oldest canister immediately', next: 'darkroom_03' }
+            ]
+        },
+
+        // --- SCENE 2b: Equipment ---
+        darkroom_02b: {
+            type: 'development',
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">The Photographer's Workshop</h3>
+                <div class="scene-text">
+                    <p>You run your fingers across the equipment. Everything is immaculate, as if your grandfather cleaned this room the day before he died. Perhaps he did.</p>
+                    <div class="exposure-info">
+                        <div class="exposure-item">
+                            <span class="exposure-label">Enlarger</span>
+                            <span class="exposure-value">Omega D-2</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Lens</span>
+                            <span class="exposure-value">50mm f/2.8</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Timer</span>
+                            <span class="exposure-value">GraLab 300</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Paper</span>
+                            <span class="exposure-value">Ilford RC</span>
+                        </div>
+                    </div>
+                    <p>On the shelf above the enlarger, reference books: histories of Daguerre, Fenton, Cameron, Eastman, Adams. Beside them, a locked wooden box and a leather-bound journal. Whatever your grandfather was doing down here, it was more than a hobby. It was a lifelong pursuit.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Open the wooden box', next: 'darkroom_02' }
+            ]
+        },
+
+        // --- SCENE 3: Preparing the Chemicals ---
+        darkroom_03: {
+            type: 'development',
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">The Mixture</h3>
+                <div class="scene-text">
+                    <p>Before you can develop anything, you need to prepare the chemical baths. Your grandfather's journal includes a precise mixing guide, updated over decades of practice. Three trays. Three stages. One chance to get it right.</p>
+                    <div class="process-steps">
+                        <div class="process-step active">
+                            <div class="process-step-number">01</div>
+                            <div class="process-step-name">Developer</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-step-number">02</div>
+                            <div class="process-step-name">Stop Bath</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-step-number">03</div>
+                            <div class="process-step-name">Fixer</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-step-number">04</div>
+                            <div class="process-step-name">Wash</div>
+                        </div>
+                    </div>
+                    <p>You measure the developer concentrate, dilute it with water at exactly 20 degrees Celsius, and pour it into the first tray. The stop bath — acetic acid, sharp and vinegar-like — goes into tray two. The fixer, sodium thiosulfate, into tray three. Your grandfather's notes are exact: ratios, temperatures, times.</p>
+                    <div class="developer-tray">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span class="uppercase" style="color: var(--text-secondary);">Developer Tray 01</span>
+                            <span class="badge badge-safelight">Ready</span>
+                        </div>
+                        <div style="margin-top: var(--space-4); color: var(--text-secondary); font-size: 0.85rem;">
+                            D-76 working solution at 20C. The liquid catches the red safelight and holds it like dark wine.
+                        </div>
+                    </div>
+                    <p>The first canister is labeled simply: <em>"1822-1827 / The Beginning."</em></p>
+                </div>
+            `,
+            choices: [
+                { text: 'Follow your grandfather\'s recipe exactly', next: 'darkroom_04' },
+                { text: 'Adjust the temperature slightly warmer for faster results', next: 'darkroom_04_fast' }
+            ]
+        },
+
+        // --- SCENE 4: First Development (Niepce) ---
+        darkroom_04: {
+            type: 'development',
+            fact: { date: '1826-1827', text: 'The oldest surviving photograph — "View from the Window at Le Gras" — was created by Nicephore Niepce around 1826-1827, requiring an 8-hour exposure of a polished pewter plate coated with bitumen of Judea.' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">Eight Hours of Light</h3>
+                <div class="scene-text">
+                    <p>You follow the recipe precisely. The first negative slides into the developer tray and you wait, watching the safelight reflected in the liquid surface.</p>
+                    <div class="timer-display">00:09:30</div>
+                    <p>Slowly, shapes emerge from the chemical bath. Not a photograph your grandfather took — but a <em>recreation</em>. His handwritten notes appear in the margins of the image, surrounding a carefully composed study of light through a window.</p>
+                    <div class="film-negative">
+                        <div class="film-negative-content">
+                            ROLL 01 / FRAME 01 — "View from the Window at Le Gras" (recreation)<br>
+                            Niepce, c. 1826-1827 / Heliography / 8-hour exposure<br>
+                            Pewter plate / Bitumen of Judea
+                        </div>
+                    </div>
+                    <p>Your grandfather's journal entry for this roll reads:</p>
+                    <div class="journal-text">
+                        "Nicephore Niepce called his process heliography — 'sun drawing.' In 1822, he began experiments with light-sensitive materials. By 1826 or 1827, he created the world's first permanent photograph from his window at Le Gras. Eight hours of exposure. Eight hours of patience. The image is crude, ghostly, barely recognizable. But it is the beginning of everything."
+                    </div>
+                    <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5c/View_from_the_Window_at_Le_Gras%2C_Joseph_Nic%C3%A9phore_Ni%C3%A9pce.jpg" alt="View from the Window at Le Gras — the world's first photograph, Niépce, c. 1826" style="max-width: 100%; height: auto; filter: contrast(1.1) brightness(0.9); border: 1px solid #8b1e1e; opacity: 0.8; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(139, 30, 30, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #886655;">View from the Window at Le Gras — the world's first photograph, Niépce, c. 1826</div></div>
+                </div>
+            `,
+            choices: [
+                { text: 'Develop the next canister: 1839 / Daguerre', next: 'darkroom_05' },
+                { text: 'Study this photograph more carefully', next: 'darkroom_04_study' }
+            ]
+        },
+
+        darkroom_04_fast: {
+            type: 'development',
+            fact: { date: '1822', text: 'French inventor Nicephore Niepce created the world\'s first permanent photographic image around 1822 using a process he called heliography ("sun drawing"), which used the hardening of bitumen when exposed to sunlight.' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">Impatience Has a Cost</h3>
+                <div class="scene-text">
+                    <p>You warm the developer two degrees above the recommended temperature. Faster development, you think. Your grandfather's notes warned against this. You push forward anyway.</p>
+                    <p>The image emerges quickly — too quickly. The contrast is harsh, the details muddy. But you can still make out the composition: a recreation of a view through a window, surrounded by handwritten notes about a French inventor.</p>
+                    <div class="film-negative">
+                        <div class="film-negative-content">
+                            ROLL 01 / FRAME 01 — "View from the Window" (recreation)<br>
+                            Niepce, c. 1822 / Heliography process<br>
+                            [OVERDEVELOPED — detail lost in shadows]
+                        </div>
+                    </div>
+                    <p>The journal entry is still legible enough to read:</p>
+                    <div class="journal-text">
+                        "Niepce called it heliography — 'sun drawing.' Around 1822, he began his experiments. He used the hardening of bitumen under sunlight to create permanent images. Patience was the price. Ironic, that the first photograph demanded more patience than any that followed."
+                    </div>
+                    <p>You learn the lesson: in darkroom work, precision matters. You reset the temperature for the next canister.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Develop the next canister: 1839 / Daguerre', next: 'darkroom_05' }
+            ]
+        },
+
+        darkroom_04_study: {
+            type: 'historical',
+            fact: { date: '1826-1827', text: 'Niepce\'s "View from the Window at Le Gras" required an 8-hour exposure of a polished pewter plate coated with bitumen of Judea — the first permanent photograph ever made.' },
+            html: `
+                <h3 style="color:var(--amber-light); margin-bottom:var(--space-5);">The Weight of Eight Hours</h3>
+                <div class="scene-text">
+                    <p>You hold the print under the safelight and study every detail. Your grandfather didn't just recreate the image — he annotated it obsessively. In the white margins, tiny handwriting catalogs every technical detail of Niepce's achievement.</p>
+                    <div class="card">
+                        <div class="card-number">01</div>
+                        <h3>Heliography</h3>
+                        <p>Niepce coated a polished pewter plate with bitumen of Judea. Areas hit by sunlight hardened; unexposed areas were washed away with lavender oil. The result: a permanent image, requiring 8 hours of continuous exposure. One single moment, stretched across an entire working day.</p>
+                    </div>
+                    <p>You realize your grandfather was doing more than preserving history. He was <em>understanding</em> it — experiencing each era of photography by recreating its conditions. The patience required to study this single image mirrors the patience Niepce needed to create the original.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Develop the next canister: 1839 / Daguerre', next: 'darkroom_05' }
+            ]
+        },
+
+        // --- SCENE 5: Daguerre's Gift to the World ---
+        darkroom_05: {
+            type: 'historical',
+            fact: { date: 'August 19, 1839', text: 'The French government presented photography as "a gift from France to the world" when Francois Arago formally announced the complete daguerreotype process to a joint meeting of the Academy of Science and Academy of Fine Arts in Paris.' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">August 19, 1839</h3>
+                <div class="scene-text">
+                    <p>The second canister yields four frames. Each one depicts a different aspect of the daguerreotype revolution — your grandfather's recreations of the process that made photography real.</p>
+                    <div class="contact-sheet">
+                        <div class="contact-frame" data-frame="1839-A">Academy</div>
+                        <div class="contact-frame" data-frame="1839-B">Arago</div>
+                        <div class="contact-frame" data-frame="1839-C">Plate</div>
+                        <div class="contact-frame" data-frame="1839-D">Gift</div>
+                    </div>
+                    <p>Frame 1839-A shows a grand hall — your grandfather's recreation of the joint meeting of the French Academy of Science and Academy of Fine Arts. Frame 1839-D contains his most detailed annotation:</p>
+                    <div class="journal-text">
+                        "On August 19, 1839, politician Francois Arago announced the daguerreotype to the world. On June 13, 1837, Louis-Jacques-Mande Daguerre had signed the final contract naming him sole inventor of the process. The French government purchased the rights and presented photography as 'a gift from France to the world.' Free for anyone to use. Imagine: the most important visual technology in human history, given away."
+                    </div>
+                    <div class="exposure-info">
+                        <div class="exposure-item">
+                            <span class="exposure-label">Process</span>
+                            <span class="exposure-value">Daguerreotype</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Surface</span>
+                            <span class="exposure-value">Silver-plated copper</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Fixing Agent</span>
+                            <span class="exposure-value">Mercury vapor</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Era</span>
+                            <span class="exposure-value">1839-1860s</span>
+                        </div>
+                    </div>
+                    <p>The daguerreotype became the dominant form of photography for the first twenty years of picture-making. Your grandfather's notes record the technical details: a polished copper plate coated with silver iodide, developed with mercury vapor to fix the permanent image.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Develop the Crimean War canister: 1855', next: 'darkroom_06' },
+                { text: 'Skip ahead to the Victorian era', next: 'darkroom_07' }
+            ]
+        },
+
+        // --- SCENE 6: Fenton's Crimean War ---
+        darkroom_06: {
+            type: 'development',
+            fact: { date: 'March-June, 1855', text: 'Roger Fenton spent fewer than four months (March 8 - June 26, 1855) documenting the Crimean War, producing 360 photographs with two assistants and a horse-drawn photographer\'s van. Primitive technology forced all scenes to be posed.' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">Valley of the Shadow</h3>
+                <div class="scene-text">
+                    <p>Three photographs emerge from the third roll, each more haunting than the last. Your grandfather recreated key moments from Roger Fenton's 1855 Crimean War documentation.</p>
+                    <div class="process-steps">
+                        <div class="process-step">
+                            <div class="process-step-number">01</div>
+                            <div class="process-step-name">Developer</div>
+                        </div>
+                        <div class="process-step active">
+                            <div class="process-step-number">02</div>
+                            <div class="process-step-name">Stop Bath</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-step-number">03</div>
+                            <div class="process-step-name">Fixer</div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-step-number">04</div>
+                            <div class="process-step-name">Wash</div>
+                        </div>
+                    </div>
+                    <div class="contact-sheet">
+                        <div class="contact-frame" data-frame="1855-A">Soldiers</div>
+                        <div class="contact-frame" data-frame="1855-B">The Van</div>
+                        <div class="contact-frame" data-frame="1855-C">Valley</div>
+                        <div class="contact-frame" data-frame="1855-D">Exhibition</div>
+                    </div>
+                    <p>In the margins of the third frame, your grandfather wrote with particular intensity:</p>
+                    <div class="journal-text">
+                        "Roger Fenton arrived March 8, 1855, and departed June 26. Fewer than four months to document an entire war. 360 photographs with two assistants and a horse-drawn photographer's van. Every scene had to be posed — the long exposure times meant any movement would blur. The irony of war photography without action. Fenton captured the <em>aftermath</em> of violence, never the violence itself. On September 20, 1855, his exhibition of 312 Crimean War photographs opened at the Water Colour Society's Pall Mall East establishment in London."
+                    </div>
+                    <p>You realize your grandfather understood something profound: photography's earliest limitation — the inability to capture motion — forced photographers to find meaning in stillness.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Continue to the Victorian era: Cameron', next: 'darkroom_07' },
+                { text: 'Reflect on Fenton\'s technical limitations', next: 'darkroom_06_reflect' }
+            ]
+        },
+
+        darkroom_06_reflect: {
+            type: 'historical',
+            fact: { date: 'September 20, 1855', text: 'Roger Fenton\'s exhibition of 312 Crimean War photographs opened at the Water Colour Society\'s Pall Mall East establishment in London — one of the first systematic war photography exhibitions.' },
+            html: `
+                <h3 style="color:var(--amber-light); margin-bottom:var(--space-5);">The Impossibility of Action</h3>
+                <div class="scene-text">
+                    <p>You spread the three prints across the table and study them under the red light. Fenton's challenge was immense: document a war when your technology cannot capture movement.</p>
+                    <div class="card">
+                        <div class="card-number">360</div>
+                        <h3>Photographs in Four Months</h3>
+                        <p>Fenton produced 360 images using a large-format camera that required exposures of several seconds. No running soldiers. No explosions. No combat. Instead: portraits of men who had seen combat, landscapes scarred by artillery, the quiet before and after the unrecordable violence.</p>
+                    </div>
+                    <p>Your grandfather's margin note adds: <em>"The camera could not see war. So Fenton taught it to see warriors instead."</em></p>
+                    <p>312 of these photographs were exhibited in London on September 20, 1855 — one of the first systematic war photography exhibitions in history. Photography had found a new purpose: bearing witness.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Continue to the Victorian era: Cameron', next: 'darkroom_07' }
+            ]
+        },
+
+        // --- SCENE 7: Cameron's Darkroom Rebellion ---
+        darkroom_07: {
+            type: 'historical',
+            fact: { date: '1863-1875', text: 'Julia Margaret Cameron (1815-1879) received a camera as a gift around 1863, converted a chicken coop into a portrait studio and a coal bin into a darkroom, and produced approximately 900 photographs before departing for Ceylon in 1875.' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">Coal Bin Genius</h3>
+                <div class="scene-text">
+                    <p>The next roll develops into something unexpected. Where Fenton's images were precise and documentary, these prints are deliberately soft. Faces emerge from darkness like memories surfacing from deep water. Your grandfather's recreations capture something ineffable — not subjects, but <em>souls</em>.</p>
+                    <div class="badge-row" style="display:flex;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-5);">
+                        <span class="badge badge-negative">Historical</span>
+                        <span class="badge badge-sepia">Portrait</span>
+                        <span class="badge badge-amber">Artistic</span>
+                    </div>
+                    <p>The journal entry for this roll is the longest yet:</p>
+                    <div class="journal-text">
+                        "Julia Margaret Cameron received a camera as a gift around 1863. She was 48 years old. She converted a chicken coop into a portrait studio and a coal bin into a darkroom. In a dozen years of creative work — 1863 to 1875 — she produced approximately 900 photographs before departing for Ceylon. Her subjects included Charles Darwin, Henry Wadsworth Longfellow, and Alice Liddell (the inspiration for Alice in Wonderland). Her critics called her work 'out of focus.' She called their criticism irrelevant. She was right."
+                    </div>
+                    <p>Your grandfather's note in the margin of the final print reads: <em>"Cameron understood before anyone else: technical perfection is not the same as artistic truth."</em></p>
+                    <p>You feel the weight of this idea. In a darkroom built on precision — exact temperatures, exact times, exact ratios — Cameron chose to break the rules. And in doing so, she invented art photography.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Embrace Cameron\'s artistic philosophy and continue', next: 'darkroom_08' },
+                { text: 'Prioritize technical precision — skip to the Zone System', next: 'darkroom_09' }
+            ]
+        },
+
+        // --- SCENE 8: Eastman's Revolution ---
+        darkroom_08: {
+            type: 'development',
+            fact: { date: '1888', text: 'George Eastman patented and released the Kodak camera in 1888, pre-loaded with 100 exposures of 2.5-inch-diameter circular pictures at $25. Photographers paid $10 to have Kodak factory workers develop, print, and reload the camera.' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">You Press the Button</h3>
+                <div class="scene-text">
+                    <p>The next canister is different. Where the previous rolls contained careful artistic recreations, this one holds something simpler: circular images, each exactly 2.5 inches in diameter. Snapshots. The Kodak era.</p>
+                    <div class="film-negative">
+                        <div class="film-negative-content">
+                            ROLL 05 / KODAK FORMAT — Circular exposures, 2.5" diameter<br>
+                            Eastman Kodak Co. / 1888 / 100 exposures per camera<br>
+                            "You press the button, we do the rest."
+                        </div>
+                    </div>
+                    <p>Your grandfather's journal captures the revolution:</p>
+                    <div class="journal-text">
+                        "George Eastman changed everything in 1888. The Kodak camera: $25, pre-loaded with 100 exposures. When you finished the roll, you mailed the entire camera back to the factory. For $10, Kodak workers developed the film, made prints, reloaded fresh film, and shipped everything back. Photography was no longer about chemistry or expertise. It was about seeing. Eastman separated the photographer from the darkroom. For the first time, amateurs could take pictures without understanding development."
+                    </div>
+                    <div class="card">
+                        <div class="card-number">$25</div>
+                        <h3>The Kodak Camera</h3>
+                        <p>100 exposures. 2.5-inch circular pictures. Mail it back. $10 processing. A camera for everyone. The democratization of the image.</p>
+                    </div>
+                    <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/f/f0/Brownie2_overview.jpg" alt="The Kodak Brownie — photography for the masses" style="max-width: 100%; height: auto; filter: contrast(1.1) brightness(0.9); border: 1px solid #8b1e1e; opacity: 0.8; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(139, 30, 30, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #886655;">The Kodak Brownie — photography for the masses</div></div>
+                    <p>Sitting in your grandfather's darkroom — surrounded by the very chemicals and equipment Eastman made obsolete for amateurs — you feel the irony. This room exists <em>because</em> some people refused to let others do the rest.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Continue the darkroom tradition — develop the next roll', next: 'darkroom_09' },
+                { text: 'Reflect on what Eastman\'s revolution means for your grandfather\'s legacy', next: 'darkroom_08_reflect' }
+            ]
+        },
+
+        darkroom_08_reflect: {
+            type: 'darkroom',
+            html: `
+                <h3 style="color:var(--amber-light); margin-bottom:var(--space-5);">The Separation</h3>
+                <div class="scene-text">
+                    <p>You sit on the darkroom stool and think about the divide Eastman created. Before 1888, every photographer was a chemist, an artist, and a technician. After 1888, you could be just a person with a camera.</p>
+                    <p>Your grandfather chose the old way. He chose the chemicals, the precision, the red light, the patience. Not because the new way was wrong, but because for him, the process <em>was</em> the art. The developer tray was not an obstacle — it was the point.</p>
+                    <p>You look at the remaining canisters. Seven more rolls. Seven more eras. The safelight pulses steadily, a red heartbeat in the dark.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Continue developing — the Zone System awaits', next: 'darkroom_09' }
+            ]
+        },
+
+        // --- SCENE 9: The Zone System ---
+        darkroom_09: {
+            type: 'historical',
+            fact: { date: '1939-1940', text: 'Ansel Adams and Fred Archer developed the Zone System around 1939-1940 at the Art Center School in Los Angeles, creating a systematic method using 11 zones (0-X in Roman numerals) to precisely control photographic tone and exposure.' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">Ansel's 11 Zones</h3>
+                <div class="scene-text">
+                    <p>The next roll reveals landscapes. Sweeping vistas of mountains, forests, rivers — your grandfather's recreations of Ansel Adams' Yosemite photographs. But more importantly, clipped to the negatives, you find something extraordinary: your grandfather's handwritten Zone System worksheets.</p>
+                    <div class="exposure-info">
+                        <div class="exposure-item">
+                            <span class="exposure-label">Zone 0</span>
+                            <span class="exposure-value">Pure Black</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Zone III</span>
+                            <span class="exposure-value">Dark Shadow</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Zone V</span>
+                            <span class="exposure-value">Middle Gray</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Zone VIII</span>
+                            <span class="exposure-value">Bright White</span>
+                        </div>
+                        <div class="exposure-item">
+                            <span class="exposure-label">Zone X</span>
+                            <span class="exposure-value">Pure White</span>
+                        </div>
+                    </div>
+                    <div class="journal-text">
+                        "Ansel Easton Adams — born February 20, 1902, in San Francisco. He received his first camera at age 14 during his first visit to Yosemite National Park. That park became his life's subject. Around 1939-1940, he and Fred Archer developed the Zone System at the Art Center School in Los Angeles: 11 zones, numbered 0 through X in Roman numerals, each representing a specific tonal value. Zone 0 is absolute black. Zone X is absolute white. Everything else is controlled by the photographer's choices in exposure and development."
+                    </div>
+                    <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Ansel_Adams_and_camera.jpg" alt="Ansel Adams with his camera — master of the American landscape" style="max-width: 100%; height: auto; filter: contrast(1.1) brightness(0.9); border: 1px solid #8b1e1e; opacity: 0.8; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(139, 30, 30, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #886655;">Ansel Adams with his camera — master of the American landscape</div></div>
+                    <p>Then, tucked behind the worksheet, you find a letter. A printed, signed letter from <em>Ansel Adams himself</em>, praising your grandfather's understanding of the system. The letter is dated 1952. Your hands tremble slightly as you read it.</p>
+                    <p>Your grandfather wasn't just studying masters from a distance. He was in correspondence with them.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Study the Zone System worksheets in detail', next: 'darkroom_09_study' },
+                { text: 'Move to the final rolls — Paris and the decisive moment', next: 'darkroom_10' }
+            ]
+        },
+
+        darkroom_09_study: {
+            type: 'development',
+            fact: { date: 'Age 14, Yosemite', text: 'Ansel Easton Adams (February 20, 1902 - April 22, 1984) received his first camera at age 14 during his first visit to Yosemite National Park, which became the central subject of his black-and-white landscape photography career.' },
+            html: `
+                <h3 style="color:var(--amber-light); margin-bottom:var(--space-5);">Mastering Light</h3>
+                <div class="scene-text">
+                    <p>You spread the worksheets across the table. Your grandfather had practiced the Zone System obsessively. Each worksheet shows a different scene, metered and mapped across all 11 zones. Beside each, his development notes: how much to push or pull the film to compress or expand the tonal range.</p>
+                    <div class="timer-display">Zone V = 18% Gray</div>
+                    <p>Adams' innovation was giving photographers <em>control</em>. Before the Zone System, exposure was instinct. After it, exposure was science. Your grandfather's worksheets show someone who mastered both.</p>
+                    <div class="card">
+                        <div class="card-number">XI</div>
+                        <h3>Zones of Light</h3>
+                        <p>From absolute black to pure white, the Zone System gave photographers a language for tone. Adams didn't just photograph landscapes — he <em>composed</em> them in light, deciding before pressing the shutter exactly how each element would appear in the final print.</p>
+                    </div>
+                    <p>Adams was born February 20, 1902 and died April 22, 1984. In those 82 years, he transformed landscape photography from mere documentation into high art. And your grandfather studied at his feet.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Move to the Paris rolls', next: 'darkroom_10' }
+            ]
+        },
+
+        // --- SCENE 10: Cartier-Bresson's Moment ---
+        darkroom_10: {
+            type: 'historical',
+            fact: { date: '1952', text: 'Henri Cartier-Bresson (1908-2004) published "Images a la Sauvette" in 1952, containing 126 black-and-white reproductions with a cover by Henri Matisse. It defined "the decisive moment" and became known as "a Bible for photographers."' },
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">L'Instant Decisif</h3>
+                <div class="scene-text">
+                    <p>The penultimate roll contains street photography. Black and white. Parisian scenes — cafes, alleys, bridges, markets. Your grandfather's recreations of Henri Cartier-Bresson's work vibrate with captured motion. Where Fenton had to pose his subjects, Cartier-Bresson seized them in flight.</p>
+                    <div class="contact-sheet">
+                        <div class="contact-frame" data-frame="52-01">Cafe</div>
+                        <div class="contact-frame" data-frame="52-02">Bridge</div>
+                        <div class="contact-frame" data-frame="52-03">Market</div>
+                        <div class="contact-frame" data-frame="52-04">Cyclist</div>
+                        <div class="contact-frame" data-frame="52-05">Puddle</div>
+                        <div class="contact-frame" data-frame="52-06">Stairs</div>
+                        <div class="contact-frame" data-frame="52-07">Window</div>
+                        <div class="contact-frame" data-frame="52-08">Kiss</div>
+                    </div>
+                    <p>Clipped to this roll: a printed page from Cartier-Bresson's landmark 1952 publication, <em>Images a la Sauvette</em>. Your grandfather has underlined a single passage and circled it three times:</p>
+                    <div class="journal-text">
+                        "The decisive moment: 'the simultaneous recognition, in a fraction of a second, of the significance of an event as well as of a precise organization of forms which give that event its proper expression.'"
+                    </div>
+                    <p>The book contained 126 black-and-white reproductions with an original cover by Henri Matisse. It became known as "a Bible for photographers." Henri Cartier-Bresson, born 1908, died 2004 — nearly a century of seeing.</p>
+                    <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/6/6e/Leica_I.jpg" alt="The Leica I — the camera that created photojournalism" style="max-width: 100%; height: auto; filter: contrast(1.1) brightness(0.9); border: 1px solid #8b1e1e; opacity: 0.8; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(139, 30, 30, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #886655;">The Leica I — the camera that created photojournalism</div></div>
+                    <p>At the bottom of the journal page, your grandfather wrote a single line:</p>
+                    <p style="color:var(--safelight-glow); font-family:var(--font-typewriter); font-size:1.1rem; text-align:center; margin:var(--space-5) 0;">
+                        "The moment when all elements crystallize into geometry and feeling — this is the work."
+                    </p>
+                </div>
+            `,
+            choices: [
+                { text: 'Examine your grandfather\'s own attempts at the decisive moment', next: 'darkroom_10_own' },
+                { text: 'Proceed to the final canister', next: 'darkroom_11' }
+            ]
+        },
+
+        darkroom_10_own: {
+            type: 'development',
+            fact: { date: '1942', text: 'Margaret Bourke-White became the first woman authorized to enter combat zones to photograph in battle in 1942, flying combat missions in B-17 "Flying Fortress" bombers during World War II.' },
+            html: `
+                <h3 style="color:var(--amber-light); margin-bottom:var(--space-5);">A Grandfather's Eye</h3>
+                <div class="scene-text">
+                    <p>Hidden behind the Cartier-Bresson recreations, you find additional frames. These aren't recreations of anyone else's work. These are your grandfather's original photographs.</p>
+                    <p>Street scenes from Paris, 1945. Post-war faces. A woman reading a newspaper on a bench. A child chasing pigeons. An old man in a doorway, hands folded, watching the city rebuild itself.</p>
+                    <p>They're remarkable. Your grandfather had the eye.</p>
+                    <p>In the journal, a separate entry about this period mentions his time as a military photographer's assistant:</p>
+                    <div class="journal-text">
+                        "I worked alongside the correspondents. In 1942, Margaret Bourke-White became the first woman authorized to enter combat zones to photograph in battle, flying missions in B-17 'Flying Fortress' bombers. She had more courage than any soldier I met. She taught me that the camera is not a weapon but a witness. After the war, I stayed in Paris. I needed to photograph something that wasn't destruction."
+                    </div>
+                    <p>One more canister remains. The last one. Your grandfather labeled it simply: <em>"The End & The Beginning."</em></p>
+                </div>
+            `,
+            choices: [
+                { text: 'Develop the final canister', next: 'darkroom_11' }
+            ]
+        },
+
+        // --- SCENE 11: The Last Roll ---
+        darkroom_11: {
+            type: 'development',
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">All Techniques Converge</h3>
+                <div class="scene-text">
+                    <p>Your hands are shaking. The last canister. You load it carefully, slide the film into the developer tray, and begin the count.</p>
+                    <div class="process-steps">
+                        <div class="process-step active">
+                            <div class="process-step-number">01</div>
+                            <div class="process-step-name">Developer</div>
+                        </div>
+                        <div class="process-step active">
+                            <div class="process-step-number">02</div>
+                            <div class="process-step-name">Stop Bath</div>
+                        </div>
+                        <div class="process-step active">
+                            <div class="process-step-number">03</div>
+                            <div class="process-step-name">Fixer</div>
+                        </div>
+                        <div class="process-step active">
+                            <div class="process-step-number">04</div>
+                            <div class="process-step-name">Wash</div>
+                        </div>
+                    </div>
+                    <div class="timer-display" style="animation: pulseStrong 2s ease-in-out infinite;">00:09:30</div>
+                    <p>A single frame. One image on the entire roll. It emerges from the developer slowly — shapes coalescing from pure chemistry into meaning.</p>
+                    <p>A couple. A man and a woman. Standing together in a garden. The light is perfect — Zone V on their faces, Zone VIII in the sky, Zone III in the shadows of the trees. The exposure is precise, the moment decisive, the softness of the background intentional, honoring Cameron.</p>
+                    <p>Your grandfather. Your grandmother. Their wedding day, 1960.</p>
+                    <div class="film-negative" style="box-shadow: var(--glow-strong);">
+                        <div class="film-negative-content" style="text-align:center; padding: var(--space-6);">
+                            ROLL 12 / FRAME 01<br><br>
+                            THE WEDDING<br>
+                            1960<br><br>
+                            <span style="color:var(--cream);">"The End & The Beginning"</span>
+                        </div>
+                    </div>
+                    <p>Every technique your grandfather spent decades studying converges in this single image. The patience of Niepce. The precision of Daguerre. The composition of Fenton. The soul of Cameron. The accessibility of Eastman. The science of Adams. The moment of Cartier-Bresson.</p>
+                    <p>One photograph. A lifetime of learning.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Accept the inheritance and begin your own photography', next: 'ending_continue' },
+                { text: 'Search the darkroom for more hidden canisters', next: 'ending_search' }
+            ]
+        },
+
+        // --- ENDINGS ---
+        ending_continue: {
+            type: 'ending',
+            endingTitle: 'The Red Light Remains',
+            html: `
+                <div class="ending-label">Development Complete</div>
+                <div class="ending-title">The Red Light Remains</div>
+                <div style="margin: var(--space-5) auto; width: 48px; height: 48px; background: var(--safelight-red); box-shadow: var(--glow-strong); animation: pulseStrong 2s ease-in-out infinite;"></div>
+                <div class="scene-text">
+                    <p>You hang the wedding photograph to dry alongside all the others. Twelve rolls. A century and a half of photographic history, recreated and annotated by a single patient man.</p>
+                    <p>Then you do something your grandfather would have understood. You reach for the camera he left on the shelf — a Leica M3, the same model Cartier-Bresson used. You load it with fresh film.</p>
+                    <p>You climb the basement stairs and step outside. The light is golden. Late afternoon. The kind of light Adams would have mapped as Zone VI on skin, Zone IX on clouds.</p>
+                    <p>You raise the camera to your eye. The viewfinder frames the world in a rectangle of possibility. Somewhere in front of you, the decisive moment is waiting.</p>
+                    <p>You press the button.</p>
+                    <p>But you will do the rest yourself.</p>
+                    <p>Back in the darkroom, the safelight continues to pulse. Red light in the basement, waiting for you to return. Waiting for the next roll to develop. The lineage of photographers — from Niepce's eight-hour exposures to your grandfather's lifetime of study to whatever you capture next — extends forward into the future.</p>
+                    <p style="color:var(--safelight-glow); font-family:var(--font-typewriter); font-size:1.1rem; text-align:center; margin-top: var(--space-6);">"The End & The Beginning."</p>
+                </div>
+                <div class="the-end">The End</div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        },
+
+        ending_search: {
+            type: 'darkroom',
+            html: `
+                <h3 style="color:var(--safelight-glow); margin-bottom:var(--space-5);">The Thirteenth Canister</h3>
+                <div class="scene-text">
+                    <p>Something about this darkroom doesn't add up. Twelve canisters, neatly organized, clearly intended for you. But your grandfather was meticulous. He wouldn't have left his life's work without a final statement.</p>
+                    <p>You search. Behind the enlarger, under the chemical shelf, inside the empty canister box. Nothing.</p>
+                    <p>Then you notice: the velvet lining of the box has a seam. You lift it carefully. Underneath: a thirteenth canister, unlabeled, and a sealed envelope addressed to you by name.</p>
+                    <p>The envelope contains a single sheet of paper:</p>
+                    <div class="journal-text">
+                        "If you found this, you looked deeper than the obvious. Good. That is the first quality of a real photographer — never accept the surface of things.<br><br>
+                        This roll is blank. Unexposed. It is not my story. It is yours.<br><br>
+                        The camera is on the top shelf. The chemicals are labeled. The safelight works. Everything you need is here. Everything you need to learn is in the twelve rolls you've already developed.<br><br>
+                        Now go outside. Find your light. Find your moment. Then come back down here and bring the image into the world, the way it was always meant to be done — by hand, in the dark, with patience.<br><br>
+                        I love you. Make something beautiful.<br><br>
+                        — Grandpa"
+                    </div>
+                    <p>You hold the blank roll in your hand. An entire future of images, unexposed, waiting.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Load the camera and begin', next: 'ending_begin' }
+            ]
+        },
+
+        ending_begin: {
+            type: 'ending',
+            endingTitle: 'New Photographs',
+            html: `
+                <div class="ending-label">Development Complete</div>
+                <div class="ending-title">New Photographs</div>
+                <div style="margin: var(--space-5) auto; width: 48px; height: 48px; background: var(--safelight-red); box-shadow: var(--glow-strong); animation: pulseStrong 2s ease-in-out infinite;"></div>
+                <div class="scene-text">
+                    <p>You take the Leica M3 from the top shelf. Load the thirteenth roll. The film advances with a satisfying mechanical click.</p>
+                    <p>The safelight pulses behind you as you climb the stairs, camera in hand. One hundred years of photographic history lives in the darkroom below. Niepce's patience. Daguerre's gift to the world. Fenton's witness. Cameron's rebellion. Eastman's revolution. Adams' precision. Cartier-Bresson's decisive moment. Bourke-White's courage.</p>
+                    <p>And now: yours.</p>
+                    <p>You step outside. The light hits your face. You raise the camera.</p>
+                    <div class="contact-sheet" style="margin-top: var(--space-6);">
+                        <div class="contact-frame" data-frame="01">?</div>
+                        <div class="contact-frame" data-frame="02">?</div>
+                        <div class="contact-frame" data-frame="03">?</div>
+                        <div class="contact-frame" data-frame="04">?</div>
+                        <div class="contact-frame" data-frame="05">?</div>
+                        <div class="contact-frame" data-frame="06">?</div>
+                        <div class="contact-frame" data-frame="07">?</div>
+                        <div class="contact-frame" data-frame="08">?</div>
+                    </div>
+                    <p>Thirty-six exposures. Thirty-six chances to find something worth developing. The darkroom waits below, red light glowing, chemicals ready, trays empty.</p>
+                    <p style="color:var(--safelight-glow); font-family:var(--font-typewriter); font-size:1.1rem; text-align:center; margin-top: var(--space-6);">"You press the button. You do the rest."</p>
+                </div>
+                <div class="the-end">The End</div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        }
+    };
+
+    // ===============================================================
+    //  STORY ENGINE
+    // ===============================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('darkroom_01');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 400);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1000);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+            let html = '<div class="scene-content">';
+
+            // Build scene wrapper based on type
+            switch (scene.type) {
+                case 'darkroom':
+                    html += `<div class="scene-darkroom">${scene.html}</div>`;
+                    break;
+                case 'development':
+                    html += `<div class="scene-development">${scene.html}</div>`;
+                    break;
+                case 'historical':
+                    html += `<div class="scene-historical">${scene.html}</div>`;
+                    break;
+                case 'ending':
+                    html += `<div class="scene-ending">${scene.html}</div>`;
+                    break;
+                default:
+                    html += `<div class="scene-darkroom">${scene.html}</div>`;
+            }
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += choice.text;
+                    html += `</button>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            const exists = this.facts.some(f => f.date === fact.date && f.text === fact.text);
+            if (!exists) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No discoveries yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f =>
+                    `<div class="fact-item"><span class="fact-date">${f.date}</span>${f.text}</div>`
+                ).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

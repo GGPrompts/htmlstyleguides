@@ -1,0 +1,1998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Way — A Japanese Zen Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500;600;700&family=Zen+Kaku+Gothic+New:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-serif: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+            --font-sans: 'Zen Kaku Gothic New', 'Hiragino Sans', sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+            --space-10: 128px;
+            --space-11: 192px;
+
+            --ink: #1a1a1a;
+            --ink-light: #3d3d3d;
+            --ink-faded: #5c5c5c;
+            --stone: #6b6b6b;
+            --stone-light: #8a8a8a;
+            --stone-muted: #a3a3a3;
+            --sand: #e8e4de;
+            --sand-light: #f2efe9;
+            --sand-warm: #f7f4ee;
+            --washi: #faf8f5;
+            --washi-cream: #fdfcfa;
+            --bamboo: #7a8b6e;
+            --bamboo-light: #96a78a;
+            --bamboo-muted: #b8c4ad;
+            --rust: #8b5a4a;
+            --rust-light: #a67563;
+            --rust-muted: #c49a8a;
+            --indigo: #3d4f6f;
+            --indigo-light: #5a6d8a;
+            --indigo-muted: #8a9bb5;
+
+            --text-primary: var(--ink);
+            --text-secondary: var(--ink-light);
+            --text-muted: var(--stone);
+            --bg-primary: var(--washi);
+            --bg-secondary: var(--sand-light);
+            --bg-accent: var(--sand);
+            --border-color: var(--sand);
+            --border-subtle: #e0dcd6;
+            --accent: var(--rust);
+            --accent-secondary: var(--bamboo);
+
+            --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: 0.15s ease;
+
+            --radius-sm: 2px;
+            --radius-md: 4px;
+            --radius-lg: 8px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-serif);
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Washi paper texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-serif);
+            font-weight: 400;
+            line-height: 1.3;
+            letter-spacing: 0.02em;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 300;
+            margin-bottom: var(--space-6);
+            letter-spacing: 0.05em;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 400;
+            margin-bottom: var(--space-5);
+            letter-spacing: 0.03em;
+        }
+
+        h3 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: var(--space-4);
+        }
+
+        p {
+            margin-bottom: var(--space-4);
+            max-width: 60ch;
+        }
+
+        .lead {
+            font-size: 1.125rem;
+            line-height: 1.9;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        .small {
+            font-size: 0.875rem;
+        }
+
+        .japanese-text {
+            font-family: var(--font-serif);
+            letter-spacing: 0.1em;
+        }
+
+        .label-text {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           ENSO CIRCLE
+        ========================================= */
+        .enso {
+            position: relative;
+            display: inline-block;
+        }
+
+        .enso::before {
+            content: '';
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            border: 3px solid var(--ink);
+            border-radius: 50%;
+            opacity: 0.15;
+            top: -40px;
+            right: -60px;
+            transform: rotate(-15deg) scale(1, 0.95);
+        }
+
+        /* Brush stroke accent */
+        .brush-stroke {
+            position: relative;
+            display: inline-block;
+        }
+
+        .brush-stroke::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--ink) 0%, var(--ink) 60%, transparent 100%);
+            opacity: 0.4;
+            transform: scaleX(1.1) translateX(-5%);
+        }
+
+        /* =========================================
+           LAYOUT
+        ========================================= */
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            padding-left: var(--space-9);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 1.5rem;
+            }
+        }
+
+        /* Decorative vertical accent */
+        .vertical-accent {
+            position: fixed;
+            left: var(--space-6);
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                var(--border-subtle) 20%,
+                var(--border-subtle) 80%,
+                transparent 100%
+            );
+            z-index: 2;
+        }
+
+        @media (max-width: 768px) {
+            .vertical-accent { display: none; }
+        }
+
+        /* =========================================
+           TITLE SCREEN
+        ========================================= */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+            position: relative;
+        }
+
+        .title-screen::before {
+            content: '';
+            position: absolute;
+            top: 15%;
+            right: 5%;
+            width: 200px;
+            height: 200px;
+            border: 2px solid var(--sand);
+            border-radius: 50%;
+            opacity: 0.5;
+            transform: rotate(-10deg) scale(1, 0.92);
+        }
+
+        .title-screen::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            right: 8%;
+            width: 160px;
+            height: 160px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 50%;
+            opacity: 0.3;
+            transform: rotate(5deg) scale(0.98, 1);
+        }
+
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-1) var(--space-3);
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: var(--radius-sm);
+            background: var(--sand);
+            color: var(--stone);
+            margin-bottom: var(--space-6);
+        }
+
+        .title-screen h1 {
+            font-size: clamp(3rem, 8vw, 5rem);
+            font-weight: 300;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .title-jp {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            letter-spacing: 0.2em;
+            color: var(--stone);
+            margin-bottom: var(--space-7);
+            font-weight: 300;
+        }
+
+        .title-tagline {
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-7);
+            max-width: 450px;
+            line-height: 1.9;
+            font-size: 1rem;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-3) var(--space-8);
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            border: 1px solid var(--ink);
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--ink);
+            transition: left var(--transition-base);
+            z-index: -1;
+        }
+
+        .title-start:hover {
+            color: var(--washi);
+            border-color: var(--ink);
+        }
+
+        .title-start:hover::before { left: 0; }
+
+        .title-credits {
+            margin-top: var(--space-7);
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            color: var(--stone-light);
+            letter-spacing: 0.15em;
+        }
+
+        /* =========================================
+           SCENE WRAPPER
+        ========================================= */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: var(--space-5);
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        /* Scene header bar */
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-4);
+            margin-bottom: var(--space-6);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .scene-era-label {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--rust);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            color: var(--bamboo);
+            letter-spacing: 0.1em;
+        }
+
+        /* =========================================
+           CARDS
+        ========================================= */
+        .card {
+            background: var(--washi-cream);
+            border: 1px solid var(--border-subtle);
+            padding: var(--space-6);
+            transition: all var(--transition-slow);
+            position: relative;
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-5);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.02;
+            pointer-events: none;
+            border-radius: inherit;
+        }
+
+        .card h3 {
+            margin-bottom: var(--space-3);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+            font-size: 0.95rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .card-featured {
+            border-left: 3px solid var(--rust);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: var(--space-5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .card-icon.enso-icon::before {
+            content: '';
+            width: 36px;
+            height: 36px;
+            border: 2px solid var(--ink);
+            border-radius: 50%;
+            opacity: 0.3;
+            transform: rotate(-8deg) scale(1, 0.94);
+        }
+
+        .card-icon.bamboo-icon::before {
+            content: '';
+            width: 2px;
+            height: 32px;
+            background: var(--bamboo);
+            opacity: 0.6;
+        }
+
+        .card-icon.bamboo-icon::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 2px;
+            background: var(--bamboo);
+            opacity: 0.4;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-30deg);
+        }
+
+        .card-icon.stone-icon::before {
+            content: '';
+            width: 28px;
+            height: 20px;
+            background: var(--stone-muted);
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+
+        .card-number {
+            font-family: var(--font-serif);
+            font-size: 2.5rem;
+            font-weight: 300;
+            line-height: 1;
+            color: var(--rust-muted);
+            margin-bottom: var(--space-4);
+            letter-spacing: 0.05em;
+        }
+
+        /* =========================================
+           QUOTE BLOCK
+        ========================================= */
+        .quote-block {
+            padding: var(--space-6) var(--space-7);
+            border-left: 2px solid var(--rust-muted);
+            background: var(--sand-light);
+            margin: var(--space-5) 0;
+            position: relative;
+        }
+
+        .quote-block::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.02;
+            pointer-events: none;
+        }
+
+        .quote-text {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            font-style: italic;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+            position: relative;
+            z-index: 1;
+            max-width: 60ch;
+        }
+
+        .quote-source {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            color: var(--stone);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* =========================================
+           PRINCIPLE BLOCK
+        ========================================= */
+        .principle-block {
+            position: relative;
+            padding-left: var(--space-6);
+            margin-bottom: var(--space-5);
+        }
+
+        .principle-block::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--rust-muted);
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .principle-title {
+            font-family: var(--font-serif);
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: var(--space-2);
+            letter-spacing: 0.02em;
+        }
+
+        .principle-jp {
+            font-family: var(--font-serif);
+            font-size: 0.875rem;
+            color: var(--stone);
+            letter-spacing: 0.15em;
+            margin-bottom: var(--space-3);
+        }
+
+        .principle-block p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 0;
+        }
+
+        /* =========================================
+           BADGES
+        ========================================= */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-1) var(--space-3);
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: var(--radius-sm);
+            background: var(--sand);
+            color: var(--stone);
+        }
+
+        .badge-ink {
+            background: var(--ink);
+            color: var(--washi);
+        }
+
+        .badge-rust {
+            background: var(--rust-muted);
+            color: var(--washi);
+        }
+
+        .badge-bamboo {
+            background: var(--bamboo-muted);
+            color: var(--ink);
+        }
+
+        .badge-outline {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--stone);
+        }
+
+        .badge-indigo {
+            background: var(--indigo-muted);
+            color: var(--washi);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-4);
+        }
+
+        /* =========================================
+           DIVIDER
+        ========================================= */
+        .divider {
+            height: 1px;
+            background: var(--border-subtle);
+            margin: var(--space-6) 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: var(--washi);
+            border: 1px solid var(--border-subtle);
+            border-radius: 50%;
+        }
+
+        /* =========================================
+           MA DEMO
+        ========================================= */
+        .ma-demo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-9);
+            padding: var(--space-8) 0;
+            background: var(--sand-light);
+            border-radius: var(--radius-sm);
+            margin-bottom: var(--space-5);
+        }
+
+        .ma-element {
+            width: 60px;
+            height: 60px;
+            background: var(--ink);
+            opacity: 0.15;
+        }
+
+        .ma-element:nth-child(2) {
+            width: 40px;
+            height: 80px;
+        }
+
+        .ma-element:nth-child(3) {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--rust-muted);
+            opacity: 0.4;
+        }
+
+        /* =========================================
+           TABLE
+        ========================================= */
+        .table-wrapper {
+            overflow-x: auto;
+            margin-bottom: var(--space-5);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: var(--space-4) var(--space-5);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .table th {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--stone);
+            background: var(--sand-light);
+        }
+
+        .table td {
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* =========================================
+           SECTION HEADER LABEL
+        ========================================= */
+        .header-label {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--stone);
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+        }
+
+        .header-label::before {
+            content: '';
+            width: 24px;
+            height: 1px;
+            background: var(--stone-muted);
+        }
+
+        .section-title-jp {
+            font-family: var(--font-serif);
+            font-size: 0.875rem;
+            color: var(--stone);
+            letter-spacing: 0.15em;
+            margin-bottom: var(--space-2);
+            font-weight: 300;
+        }
+
+        /* =========================================
+           FACT FOUND NOTIFICATION
+        ========================================= */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: var(--bamboo-muted);
+            color: var(--ink);
+            padding: 6px 16px;
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: var(--space-5);
+            border-radius: var(--radius-sm);
+            animation: factSlideIn 0.6s ease-out;
+        }
+
+        .fact-found::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border: 2px solid var(--bamboo);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================================
+           CHOICES
+        ========================================= */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-sans);
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            border: 1px solid var(--border-subtle);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            border-radius: var(--radius-sm);
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--sand-light);
+            transition: left var(--transition-base);
+            z-index: -1;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--stone-muted);
+            color: var(--ink);
+        }
+
+        .choice-btn:hover::before {
+            left: 0;
+        }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--stone-muted);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            color: var(--stone);
+            margin-right: var(--space-4);
+            flex-shrink: 0;
+            transition: all var(--transition-base);
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--rust);
+            color: var(--rust);
+        }
+
+        /* =========================================
+           TRANSITION OVERLAY
+        ========================================= */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            background: var(--washi);
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: inkWashTransition 1.4s ease-in-out;
+        }
+
+        @keyframes inkWashTransition {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            50% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Enso circle reveal inside transition */
+        .transition-enso {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border: 3px solid var(--ink);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .transition-overlay.active .transition-enso {
+            animation: ensoReveal 1.4s ease-in-out;
+        }
+
+        @keyframes ensoReveal {
+            0% { opacity: 0; transform: translate(-50%, -50%) rotate(0deg) scale(0.5, 0.48); }
+            25% { opacity: 0.2; transform: translate(-50%, -50%) rotate(-15deg) scale(1, 0.95); }
+            50% { opacity: 0.15; }
+            75% { opacity: 0.1; transform: translate(-50%, -50%) rotate(-15deg) scale(1.2, 1.14); }
+            100% { opacity: 0; transform: translate(-50%, -50%) rotate(-15deg) scale(1.5, 1.42); }
+        }
+
+        /* =========================================
+           SCENE FADE IN
+        ========================================= */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =========================================
+           FACT TRACKER (SIDEBAR)
+        ========================================= */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 240px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--washi-cream);
+            border: 1px solid var(--border-subtle);
+            color: var(--bamboo);
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+            border-radius: var(--radius-sm);
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: var(--bamboo);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-2);
+            background: var(--washi-cream);
+            border: 1px solid var(--border-subtle);
+            padding: var(--space-4);
+            border-radius: var(--radius-sm);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-sans);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--stone);
+            margin-bottom: var(--space-3);
+        }
+
+        .fact-item {
+            font-size: 0.75rem;
+            font-family: var(--font-serif);
+            color: var(--text-secondary);
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--border-subtle);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.5;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-size: 0.75rem;
+            color: var(--stone-light);
+            font-style: italic;
+        }
+
+        /* =========================================
+           ENDING STYLES
+        ========================================= */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-8) var(--space-5);
+            position: relative;
+        }
+
+        .scene-ending::before {
+            content: '';
+            position: absolute;
+            top: var(--space-5);
+            left: 50%;
+            transform: translateX(-50%) rotate(-15deg) scale(1, 0.95);
+            width: 100px;
+            height: 100px;
+            border: 2px solid var(--ink);
+            border-radius: 50%;
+            opacity: 0.08;
+        }
+
+        .ending-label {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--rust);
+            margin-bottom: var(--space-4);
+        }
+
+        .ending-title {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-6);
+        }
+
+        .the-end {
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            letter-spacing: 0.25em;
+            color: var(--stone-light);
+            margin-top: var(--space-6);
+            text-transform: uppercase;
+        }
+
+        .the-end-jp {
+            font-family: var(--font-serif);
+            font-size: 1rem;
+            letter-spacing: 0.2em;
+            color: var(--stone);
+            margin-top: var(--space-2);
+        }
+
+        /* =========================================
+           GAME CONTROLS
+        ========================================= */
+        .game-controls {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .ctrl-btn {
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-sans);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid var(--border-subtle);
+            background: transparent;
+            color: var(--stone-light);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: var(--radius-sm);
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--stone-muted);
+            color: var(--text-primary);
+        }
+
+        /* =========================================
+           SCROLLBAR
+        ========================================= */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--sand-light); }
+        ::-webkit-scrollbar-thumb { background: var(--stone-muted); border-radius: 3px; }
+        ::selection { background: var(--rust-muted); color: var(--washi); }
+
+        /* =========================================
+           RESPONSIVE
+        ========================================= */
+        @media (max-width: 600px) {
+            .game-container { padding: 1rem; }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .quote-block { padding: var(--space-4) var(--space-5); }
+            .ma-demo { gap: var(--space-7); padding: var(--space-6) 0; }
+        }
+
+        /* Utilities */
+        .text-center { text-align: center; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-6 { margin-top: var(--space-6); }
+    </style>
+</head>
+<body>
+    <!-- Decorative vertical accent -->
+    <div class="vertical-accent"></div>
+
+    <!-- Ink wash transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-enso"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span>Wisdom</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Collected Insights</h4>
+            <div id="factList">
+                <p class="no-facts">The path awaits...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-badge">An Interactive Meditation</div>
+            <h1 class="enso">The Way</h1>
+            <div class="title-jp">道 — Michi</div>
+            <p class="title-tagline">"In the beginner's mind there are many possibilities, but in the expert's mind there are few."</p>
+            <button class="title-start" id="startBtn">Enter the Garden</button>
+            <p class="title-credits">A story told in silence and choices</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-era-label" id="sceneEra"></span>
+
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Return to Gate</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ================================================================
+    //  THE WAY — Story Data
+    // ================================================================
+
+    const STORY = {
+
+        // --- SCENE 1: The Garden Gate ---
+        garden_gate: {
+            era: 'The Temple Garden',
+            content: `
+                <div style="margin: 2rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f5/Ryoan-ji_Zen_tuin.JPG/800px-Ryoan-ji_Zen_tuin.JPG" alt="Ryoan-ji Zen rock garden in Kyoto" style="max-width: 100%; height: auto; border: 1px solid #d4cfc5; opacity: 0.9;">
+                    <div style="font-size: 0.75rem; margin-top: 0.75rem; color: #8a8a8a; letter-spacing: 0.05em;">Ryōan-ji Temple Rock Garden, Kyoto</div>
+                </div>
+
+                <div class="ma-demo">
+                    <div class="ma-element"></div>
+                    <div class="ma-element"></div>
+                    <div class="ma-element"></div>
+                </div>
+                <p class="small text-center" style="color: var(--stone); margin-bottom: var(--space-6);">The space between elements is as important as the elements themselves</p>
+
+                <div class="quote-block">
+                    <p class="quote-text">"Before enlightenment, chop wood, carry water. After enlightenment, chop wood, carry water."</p>
+                    <p class="quote-source">Zen Proverb</p>
+                </div>
+
+                <p class="lead">You stand at the entrance to a temple garden. Stone lanterns line a path of raked gravel. There are no signs, no instructions. Only the soft sound of water falling into a stone basin.</p>
+
+                <p>The garden teaches its first lesson without words: <strong>ma</strong> — the Japanese concept of negative space. It is not emptiness. It is the pause between breaths, the silence between notes, the gap that gives meaning to everything it surrounds.</p>
+
+                <div class="card">
+                    <div class="card-icon enso-icon"></div>
+                    <h3>Ma — Negative Space</h3>
+                    <p>In Japanese aesthetics, the space between objects is not "nothing." It is an active, living presence. A room is defined not by its walls, but by the emptiness they contain. Ma is why Japanese art breathes.</p>
+                </div>
+
+                <p>Two paths diverge through the garden. One leads deeper into the temple grounds, toward the sound of a distant bell. The other follows a stream toward an ancient grove of bamboo.</p>
+            `,
+            fact: 'Ma (negative space) is an active design principle in Japanese aesthetics — emptiness gives meaning to form.',
+            choices: [
+                { text: 'Follow the bell toward the temple', next: 'bodhidharma' },
+                { text: 'Walk toward the bamboo grove', next: 'wabi_sabi' }
+            ]
+        },
+
+        // --- SCENE 2A: Bodhidharma ---
+        bodhidharma: {
+            era: 'China, circa 527 CE',
+            content: `
+                <p class="header-label">The Roots of Zen</p>
+                <h2 class="brush-stroke">The Messenger from the West</h2>
+
+                <p class="lead">Inside the temple, a painted scroll depicts a fierce-eyed monk crossing the sea on a single reed. Your guide, an elderly monk, pauses before it.</p>
+
+                <div style="margin: 2rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/BodhidharmaYoshitoshi1887.jpg/600px-BodhidharmaYoshitoshi1887.jpg" alt="Bodhidharma portrait by Tsukioka Yoshitoshi" style="max-width: 100%; height: auto; border: 1px solid #d4cfc5; opacity: 0.9;">
+                    <div style="font-size: 0.75rem; margin-top: 0.75rem; color: #8a8a8a; letter-spacing: 0.05em;">Bodhidharma, by Tsukioka Yoshitoshi (1887)</div>
+                </div>
+
+                <div class="card card-featured">
+                    <div class="card-number">527</div>
+                    <h3>Bodhidharma Arrives in China</h3>
+                    <p>Around 527 CE, a South Indian Buddhist monk named Bodhidharma arrived at the Shaolin Temple in China. He is credited with establishing Chan Buddhism — the tradition that would later become known as Zen in Japan. Legend says he sat facing a wall in meditation for nine years.</p>
+                    <p>His teaching was radical in its simplicity: enlightenment comes not from scripture or ritual, but from direct experience. Mind-to-mind transmission. No words needed.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Direct Transmission</h3>
+                    <p class="principle-jp">以心伝心 — Ishin-denshin</p>
+                    <p>Bodhidharma taught that truth passes from mind to mind without the interference of language. This idea — that the deepest understanding cannot be written down — would shape Zen for fifteen centuries.</p>
+                </div>
+
+                <p>The elderly monk turns to you with a gentle question: "Bodhidharma planted a seed in China. But it took seven hundred years for that seed to reach Japan. Why do you think it took so long?"</p>
+            `,
+            fact: 'Bodhidharma (~527 CE), a South Indian monk, founded Chan Buddhism at the Shaolin Temple — the root of Japanese Zen.',
+            choices: [
+                { text: '"Perhaps the seed needed the right soil"', next: 'dogen' },
+                { text: '"Some truths cannot be hurried"', next: 'seven_centuries' }
+            ]
+        },
+
+        // --- SCENE 2B: Wabi-Sabi ---
+        wabi_sabi: {
+            era: '15th Century Japan',
+            content: `
+                <p class="header-label">The Beauty of Imperfection</p>
+                <h2 class="brush-stroke">The Bamboo Grove</h2>
+
+                <p class="lead">The bamboo bends in the wind but does not break. Among the stalks, you find an old woman sitting beside a cracked tea bowl.</p>
+
+                <div class="card card-featured">
+                    <div class="card-icon bamboo-icon"></div>
+                    <h3>Wabi-Sabi Emerges</h3>
+                    <p>Wabi-sabi — the aesthetic philosophy of finding beauty in imperfection, impermanence, and incompleteness — developed from the philosophy of the Japanese tea ceremony during the 15th century. It was a direct response to the Zen Buddhist teaching that all things are transient.</p>
+                    <p><strong>Wabi</strong> originally meant the loneliness of living in nature, far from society. <strong>Sabi</strong> meant the beauty that comes with age. Together, they describe a worldview that values the worn, the modest, and the authentic over the polished, the grand, and the artificial.</p>
+                </div>
+
+                <div class="quote-block">
+                    <p class="quote-text">"Nothing lasts, nothing is finished, and nothing is perfect."</p>
+                    <p class="quote-source">Richard Powell, on Wabi-Sabi</p>
+                </div>
+
+                <p>The old woman holds up her cracked bowl. "This crack," she says, "is not a flaw. It is a story. Every imperfection holds a truth. Would you like to hear the story of the bowl that was broken and made more beautiful?"</p>
+            `,
+            fact: 'Wabi-sabi emerged from 15th-century tea ceremony philosophy — finding beauty in imperfection and transience.',
+            choices: [
+                { text: 'Listen to the story of the broken bowl', next: 'kintsugi' },
+                { text: 'Ask about the tea ceremony itself', next: 'tea_master' }
+            ]
+        },
+
+        // --- SCENE 3A: Seven Centuries ---
+        seven_centuries: {
+            era: '527 — 1200 CE',
+            content: `
+                <p class="header-label">A Patience of Centuries</p>
+                <h2 class="brush-stroke">Seven Hundred Years of Silence</h2>
+
+                <div class="badge-row">
+                    <span class="badge badge-ink">Chan Buddhism</span>
+                    <span class="badge badge-rust">700 Years</span>
+                    <span class="badge badge-bamboo">Japan</span>
+                </div>
+
+                <p class="lead">The monk nods slowly. "Yes. Some truths cannot be hurried. And some journeys are measured in centuries."</p>
+
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Period</th>
+                                <th>Event</th>
+                                <th>Significance</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>~527 CE</td>
+                                <td>Bodhidharma arrives at Shaolin</td>
+                                <td>Chan Buddhism founded</td>
+                            </tr>
+                            <tr>
+                                <td>6th-11th c.</td>
+                                <td>Chan flourishes in China</td>
+                                <td>Multiple schools develop</td>
+                            </tr>
+                            <tr>
+                                <td>~1191 CE</td>
+                                <td>Eisai brings Rinzai Zen to Japan</td>
+                                <td>First Zen school in Japan</td>
+                            </tr>
+                            <tr>
+                                <td>1227 CE</td>
+                                <td>Dogen returns from China</td>
+                                <td>Founds Soto Zen</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <p>Although Bodhidharma died in the 6th century, Zen Buddhism did not take root in Japan until approximately 700 years later, around the 12th century during Japan's medieval period. The teachings had to ripen in Chinese soil before they could be carried east across the sea.</p>
+
+                <div class="card">
+                    <div class="card-icon stone-icon"></div>
+                    <h3>Why Seven Centuries?</h3>
+                    <p>Buddhism arrived in Japan from Korea in the 6th century, but it was the elaborate, ritualistic forms that first took hold — Tendai, Shingon. The austere simplicity of Zen required a culture already questioning the value of excess. It was the instability of Japan's medieval wars that created the conditions for Zen's arrival — when everything external is uncertain, the inner path becomes essential.</p>
+                </div>
+            `,
+            fact: 'Zen took ~700 years to travel from China (527 CE) to Japan (12th century) — requiring the right cultural conditions to take root.',
+            choices: [
+                { text: 'Learn about the man who brought Zen to Japan', next: 'dogen' }
+            ]
+        },
+
+        // --- SCENE 3B/4: Dogen ---
+        dogen: {
+            era: 'Japan, 1200 — 1253',
+            content: `
+                <p class="header-label">The Mountain Scholar</p>
+                <h2 class="brush-stroke">Dogen Zenji</h2>
+
+                <div class="badge-row">
+                    <span class="badge badge-ink">Soto Zen</span>
+                    <span class="badge badge-outline">1200 — 1253</span>
+                </div>
+
+                <p class="lead">Born into nobility on January 26, 1200, Dogen lost his mother at age seven. At twelve, he climbed Mount Hiei to study with the Tendai monks. But the elaborate rituals could not answer the question burning inside him.</p>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">The Great Doubt</h3>
+                    <p class="principle-jp">大疑 — Taigi</p>
+                    <p>"If all beings already have Buddha-nature, why must we practice to attain enlightenment?" This question drove the young Dogen across the sea to China, where he studied under Zen Master Tiantong Rujing and found his answer in the practice of shikantaza — "just sitting."</p>
+                </div>
+
+                <div class="card card-featured">
+                    <div class="card-number">10M</div>
+                    <h3>A Living Legacy</h3>
+                    <p>Dogen Zenji (January 26, 1200 — September 22, 1253) returned from China to establish the Soto school of Zen in Japan. Today, Soto Zen remains the largest single Buddhist sect in Japan, with over 10 million adherents supporting approximately 14,000 temples across the country.</p>
+                    <p>His masterwork, the Shobogenzo ("Treasury of the True Dharma Eye"), is considered one of the most profound philosophical texts in Japanese history.</p>
+                </div>
+
+                <div class="quote-block">
+                    <p class="quote-text">"To study the self is to forget the self. To forget the self is to be enlightened by the ten thousand things."</p>
+                    <p class="quote-source">Dogen Zenji, Shobogenzo</p>
+                </div>
+
+                <p>The monk asks: "Dogen teaches that enlightenment is not a destination. It is the practice itself. Are you ready to learn how his philosophy shaped the most famous ritual in Japanese culture?"</p>
+            `,
+            fact: 'Dogen Zenji (1200-1253) founded Soto Zen in Japan — today the largest Buddhist sect with over 10 million adherents and 14,000 temples.',
+            choices: [
+                { text: 'Learn about the tea ceremony', next: 'tea_master' },
+                { text: 'Explore how Zen influenced daily life', next: 'kintsugi' }
+            ]
+        },
+
+        // --- SCENE 5: The Tea Master ---
+        tea_master: {
+            era: 'Japan, 1522 — 1591',
+            content: `
+                <p class="header-label">The Way of Tea</p>
+                <h2 class="brush-stroke">Sen no Rikyu</h2>
+
+                <div class="badge-row">
+                    <span class="badge badge-rust">Chanoyu</span>
+                    <span class="badge badge-outline">1522 — 1591</span>
+                </div>
+
+                <p class="lead">You are led into a small tea room. The ceiling is low. The entrance forces you to bow. Everything here — the single flower in the alcove, the sound of boiling water, the rough clay bowl — has been chosen with absolute intention.</p>
+
+                <div style="margin: 2rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/Tea_ceremony_room_of_Ryokusuitei_Keisui.jpg/800px-Tea_ceremony_room_of_Ryokusuitei_Keisui.jpg" alt="Interior of Tai-an tea house designed by Sen no Rikyu" style="max-width: 100%; height: auto; border: 1px solid #d4cfc5; opacity: 0.9;">
+                    <div style="font-size: 0.75rem; margin-top: 0.75rem; color: #8a8a8a; letter-spacing: 0.05em;">Interior of Tai-an Tea House, designed by Sen no Rikyū (1582)</div>
+                </div>
+
+                <div class="card card-featured">
+                    <div class="card-number">4</div>
+                    <h3>The Four Principles of Tea</h3>
+                    <p>Born in 1522, Sen no Rikyu became the most influential tea master in Japanese history. He transformed the tea ceremony from an ostentatious display of wealth into a spiritual practice of profound simplicity. On April 21, 1591, at age 69, he left behind the four principles that remain central to tea ceremony to this day:</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Wa — Harmony</h3>
+                    <p class="principle-jp">和</p>
+                    <p>Between host and guest, between the objects in the room, between the human and nature. Everything in the tea room exists in relationship.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Kei — Respect</h3>
+                    <p class="principle-jp">敬</p>
+                    <p>For the tea, the tools, the guest, and the moment. The low entrance to the tea room forces even warriors to bow — all are equal here.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Sei — Purity</h3>
+                    <p class="principle-jp">清</p>
+                    <p>Not only physical cleanliness, but purity of heart. The ritual of cleansing hands and mouth before entering is a spiritual act.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Jaku — Tranquility</h3>
+                    <p class="principle-jp">寂</p>
+                    <p>The stillness that comes from practicing the first three principles. Not an absence of feeling, but a deep peace within it.</p>
+                </div>
+
+                <div style="margin: 2rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/38/Chasen-top_oblique-fs_PNr%C2%B00500.jpg/600px-Chasen-top_oblique-fs_PNr%C2%B00500.jpg" alt="Traditional bamboo tea whisk (chasen)" style="max-width: 100%; height: auto; border: 1px solid #d4cfc5; opacity: 0.9;">
+                    <div style="font-size: 0.75rem; margin-top: 0.75rem; color: #8a8a8a; letter-spacing: 0.05em;">Chasen — Traditional Bamboo Tea Whisk</div>
+                </div>
+
+                <div class="divider"></div>
+
+                <p>The tea master places a bowl before you. Its glaze is uneven, its shape imperfect. "This bowl," he says, "was made by a potter who understood that perfection is death. Life is in the asymmetry."</p>
+
+                <p>He pours the tea with a movement that has been refined over four hundred years. "Sen no Rikyu's three great-grandchildren founded the Omotesenke, Urasenke, and Mushakōjisenke schools of tea ceremony, spreading this practice from feudal lords and samurai to the common people of Japan."</p>
+            `,
+            fact: 'Sen no Rikyu (1522-1591) established the four principles of tea: Wa (harmony), Kei (respect), Sei (purity), Jaku (tranquility).',
+            choices: [
+                { text: 'Ask about the imperfect bowl', next: 'kintsugi' },
+                { text: 'Contemplate the meaning of ichi-go ichi-e', next: 'ichi_go' }
+            ]
+        },
+
+        // --- SCENE 6: Ichi-go Ichi-e ---
+        ichi_go: {
+            era: 'A Timeless Principle',
+            content: `
+                <p class="header-label">One Time, One Meeting</p>
+                <h2 class="brush-stroke">Ichi-go Ichi-e</h2>
+
+                <div class="badge-row">
+                    <span class="badge badge-ink">Tea Philosophy</span>
+                    <span class="badge badge-bamboo">Mindfulness</span>
+                </div>
+
+                <p class="lead">The tea master pauses. Steam rises from your bowl in a slow spiral. He speaks a phrase that will change how you see every moment that follows.</p>
+
+                <div class="quote-block">
+                    <p class="quote-text">"Ichi-go ichi-e. One time, one meeting. This gathering, in this room, with this tea, will never happen again. Even if the same people meet again in the same place, it will be a different moment. The cherry blossoms will have shifted. The light will have changed. We ourselves will have changed."</p>
+                    <p class="quote-source">Tea Ceremony Teaching</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon enso-icon"></div>
+                    <h3>The Unrepeatable Moment</h3>
+                    <p>Ichi-go ichi-e is a concept rooted in Zen Buddhism and the tea ceremony, attributed to the 16th-century tea master Sen no Rikyu. It teaches that every encounter is unique and can never be reproduced. This awareness — that each moment is both precious and fleeting — is the foundation of mindful living.</p>
+                    <p>In the tea ceremony, this understanding means the host prepares with total devotion, as if this were the only tea gathering that would ever occur. And the guest receives with total attention, knowing it is.</p>
+                </div>
+
+                <p>You drink the tea slowly. The bitter matcha coats your tongue. The bowl is warm against your palms. Outside, a bird calls once and falls silent.</p>
+
+                <p>This moment. Only this moment.</p>
+            `,
+            fact: 'Ichi-go ichi-e ("one time, one meeting") — every encounter is unique and unrepeatable, the foundation of mindful presence.',
+            choices: [
+                { text: 'Learn about the broken bowl', next: 'kintsugi' },
+                { text: 'Seek the poet in the garden', next: 'basho' }
+            ]
+        },
+
+        // --- SCENE 7: Kintsugi ---
+        kintsugi: {
+            era: 'Japan, late 15th century',
+            content: `
+                <p class="header-label">The Art of Golden Repair</p>
+                <h2 class="brush-stroke">Kintsugi</h2>
+
+                <div class="badge-row">
+                    <span class="badge badge-rust">Wabi-Sabi</span>
+                    <span class="badge badge-outline">15th Century</span>
+                </div>
+
+                <p class="lead">Before you sits a tea bowl repaired with veins of gold. Where it was once shattered, it now gleams. It is more beautiful for having been broken.</p>
+
+                <div style="margin: 2rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Tea_bowl%2C_Korea%2C_Joseon_dynasty%2C_16th_century_AD%2C_Mishima-hakeme_type%2C_buncheong_ware%2C_stoneware_with_white_engobe_and_translucent%2C_greenish-gray_glaze%2C_gold_lacquer_-_Ethnological_Museum%2C_Berlin_-_DSC02061.JPG/800px-Tea_bowl%2C_Korea%2C_Joseon_dynasty%2C_16th_century_AD%2C_Mishima-hakeme_type%2C_buncheong_ware%2C_stoneware_with_white_engobe_and_translucent%2C_greenish-gray_glaze%2C_gold_lacquer_-_Ethnological_Museum%2C_Berlin_-_DSC02061.JPG" alt="Kintsugi bowl repaired with gold lacquer" style="max-width: 100%; height: auto; border: 1px solid #d4cfc5; opacity: 0.9;">
+                    <div style="font-size: 0.75rem; margin-top: 0.75rem; color: #8a8a8a; letter-spacing: 0.05em;">Bowl Repaired with Kintsugi Technique</div>
+                </div>
+
+                <div class="card card-featured">
+                    <div class="card-number">1490</div>
+                    <h3>The Shogun's Broken Bowl</h3>
+                    <p>In the late 15th century, the 8th Ashikaga Shogun, Ashikaga Yoshimasa (1436-1490), sent a damaged Chinese tea bowl back to China for repair. When it returned with ugly metal staples holding the cracks together, he was displeased and ordered Japanese craftsmen to find a more elegant solution.</p>
+                    <p>They filled the cracks with lacquer mixed with powdered gold. The result was not a hidden repair but a celebration — the breaks became luminous seams, a map of the bowl's history. Kintsugi was born.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon bamboo-icon"></div>
+                    <h3>Urushi — The Living Lacquer</h3>
+                    <p>The lacquer used in kintsugi is <em>urushi</em>, a natural resin harvested from the Japanese lacquer tree. This tradition dates back to at least 2400 BC in Japan. A single twenty-year-old tree produces only one cup of lacquer before it must be cut down — a fact that embodies the philosophy of deep respect for natural resources.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Mottainai</h3>
+                    <p class="principle-jp">もったいない</p>
+                    <p>A sense of regret over waste. Kintsugi embodies this principle — nothing is discarded that can be given new life. The repair does not hide the damage; it illuminates it.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <p>The craftsman places two pieces before you. One is a perfect, unblemished bowl. The other is the kintsugi bowl, seamed with gold.</p>
+
+                <p>"Which do you choose?" he asks.</p>
+            `,
+            fact: 'Kintsugi originated when Shogun Ashikaga Yoshimasa (~1490) rejected metal staple repairs — urushi lacquer with gold dates back to 2400 BC in Japan.',
+            choices: [
+                { text: 'Choose the kintsugi bowl — beauty in imperfection', next: 'basho' },
+                { text: 'Choose the perfect bowl — there is also beauty in wholeness', next: 'perfection_path' }
+            ]
+        },
+
+        // --- SCENE 8A: Perfection Path (leads to convergence) ---
+        perfection_path: {
+            era: 'The Seven Principles',
+            content: `
+                <p class="header-label">The Pursuit of Wholeness</p>
+                <h2 class="brush-stroke">Seven Aesthetic Principles</h2>
+
+                <p class="lead">The craftsman smiles. "There is wisdom in that choice too. The seven aesthetic principles of Zen teach us that beauty takes many forms."</p>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Kanso</h3>
+                    <p class="principle-jp">簡素 — Simplicity</p>
+                    <p>Eliminate the unnecessary. The absence of clutter creates clarity. Each element earns its place.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Fukinsei</h3>
+                    <p class="principle-jp">不均斉 — Asymmetry</p>
+                    <p>Perfect symmetry is lifeless. Controlled irregularity creates movement, interest, and a sense of natural growth.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Shibui</h3>
+                    <p class="principle-jp">渋い — Subtle Beauty</p>
+                    <p>Beauty that is understated rather than bold. It reveals itself slowly, rewarding patient observation.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Shizen</h3>
+                    <p class="principle-jp">自然 — Naturalness</p>
+                    <p>Avoid the artificial and contrived. Design should feel organic, as if it emerged naturally.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Yugen</h3>
+                    <p class="principle-jp">幽玄 — Profound Grace</p>
+                    <p>Suggest rather than reveal. Leave room for imagination. The unseen is as important as the seen.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Datsuzoku</h3>
+                    <p class="principle-jp">脱俗 — Freedom from Convention</p>
+                    <p>Break from routine to find surprise and transcendence. Rules serve the design, not the reverse.</p>
+                </div>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Seijaku</h3>
+                    <p class="principle-jp">静寂 — Tranquility</p>
+                    <p>Active calm. In the stillness between movements, clarity emerges.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <p>"Even the perfect bowl embodies these principles — not because it is flawless, but because it was made with intention, with simplicity, with naturalness. Perfection in Zen is not the absence of imperfection. It is the wholeness of presence."</p>
+            `,
+            fact: 'The seven Zen aesthetic principles: Kanso, Fukinsei, Shibui, Shizen, Yugen, Datsuzoku, and Seijaku — a complete philosophy of beauty.',
+            choices: [
+                { text: 'Seek the poet who understood all of this', next: 'basho' }
+            ]
+        },
+
+        // --- SCENE 9: Basho ---
+        basho: {
+            era: 'Japan, 1644 — 1694',
+            content: `
+                <p class="header-label">The Poet's Lightness</p>
+                <h2 class="brush-stroke">Matsuo Basho</h2>
+
+                <div class="badge-row">
+                    <span class="badge badge-indigo">Haiku</span>
+                    <span class="badge badge-outline">1644 — 1694</span>
+                </div>
+
+                <p class="lead">In a quiet corner of the garden, you find an old man sitting beside a pond. A frog leaps. He smiles and writes three lines.</p>
+
+                <div style="margin: 2rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Basho_by_Hokusai-small.jpg/600px-Basho_by_Hokusai-small.jpg" alt="Portrait of Matsuo Basho by Katsushika Hokusai" style="max-width: 100%; height: auto; border: 1px solid #d4cfc5; opacity: 0.9;">
+                    <div style="font-size: 0.75rem; margin-top: 0.75rem; color: #8a8a8a; letter-spacing: 0.05em;">Matsuo Bashō, by Katsushika Hokusai</div>
+                </div>
+
+                <div class="quote-block">
+                    <p class="quote-text">Furu ike ya / kawazu tobikomu / mizu no oto<br><br>The old pond — / a frog jumps in, / sound of water.</p>
+                    <p class="quote-source">Matsuo Basho, ~1686</p>
+                </div>
+
+                <div class="card card-featured">
+                    <div class="card-icon enso-icon"></div>
+                    <h3>Seventeen Syllables of Truth</h3>
+                    <p>Matsuo Basho (1644-1694) was a Zen Buddhist lay monk who revolutionized haiku poetry by focusing on microscopic scenes from everyday life that reveal enormous truths. He compressed volumes of insight into exactly seventeen syllables — five, seven, five.</p>
+                    <p>His genius was recognizing that the vast and the intimate are the same thing. A frog jumping into a pond contains the entire universe: silence, disruption, and the return to silence. Impermanence in three breaths.</p>
+                </div>
+
+                <p>Basho lost his house to fire. Rather than mourning, he wrote poetry about the freedom of having nothing. He walked thousands of miles across Japan, writing haiku along narrow mountain roads. His journeys became the book <em>Oku no Hosomichi</em> ("The Narrow Road to the Deep North"), one of the most celebrated works in Japanese literature.</p>
+
+                <div class="principle-block">
+                    <h3 class="principle-title">Karumi</h3>
+                    <p class="principle-jp">軽み — Lightness</p>
+                    <p>Basho's mature style pursued "karumi" — a lightness of touch that could hold the weight of deep truth. The simplest words. The most ordinary images. The profoundest meanings. This is wabi-sabi made into language.</p>
+                </div>
+
+                <p>The poet looks up. "Tell me," he says. "What have you learned on your walk through this garden? Is it time to understand why all these paths — the tea, the bowl, the poem — lead to the same place?"</p>
+            `,
+            fact: 'Matsuo Basho (1644-1694), a Zen lay monk, revolutionized haiku — compressing vast truths into 17 syllables.',
+            choices: [
+                { text: 'Yes — show me where all paths converge', next: 'convergence' },
+                { text: 'First, I want to understand ikigai', next: 'ikigai' }
+            ]
+        },
+
+        // --- SCENE 10: Ikigai ---
+        ikigai: {
+            era: 'Japan, 1966 — Present',
+            content: `
+                <p class="header-label">The Reason for Being</p>
+                <h2 class="brush-stroke">Ikigai</h2>
+
+                <div class="badge-row">
+                    <span class="badge badge-bamboo">Philosophy</span>
+                    <span class="badge badge-outline">Modern Japan</span>
+                </div>
+
+                <p class="lead">Beneath a cherry tree — its blossoms already beginning to fall — you find a quiet space for reflection. The journey through the garden has led you here: to the question of purpose.</p>
+
+                <div class="card card-featured">
+                    <div class="card-icon stone-icon"></div>
+                    <h3>What Gets You Out of Bed</h3>
+                    <p>Japanese psychiatrist and academic Mieko Kamiya first popularized the concept of ikigai in her 1966 book "On the Meaning of Life." The word itself combines <em>iki</em> (life, living) with <em>gai</em> (worth, value). Ikigai is not a grand life purpose discovered in a flash of inspiration. It is the quiet, daily reason for being — what brings value and joy to each ordinary day.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="card">
+                    <h3>The Four Questions of Ikigai</h3>
+                    <p style="margin-bottom: var(--space-4);"><strong>1. What do you love?</strong> — The activities that make you lose track of time.</p>
+                    <p style="margin-bottom: var(--space-4);"><strong>2. What are you good at?</strong> — The skills you have honed through years of practice.</p>
+                    <p style="margin-bottom: var(--space-4);"><strong>3. What does the world need?</strong> — The contribution only you can make.</p>
+                    <p><strong>4. What can sustain you?</strong> — The practical foundation for your purpose.</p>
+                </div>
+
+                <p>The place where all four circles overlap — that is ikigai. Not a career. Not a passion. Something quieter and more durable: the sense that your life matters, each day, in ways both small and irreplaceable.</p>
+
+                <div class="quote-block">
+                    <p class="quote-text">"Your ikigai is at the intersection of what you love, what you are good at, what the world needs, and what sustains you. It is not something you find. It is something you live."</p>
+                    <p class="quote-source">Adapted from Mieko Kamiya, "On the Meaning of Life" (1966)</p>
+                </div>
+
+                <p>Think of Dogen, who found his ikigai in the practice of sitting. Of Rikyu, who found his in the pouring of tea. Of Basho, who found his in the writing of seventeen syllables. None of them sought something extraordinary. They found the extraordinary in the ordinary.</p>
+            `,
+            fact: 'Ikigai was popularized by psychiatrist Mieko Kamiya in 1966 — the intersection of love, skill, need, and sustenance.',
+            choices: [
+                { text: 'Now show me where all paths converge', next: 'convergence' }
+            ]
+        },
+
+        // --- SCENE 11: Convergence (all paths meet here) ---
+        convergence: {
+            era: 'The Circle Closes',
+            content: `
+                <p class="header-label">The Unity of All Paths</p>
+                <h2 class="brush-stroke">Where the Streams Meet</h2>
+
+                <p class="lead">You have walked many paths through this garden. Now you stand at the center, and you see what was always true: they are not separate paths at all. They are one path, seen from different angles.</p>
+
+                <div style="margin: 2rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f1/Enso.jpg" alt="Enso circle - Zen symbol of enlightenment" style="max-width: 100%; height: auto; border: 1px solid #d4cfc5; opacity: 0.9;">
+                    <div style="font-size: 0.75rem; margin-top: 0.75rem; color: #8a8a8a; letter-spacing: 0.05em;">Ensō — The Zen Circle of Enlightenment</div>
+                </div>
+
+                <div class="ma-demo">
+                    <div class="ma-element"></div>
+                    <div class="ma-element"></div>
+                    <div class="ma-element"></div>
+                </div>
+                <p class="small text-center" style="color: var(--stone); margin-bottom: var(--space-6);">Form and emptiness. Separate and one.</p>
+
+                <div class="card card-featured">
+                    <h3>The Golden Thread</h3>
+                    <p>Bodhidharma's mind-to-mind transmission. Dogen's "just sitting." Rikyu's four principles of tea. The golden seams of kintsugi. Basho's seventeen syllables. The daily practice of ikigai.</p>
+                    <p>These are not separate philosophies. They are reflections of a single truth: <strong>beauty emerges from impermanence and intention.</strong></p>
+                    <p>Everything is transient. Nothing is perfect. Nothing is complete. And in that incompleteness lies the deepest beauty — because it means we are always becoming, always arriving, never finished.</p>
+                </div>
+
+                <div class="quote-block">
+                    <p class="quote-text">"The moon does not think of being reflected, nor does the water think of reflecting it. The Hirosawa Pond."</p>
+                    <p class="quote-source">Zen Teaching</p>
+                </div>
+
+                <p>The garden is quiet now. The light has shifted — has it been hours or centuries? In the Zen tradition, there is no difference. You carry everything you have learned: the patience of seven hundred years, the simplicity of a tea bowl, the courage to repair with gold, the lightness of a haiku.</p>
+
+                <p>The final question remains: how will you carry what you have learned back into the world?</p>
+            `,
+            fact: 'All branches of Japanese aesthetic philosophy share one root: beauty emerges from impermanence and intention.',
+            choices: [
+                { text: 'With stillness — I will practice presence in each moment', next: 'ending_stillness' },
+                { text: 'With action — I will repair what is broken with gold', next: 'ending_golden' },
+                { text: 'With words — I will compress truth into simplicity', next: 'ending_haiku' }
+            ]
+        },
+
+        // --- ENDING A: Stillness ---
+        ending_stillness: {
+            era: 'Ichi-go Ichi-e',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">The Way Unfolds</div>
+                    <div class="ending-title">Seijaku — Tranquility</div>
+
+                    <div style="max-width: 550px; margin: 0 auto; text-align: left;">
+                        <p class="lead">You choose the path of stillness. Not the stillness of inaction, but the active calm of one who sees clearly.</p>
+
+                        <div class="quote-block">
+                            <p class="quote-text">"Sitting quietly, doing nothing, spring comes, and the grass grows by itself."</p>
+                            <p class="quote-source">Zenrin Kushu</p>
+                        </div>
+
+                        <p>Like Dogen, who found enlightenment not in seeking but in sitting. Like Rikyu, whose four principles culminate in jaku — tranquility. Like the garden you walked through, where the spaces between things held the deepest meaning.</p>
+
+                        <p>You carry with you the knowledge that Bodhidharma's teaching traveled fifteen centuries to reach this moment. That a broken bowl can be made more beautiful with gold. That seventeen syllables can hold the universe. That each meeting — ichi-go ichi-e — is the only one of its kind.</p>
+
+                        <p>You step through the temple gate. The world looks the same. But you do not.</p>
+
+                        <div class="divider"></div>
+
+                        <p class="small text-center" style="color: var(--stone);">Before enlightenment, chop wood, carry water.<br>After enlightenment, chop wood, carry water.</p>
+                    </div>
+
+                    <div class="the-end">The End</div>
+                    <div class="the-end-jp">終 — Owari</div>
+                </div>
+            `,
+            fact: 'Seijaku (tranquility) is the culmination of Zen practice — active calm, not passive emptiness.',
+            choices: [
+                { text: 'Walk the garden again', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING B: Golden Repair ---
+        ending_golden: {
+            era: 'Kintsugi',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">The Way Unfolds</div>
+                    <div class="ending-title">Kintsugi — Golden Repair</div>
+
+                    <div style="max-width: 550px; margin: 0 auto; text-align: left;">
+                        <p class="lead">You choose the path of repair. Not to hide what is broken, but to illuminate it with gold.</p>
+
+                        <div class="quote-block">
+                            <p class="quote-text">"The world breaks everyone, and afterward, many are strong at the broken places."</p>
+                            <p class="quote-source">Ernest Hemingway (in the spirit of kintsugi)</p>
+                        </div>
+
+                        <p>Like Ashikaga Yoshimasa, who refused to accept ugly repairs and demanded beauty from brokenness. Like the urushi lacquer harvesters who waited twenty years for a single cup of resin, knowing that patience is its own form of respect. Like every tea bowl that has been dropped, shattered, and made luminous again.</p>
+
+                        <p>You think of your own cracks — the losses, the failures, the things that did not go as planned. And you understand now that these are not flaws to hide. They are seams to fill with gold. They are the places where the light gets in.</p>
+
+                        <p>This is the teaching of wabi-sabi: nothing lasts, nothing is finished, nothing is perfect. And that is precisely what makes it beautiful.</p>
+
+                        <div class="divider"></div>
+
+                        <p class="small text-center" style="color: var(--stone);">The crack is where the light enters.<br>The repair is where the beauty lives.</p>
+                    </div>
+
+                    <div class="the-end">The End</div>
+                    <div class="the-end-jp">終 — Owari</div>
+                </div>
+            `,
+            fact: 'Kintsugi teaches that brokenness is not a flaw but a history — repair with gold makes the damage part of the beauty.',
+            choices: [
+                { text: 'Walk the garden again', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING C: Haiku ---
+        ending_haiku: {
+            era: 'The Narrow Road',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">The Way Unfolds</div>
+                    <div class="ending-title">Karumi — Lightness of Being</div>
+
+                    <div style="max-width: 550px; margin: 0 auto; text-align: left;">
+                        <p class="lead">You choose the path of the poet. To see the vast in the small, the eternal in the fleeting, the profound in the ordinary.</p>
+
+                        <div class="quote-block">
+                            <p class="quote-text">Natsugusa ya / tsuwamono-domo ga / yume no ato<br><br>Summer grasses — / all that remains / of warriors' dreams.</p>
+                            <p class="quote-source">Matsuo Basho, visiting the ruins of Hiraizumi, 1689</p>
+                        </div>
+
+                        <p>Like Basho, who walked the narrow road to the deep north and found that every step was both a departure and an arrival. Who lost his house to fire and wrote about the freedom of empty hands. Who understood that the frog jumping into the old pond is the same sound the universe made when it began.</p>
+
+                        <p>Seventeen syllables. That is all you need. The discipline of compression — of saying less to mean more — is the literary form of kanso (simplicity). Every word earns its place. Every silence speaks.</p>
+
+                        <p>You leave the garden carrying nothing but this: the knowledge that the deepest truths fit in the palm of your hand. That a lifetime of wisdom can be written in three breaths.</p>
+
+                        <div class="divider"></div>
+
+                        <p class="small text-center" style="color: var(--stone);">Temple bell fading — <br>fragrance of flowers rises<br>into evening.</p>
+                        <p class="small text-center mt-4" style="color: var(--stone-light); font-style: italic;">-- Basho</p>
+                    </div>
+
+                    <div class="the-end">The End</div>
+                    <div class="the-end-jp">終 — Owari</div>
+                </div>
+            `,
+            fact: 'Basho walked "The Narrow Road to the Deep North" (1689) — one of the most celebrated journey narratives in world literature.',
+            choices: [
+                { text: 'Walk the garden again', next: '_restart' }
+            ]
+        }
+    };
+
+    // ================================================================
+    //  STORY ENGINE
+    // ================================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('garden_gate');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 600);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1400);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            // Update era label
+            const eraLabel = document.getElementById('sceneEra');
+            eraLabel.textContent = scene.era || '';
+
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+            let html = '<div class="scene-content">';
+
+            // Content (raw HTML using style guide CSS classes)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += `${choice.text}`;
+                    html += `</button>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">The path awaits...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => `<div class="fact-item">${f}</div>`).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

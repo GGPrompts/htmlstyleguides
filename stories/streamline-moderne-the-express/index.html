@@ -1,0 +1,2239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Express — A Streamline Moderne Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Typography */
+            --font-display: 'Quicksand', sans-serif;
+            --font-body: 'Raleway', sans-serif;
+
+            /* Streamline Moderne Color Palette */
+            --cream: #F5F0E6;
+            --cream-light: #FAF8F3;
+            --silver: #C0C0C0;
+            --chrome: #E8E8E8;
+            --chrome-dark: #A8A8A8;
+            --navy: #1A2A4A;
+            --navy-deep: #0F1A2E;
+            --burgundy: #6B2D3D;
+            --burgundy-light: #8A3D4F;
+            --burgundy-dark: #4A1D2A;
+            --mint: #7EBDB4;
+            --mint-light: #A5D4CD;
+            --mint-dark: #5A9A91;
+
+            /* Semantic Colors */
+            --text-primary: var(--cream);
+            --text-secondary: rgba(245, 240, 230, 0.75);
+            --text-muted: rgba(245, 240, 230, 0.5);
+            --bg-primary: var(--navy-deep);
+            --bg-secondary: var(--navy);
+            --accent-primary: var(--chrome);
+            --accent-secondary: var(--mint);
+            --accent-tertiary: var(--burgundy);
+
+            /* Spacing Scale */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+            --space-10: 128px;
+
+            /* Border Radius - Streamlined curves */
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 40px;
+            --radius-pill: 100px;
+            --radius-teardrop: 50% 50% 50% 0%;
+
+            /* Shadows */
+            --shadow-chrome: 0 2px 8px rgba(192, 192, 192, 0.15),
+                             0 4px 16px rgba(192, 192, 192, 0.1);
+            --shadow-glow: 0 0 20px rgba(192, 192, 192, 0.2);
+            --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+
+            /* Transitions */
+            --transition-smooth: 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-fast: 0.2s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Speed Lines Background */
+        .speed-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .speed-lines::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 80px,
+                    rgba(192, 192, 192, 0.03) 80px,
+                    rgba(192, 192, 192, 0.03) 81px
+                );
+        }
+
+        .speed-lines::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            left: -50%;
+            width: 200%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(192, 192, 192, 0.1) 20%,
+                rgba(192, 192, 192, 0.05) 50%,
+                transparent 100%
+            );
+            transform: rotate(-2deg);
+            animation: speedLine1 20s linear infinite;
+        }
+
+        @keyframes speedLine1 {
+            0% { transform: translateX(-10%) rotate(-2deg); }
+            100% { transform: translateX(10%) rotate(-2deg); }
+        }
+
+        /* Accent speed lines */
+        .speed-accent {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                rgba(126, 189, 180, 0.2),
+                transparent
+            );
+            pointer-events: none;
+        }
+
+        .speed-accent:nth-child(1) {
+            top: 35%;
+            left: 0;
+            width: 60%;
+        }
+
+        .speed-accent:nth-child(2) {
+            top: 55%;
+            right: 0;
+            width: 70%;
+        }
+
+        .speed-accent:nth-child(3) {
+            top: 75%;
+            left: 10%;
+            width: 40%;
+        }
+
+        /* =============================================
+           LAYOUT
+        ============================================= */
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =============================================
+           TYPOGRAPHY
+        ============================================= */
+        .type-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--mint);
+            margin-bottom: var(--space-3);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: var(--chrome);
+            line-height: 1.2;
+        }
+
+        .type-heading {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--text-primary);
+        }
+
+        .type-subheading {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        /* =============================================
+           TITLE SCREEN
+        ============================================= */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 90vh;
+            text-align: center;
+            padding: var(--space-7) 0;
+        }
+
+        .title-emblem {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-6);
+        }
+
+        .title-emblem .wing {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--chrome));
+            border-radius: var(--radius-pill);
+        }
+
+        .title-emblem .wing.right {
+            background: linear-gradient(270deg, transparent, var(--chrome));
+        }
+
+        .title-emblem .porthole {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--chrome);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .title-emblem .porthole::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: var(--mint);
+            border-radius: 50%;
+        }
+
+        .title-badge {
+            display: inline-block;
+            padding: var(--space-2) var(--space-5);
+            background: linear-gradient(180deg, var(--chrome), var(--silver));
+            color: var(--navy-deep);
+            font-family: var(--font-display);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            border-radius: var(--radius-pill);
+            margin-bottom: var(--space-5);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 5rem);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--chrome);
+            margin-bottom: var(--space-3);
+            text-shadow: 0 0 40px rgba(192, 192, 192, 0.3);
+            line-height: 1.1;
+        }
+
+        .title-subtitle {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-6);
+        }
+
+        .title-tagline {
+            font-family: var(--font-body);
+            font-style: italic;
+            font-weight: 300;
+            color: var(--mint);
+            margin-bottom: var(--space-7);
+            max-width: 480px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+
+        /* Aero train on title screen */
+        .title-train {
+            display: flex;
+            align-items: center;
+            margin-bottom: var(--space-7);
+            opacity: 0.6;
+        }
+
+        .train-nose {
+            width: 60px;
+            height: 40px;
+            background: linear-gradient(180deg,
+                var(--chrome),
+                var(--silver),
+                var(--chrome-dark)
+            );
+            border-radius: 0 40px 40px 0;
+            position: relative;
+            box-shadow: var(--shadow-chrome);
+        }
+
+        .train-nose::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 10px;
+            width: 8px;
+            height: 8px;
+            background: var(--mint);
+            border-radius: 50%;
+            box-shadow: 0 8px 0 var(--mint);
+        }
+
+        .train-body {
+            width: 120px;
+            height: 40px;
+            background: linear-gradient(180deg,
+                var(--chrome),
+                var(--silver),
+                var(--chrome-dark)
+            );
+            position: relative;
+            margin-left: -2px;
+        }
+
+        .train-body::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10px;
+            right: 10px;
+            height: 2px;
+            background: var(--burgundy);
+            transform: translateY(-50%);
+        }
+
+        .train-body::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            width: 12px;
+            height: 12px;
+            background: rgba(126, 189, 180, 0.3);
+            border: 2px solid var(--chrome-dark);
+            border-radius: 50%;
+            box-shadow:
+                25px 0 0 rgba(126, 189, 180, 0.3),
+                50px 0 0 rgba(126, 189, 180, 0.3),
+                75px 0 0 rgba(126, 189, 180, 0.3);
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4) var(--space-7);
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            border: none;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            background: linear-gradient(180deg,
+                var(--mint-light) 0%,
+                var(--mint) 50%,
+                var(--mint-dark) 100%
+            );
+            color: var(--navy-deep);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transition: all var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 6px 20px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.4),
+                0 0 20px rgba(126, 189, 180, 0.3);
+        }
+
+        .title-credits {
+            margin-top: var(--space-7);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* =============================================
+           SCENE CONTAINER
+        ============================================= */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: var(--space-5);
+            padding-bottom: var(--space-7);
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        /* Scene header bar */
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-5);
+            position: relative;
+        }
+
+        .scene-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--chrome-dark) 20%,
+                var(--chrome) 50%,
+                var(--chrome-dark) 80%,
+                transparent
+            );
+            border-radius: var(--radius-pill);
+        }
+
+        .scene-voyage-label {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--mint);
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--chrome);
+        }
+
+        /* =============================================
+           SCENE CONTENT TYPES
+        ============================================= */
+
+        /* --- Card Scene (primary narrative) --- */
+        .scene-card {
+            padding: var(--space-6);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(192, 192, 192, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+        }
+
+        /* Streamlined top accent */
+        .scene-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--chrome-dark),
+                var(--chrome),
+                var(--chrome-dark)
+            );
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        /* Speed line accent */
+        .scene-card::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 0;
+            width: 100px;
+            height: 1px;
+            background: linear-gradient(270deg,
+                rgba(126, 189, 180, 0.3),
+                transparent
+            );
+            transform: translateY(-50%);
+        }
+
+        .scene-card .card-porthole {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--chrome);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-5);
+            background: linear-gradient(135deg,
+                rgba(192, 192, 192, 0.1),
+                transparent
+            );
+            box-shadow: var(--shadow-inset);
+        }
+
+        .scene-card .card-porthole-inner {
+            width: 24px;
+            height: 24px;
+            background: var(--mint);
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        .scene-card .card-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--chrome);
+            margin-bottom: var(--space-3);
+        }
+
+        .scene-card .card-content {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .scene-card .card-content p {
+            margin-bottom: 1rem;
+        }
+
+        .scene-card .card-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* --- Aero Showcase Scene (dramatic reveals) --- */
+        .scene-showcase {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: var(--space-7);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--space-5);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .scene-showcase::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 20px,
+                    rgba(192, 192, 192, 0.02) 20px,
+                    rgba(192, 192, 192, 0.02) 21px
+                );
+            pointer-events: none;
+        }
+
+        .scene-showcase .showcase-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--chrome);
+            margin-bottom: var(--space-4);
+            text-shadow: 0 0 30px rgba(192, 192, 192, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .scene-showcase .showcase-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 600px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .scene-showcase .showcase-text p {
+            margin-bottom: 1rem;
+        }
+
+        .scene-showcase .showcase-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* --- Liner Scene (ocean liner atmosphere) --- */
+        .scene-liner {
+            padding: var(--space-6);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(192, 192, 192, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-liner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--burgundy-dark),
+                var(--burgundy),
+                var(--burgundy-light),
+                var(--burgundy),
+                var(--burgundy-dark)
+            );
+            border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        }
+
+        .scene-liner .liner-header {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-liner .liner-funnel {
+            width: 24px;
+            height: 40px;
+            background: linear-gradient(180deg,
+                var(--burgundy-light),
+                var(--burgundy)
+            );
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .scene-liner .liner-funnel::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 4px;
+            right: 4px;
+            height: 3px;
+            background: var(--cream);
+            border-radius: 2px;
+        }
+
+        .scene-liner .liner-funnel::after {
+            content: '';
+            position: absolute;
+            top: 16px;
+            left: 4px;
+            right: 4px;
+            height: 3px;
+            background: var(--cream);
+            border-radius: 2px;
+        }
+
+        .scene-liner .liner-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            color: var(--chrome);
+        }
+
+        .scene-liner .liner-content {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .scene-liner .liner-content p {
+            margin-bottom: 1rem;
+        }
+
+        .scene-liner .liner-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .scene-liner .portholes-row {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-4);
+            justify-content: center;
+        }
+
+        .scene-liner .porthole-small {
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--chrome);
+            border-radius: 50%;
+            background: rgba(126, 189, 180, 0.2);
+        }
+
+        /* --- Teardrop Scene (emotional/reflective) --- */
+        .scene-teardrop {
+            padding: var(--space-7) var(--space-6);
+            background: var(--bg-secondary);
+            border-radius: var(--radius-xl);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+            text-align: center;
+        }
+
+        .scene-teardrop .teardrop-shape {
+            width: 60px;
+            height: 30px;
+            background: linear-gradient(90deg,
+                var(--chrome),
+                var(--silver)
+            );
+            border-radius: 50px 50px 50px 0;
+            transform: rotate(-45deg);
+            position: relative;
+            box-shadow: var(--shadow-chrome);
+            margin: 0 auto var(--space-5);
+        }
+
+        .scene-teardrop .teardrop-shape::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 10px;
+            width: 15px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: rotate(45deg);
+        }
+
+        .scene-teardrop .teardrop-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--chrome);
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-teardrop .teardrop-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 560px;
+            margin: 0 auto;
+        }
+
+        .scene-teardrop .teardrop-text p {
+            margin-bottom: 1rem;
+        }
+
+        .scene-teardrop .teardrop-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* --- Ending Scene --- */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-7) var(--space-6);
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--mint);
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 6vw, 3rem);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--chrome);
+            margin-bottom: var(--space-6);
+            text-shadow: 0 0 40px rgba(192, 192, 192, 0.3);
+        }
+
+        .scene-ending .ending-text {
+            max-width: 560px;
+            margin: 0 auto;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .scene-ending .ending-text p {
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+        }
+
+        .scene-ending .ending-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .scene-ending .the-end {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: var(--text-muted);
+            margin-top: var(--space-6);
+            text-transform: uppercase;
+        }
+
+        /* =============================================
+           FACT CARD (inline)
+        ============================================= */
+        .fact-card {
+            background: rgba(126, 189, 180, 0.08);
+            border-left: 4px solid var(--mint);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            padding: var(--space-4) var(--space-5);
+            margin: var(--space-4) 0;
+        }
+
+        .fact-card .fact-label {
+            font-family: var(--font-display);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--mint);
+            margin-bottom: var(--space-2);
+        }
+
+        .fact-card p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* =============================================
+           DIVIDER
+        ============================================= */
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-5);
+            margin: var(--space-5) 0;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--chrome-dark), transparent);
+            border-radius: var(--radius-pill);
+        }
+
+        .divider-emblem {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .divider-emblem .wing {
+            width: 30px;
+            height: 2px;
+            background: var(--chrome);
+            border-radius: var(--radius-pill);
+        }
+
+        .divider-emblem .center {
+            width: 8px;
+            height: 8px;
+            background: var(--mint);
+            border-radius: 50%;
+            border: 2px solid var(--chrome);
+        }
+
+        /* Streamline deco */
+        .streamline-deco {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            margin: var(--space-4) 0;
+        }
+
+        .streamline-bar {
+            height: 4px;
+            background: linear-gradient(90deg,
+                var(--chrome-dark),
+                var(--chrome)
+            );
+            border-radius: var(--radius-pill);
+        }
+
+        .streamline-bar.short { width: 20px; }
+        .streamline-bar.medium { width: 40px; }
+        .streamline-bar.long { width: 80px; }
+
+        .streamline-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--mint);
+            border-radius: 50%;
+        }
+
+        /* =============================================
+           BADGES
+        ============================================= */
+        .badge {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-pill);
+            transition: all var(--transition-fast);
+        }
+
+        .badge-chrome {
+            background: linear-gradient(180deg, var(--chrome), var(--silver));
+            color: var(--navy-deep);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .badge-mint {
+            background: var(--mint);
+            color: var(--navy-deep);
+        }
+
+        .badge-burgundy {
+            background: var(--burgundy);
+            color: var(--cream);
+        }
+
+        .badge-outline {
+            background: transparent;
+            border: 2px solid var(--chrome);
+            color: var(--chrome);
+        }
+
+        /* =============================================
+           FACT FOUND TOAST
+        ============================================= */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: var(--mint);
+            color: var(--navy-deep);
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: var(--radius-pill);
+            margin-top: var(--space-4);
+            animation: factSlideIn 0.6s ease-out;
+        }
+
+        .fact-found::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--navy-deep);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* =============================================
+           CHOICES
+        ============================================= */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-4) var(--space-5);
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            border: 2px solid rgba(192, 192, 192, 0.2);
+            background: rgba(26, 42, 74, 0.5);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-smooth);
+            border-radius: var(--radius-pill);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg,
+                rgba(126, 189, 180, 0.15),
+                transparent
+            );
+            transition: width var(--transition-smooth);
+        }
+
+        .choice-btn:hover {
+            border-color: var(--mint);
+            transform: translateX(4px);
+            box-shadow: 0 0 15px rgba(126, 189, 180, 0.15);
+        }
+
+        .choice-btn:hover::before {
+            width: 100%;
+        }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 2px solid var(--chrome-dark);
+            border-radius: 50%;
+            font-size: 0.7rem;
+            color: var(--chrome);
+            margin-right: var(--space-4);
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+            position: relative;
+            z-index: 1;
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--mint);
+            color: var(--mint);
+            background: rgba(126, 189, 180, 0.1);
+        }
+
+        .choice-btn .choice-label {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* =============================================
+           TRANSITION OVERLAY
+        ============================================= */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: aeroTransition 1.2s ease-in-out;
+        }
+
+        @keyframes aeroTransition {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            50% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Speed line wipe effect */
+        .transition-wipe {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--navy-deep);
+            overflow: hidden;
+        }
+
+        .transition-wipe::before {
+            content: '';
+            position: absolute;
+            top: 30%;
+            left: -100%;
+            width: 300%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--chrome) 40%,
+                var(--chrome) 60%,
+                transparent 100%
+            );
+            animation: wipeLineMove 1.2s ease-in-out;
+        }
+
+        .transition-wipe::after {
+            content: '';
+            position: absolute;
+            top: 55%;
+            left: -100%;
+            width: 300%;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--mint) 45%,
+                var(--mint) 55%,
+                transparent 100%
+            );
+            animation: wipeLineMove 1.2s ease-in-out 0.1s;
+        }
+
+        @keyframes wipeLineMove {
+            0% { transform: translateX(-30%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(30%); }
+        }
+
+        .transition-chrome-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 3px solid var(--chrome);
+            border-radius: 50%;
+            opacity: 0;
+            animation: chromeCirclePulse 1.2s ease-in-out;
+        }
+
+        @keyframes chromeCirclePulse {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            30% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            70% { opacity: 0.6; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+        }
+
+        .transition-chrome-circle::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: var(--mint);
+            border-radius: 50%;
+            opacity: 0.6;
+        }
+
+        /* =============================================
+           KNOWLEDGE TRACKER (SIDEBAR)
+        ============================================= */
+        .knowledge-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .knowledge-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--bg-secondary);
+            border: 1px solid rgba(192, 192, 192, 0.15);
+            border-radius: var(--radius-pill);
+            color: var(--mint);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-left: auto;
+        }
+
+        .knowledge-toggle:hover {
+            border-color: var(--mint);
+            box-shadow: 0 0 10px rgba(126, 189, 180, 0.1);
+        }
+
+        .knowledge-toggle .toggle-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: var(--mint);
+            color: var(--navy-deep);
+            border-radius: 50%;
+            font-size: 0.65rem;
+            font-weight: 700;
+        }
+
+        .knowledge-panel {
+            display: none;
+            margin-top: var(--space-2);
+            background: var(--bg-secondary);
+            border: 1px solid rgba(192, 192, 192, 0.15);
+            border-radius: var(--radius-lg);
+            padding: var(--space-4);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .knowledge-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .knowledge-panel h4 {
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--chrome);
+            margin-bottom: var(--space-3);
+            padding-bottom: var(--space-2);
+            border-bottom: 1px solid rgba(192, 192, 192, 0.1);
+        }
+
+        .knowledge-item {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--mint-light);
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid rgba(192, 192, 192, 0.05);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.5;
+        }
+
+        .knowledge-item:last-child {
+            border-bottom: none;
+        }
+
+        .no-facts {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* =============================================
+           GAME CONTROLS
+        ============================================= */
+        .game-controls {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            padding-top: var(--space-4);
+            position: relative;
+        }
+
+        .game-controls::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg,
+                transparent,
+                var(--chrome-dark) 30%,
+                var(--chrome-dark) 70%,
+                transparent
+            );
+        }
+
+        .ctrl-btn {
+            padding: var(--space-2) var(--space-5);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid rgba(192, 192, 192, 0.15);
+            border-radius: var(--radius-pill);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--chrome);
+            color: var(--text-primary);
+        }
+
+        /* =============================================
+           SCENE FADE IN
+        ============================================= */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =============================================
+           SCROLLBAR
+        ============================================= */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-primary); }
+        ::-webkit-scrollbar-thumb {
+            background: var(--chrome-dark);
+            border-radius: var(--radius-pill);
+        }
+        ::selection {
+            background: var(--mint);
+            color: var(--navy-deep);
+        }
+
+        /* =============================================
+           RESPONSIVE
+        ============================================= */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 0 var(--space-4);
+            }
+
+            .title-screen h1 {
+                letter-spacing: 0.08em;
+            }
+
+            .knowledge-tracker {
+                right: 0.75rem;
+                top: 0.75rem;
+                max-width: 220px;
+            }
+
+            .scene-showcase {
+                padding: var(--space-5);
+            }
+
+            .title-train {
+                transform: scale(0.8);
+            }
+        }
+
+        /* =============================================
+           EMPHASIS STYLES
+        ============================================= */
+        .chrome-text {
+            color: var(--chrome);
+            font-weight: 600;
+        }
+
+        .mint-text {
+            color: var(--mint);
+        }
+
+        .burgundy-text {
+            color: var(--burgundy-light);
+        }
+
+        strong {
+            color: var(--cream);
+            font-weight: 600;
+        }
+
+        em {
+            color: var(--mint-light);
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <!-- Speed Lines Background -->
+    <div class="speed-lines">
+        <div class="speed-accent"></div>
+        <div class="speed-accent"></div>
+        <div class="speed-accent"></div>
+    </div>
+
+    <!-- Transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-wipe"></div>
+        <div class="transition-chrome-circle"></div>
+    </div>
+
+    <!-- Knowledge Tracker -->
+    <div class="knowledge-tracker" id="knowledgeTracker" style="display: none;">
+        <button class="knowledge-toggle" id="knowledgeToggle">
+            <span>Discoveries</span>
+            <span class="toggle-count" id="factCount">0</span>
+        </button>
+        <div class="knowledge-panel" id="knowledgePanel">
+            <h4>Historical Facts Collected</h4>
+            <div id="factList">
+                <p class="no-facts">No discoveries yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-emblem">
+                <span class="wing"></span>
+                <span class="porthole"></span>
+                <span class="wing right"></span>
+            </div>
+            <div class="title-badge">An Interactive Journey</div>
+            <h1>The Express</h1>
+            <div class="title-subtitle">A Streamline Moderne Story</div>
+            <p class="title-tagline">"In every curve of chrome and every sweep of speed, the 1930s whispered a promise: tomorrow will be better than today."</p>
+            <div class="title-train">
+                <div class="train-body"></div>
+                <div class="train-nose"></div>
+            </div>
+            <button class="title-start" id="startBtn">Board the Express</button>
+            <p class="title-credits">A story of design, speed, and Depression-era hope</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-voyage-label" id="voyageLabel">The Express</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">New Journey</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // =============================================================
+    //  THE EXPRESS — Story Data
+    // =============================================================
+
+    const STORY = {
+
+        // --- SCENE 1: Terminal Arrival ---
+        terminal: {
+            year: '1935',
+            label: 'NOVEMBER 1935',
+            content: `
+                <div class="scene-showcase">
+                    <div class="showcase-title">Grand Central Air Terminal</div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar short"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-bar short"></span>
+                    </div>
+                    <div class="showcase-text">
+                        <p>You step through glass doors curved like the prow of a ship, into a grand terminal that gleams with chrome and possibility. Horizontal bands of silver run along every surface. Rounded corners replace sharp edges. Even the drinking fountains look like they belong on an ocean liner.</p>
+                        <p>Outside, America is broken. Six years into the Great Depression, <strong>unemployment stands at nearly 20%</strong>. Breadlines snake around city blocks. Banks continue to shutter their doors.</p>
+                        <p>But inside this terminal, the future has already arrived. Every curve, every gleaming surface, every streamlined fixture says the same thing: <em>we will design our way out of this.</em></p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>By 1933, unemployment in the United States reached 24.9% at its worst point, with 6 million Americans unable to find work. Over 9,000 U.S. banks failed during the Depression decade, 744 in the first 10 months of 1930 alone.</p>
+                </div>
+            `,
+            fact: 'At the Depression\'s worst in 1933, U.S. unemployment reached 24.9% — 6 million Americans could not find work.',
+            choices: [
+                { text: 'Visit the design exhibition in the terminal', next: 'exhibition' },
+                { text: 'Proceed directly to the ship pier', next: 'pier' }
+            ]
+        },
+
+        // --- SCENE 2A: Exhibition ---
+        exhibition: {
+            year: '1935',
+            label: 'TERMINAL EXHIBITION',
+            content: `
+                <div class="scene-card">
+                    <div class="card-porthole">
+                        <div class="card-porthole-inner"></div>
+                    </div>
+                    <div class="card-title">Century of Progress: The Exhibition</div>
+                    <div class="card-content">
+                        <p>The exhibition hall is alive with chrome models and illuminated blueprints. A banner reads: <strong>"DESIGN FOR THE MODERN AGE."</strong></p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/b/b2/Chicago_world%27s_fair%2C_a_century_of_progress%2C_expo_poster%2C_1933%2C_2.jpg" alt="1933 Chicago World's Fair Century of Progress poster" style="max-width: 100%; height: auto; border: 2px solid #C0C0C0; border-radius: 0 12px 0 12px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #7EBDB4; letter-spacing: 0.06em;">CENTURY OF PROGRESS — Chicago World's Fair, 1933</div>
+                        </div>
+                        <p>You pause before a display of Norman Bel Geddes's work. His 1932 book <em>Horizons</em> is open under glass, showing sketches of teardrop-shaped automobiles, flying-wing aircraft, and ocean liners that slice through waves like silver arrows.</p>
+                        <p>A placard explains that Bel Geddes pioneered the idea that <strong>industrial design could be an art form</strong> — that the shape of a toaster or the curve of a locomotive could lift the spirits of a nation drowning in economic despair.</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Norman Bel Geddes published <em>Horizons</em> in 1932, a seminal book that popularized the streamlining aesthetic. He is credited as the pioneer of futuristic industrial design, applying aerodynamic principles to everything from radios to ocean liners.</p>
+                </div>
+                <div class="divider">
+                    <div class="divider-line"></div>
+                    <div class="divider-emblem">
+                        <span class="wing"></span>
+                        <span class="center"></span>
+                        <span class="wing"></span>
+                    </div>
+                    <div class="divider-line"></div>
+                </div>
+                <div class="scene-card">
+                    <div class="card-title">The Coldspot</div>
+                    <div class="card-content">
+                        <p>Next to the Bel Geddes display stands a gleaming white refrigerator. It looks nothing like the boxy, industrial ice-boxes you know. Its surfaces are smooth. Its handle is a gentle, unbroken curve. The nameplate reads: <strong>Coldspot, by Sears Roebuck.</strong></p>
+                        <p>A guide in a chrome-buttoned uniform explains: "Raymond Loewy designed this in 1934. Before Loewy, a refrigerator was a machine. Now look at it — it's furniture. It's <em>beautiful.</em>"</p>
+                        <p>You stare at the Coldspot and realize something fundamental has changed. Machines aren't just tools anymore. They're promises.</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>In 1934, Raymond Loewy designed the Coldspot refrigerator for Sears Roebuck & Company — his first major commercial success. The design established "streamlining" as a household concept. Loewy became known as the "Father of Industrial Design."</p>
+                </div>
+            `,
+            fact: 'Raymond Loewy designed the Coldspot refrigerator for Sears in 1934, his first major success. It made "streamlining" a household concept.',
+            choices: [
+                { text: 'Continue to the pier', next: 'pier' }
+            ]
+        },
+
+        // --- SCENE 2B: The Pier ---
+        pier: {
+            year: '1935',
+            label: 'PIER 88, NEW YORK',
+            content: `
+                <div class="scene-showcase">
+                    <div class="showcase-title">SS Normandie</div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar short"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-bar short"></span>
+                    </div>
+                    <div class="showcase-text">
+                        <p>And then you see her.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/9/9d/SS_Normandie_at_sea_view.JPG" alt="SS Normandie at sea, showing her revolutionary streamlined hull" style="max-width: 100%; height: auto; border: 2px solid #C0C0C0; border-radius: 0 12px 0 12px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #7EBDB4; letter-spacing: 0.06em;">SS NORMANDIE — The largest and fastest ocean liner afloat, 1935</div>
+                        </div>
+                        <p>The SS Normandie rises from the waterline like a city made of steel and ambition. She is the largest, fastest passenger ship afloat — <strong>1,029 feet long, 79,280 gross tons</strong>, and in May of this year she crossed the Atlantic in a record-breaking <strong>4 days, 3 hours, and 2 minutes</strong>.</p>
+                        <p>Her hull, designed by Russian naval architect <strong>Vladimir Yourkevitch</strong>, is a revolution in hydrodynamics: a clipper bow that parts the sea instead of fighting it. The French Line spent 863 million francs building her. She is the most expensive ship ever constructed.</p>
+                        <p>The gangway stretches before you like a bridge to another world.</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>The SS Normandie entered service in 1935 as the largest and fastest passenger ship afloat. Designed by Russian naval architect Vladimir Yourkevitch, her revolutionary hull design helped her break the transatlantic speed record at 4 days, 3 hours, and 2 minutes on her maiden voyage.</p>
+                </div>
+            `,
+            fact: 'The SS Normandie (1935) was designed by Vladimir Yourkevitch with a revolutionary hull. She crossed the Atlantic in 4 days, 3 hours, 2 minutes.',
+            choices: [
+                { text: 'Board the Normandie', next: 'boarding' }
+            ]
+        },
+
+        // --- SCENE 3: Boarding ---
+        boarding: {
+            year: '1935',
+            label: 'BOARDING',
+            content: `
+                <div class="scene-liner">
+                    <div class="liner-header">
+                        <div class="liner-funnel"></div>
+                        <div class="liner-title">The Grand Salon</div>
+                    </div>
+                    <div class="liner-content">
+                        <p>You cross the gangway and step into the Normandie's first-class grand salon. The ceiling soars thirty feet above, dripping with Lalique glass panels that cast the room in amber and gold. The walls are lacquered rosewood. The furniture is upholstered in Aubusson tapestry.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a2/BarGrill1ereClasseDuNormandie.JPG" alt="First-class bar and grill aboard SS Normandie" style="max-width: 100%; height: auto; border: 2px solid #C0C0C0; border-radius: 0 12px 0 12px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #7EBDB4; letter-spacing: 0.06em;">FIRST-CLASS BAR ABOARD SS NORMANDIE — Art Deco luxury at sea</div>
+                        </div>
+                        <p>This is not just a ship. This is a floating Art Deco palace, and every detail has been designed to make you forget that the world outside is falling apart.</p>
+                        <p>A steward in a white uniform approaches. "Welcome aboard, sir. Captain Henri Pugnet sends his regards. He would like to invite you to the bridge before we cast off."</p>
+                    </div>
+                    <div class="portholes-row">
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                    </div>
+                </div>
+            `,
+            fact: 'The Normandie\'s interiors featured Lalique glass panels, lacquered rosewood, and Aubusson tapestry — a floating palace of Art Deco luxury.',
+            choices: [
+                { text: 'Visit the Captain on the bridge', next: 'captain' },
+                { text: 'Explore the engine room first', next: 'engine_room' }
+            ]
+        },
+
+        // --- SCENE 4A: Meeting the Captain ---
+        captain: {
+            year: '1935',
+            label: 'THE BRIDGE',
+            content: `
+                <div class="scene-card">
+                    <div class="card-porthole">
+                        <div class="card-porthole-inner"></div>
+                    </div>
+                    <div class="card-title">Captain Pugnet</div>
+                    <div class="card-content">
+                        <p>Captain Pugnet stands at the helm, surveying the harbor through a wall of curved glass. He is a compact man with a salt-and-pepper beard and the quiet authority of someone who has crossed the Atlantic more times than he can count.</p>
+                        <p>"You see this hull?" He gestures at a technical drawing pinned to the wall. "Vladimir Yourkevitch brought his designs to every shipyard in the world. They all turned him away. They said his clipper bow was too radical, too untested."</p>
+                        <p>He taps the drawing. "The French Line listened. And now every other ship in the Atlantic is eating our wake."</p>
+                        <p>"The Normandie isn't just fast," he continues. "She is proof that <strong>a single elegant idea can change everything</strong>. Yourkevitch's hull reduces drag by forty percent compared to conventional designs. Forty percent. That is the difference between fast and record-breaking."</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Vladimir Yourkevitch, a former Russian naval engineer, revolutionized ship design with his clipper bow concept. After being rejected by multiple shipyards, the French Line's Compagnie Generale Transatlantique adopted his hull design, creating the fastest ocean liner of the 1930s.</p>
+                </div>
+            `,
+            fact: 'Yourkevitch\'s clipper bow reduced hull drag by approximately 40%, making the Normandie faster than every conventional ship on the Atlantic.',
+            choices: [
+                { text: 'Watch the casting off from deck', next: 'casting_off' }
+            ]
+        },
+
+        // --- SCENE 4B: Engine Room ---
+        engine_room: {
+            year: '1935',
+            label: 'ENGINE ROOM',
+            content: `
+                <div class="scene-card">
+                    <div class="card-porthole">
+                        <div class="card-porthole-inner"></div>
+                    </div>
+                    <div class="card-title">The Heart of the Beast</div>
+                    <div class="card-content">
+                        <p>You descend into the belly of the Normandie, past bulkheads riveted with chrome-headed bolts, down ladders that vibrate with contained power.</p>
+                        <p>The engine room is a cathedral of engineering. <strong>Four turbo-electric power plants generate 160,000 shaft horsepower</strong>, driving the ship through the Atlantic at over 30 knots. The turbines hum with a deep, resonant frequency you can feel in your bones.</p>
+                        <p>Chief Engineer Leclerc wipes his hands on a rag and nods at you. "She burns 1,000 tons of fuel oil per day at full speed. People see the chandeliers and the champagne. Down here, we see what actually moves the world."</p>
+                        <p>He points to the turbo-electric drive system. "No gears. No reduction mechanisms. Pure electrical transmission from turbine to propeller. It is the most advanced propulsion system afloat."</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>The SS Normandie was powered by four turbo-electric power plants producing 160,000 shaft horsepower, making her the most powerful merchant vessel of her era. Her turbo-electric drive was a pioneering propulsion technology that eliminated mechanical gearing.</p>
+                </div>
+            `,
+            fact: 'The Normandie\'s four turbo-electric engines produced 160,000 shaft horsepower, the most powerful propulsion system on any merchant vessel of the 1930s.',
+            choices: [
+                { text: 'Return to deck for casting off', next: 'casting_off' }
+            ]
+        },
+
+        // --- SCENE 5: Casting Off ---
+        casting_off: {
+            year: '1935',
+            label: 'DEPARTURE',
+            content: `
+                <div class="scene-showcase">
+                    <div class="showcase-title">Casting Off</div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar short"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-bar short"></span>
+                    </div>
+                    <div class="showcase-text">
+                        <p>The horn sounds — a deep, resonant bellow that rolls across the harbor and echoes off the Manhattan skyline. On the pier below, a thousand upturned faces watch as the hawsers drop and the tugboats nudge the Normandie into the Hudson River.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/76/Chrysler_Building_by_David_Shankbone_Retouched.jpg" alt="The Chrysler Building with its gleaming art deco crown" style="max-width: 100%; height: auto; border: 2px solid #C0C0C0; border-radius: 0 12px 0 12px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #7EBDB4; letter-spacing: 0.06em;">CHRYSLER BUILDING — 1,046 feet of chrome and streamlined ambition, 1930</div>
+                        </div>
+                        <p>Behind you, the Chrysler Building catches the afternoon light. Completed just five years ago at <strong>1,046 feet</strong>, it was the world's tallest building for eleven brief months before the Empire State Building surpassed it. Its architect, William Van Alen, clad the crown in gleaming Nirosta steel — the same impulse toward chrome and streamlined beauty that shaped this very ship.</p>
+                        <p>The shoreline recedes. The breadlines, the Hoovervilles, the shuttered banks — all of it shrinks to a thin dark line on the horizon. Ahead, nothing but open water and the promise of speed.</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>The Chrysler Building was completed in 1930 in New York City at 1,046 feet tall, designed by architect William Van Alen. It was briefly the world's tallest building for 11 months before the Empire State Building surpassed it in 1931.</p>
+                </div>
+            `,
+            fact: 'The Chrysler Building (1930), 1,046 feet tall by William Van Alen, held the title of world\'s tallest building for only 11 months.',
+            choices: [
+                { text: 'Continue', next: 'first_night' }
+            ]
+        },
+
+        // --- SCENE 6: First Night ---
+        first_night: {
+            year: '1935',
+            label: 'FIRST EVENING',
+            content: `
+                <div class="scene-liner">
+                    <div class="liner-header">
+                        <div class="liner-funnel"></div>
+                        <div class="liner-title">The Dining Room</div>
+                    </div>
+                    <div class="liner-content">
+                        <p>The first-class dining room is the length of the Hall of Mirrors at Versailles. Lalique wall sconces cast warm light across tables set with monogrammed silver. You sit across from a well-dressed woman in her fifties who introduces herself as <strong>Mrs. Clara Whitfield</strong>, a former schoolteacher from Ohio.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/cc/White_Angel_Breadline%2C_San_Francisco%2C_1932%2C_by_Dorothea_Lange.jpg" alt="White Angel Breadline, San Francisco, 1932 - Dorothea Lange" style="max-width: 100%; height: auto; border: 2px solid #C0C0C0; border-radius: 0 12px 0 12px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #7EBDB4; letter-spacing: 0.06em;">WHITE ANGEL BREADLINE, San Francisco, 1932 — Photograph by Dorothea Lange</div>
+                        </div>
+                        <p>"I saved for three years to take this voyage," she says, carefully unfolding her napkin. "My school closed in 1932. Half the families in our town lost everything. But I kept putting away a little each month."</p>
+                        <p>She looks around the dining room with wonder, not envy. "People say this is an extravagance. I say it is proof that beauty still exists. That someone, somewhere, still believes in making things <em>well.</em>"</p>
+                        <p>The ship hums beneath you as the Atlantic slides past the porthole windows. The waiter brings consomme in a bowl with the Normandie's emblem fired into the porcelain.</p>
+                    </div>
+                    <div class="portholes-row">
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                        <span class="porthole-small"></span>
+                    </div>
+                </div>
+            `,
+            fact: 'During the Great Depression, over 9,000 U.S. banks failed. 744 banks collapsed in the first 10 months of 1930 alone, wiping out life savings.',
+            choices: [
+                { text: 'Continue', next: 'midnight_conversation' }
+            ]
+        },
+
+        // --- SCENE 7: Midnight Conversation ---
+        midnight_conversation: {
+            year: '1935',
+            label: 'MIDNIGHT',
+            content: `
+                <div class="scene-teardrop">
+                    <div class="teardrop-shape"></div>
+                    <div class="teardrop-title">A Designer's Confession</div>
+                    <div class="teardrop-text">
+                        <p>On the promenade deck, leaning against the chrome railing, you meet a man named <strong>Henri Dreyfuss</strong>. He's young, intense, and works as an industrial designer in New York.</p>
+                        <p>"People ask me why we make things streamlined when they don't need to move fast," he says, watching the stars reflected in the black water. "A toaster doesn't need to be aerodynamic. A radio doesn't need a teardrop shape."</p>
+                        <p>He turns to you. "But you know what a streamlined shape <em>does</em>? It says: <strong>I belong to the future.</strong> It says: progress hasn't stopped. It tells a man standing in a breadline that someone, somewhere, is still thinking about tomorrow."</p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/d/df/The_Congressional_Pennsylvania_Railroad.JPG" alt="Pennsylvania Railroad GG-1 electric locomotive" style="max-width: 100%; height: auto; border: 2px solid #C0C0C0; border-radius: 0 12px 0 12px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #7EBDB4; letter-spacing: 0.06em;">PENNSYLVANIA RAILROAD GG-1 — Raymond Loewy's streamlined electric locomotive</div>
+                        </div>
+                        <p>"Raymond Loewy designed the GG-1 locomotive for the Pennsylvania Railroad. It's a <strong>4,620-horsepower electric engine</strong>, and he wrapped it in a welded steel shell as smooth as a bullet. When people see it thunder through their town, they don't see a machine. They see hope on rails."</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>Raymond Loewy designed the GG-1 locomotive for the Pennsylvania Railroad in the 1930s, applying streamline principles to rail transportation. Loewy was often called the "Father of Streamlining" by the press, and his designs spanned everything from trains to pencil sharpeners.</p>
+                </div>
+            `,
+            fact: 'Raymond Loewy designed the GG-1 locomotive for the Pennsylvania Railroad — the press called him the "Father of Streamlining."',
+            choices: [
+                { text: 'Ask about the World\'s Fair', next: 'worlds_fair_chat' },
+                { text: 'Ask about the coming storm', next: 'storm' }
+            ]
+        },
+
+        // --- SCENE 8A: World's Fair Discussion ---
+        worlds_fair_chat: {
+            year: '1935',
+            label: 'CONVERSATION',
+            content: `
+                <div class="scene-card">
+                    <div class="card-porthole">
+                        <div class="card-porthole-inner"></div>
+                    </div>
+                    <div class="card-title">Visions of Tomorrow</div>
+                    <div class="card-content">
+                        <p>Dreyfuss's eyes light up. "The Century of Progress! Yes, I was at the Chicago World's Fair in 1933. It was extraordinary — the first time the public truly saw the Streamline Moderne style as a complete vision."</p>
+                        <p>He describes pavilions with rounded walls and horizontal banding, transportation exhibits featuring torpedo-shaped cars, and crowds streaming through halls decorated in chrome and glass.</p>
+                        <p>"The fair ran through 1934 as well, and it changed everything. People came from every state in the union. They saw a <em>future</em> — sleek, fast, beautiful. They went home and suddenly their square toasters and boxy radios looked old."</p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/f/f5/Futurama_diorama_detail.jpg" alt="Futurama exhibit detail from the 1939 New York World's Fair" style="max-width: 100%; height: auto; border: 2px solid #C0C0C0; border-radius: 0 12px 0 12px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #7EBDB4; letter-spacing: 0.06em;">FUTURAMA EXHIBIT — Norman Bel Geddes' vision of 1960, New York World's Fair, 1939</div>
+                        </div>
+                        <p>"And now Norman Bel Geddes is planning something even grander for 1939. A new World's Fair in New York. He's calling his exhibit <strong>Futurama</strong> — a massive model showing what America will look like in 1960. Highways, superhighways, automated cities. He says 27,500 visitors per day will ride through it on moving chairs."</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>The 1933-1934 Chicago World's Fair (Century of Progress Exhibition) showcased the Streamline Moderne style and marked its emergence as the dominant design movement. In 1939, Norman Bel Geddes created the Futurama exhibit at the New York World's Fair — a massive model of America in 1960, seen by 27,500 visitors daily.</p>
+                </div>
+            `,
+            fact: 'Bel Geddes\' Futurama at the 1939 New York World\'s Fair showed a model of America in 1960, visited by 27,500 people daily on moving chairs.',
+            choices: [
+                { text: 'Continue the voyage', next: 'storm' }
+            ]
+        },
+
+        // --- SCENE 8B/9: Storm at Sea ---
+        storm: {
+            year: '1935',
+            label: 'MID-ATLANTIC',
+            content: `
+                <div class="scene-showcase">
+                    <div class="showcase-title">Storm</div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                    </div>
+                    <div class="showcase-text">
+                        <p>The Atlantic answers beauty with fury.</p>
+                        <p>On the third day, a North Atlantic storm rises out of the gray horizon like a fist. Waves crest at forty feet. The Normandie's bow plunges into valleys of black water, and the chandeliers in the grand salon swing in slow, sickening arcs.</p>
+                        <p>But the ship holds. Yourkevitch's hull — that revolutionary clipper bow the shipyards rejected — cuts through the swells with an authority that turns brute force into controlled motion. The ship rolls, but she never falters.</p>
+                        <p>Standing on the observation deck, gripping the chrome rail with white knuckles, you understand something that no exhibition or brochure could teach you: <strong>streamlining isn't decoration. It's survival.</strong> The curves that make the Normandie beautiful are the same curves that keep her alive in a North Atlantic gale.</p>
+                        <p>Form doesn't just follow function. Form <em>is</em> function.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Streamlining was not merely aesthetic — the aerodynamic curves of 1930s design served functional purposes, reducing drag and improving performance.',
+            choices: [
+                { text: 'Continue', next: 'record' }
+            ]
+        },
+
+        // --- SCENE 10: Breaking the Record ---
+        record: {
+            year: '1935',
+            label: 'DAY FOUR',
+            content: `
+                <div class="scene-showcase">
+                    <div class="showcase-title">30.31 Knots</div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar short"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-bar short"></span>
+                    </div>
+                    <div class="showcase-text">
+                        <p>The storm passes. The sea flattens to hammered silver. And the Captain opens the throttle.</p>
+                        <p>The Normandie surges forward with all <strong>160,000 horsepower</strong> unleashed. The vibration changes from a hum to a roar felt through the soles of your shoes. The wake behind the ship stretches to the horizon in a white, boiling arrow.</p>
+                        <p>On the bridge, the speed indicator climbs: 28 knots. 29. <strong>30.31.</strong></p>
+                        <p>The passengers gather on deck, watching the sea blur past. Mrs. Whitfield stands at the rail, her hair whipping in the wind, and she is laughing — laughing with a joy you haven't seen on anyone's face since the Crash.</p>
+                        <p>For this one moment, crossing the Atlantic at record speed, the Depression doesn't exist. There is only velocity, engineering, and the wild, irrational conviction that if humans can build <em>this</em>, they can build anything.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'The SS Normandie won the Blue Riband for fastest Atlantic crossing on her maiden voyage in 1935, averaging over 30 knots.',
+            choices: [
+                { text: 'Continue', next: 'approaching' }
+            ]
+        },
+
+        // --- SCENE 11: Approaching Europe ---
+        approaching: {
+            year: '1935',
+            label: 'DAWN, DAY FIVE',
+            content: `
+                <div class="scene-teardrop">
+                    <div class="teardrop-shape"></div>
+                    <div class="teardrop-title">The European Coast</div>
+                    <div class="teardrop-text">
+                        <p>Dawn breaks over the coast of France. The light comes slowly, painting the horizon in shades of cream and silver that could have been drawn from the Normandie's own palette.</p>
+                        <p>You stand at the rail as the shoreline materializes from the morning mist. Mrs. Whitfield is beside you, quiet now.</p>
+                        <p>"In 1929," she says, almost to herself, "my brother lost everything in the crash. <strong>On Black Thursday alone, panicked investors sold 13 million shares.</strong> The stock market lost half its value in ten weeks. He never recovered."</p>
+                        <p>She turns to you. "But here we are. On the fastest ship in the world, watching the sun rise over France. Tell me that doesn't mean something."</p>
+                        <p>Ahead, the harbor of Le Havre awaits. But this journey was never really about crossing an ocean. It was about crossing the distance between despair and hope.</p>
+                    </div>
+                </div>
+                <div class="fact-card">
+                    <div class="fact-label">Historical Record</div>
+                    <p>On October 24, 1929 — "Black Thursday" — panicked investors sold a record 13 million shares. The stock market lost approximately 50% of its value in ten weeks, triggering the Great Depression that would last until 1939.</p>
+                </div>
+            `,
+            fact: 'On "Black Thursday" (October 24, 1929), panicked investors sold 13 million shares. The market lost 50% of its value in ten weeks.',
+            choices: [
+                { text: 'Think about what design means for the future', next: 'disembark_hope' },
+                { text: 'Think about the war clouds gathering over Europe', next: 'disembark_shadow' },
+                { text: 'Think about the people left behind at home', next: 'disembark_resolve' }
+            ]
+        },
+
+        // --- ENDING A: Hope ---
+        disembark_hope: {
+            year: '1935',
+            label: 'EPILOGUE',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Voyage Complete</div>
+                    <div class="ending-title">The Shape of Tomorrow</div>
+                    <div class="divider">
+                        <div class="divider-line"></div>
+                        <div class="divider-emblem">
+                            <span class="wing"></span>
+                            <span class="center"></span>
+                            <span class="wing"></span>
+                        </div>
+                        <div class="divider-line"></div>
+                    </div>
+                    <div class="ending-text">
+                        <p>You step onto the dock at Le Havre carrying something you didn't have when you boarded: certainty.</p>
+                        <p>The Depression will end. You've seen the proof. Not in economic charts or political speeches, but in the curve of a hull, the sweep of a locomotive's shell, the rounded corners of a refrigerator that someone dared to make <em>beautiful</em>.</p>
+                        <p>In four years, <strong>Norman Bel Geddes will build his Futurama at the 1939 World's Fair</strong>, and 27,500 people per day will sit in moving chairs and glimpse the world of 1960. Superhighways. Green suburbs. A future shaped by design.</p>
+                        <p>The streamlined world was never about speed alone. It was about the audacity to believe that if you can imagine a better shape for a toaster, you can imagine a better shape for a civilization.</p>
+                        <p>The chrome gleams. The lines converge at the horizon. Tomorrow is a teardrop, and it is already in motion.</p>
+                    </div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar short"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-bar short"></span>
+                    </div>
+                    <div class="the-end">Fin</div>
+                </div>
+            `,
+            fact: 'Streamline Moderne dominated design from 1930-1950 across transportation, appliances, and architecture throughout the Western world.',
+            choices: [
+                { text: 'Begin a New Voyage', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING B: Shadow ---
+        disembark_shadow: {
+            year: '1935',
+            label: 'EPILOGUE',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Voyage Complete</div>
+                    <div class="ending-title">Chrome and Shadow</div>
+                    <div class="divider">
+                        <div class="divider-line"></div>
+                        <div class="divider-emblem">
+                            <span class="wing"></span>
+                            <span class="center"></span>
+                            <span class="wing"></span>
+                        </div>
+                        <div class="divider-line"></div>
+                    </div>
+                    <div class="ending-text">
+                        <p>You step onto the dock at Le Havre, but the elation of the crossing has curdled into something more complicated.</p>
+                        <p>Europe is beautiful. Europe is also arming. Germany has been rearming in violation of Versailles. Mussolini is eyeing Ethiopia. The streamlined future everyone is so excited about will soon be applied to fighter planes and submarines.</p>
+                        <p>The Normandie herself will never make it. In four years, war will close the Atlantic shipping lanes. The great ship will be laid up in New York harbor, and in 1942, she will catch fire during conversion to a troop transport and capsize at her pier. All that elegance, all that engineering, lying on her side in the mud of the Hudson.</p>
+                        <p>But tonight, at this moment, she is still the most beautiful thing afloat. And beauty, even temporary beauty, is not nothing. It is <em>everything</em>, for as long as it lasts.</p>
+                        <p>The chrome will tarnish. The speed will fade. But the dream — the dream of a world shaped by elegance instead of violence — that dream will outlast them all.</p>
+                    </div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar short"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-bar short"></span>
+                    </div>
+                    <div class="the-end">Fin</div>
+                </div>
+            `,
+            fact: 'The SS Normandie was laid up in New York in 1939 when war broke out. In 1942, she caught fire during troop transport conversion and capsized at Pier 88.',
+            choices: [
+                { text: 'Begin a New Voyage', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING C: Resolve ---
+        disembark_resolve: {
+            year: '1935',
+            label: 'EPILOGUE',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Voyage Complete</div>
+                    <div class="ending-title">The New Deal</div>
+                    <div class="divider">
+                        <div class="divider-line"></div>
+                        <div class="divider-emblem">
+                            <span class="wing"></span>
+                            <span class="center"></span>
+                            <span class="wing"></span>
+                        </div>
+                        <div class="divider-line"></div>
+                    </div>
+                    <div class="ending-text">
+                        <p>You step onto the dock at Le Havre, but your mind is an ocean away — back in America, with Mrs. Whitfield's closed school, with the breadlines, with the 6 million who cannot find work.</p>
+                        <p>The Normandie is magnificent, but she is also a rebuke. How can such luxury exist alongside such suffering? This chrome-and-crystal world is someone's dream — but whose?</p>
+                        <p>And yet. President Roosevelt's New Deal is building bridges, dams, and highways. In his <strong>first hundred days, beginning March 4, 1933, Roosevelt signed 15 rapid recovery laws.</strong> The WPA is putting artists and builders to work. The streamlined future isn't just for the wealthy — it's for the post offices and train stations and public buildings being erected across America in the Moderne style.</p>
+                        <p>Design doesn't have to be exclusive. It can be democratic. The same curves that grace this ship can grace a public library in Kansas or a bus terminal in Alabama.</p>
+                        <p>You will go home. You will carry the Normandie's promise with you — not as luxury, but as possibility. The future isn't shaped by the few who can afford first class. It is shaped by everyone who dares to imagine a better form for the world they share.</p>
+                    </div>
+                    <div class="streamline-deco">
+                        <span class="streamline-bar short"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-dot"></span>
+                        <span class="streamline-bar long"></span>
+                        <span class="streamline-bar medium"></span>
+                        <span class="streamline-bar short"></span>
+                    </div>
+                    <div class="the-end">Fin</div>
+                </div>
+            `,
+            fact: 'FDR signed 15 rapid recovery laws in his first 100 days (starting March 4, 1933). Streamline Moderne became the style of New Deal public buildings.',
+            choices: [
+                { text: 'Begin a New Voyage', next: '_restart' }
+            ]
+        }
+    };
+
+    // =============================================================
+    //  STORY ENGINE
+    // =============================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        panelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('knowledgeToggle').addEventListener('click', () => this.togglePanel());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('knowledgeTracker').style.display = 'block';
+            this.goTo('terminal');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.panelOpen = false;
+            document.getElementById('knowledgePanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('knowledgeTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 500);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1200);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update header label
+            if (scene.label) {
+                document.getElementById('voyageLabel').textContent = scene.label;
+            }
+
+            let html = '<div class="scene-content">';
+
+            // Scene content (raw HTML using style guide CSS classes)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += `<span class="choice-label">${choice.text}</span>`;
+                    html += `</button>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No discoveries yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => `<div class="knowledge-item">${f}</div>`).join('');
+            }
+        },
+
+        togglePanel() {
+            this.panelOpen = !this.panelOpen;
+            document.getElementById('knowledgePanel').classList.toggle('open', this.panelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

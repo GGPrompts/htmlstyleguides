@@ -1,0 +1,2423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Space Race — A Mid-Century Modern Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&family=Archivo+Black&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Typography */
+            --font-display: 'Archivo Black', sans-serif;
+            --font-body: 'Josefin Sans', sans-serif;
+
+            /* Spacing Scale */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+            --space-10: 128px;
+
+            /* Wood Tones */
+            --teak: #8B5A2B;
+            --teak-dark: #6B4423;
+            --walnut: #5D3A1A;
+            --walnut-dark: #3D2610;
+            --oak: #C19A6B;
+            --birch: #DBC5A0;
+            --maple: #E8D4B8;
+
+            /* Mid-Century Palette */
+            --burnt-orange: #CC5500;
+            --burnt-orange-light: #E07020;
+            --burnt-orange-dark: #A04000;
+            --olive-green: #6B8E23;
+            --olive-dark: #4A6B1A;
+            --mustard: #DAA520;
+            --mustard-light: #E8C040;
+            --cream: #FDF5E6;
+            --cream-warm: #FAF0DC;
+            --off-white: #FFFEF9;
+
+            /* Metallic Accents */
+            --brass: #D4AF37;
+            --brass-light: #E8C860;
+            --brass-dark: #B8960A;
+            --gold-shine: linear-gradient(135deg, #D4AF37 0%, #F5D76E 50%, #D4AF37 100%);
+
+            /* Dark Tones */
+            --charcoal: #36454F;
+            --deep-brown: #2C1810;
+            --slate: #4A5568;
+
+            /* Semantic Mapping */
+            --text-primary: var(--deep-brown);
+            --text-secondary: var(--walnut);
+            --text-muted: var(--teak);
+            --text-light: var(--cream);
+            --bg-primary: var(--cream);
+            --bg-secondary: var(--cream-warm);
+            --bg-card: var(--off-white);
+            --border-color: var(--oak);
+            --accent: var(--burnt-orange);
+            --accent-secondary: var(--olive-green);
+
+            /* Shadows */
+            --shadow-soft: 0 4px 12px rgba(44, 24, 16, 0.08);
+            --shadow-medium: 0 8px 24px rgba(44, 24, 16, 0.12);
+            --shadow-strong: 0 12px 40px rgba(44, 24, 16, 0.18);
+            --shadow-brass: 0 4px 20px rgba(212, 175, 55, 0.3);
+
+            /* Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===============================================
+           ATOMIC DOTS BACKGROUND
+        =============================================== */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(var(--brass) 1px, transparent 1px);
+            background-size: 32px 32px;
+            opacity: 0.04;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===============================================
+           TYPOGRAPHY
+        =============================================== */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            line-height: 1.15;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.02em;
+        }
+
+        h1 { font-size: clamp(2.5rem, 7vw, 4.5rem); margin-bottom: var(--space-6); }
+        h2 { font-size: 2.25rem; margin-bottom: var(--space-5); }
+        h3 {
+            font-family: var(--font-body);
+            font-size: 1.5rem;
+            font-weight: 600;
+            text-transform: none;
+            margin-bottom: var(--space-4);
+        }
+        h4 {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            font-weight: 600;
+            text-transform: none;
+            margin-bottom: var(--space-3);
+        }
+
+        p {
+            margin-bottom: var(--space-4);
+            max-width: 65ch;
+        }
+
+        .lead {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .label {
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--burnt-orange);
+        }
+
+        /* ===============================================
+           STARBURST
+        =============================================== */
+        .starburst {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            pointer-events: none;
+        }
+
+        .starburst::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--brass);
+            clip-path: polygon(
+                50% 0%, 52% 40%, 100% 30%, 55% 50%,
+                100% 70%, 52% 60%, 50% 100%, 48% 60%,
+                0% 70%, 45% 50%, 0% 30%, 48% 40%
+            );
+            opacity: 0.15;
+        }
+
+        .starburst-decoration {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .starburst-decoration::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--brass);
+            clip-path: polygon(
+                50% 0%, 53% 38%, 100% 25%, 58% 50%,
+                100% 75%, 53% 62%, 50% 100%, 47% 62%,
+                0% 75%, 42% 50%, 0% 25%, 47% 38%
+            );
+        }
+
+        .starburst-decoration::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: var(--burnt-orange);
+            border-radius: 50%;
+        }
+
+        /* ===============================================
+           BOOMERANG
+        =============================================== */
+        .boomerang {
+            position: absolute;
+            width: 200px;
+            height: 60px;
+            pointer-events: none;
+            opacity: 0.08;
+        }
+
+        .boomerang::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid var(--burnt-orange);
+            border-radius: 50% 50% 0 50%;
+            transform: rotate(-15deg);
+        }
+
+        /* ===============================================
+           TAPERED DIVIDER
+        =============================================== */
+        .tapered-divider {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-4);
+            margin: var(--space-6) 0;
+        }
+
+        .tapered-leg {
+            width: 60px;
+            height: 4px;
+            background: var(--brass);
+            clip-path: polygon(0 0, 100% 50%, 0 100%);
+        }
+
+        .tapered-leg.reverse {
+            clip-path: polygon(100% 0, 0 50%, 100% 100%);
+        }
+
+        .divider-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--burnt-orange);
+            border-radius: 50%;
+        }
+
+        /* ===============================================
+           BOOMERANG DIVIDER
+        =============================================== */
+        .boomerang-divider {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-4);
+            margin: var(--space-6) 0;
+            position: relative;
+            height: 40px;
+        }
+
+        .boomerang-shape {
+            width: 80px;
+            height: 24px;
+            background: var(--burnt-orange);
+            clip-path: polygon(0 100%, 20% 0, 80% 0, 100% 100%, 80% 60%, 20% 60%);
+            opacity: 0.6;
+        }
+
+        .boomerang-shape.flip {
+            transform: scaleX(-1);
+        }
+
+        /* ===============================================
+           CARDS
+        =============================================== */
+        .card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gold-shine);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            margin-bottom: 0;
+            font-size: 0.9375rem;
+        }
+
+        .card-featured {
+            background: linear-gradient(135deg, var(--walnut) 0%, var(--walnut-dark) 100%);
+            color: var(--cream);
+            border: 3px solid var(--brass);
+        }
+
+        .card-featured h3, .card-featured h4 {
+            color: var(--brass-light);
+        }
+
+        .card-featured p {
+            color: var(--birch);
+        }
+
+        .card-wood {
+            background:
+                repeating-linear-gradient(
+                    88deg,
+                    transparent 0px,
+                    transparent 1px,
+                    rgba(255, 255, 255, 0.02) 1px,
+                    rgba(255, 255, 255, 0.02) 3px
+                ),
+                linear-gradient(135deg, var(--teak) 0%, var(--teak-dark) 100%);
+            color: var(--cream);
+            border: none;
+        }
+
+        .card-wood h3, .card-wood h4 {
+            color: var(--cream);
+        }
+
+        .card-wood p {
+            color: var(--maple);
+        }
+
+        .card-icon {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gold-shine);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+            font-size: 1.75rem;
+            color: var(--walnut-dark);
+            box-shadow: var(--shadow-brass);
+        }
+
+        /* ===============================================
+           HI-FI CARD
+        =============================================== */
+        .hifi-card {
+            background: var(--walnut);
+            border-radius: var(--radius-lg);
+            padding: var(--space-5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hifi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.05) 2px,
+                    rgba(0, 0, 0, 0.05) 4px
+                );
+            pointer-events: none;
+        }
+
+        .hifi-display {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            border-radius: var(--radius-sm);
+            padding: var(--space-4);
+            margin-bottom: var(--space-4);
+            border: 2px solid var(--brass);
+        }
+
+        .hifi-frequency {
+            height: 40px;
+            background: linear-gradient(90deg,
+                var(--olive-green) 0%,
+                var(--olive-green) 20%,
+                var(--mustard) 20%,
+                var(--mustard) 50%,
+                var(--burnt-orange) 50%,
+                var(--burnt-orange) 75%,
+                transparent 75%
+            );
+            border-radius: 2px;
+            opacity: 0.8;
+        }
+
+        .hifi-controls {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .hifi-knob {
+            width: 36px;
+            height: 36px;
+            background: var(--gold-shine);
+            border-radius: 50%;
+            box-shadow:
+                inset 0 2px 0 rgba(255, 255, 255, 0.3),
+                0 3px 8px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .hifi-knob::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 10px;
+            background: var(--walnut-dark);
+            border-radius: 1px;
+        }
+
+        .hifi-display-text {
+            color: var(--olive-green);
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-align: center;
+            margin-top: var(--space-2);
+            text-shadow: 0 0 8px rgba(107, 142, 35, 0.5);
+        }
+
+        .hifi-card-body {
+            position: relative;
+            z-index: 1;
+            color: var(--cream);
+            padding-top: var(--space-4);
+        }
+
+        .hifi-card-body h3 {
+            color: var(--brass-light);
+            margin-bottom: var(--space-3);
+        }
+
+        .hifi-card-body p {
+            color: var(--birch);
+            font-size: 0.9375rem;
+            max-width: none;
+        }
+
+        /* ===============================================
+           QUOTE BLOCK
+        =============================================== */
+        .quote-block {
+            background: linear-gradient(135deg, var(--walnut) 0%, var(--walnut-dark) 100%);
+            border-radius: var(--radius-lg);
+            padding: var(--space-7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quote-block::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent 0px,
+                    transparent 2px,
+                    rgba(255, 255, 255, 0.02) 2px,
+                    rgba(255, 255, 255, 0.02) 4px
+                );
+            pointer-events: none;
+        }
+
+        .quote-block::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: var(--brass);
+            clip-path: polygon(
+                50% 0%, 53% 38%, 100% 25%, 58% 50%,
+                100% 75%, 53% 62%, 50% 100%, 47% 62%,
+                0% 75%, 42% 50%, 0% 25%, 47% 38%
+            );
+            opacity: 0.15;
+        }
+
+        .quote-mark {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            color: var(--brass);
+            line-height: 1;
+            margin-bottom: var(--space-3);
+        }
+
+        .quote-text {
+            font-size: 1.35rem;
+            font-weight: 400;
+            color: var(--cream);
+            line-height: 1.5;
+            position: relative;
+            z-index: 1;
+            max-width: none;
+        }
+
+        .quote-author {
+            margin-top: var(--space-4);
+            color: var(--brass-light);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.875rem;
+        }
+
+        /* ===============================================
+           BADGES
+        =============================================== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            padding: var(--space-1) var(--space-3);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .badge-orange {
+            background: var(--burnt-orange);
+            color: var(--cream);
+            clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+            padding-left: var(--space-4);
+            padding-right: var(--space-4);
+        }
+
+        .badge-olive {
+            background: var(--olive-green);
+            color: var(--cream);
+            clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+            padding-left: var(--space-4);
+            padding-right: var(--space-4);
+        }
+
+        .badge-mustard {
+            background: var(--mustard);
+            color: var(--walnut-dark);
+            clip-path: polygon(4px 0, 100% 0, calc(100% - 4px) 100%, 0 100%);
+            padding-left: var(--space-4);
+            padding-right: var(--space-4);
+        }
+
+        .badge-brass {
+            background: var(--gold-shine);
+            color: var(--walnut-dark);
+            border-radius: var(--radius-sm);
+        }
+
+        .badge-wood {
+            background: var(--walnut);
+            color: var(--cream);
+            border-radius: var(--radius-sm);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-3);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-4);
+        }
+
+        /* ===============================================
+           PRINCIPLE CARD (used for fact boxes)
+        =============================================== */
+        .principle-card {
+            background: var(--off-white);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            border: 2px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+        }
+
+        .principle-card::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 100px;
+            height: 100px;
+            background: var(--brass);
+            clip-path: polygon(
+                50% 0%, 53% 38%, 100% 25%, 58% 50%,
+                100% 75%, 53% 62%, 50% 100%, 47% 62%,
+                0% 75%, 42% 50%, 0% 25%, 47% 38%
+            );
+            opacity: 0.08;
+        }
+
+        .principle-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--gold-shine);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: var(--space-4);
+            box-shadow: var(--shadow-brass);
+        }
+
+        /* ===============================================
+           TABLE
+        =============================================== */
+        .table-wrapper {
+            background: var(--off-white);
+            border-radius: var(--radius-md);
+            border: 2px solid var(--border-color);
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th,
+        .table td {
+            text-align: left;
+            padding: var(--space-3) var(--space-4);
+        }
+
+        .table th {
+            background: linear-gradient(135deg, var(--teak) 0%, var(--teak-dark) 100%);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--cream);
+            border-bottom: 3px solid var(--brass);
+        }
+
+        .table td {
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9375rem;
+        }
+
+        .table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* ===============================================
+           WOOD TEXTURES
+        =============================================== */
+        .wood-teak {
+            background:
+                repeating-linear-gradient(87deg, transparent 0px, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
+                repeating-linear-gradient(93deg, transparent 0px, transparent 3px, rgba(139,90,43,0.05) 3px, rgba(139,90,43,0.05) 5px),
+                linear-gradient(180deg, #A0724E 0%, #8B5A2B 15%, #7A4D25 35%, #8B5A2B 55%, #9A6835 75%, #8B5A2B 100%);
+        }
+
+        .wood-walnut {
+            background:
+                repeating-linear-gradient(88deg, transparent 0px, transparent 1px, rgba(0,0,0,0.04) 1px, rgba(0,0,0,0.04) 3px),
+                repeating-linear-gradient(92deg, transparent 0px, transparent 2px, rgba(93,58,26,0.06) 2px, rgba(93,58,26,0.06) 4px),
+                linear-gradient(180deg, #6B4423 0%, #5D3A1A 20%, #4D2E15 40%, #5D3A1A 60%, #6B4423 80%, #5D3A1A 100%);
+        }
+
+        /* ===============================================
+           BUTTONS
+        =============================================== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            padding: var(--space-3) var(--space-6);
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .btn-primary {
+            background: var(--burnt-orange);
+            color: var(--cream);
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            padding-left: var(--space-7);
+            padding-right: var(--space-7);
+        }
+
+        .btn-primary:hover {
+            background: var(--burnt-orange-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(204, 85, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--olive-green);
+            color: var(--cream);
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            padding-left: var(--space-7);
+            padding-right: var(--space-7);
+        }
+
+        .btn-secondary:hover {
+            background: var(--olive-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--burnt-orange);
+            border: 2px solid var(--burnt-orange);
+            border-radius: var(--radius-sm);
+        }
+
+        .btn-outline:hover {
+            background: var(--burnt-orange);
+            color: var(--cream);
+        }
+
+        .btn-brass {
+            background: var(--gold-shine);
+            color: var(--walnut-dark);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-brass);
+        }
+
+        .btn-brass:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4);
+        }
+
+        .btn-console {
+            background: var(--walnut);
+            color: var(--cream);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            box-shadow:
+                inset 0 2px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 0 rgba(0, 0, 0, 0.2),
+                0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-console:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ===============================================
+           ATOMIC CLOCK
+        =============================================== */
+        .atomic-clock {
+            width: 80px;
+            height: 80px;
+            background: var(--cream);
+            border-radius: 50%;
+            border: 3px solid var(--brass);
+            position: relative;
+            box-shadow: var(--shadow-brass);
+            margin: 0 auto;
+        }
+
+        .atomic-clock::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: var(--burnt-orange);
+            border-radius: 50%;
+        }
+
+        .clock-hand {
+            position: absolute;
+            background: var(--walnut);
+            transform-origin: bottom center;
+        }
+
+        .clock-hand.hour {
+            width: 3px;
+            height: 20px;
+            top: 18px;
+            left: calc(50% - 1.5px);
+            transform: rotate(45deg);
+            border-radius: 2px;
+        }
+
+        .clock-hand.minute {
+            width: 2px;
+            height: 28px;
+            top: 10px;
+            left: calc(50% - 1px);
+            transform: rotate(120deg);
+            border-radius: 2px;
+        }
+
+        /* ===============================================
+           ANIMATIONS
+        =============================================== */
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(212, 175, 55, 0.5); }
+        }
+
+        .rotate-slow {
+            animation: rotate-slow 20s linear infinite;
+        }
+
+        .pulse-glow {
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+
+        /* ===============================================
+           GAME LAYOUT
+        =============================================== */
+        .game-container {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===============================================
+           TITLE SCREEN
+        =============================================== */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+            position: relative;
+        }
+
+        .title-screen .starburst-decoration {
+            width: 80px;
+            height: 80px;
+            margin-bottom: var(--space-6);
+        }
+
+        .title-screen .label {
+            margin-bottom: var(--space-4);
+            font-size: 0.8rem;
+        }
+
+        .title-screen h1 {
+            background: linear-gradient(135deg, var(--walnut) 0%, var(--teak) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--space-3);
+            line-height: 1.1;
+        }
+
+        .title-subtitle {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--burnt-orange);
+            margin-bottom: var(--space-7);
+        }
+
+        .title-tagline {
+            font-style: italic;
+            color: var(--text-muted);
+            margin-bottom: var(--space-7);
+            max-width: 480px;
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4) var(--space-8);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            background: var(--burnt-orange);
+            color: var(--cream);
+            border: none;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%);
+            padding-left: var(--space-8);
+            padding-right: var(--space-8);
+        }
+
+        .title-start:hover {
+            background: var(--burnt-orange-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(204, 85, 0, 0.35);
+        }
+
+        .title-credits {
+            margin-top: var(--space-7);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        /* ===============================================
+           SCENE CONTAINER
+        =============================================== */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 1rem;
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-4);
+            margin-bottom: var(--space-5);
+            border-bottom: 3px solid var(--brass);
+            position: relative;
+        }
+
+        .scene-header::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gold-shine);
+        }
+
+        .scene-era {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--burnt-orange);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .scene-fact-count {
+            font-size: 0.75rem;
+            color: var(--brass-dark);
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        /* ===============================================
+           SCENE CONTENT AREA
+        =============================================== */
+        .scene-content {
+            animation: sceneFadeIn 0.7s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #sceneContent p {
+            max-width: none;
+        }
+
+        /* ===============================================
+           FACT FOUND TOAST
+        =============================================== */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: var(--gold-shine);
+            color: var(--walnut-dark);
+            padding: var(--space-2) var(--space-4);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: var(--space-5);
+            border-radius: var(--radius-sm);
+            animation: factSlideIn 0.6s ease-out;
+            box-shadow: var(--shadow-brass);
+        }
+
+        .fact-found::before {
+            content: '';
+            width: 14px;
+            height: 14px;
+            background: var(--burnt-orange);
+            clip-path: polygon(
+                50% 0%, 53% 38%, 100% 25%, 58% 50%,
+                100% 75%, 53% 62%, 50% 100%, 47% 62%,
+                0% 75%, 42% 50%, 0% 25%, 47% 38%
+            );
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ===============================================
+           CHOICES
+        =============================================== */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.6s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            border: 2px solid var(--border-color);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            text-transform: uppercase;
+            clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+            padding-left: var(--space-7);
+            padding-right: var(--space-6);
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
+            background: var(--burnt-orange);
+            transform: scaleY(0);
+            transition: transform 0.2s ease;
+            transform-origin: bottom;
+        }
+
+        .choice-btn:hover {
+            border-color: var(--brass);
+            background: var(--cream-warm);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .choice-btn:hover::before {
+            transform: scaleY(1);
+        }
+
+        .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--gold-shine);
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--walnut-dark);
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+            box-shadow: var(--shadow-brass);
+        }
+
+        .choice-btn:hover .choice-key {
+            background: var(--burnt-orange);
+            color: var(--cream);
+        }
+
+        /* ===============================================
+           STARBURST TRANSITION
+        =============================================== */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: starburstTransition 1.0s ease-in-out;
+        }
+
+        @keyframes starburstTransition {
+            0% { opacity: 0; }
+            15% { opacity: 1; }
+            50% { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-starburst-bg {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--cream);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .transition-starburst-bg::before {
+            content: '';
+            width: 200px;
+            height: 200px;
+            background: var(--brass);
+            clip-path: polygon(
+                50% 0%, 53% 38%, 100% 25%, 58% 50%,
+                100% 75%, 53% 62%, 50% 100%, 47% 62%,
+                0% 75%, 42% 50%, 0% 25%, 47% 38%
+            );
+            opacity: 0.3;
+            animation: transitionSpin 1.0s ease-in-out;
+        }
+
+        .transition-starburst-bg::after {
+            content: '';
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: var(--burnt-orange);
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+        @keyframes transitionSpin {
+            from { transform: scale(0.3) rotate(0deg); }
+            to { transform: scale(1.2) rotate(180deg); }
+        }
+
+        /* ===============================================
+           FACT TRACKER (SIDEBAR)
+        =============================================== */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 240px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--walnut);
+            border: 2px solid var(--brass);
+            color: var(--brass-light);
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+            border-radius: var(--radius-sm);
+        }
+
+        .fact-tracker-toggle:hover {
+            background: var(--walnut-dark);
+            box-shadow: var(--shadow-brass);
+        }
+
+        .fact-tracker-toggle .toggle-star {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            background: var(--brass);
+            clip-path: polygon(
+                50% 0%, 53% 38%, 100% 25%, 58% 50%,
+                100% 75%, 53% 62%, 50% 100%, 47% 62%,
+                0% 75%, 42% 50%, 0% 25%, 47% 38%
+            );
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-2);
+            background: var(--off-white);
+            border: 2px solid var(--brass);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            box-shadow: var(--shadow-strong);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--burnt-orange);
+            margin-bottom: var(--space-3);
+            font-weight: 700;
+        }
+
+        .fact-item {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--border-color);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.4;
+        }
+
+        .fact-item::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--brass);
+            clip-path: polygon(
+                50% 0%, 53% 38%, 100% 25%, 58% 50%,
+                100% 75%, 53% 62%, 50% 100%, 47% 62%,
+                0% 75%, 42% 50%, 0% 25%, 47% 38%
+            );
+            margin-right: var(--space-2);
+            vertical-align: middle;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ===============================================
+           GAME CONTROLS
+        =============================================== */
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: var(--space-6);
+            padding-top: var(--space-5);
+        }
+
+        .game-controls .tapered-divider {
+            margin: 0;
+            flex: 1;
+        }
+
+        .ctrl-btn {
+            padding: var(--space-2) var(--space-5);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 2px solid var(--border-color);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: var(--radius-sm);
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--burnt-orange);
+            color: var(--burnt-orange);
+            background: rgba(204, 85, 0, 0.05);
+        }
+
+        /* ===============================================
+           ENDING SCENE
+        =============================================== */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-7) var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+
+        .ending-label {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--burnt-orange);
+            margin-bottom: var(--space-4);
+            font-weight: 600;
+        }
+
+        .ending-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-6);
+            background: linear-gradient(135deg, var(--walnut) 0%, var(--teak) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .ending-text p {
+            margin-bottom: var(--space-4);
+            color: var(--text-secondary);
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .the-end {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            color: var(--text-muted);
+            margin-top: var(--space-6);
+            text-transform: uppercase;
+        }
+
+        /* ===============================================
+           UTILITIES
+        =============================================== */
+        .text-center { text-align: center; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mb-6 { margin-bottom: var(--space-6); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-6 { margin-top: var(--space-6); }
+
+        /* ===============================================
+           SCROLLBAR
+        =============================================== */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--cream-warm); }
+        ::-webkit-scrollbar-thumb { background: var(--oak); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--teak); }
+        ::selection { background: var(--burnt-orange); color: var(--cream); }
+
+        /* ===============================================
+           RESPONSIVE
+        =============================================== */
+        @media (max-width: 600px) {
+            .game-container { padding: 1rem; }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .title-screen h1 { font-size: 2.5rem; }
+            .choice-btn { font-size: 0.85rem; }
+            .quote-block { padding: var(--space-5); }
+            .quote-text { font-size: 1.1rem; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Starburst transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-starburst-bg"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span class="toggle-star"></span>
+            <span>Mission Log</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Discovered Facts</h4>
+            <div id="factList">
+                <p class="no-facts">No facts discovered yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="starburst-decoration" style="width: 70px; height: 70px;"></div>
+            <p class="label">An Interactive History</p>
+            <h1>The Space Race</h1>
+            <div class="title-subtitle">1957 - 1969</div>
+            <p class="title-tagline">"We choose to go to the Moon in this decade and do the other things, not because they are easy, but because they are hard."</p>
+            <button class="title-start" id="startBtn">Begin the Journey</button>
+            <p class="title-credits">A story of science, courage, and the stars</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-era" id="sceneEra">The Space Age</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===============================================================
+    //  THE SPACE RACE — Story Data
+    // ===============================================================
+
+    const STORY = {
+
+        // --- SCENE 1: Sputnik Shock ---
+        sputnik: {
+            year: '1957',
+            era: 'October 4, 1957',
+            fact: 'Sputnik 1 was an 85 kg metal sphere that orbited Earth every 96 minutes, launched October 4, 1957.',
+            content: `
+                <div class="card-featured" style="padding: var(--space-6); border-radius: var(--radius-lg); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-orange">Breaking News</span>
+                        <span class="badge badge-mustard">October 1957</span>
+                    </div>
+                    <h2 style="color: var(--brass-light); margin-top: var(--space-4); margin-bottom: var(--space-4);">A Signal from the Sky</h2>
+                    <p style="color: var(--birch); font-size: 1.05rem; max-width: none;">The radio crackles. A rhythmic beeping fills the airwaves — steady, alien, impossible. Across America, families gather around their console televisions and hi-fi receivers, straining to hear a sound that changes everything.</p>
+                    <p style="color: var(--birch); font-size: 1.05rem; max-width: none;">The Soviet Union has launched <strong style="color: var(--brass-light);">Sputnik 1</strong> into orbit. An 85-kilogram metal sphere, no larger than a beach ball, is circling the Earth every 96 minutes. Its signal, a simple <em>beep-beep-beep</em>, is a declaration heard around the world.</p>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/b/be/Sputnik_asm.jpg" alt="Sputnik 1 satellite replica at the Smithsonian" style="max-width: 100%; height: auto; border: 3px solid #5D3A1A; border-radius: 2px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #CC5500; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">Sputnik 1 - The satellite that started the Space Race</div>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#127760;</div>
+                    <h4 style="color: var(--burnt-orange);">Historical Fact</h4>
+                    <p style="max-width: none;">On October 4, 1957, the Soviet Union successfully launched Sputnik 1, the world's first artificial satellite. Weighing just 85 kilograms (184 pounds), it orbited Earth every 96 minutes and transmitted radio pulses detectable by amateur radio operators worldwide. The launch shocked the American public and ignited the Space Race.</p>
+                </div>
+
+                <div class="tapered-divider">
+                    <span class="tapered-leg"></span>
+                    <span class="divider-dot"></span>
+                    <span class="tapered-leg reverse"></span>
+                </div>
+
+                <p class="lead" style="text-align: center; max-width: none;">America's sense of technological supremacy has been shattered. What do you do?</p>
+            `,
+            choices: [
+                { text: 'Follow the American response', next: 'american_response' },
+                { text: 'Examine Soviet engineering', next: 'soviet_triumph' }
+            ]
+        },
+
+        // --- SCENE 2a: American Response ---
+        american_response: {
+            year: '1957-58',
+            era: 'The American Response',
+            fact: 'Explorer 1, America\'s first satellite, launched on February 1, 1958, and discovered the Van Allen radiation belts.',
+            content: `
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-olive">U.S.A.</span>
+                        <span class="badge badge-orange">Urgent</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">Catching Up</h3>
+                    <p style="max-width: none;">Panic grips Washington. Newspapers print headlines about the "Red Moon." President Eisenhower scrambles to organize a response. The nation needs a hero — and finds one in a controversial figure.</p>
+                    <p style="max-width: none;"><strong>Wernher von Braun</strong>, a German rocket engineer brought to America through Operation Paperclip, had been warning for years that the Soviets were close to achieving orbital flight. Now, finally, the government listens.</p>
+                </div>
+
+                <div class="hifi-card" style="margin-bottom: var(--space-5);">
+                    <div class="hifi-display">
+                        <div class="hifi-frequency"></div>
+                        <div class="hifi-display-text">Explorer 1 — Signal Acquired</div>
+                    </div>
+                    <div class="hifi-card-body">
+                        <h3>February 1, 1958</h3>
+                        <p>America answers. <strong style="color: var(--brass-light);">Explorer 1</strong> lifts off from Cape Canaveral aboard a Jupiter-C rocket. The satellite not only reaches orbit but makes a genuine scientific discovery — detecting bands of intense radiation surrounding the Earth, later named the <em>Van Allen radiation belts</em>.</p>
+                    </div>
+                    <div class="hifi-controls">
+                        <div class="hifi-knob" style="transform: rotate(-45deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(30deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(-15deg);"></div>
+                    </div>
+                </div>
+
+                <p class="lead">American confidence is restored — but the real race is only beginning.</p>
+            `,
+            choices: [
+                { text: 'Continue to the first humans in space', next: 'gagarin' }
+            ]
+        },
+
+        // --- SCENE 2b: Soviet Triumph ---
+        soviet_triumph: {
+            year: '1957',
+            era: 'Soviet Engineering',
+            fact: 'On November 3, 1957, Sputnik 2 carried the dog Laika, making her the first animal to orbit Earth.',
+            content: `
+                <div class="card-wood" style="padding: var(--space-6); border-radius: var(--radius-md); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-mustard">Soviet Union</span>
+                        <span class="badge badge-orange">November 1957</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">Sputnik 2 and Laika</h3>
+                    <p style="max-width: none;">Barely a month after Sputnik 1, the Soviets strike again. On <strong style="color: var(--cream);">November 3, 1957</strong>, Sputnik 2 launches carrying a passenger — a small stray dog named <strong style="color: var(--cream);">Laika</strong>.</p>
+                    <p style="max-width: none;">Laika becomes the first living creature to orbit Earth. The mission proves that a living organism can survive the stresses of launch and the weightlessness of space — a crucial step toward sending humans beyond the atmosphere.</p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#128054;</div>
+                    <h4 style="color: var(--burnt-orange);">Historical Fact</h4>
+                    <p style="max-width: none;">Laika, a Moscow stray dog, was never intended to return alive. Soviet scientists knew the technology for re-entry did not yet exist. She survived several hours in orbit before the cabin overheated. Her sacrifice provided vital data about living organisms in space and remains one of the Space Race's most poignant moments.</p>
+                </div>
+
+                <div class="boomerang-divider">
+                    <span class="boomerang-shape flip"></span>
+                    <span class="boomerang-shape"></span>
+                </div>
+
+                <p class="lead">The Soviets have proven that space is survivable. Can America keep pace?</p>
+            `,
+            choices: [
+                { text: 'Continue to the first humans in space', next: 'gagarin' }
+            ]
+        },
+
+        // --- SCENE 3: Gagarin ---
+        gagarin: {
+            year: '1961',
+            era: 'April 12, 1961',
+            fact: 'Yuri Gagarin became the first human in space on April 12, 1961, orbiting Earth in 108 minutes aboard Vostok 1.',
+            content: `
+                <div class="quote-block" style="margin-bottom: var(--space-5);">
+                    <div class="quote-mark">"</div>
+                    <p class="quote-text">I see Earth! It is so beautiful!</p>
+                    <p class="quote-author">-- Yuri Gagarin, April 12, 1961</p>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/Yuri_Gagarin_%281961%29_-_Restoration.jpg" alt="Yuri Gagarin in 1961" style="max-width: 100%; height: auto; border: 3px solid #5D3A1A; border-radius: 2px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #CC5500; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">Yuri Gagarin - First human in space</div>
+                </div>
+
+                <div class="card-featured" style="padding: var(--space-6); border-radius: var(--radius-lg); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-orange">First Human in Space</span>
+                    </div>
+                    <h3 style="color: var(--brass-light); margin-top: var(--space-3);">Vostok 1</h3>
+                    <p style="color: var(--birch); max-width: none;">Soviet cosmonaut <strong style="color: var(--brass-light);">Yuri Alekseyevich Gagarin</strong>, a 27-year-old pilot, is launched into space aboard the Vostok 1 spacecraft. He completes one full orbit of Earth in exactly <strong style="color: var(--brass-light);">108 minutes</strong>.</p>
+                    <p style="color: var(--birch); max-width: none;">The world is stunned. A human being has left the planet and returned safely. The Soviet Union's lead in the Space Race appears insurmountable.</p>
+                </div>
+
+                <div class="table-wrapper">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Detail</th>
+                                <th>Record</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Cosmonaut</strong></td>
+                                <td>Yuri Gagarin, age 27</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Spacecraft</strong></td>
+                                <td>Vostok 1</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Duration</strong></td>
+                                <td>108 minutes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Orbits</strong></td>
+                                <td>1 complete orbit</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Max altitude</strong></td>
+                                <td>327 km (203 mi)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tapered-divider">
+                    <span class="tapered-leg"></span>
+                    <span class="divider-dot"></span>
+                    <span class="tapered-leg reverse"></span>
+                </div>
+
+                <p class="lead" style="text-align: center; max-width: none;">President Kennedy faces a critical moment. How should America respond?</p>
+            `,
+            choices: [
+                { text: 'Rally the nation — go to the Moon', next: 'kennedy_speech' },
+                { text: 'Focus on catching up step by step', next: 'shepard_glenn' }
+            ]
+        },
+
+        // --- SCENE 4a: Kennedy's Speech ---
+        kennedy_speech: {
+            year: '1961',
+            era: 'May 25, 1961',
+            fact: 'On May 25, 1961, JFK told Congress the U.S. should commit to landing a man on the Moon before the decade\'s end.',
+            content: `
+                <div class="quote-block" style="margin-bottom: var(--space-5);">
+                    <div class="quote-mark">"</div>
+                    <p class="quote-text">I believe that this nation should commit itself to achieving the goal, before this decade is out, of landing a man on the Moon and returning him safely to the Earth.</p>
+                    <p class="quote-author">-- President John F. Kennedy, May 25, 1961</p>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-orange">Presidential Address</span>
+                        <span class="badge badge-olive">Joint Session of Congress</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">The Moonshot</h3>
+                    <p style="max-width: none;">Just twenty days after Alan Shepard's brief suborbital flight, President Kennedy makes the boldest promise in American history. Before a joint session of Congress, he commits the nation to reaching the Moon within the decade.</p>
+                    <p style="max-width: none;">At this moment, the total American time in space is <strong>15 minutes and 28 seconds</strong>. The Moon is 240,000 miles away. Most of the technology needed to get there has not been invented yet.</p>
+                    <p style="max-width: none;">The commitment will require <strong>$25.4 billion</strong> (over $200 billion in today's money) and the work of more than 400,000 engineers, scientists, and technicians.</p>
+                </div>
+
+                <p class="lead">The race to the Moon is officially on.</p>
+            `,
+            choices: [
+                { text: 'Continue to Mercury and Gemini', next: 'mercury_gemini' }
+            ]
+        },
+
+        // --- SCENE 4b: Shepard and Glenn ---
+        shepard_glenn: {
+            year: '1961-62',
+            era: 'Project Mercury',
+            fact: 'John Glenn orbited Earth 3 times aboard Friendship 7 on February 20, 1962, in a flight lasting 4 hours and 55 minutes.',
+            content: `
+                <div class="hifi-card" style="margin-bottom: var(--space-5);">
+                    <div class="hifi-display">
+                        <div class="hifi-frequency"></div>
+                        <div class="hifi-display-text">Freedom 7 — Suborbital — 15 min 28 sec</div>
+                    </div>
+                    <div class="hifi-card-body">
+                        <h3>Alan Shepard — May 5, 1961</h3>
+                        <p>Twenty-three days after Gagarin, astronaut <strong style="color: var(--brass-light);">Alan Shepard</strong> climbs aboard the Freedom 7 capsule. His flight lasts only <strong style="color: var(--brass-light);">15 minutes and 28 seconds</strong> — a brief suborbital arc over the Atlantic. It's modest compared to Gagarin's orbit, but it proves America can put a human in space and bring them home.</p>
+                    </div>
+                    <div class="hifi-controls">
+                        <div class="hifi-knob" style="transform: rotate(-45deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(30deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(-15deg);"></div>
+                    </div>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/John_Glenn_enters_his_Friendship_7_capsule_-_GPN-2006-000027.jpg" alt="John Glenn enters Friendship 7 Mercury capsule" style="max-width: 100%; height: auto; border: 3px solid #5D3A1A; border-radius: 2px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #CC5500; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">John Glenn preparing for Friendship 7 mission</div>
+                </div>
+
+                <div class="card-featured" style="padding: var(--space-6); border-radius: var(--radius-lg); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-mustard">Milestone</span>
+                    </div>
+                    <h3 style="color: var(--brass-light); margin-top: var(--space-3);">John Glenn — February 20, 1962</h3>
+                    <p style="color: var(--birch); max-width: none;">Nine months later, Marine pilot <strong style="color: var(--brass-light);">John Glenn</strong> becomes the first American to orbit Earth. Aboard <em>Friendship 7</em>, he circles the planet <strong style="color: var(--brass-light);">three times</strong> over <strong style="color: var(--brass-light);">4 hours and 55 minutes</strong>.</p>
+                    <p style="color: var(--birch); max-width: none;">During re-entry, a faulty indicator suggests his heat shield is loose. Glenn manually controls the spacecraft through a harrowing descent, not knowing if the capsule will hold together. It does. He splashes down safely and becomes a national hero.</p>
+                </div>
+
+                <p class="lead">America is in the race. But the Moon is still a long way off.</p>
+            `,
+            choices: [
+                { text: 'Continue to Mercury and Gemini', next: 'mercury_gemini' }
+            ]
+        },
+
+        // --- SCENE 5: Mercury and Gemini (convergence) ---
+        mercury_gemini: {
+            year: '1962-66',
+            era: 'Building the Skills',
+            fact: 'Katherine Johnson, an African American mathematician at NASA, calculated the orbital trajectories that made John Glenn\'s mission possible.',
+            content: `
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-olive">Project Mercury</span>
+                        <span class="badge badge-orange">Project Gemini</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">The Architects of Tomorrow</h3>
+                    <p style="max-width: none;">Getting to the Moon requires solving problems no one has faced before. How do you dock two spacecraft at 17,500 miles per hour? How do you walk in the vacuum of space? How do you navigate a quarter-million miles with the computing power of a pocket calculator?</p>
+                    <p style="max-width: none;">Project Gemini (1961-1966) becomes NASA's proving ground: <strong>10 crewed missions</strong> that master spacewalking, orbital rendezvous, and long-duration spaceflight.</p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#129518;</div>
+                    <h4 style="color: var(--burnt-orange);">The Hidden Figures</h4>
+                    <p style="max-width: none;"><strong>Katherine Johnson</strong>, an African American mathematician at NASA's Langley Research Center, hand-calculated the orbital trajectories for Alan Shepard's and John Glenn's missions. Glenn himself refused to fly until Johnson personally verified the electronic computer's calculations. Her work was so trusted that she later calculated the trajectory that synced Apollo 11's lunar lander with the command module for the return to Earth.</p>
+                </div>
+
+                <div class="boomerang-divider">
+                    <span class="boomerang-shape flip"></span>
+                    <span class="boomerang-shape"></span>
+                </div>
+
+                <p class="lead" style="text-align: center; max-width: none;">The skills are proven. Now comes the rocket.</p>
+            `,
+            choices: [
+                { text: 'Follow the Saturn V rocket development', next: 'saturn_v' },
+                { text: 'Learn about Katherine Johnson\'s calculations', next: 'katherine_johnson' }
+            ]
+        },
+
+        // --- SCENE 6a: Saturn V ---
+        saturn_v: {
+            year: '1962-67',
+            era: 'The Rocket',
+            fact: 'The Saturn V rocket stood 363 feet tall and generated 7.6 million pounds of thrust — still the most powerful rocket ever flown.',
+            content: `
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/16/Apollo_11_Launch_-_GPN-2000-000630.jpg" alt="Saturn V rocket carrying Apollo 11 on the launch pad" style="max-width: 100%; height: auto; border: 3px solid #5D3A1A; border-radius: 2px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #CC5500; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">Saturn V - The most powerful rocket ever built</div>
+                </div>
+
+                <div class="card-featured" style="padding: var(--space-6); border-radius: var(--radius-lg); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-mustard">Engineering Marvel</span>
+                    </div>
+                    <h2 style="color: var(--brass-light); margin-top: var(--space-4); margin-bottom: var(--space-4);">Saturn V</h2>
+                    <p style="color: var(--birch); font-size: 1.05rem; max-width: none;">Under the direction of <strong style="color: var(--brass-light);">Wernher von Braun</strong> at the Marshall Space Flight Center in Huntsville, Alabama, engineers design the most powerful machine ever built.</p>
+                </div>
+
+                <div class="table-wrapper" style="margin-bottom: var(--space-5);">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Specification</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Height</strong></td>
+                                <td>363 feet (111 m) — taller than the Statue of Liberty</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Thrust</strong></td>
+                                <td>7.6 million pounds (33,800 kN)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Stages</strong></td>
+                                <td>3 stages, each with its own engines</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fuel consumption</strong></td>
+                                <td>15 tons per second at launch</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Success rate</strong></td>
+                                <td>13 launches, 13 successes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card-wood" style="padding: var(--space-5); border-radius: var(--radius-md); margin-bottom: var(--space-5);">
+                    <p style="max-width: none;">The Saturn V consumed fuel at a rate of <strong style="color: var(--cream);">15 tons per second</strong> during its first-stage burn. Its five F-1 engines remain the most powerful single-chamber rocket engines ever built. Each one generated more thrust than all three Space Shuttle main engines combined.</p>
+                </div>
+
+                <p class="lead">The rocket is ready. But tragedy will test the nation's resolve.</p>
+            `,
+            choices: [
+                { text: 'Continue to the final push', next: 'apollo_8' }
+            ]
+        },
+
+        // --- SCENE 6b: Katherine Johnson ---
+        katherine_johnson: {
+            year: '1961-69',
+            era: 'Hidden Figures',
+            fact: 'John Glenn refused to fly until Katherine Johnson personally verified the electronic computer\'s orbital calculations.',
+            content: `
+                <div class="quote-block" style="margin-bottom: var(--space-5);">
+                    <div class="quote-mark">"</div>
+                    <p class="quote-text">In math, you're either right or you're wrong. That's what I liked about it.</p>
+                    <p class="quote-author">-- Katherine Johnson</p>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/Katherine_Johnson_at_NASA%2C_in_1966.jpg" alt="Katherine Johnson at NASA in 1966" style="max-width: 100%; height: auto; border: 3px solid #5D3A1A; border-radius: 2px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #CC5500; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">Katherine Johnson at NASA Langley, 1966</div>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-orange">NASA Langley</span>
+                        <span class="badge badge-olive">Mathematician</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">The Woman Who Made the Math Work</h3>
+                    <p style="max-width: none;"><strong>Katherine Coleman Goble Johnson</strong> (1918-2020) began working at NASA's predecessor, NACA, in 1953. As an African American woman in the segregated South, she worked in a separate "colored computing" section.</p>
+                    <p style="max-width: none;">Her mathematical brilliance transcended every barrier. She calculated the trajectory for Alan Shepard's Freedom 7 mission in 1961, then computed the orbital mechanics for John Glenn's Friendship 7 mission in 1962.</p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#128290;</div>
+                    <h4 style="color: var(--burnt-orange);">The Glenn Request</h4>
+                    <p style="max-width: none;">When NASA began using electronic IBM computers to calculate Glenn's orbital trajectory, Glenn himself was uneasy. He told engineers: <strong>"Get the girl to check the numbers."</strong> He meant Katherine Johnson. He refused to fly until she had personally verified every calculation the computer produced. She did — and he flew.</p>
+                    <p style="max-width: none;">Johnson later provided critical calculations for Apollo 11, computing the trajectory that synchronized the Lunar Module's ascent from the Moon's surface with the Command Module orbiting above — the rendezvous that brought the astronauts home.</p>
+                </div>
+
+                <p class="lead">Behind every great mission stood the people who did the math.</p>
+            `,
+            choices: [
+                { text: 'Continue to the final push', next: 'apollo_8' }
+            ]
+        },
+
+        // --- SCENE 7: Apollo 8 ---
+        apollo_8: {
+            year: '1968',
+            era: 'Christmas Eve, 1968',
+            fact: 'Apollo 8 became the first crewed spacecraft to orbit the Moon on December 24, 1968, when the crew read from Genesis to a global audience.',
+            content: `
+                <div class="hifi-card" style="margin-bottom: var(--space-5);">
+                    <div class="hifi-display">
+                        <div class="hifi-frequency"></div>
+                        <div class="hifi-display-text">Apollo 8 — Lunar Orbit Achieved</div>
+                    </div>
+                    <div class="hifi-card-body">
+                        <h3>Earthrise</h3>
+                        <p>On <strong style="color: var(--brass-light);">December 24, 1968</strong>, astronauts Frank Borman, James Lovell, and William Anders become the first humans to orbit the Moon. As their spacecraft rounds the lunar far side, they witness something no human eye has ever seen — the Earth rising over the Moon's horizon.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a8/NASA-Apollo8-Dec24-Earthrise.jpg" alt="Earthrise photograph taken by Apollo 8" style="max-width: 100%; height: auto; border: 3px solid #D4AF37; border-radius: 2px;">
+                            <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #E8C860; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">Earthrise - December 24, 1968</div>
+                        </div>
+                        <p>That Christmas Eve, the crew reads from the Book of Genesis to an audience of approximately <strong style="color: var(--brass-light);">one billion people</strong> — the largest broadcast audience in history at that time. The iconic "Earthrise" photograph taken by Anders becomes one of the most influential images ever captured.</p>
+                    </div>
+                    <div class="hifi-controls">
+                        <div class="hifi-knob" style="transform: rotate(-30deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(45deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(0deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(60deg);"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <h3>The Final Push</h3>
+                    <p style="max-width: none;">Apollo 8 proves that the lunar journey is possible. The Command and Service Module works. The navigation is sound. The astronauts can withstand the voyage. Only one piece remains: actually landing on the surface.</p>
+                    <p style="max-width: none;">Meanwhile, across the world, the Soviet lunar program faces catastrophe...</p>
+                </div>
+            `,
+            choices: [
+                { text: 'See how the Soviet program ends', next: 'n1_explosion' },
+                { text: 'Skip ahead to Apollo 11 launch', next: 'apollo_11_launch' }
+            ]
+        },
+
+        // --- SCENE 8: N1 Explosion ---
+        n1_explosion: {
+            year: '1969',
+            era: 'July 3, 1969',
+            fact: 'On July 3, 1969, the Soviet N1 Moon rocket exploded on the launch pad, creating one of the largest non-nuclear explosions in history.',
+            content: `
+                <div class="card-wood" style="padding: var(--space-6); border-radius: var(--radius-md); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-orange">Soviet Union</span>
+                        <span class="badge badge-mustard">Classified</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">The Dream Ends in Fire</h3>
+                    <p style="max-width: none;">At the Baikonur Cosmodrome in Kazakhstan, the Soviet Union's answer to the Saturn V stands on the launch pad. The <strong style="color: var(--cream);">N1 rocket</strong>, with its 30 first-stage engines, is meant to carry cosmonauts to the Moon.</p>
+                    <p style="max-width: none;">On <strong style="color: var(--cream);">July 3, 1969</strong> — just thirteen days before Apollo 11's launch — the N1 lifts off. Seconds later, an engine failure triggers a catastrophic chain reaction. The fully-fueled rocket collapses back onto the pad in one of the <strong style="color: var(--cream);">largest non-nuclear explosions in history</strong>, completely destroying the launch facility.</p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#128165;</div>
+                    <h4 style="color: var(--burnt-orange);">The N1 Program</h4>
+                    <p style="max-width: none;">The N1 failed on all four of its launch attempts. The Soviet Union kept the program secret for decades — the world did not learn of the explosions until after the fall of the USSR. The N1's failure effectively ended Soviet hopes of reaching the Moon, though the program was not officially canceled until 1976.</p>
+                </div>
+
+                <div class="tapered-divider">
+                    <span class="tapered-leg"></span>
+                    <span class="divider-dot"></span>
+                    <span class="tapered-leg reverse"></span>
+                </div>
+
+                <p class="lead" style="text-align: center; max-width: none;">The race is effectively over. America prepares for the final mission.</p>
+            `,
+            choices: [
+                { text: 'Continue to the Apollo 11 launch', next: 'apollo_11_launch' }
+            ]
+        },
+
+        // --- SCENE 9: Apollo 11 Launch ---
+        apollo_11_launch: {
+            year: '1969',
+            era: 'July 16, 1969',
+            fact: 'Saturn V\'s five F-1 engines consumed 15 tons of fuel per second, propelling Apollo 11\'s 3 astronauts toward the Moon at 25,000 mph.',
+            content: `
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/1/16/Apollo_11_Launch_-_GPN-2000-000630.jpg" alt="Apollo 11 Saturn V launch" style="max-width: 100%; height: auto; border: 3px solid #5D3A1A; border-radius: 2px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #CC5500; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">Apollo 11 launches toward the Moon, July 16, 1969</div>
+                </div>
+
+                <div class="card-featured" style="padding: var(--space-6); border-radius: var(--radius-lg); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-brass">Apollo 11</span>
+                        <span class="badge badge-orange">Launch Day</span>
+                    </div>
+                    <h2 style="color: var(--brass-light); margin-top: var(--space-4); margin-bottom: var(--space-4);">Liftoff</h2>
+                    <p style="color: var(--birch); font-size: 1.05rem; max-width: none;">July 16, 1969. Kennedy Space Center, Launch Complex 39A. One million spectators line the beaches and roads of Florida's coast. An estimated <strong style="color: var(--brass-light);">600 million people</strong> watch on television worldwide.</p>
+                    <p style="color: var(--birch); font-size: 1.05rem; max-width: none;">At 9:32 AM EDT, the five F-1 engines of the Saturn V ignite. <strong style="color: var(--brass-light);">7.6 million pounds of thrust</strong> shake the ground for miles. The rocket rises, slowly at first, consuming fuel at 15 tons per second.</p>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-olive">Crew Manifest</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">The Apollo 11 Crew</h3>
+                    <p style="max-width: none;"><strong>Neil Armstrong</strong> (Commander) — Civilian test pilot, veteran of Gemini 8. Calm, methodical, a man of few words. He will command the mission and pilot the Lunar Module to the surface.</p>
+                    <p style="max-width: none;"><strong>Buzz Aldrin</strong> (Lunar Module Pilot) — Air Force colonel, MIT doctorate in orbital mechanics. He will join Armstrong on the Moon's surface.</p>
+                    <p style="max-width: none;"><strong>Michael Collins</strong> (Command Module Pilot) — Air Force pilot. He will orbit the Moon alone in the Command Module <em>Columbia</em>, the loneliest person in the universe, while his crewmates walk below.</p>
+                </div>
+
+                <p class="lead" style="text-align: center; max-width: none;">The greatest journey in human history has begun. Choose your perspective.</p>
+            `,
+            choices: [
+                { text: 'Ride the Eagle down to the Moon', next: 'descent' },
+                { text: 'Experience the tension in Mission Control', next: 'mission_control' }
+            ]
+        },
+
+        // --- SCENE 10a: The Descent ---
+        descent: {
+            year: '1969',
+            era: 'July 20, 1969 — The Descent',
+            fact: 'During the lunar descent, Armstrong had only 25 seconds of fuel remaining when he landed the Eagle at Tranquility Base.',
+            content: `
+                <div class="card-featured" style="padding: var(--space-6); border-radius: var(--radius-lg); margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-orange">Alert</span>
+                        <span class="badge badge-mustard">Program Alarm 1202</span>
+                    </div>
+                    <h3 style="color: var(--brass-light); margin-top: var(--space-3);">Computer Alarms</h3>
+                    <p style="color: var(--birch); max-width: none;">Armstrong and Aldrin separate the Lunar Module <em>Eagle</em> from the Command Module <em>Columbia</em> and begin their descent. Then the alarms start.</p>
+                    <p style="color: var(--birch); max-width: none;"><strong style="color: var(--brass-light);">Program Alarm 1202.</strong> The onboard computer is overloaded. In Mission Control, 26-year-old guidance officer <strong style="color: var(--brass-light);">Steve Bales</strong> has seconds to decide: abort or continue? He calls "GO." The descent continues.</p>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <h3>Manual Override</h3>
+                    <p style="max-width: none;">Armstrong looks out the window and sees the computer is guiding them toward a boulder field. He takes manual control, flying the Lunar Module like a helicopter, searching for a clear spot while the fuel gauge drops toward zero.</p>
+                    <p style="max-width: none;">Mission Control calls out the fuel: "60 seconds." Then: "30 seconds." Armstrong has less than <strong>25 seconds of fuel remaining</strong>.</p>
+                    <p style="max-width: none;">Then, at <strong>20:17 UTC on July 20, 1969</strong>, a blue light appears on the instrument panel. Contact. The probe beneath the Eagle has touched the Moon.</p>
+                </div>
+
+                <div class="quote-block" style="margin-bottom: var(--space-5);">
+                    <div class="quote-mark">"</div>
+                    <p class="quote-text">Houston, Tranquility Base here. The Eagle has landed.</p>
+                    <p class="quote-author">-- Neil Armstrong, July 20, 1969, 20:17 UTC</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Step onto the Moon', next: 'moonwalk' }
+            ]
+        },
+
+        // --- SCENE 10b: Mission Control ---
+        mission_control: {
+            year: '1969',
+            era: 'July 20, 1969 — Mission Control',
+            fact: 'Guidance officer Steve Bales, age 26, made the critical "GO" call on program alarm 1202, allowing the lunar landing to continue.',
+            content: `
+                <div class="hifi-card" style="margin-bottom: var(--space-5);">
+                    <div class="hifi-display">
+                        <div class="hifi-frequency"></div>
+                        <div class="hifi-display-text">Telemetry — LM Eagle — Descent Phase</div>
+                    </div>
+                    <div class="hifi-card-body">
+                        <h3>Houston, We Have a Problem... Almost</h3>
+                        <p>In the Mission Operations Control Room at the Manned Spacecraft Center in Houston, rows of controllers sit at their consoles. The average age of the flight controllers is <strong style="color: var(--brass-light);">26 years old</strong>. The fate of the mission — and possibly the Space Race itself — rests on their shoulders.</p>
+                    </div>
+                    <div class="hifi-controls">
+                        <div class="hifi-knob" style="transform: rotate(-20deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(50deg);"></div>
+                        <div class="hifi-knob" style="transform: rotate(10deg);"></div>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: var(--space-5);">
+                    <div class="badge-row">
+                        <span class="badge badge-orange">Program Alarm</span>
+                    </div>
+                    <h3 style="margin-top: var(--space-3);">The Call</h3>
+                    <p style="max-width: none;">When the 1202 alarm sounds, every controller freezes. Guidance officer <strong>Steve Bales</strong>, just 26 years old, recognizes it as an executive overflow — the computer is being asked to do too many things at once, but it is prioritizing correctly. In the most high-pressure moment imaginable, he calls:</p>
+                    <p style="max-width: none; font-weight: 700; color: var(--burnt-orange); font-size: 1.1rem;">"We're GO on that alarm."</p>
+                    <p style="max-width: none;">The descent continues. Minutes later, Armstrong's voice crackles through the speakers: <em>"The Eagle has landed."</em> The room erupts. Controllers who have spent years preparing for this moment allow themselves, briefly, to breathe.</p>
+                </div>
+
+                <div class="principle-card">
+                    <div class="principle-icon">&#127775;</div>
+                    <h4 style="color: var(--burnt-orange);">After the Landing</h4>
+                    <p style="max-width: none;">Charlie Duke, the CAPCOM (Capsule Communicator), was so relieved he initially stumbled over his words: "Roger, Twang-- Tranquility, we copy you on the ground. You got a bunch of guys about to turn blue. We're breathing again." Flight Director Gene Kranz later admitted that his heart rate had been higher than Armstrong's during the landing.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Step onto the Moon', next: 'moonwalk' }
+            ]
+        },
+
+        // --- SCENE 11: The Moonwalk (convergence) ---
+        moonwalk: {
+            year: '1969',
+            era: 'July 21, 1969 — 02:56 UTC',
+            fact: 'Neil Armstrong\'s first step on the Moon was watched by an estimated 530 million television viewers worldwide.',
+            content: `
+                <div style="text-align: center; margin-bottom: var(--space-5);">
+                    <div class="starburst-decoration" style="margin-bottom: var(--space-5);"></div>
+                </div>
+
+                <div class="quote-block" style="margin-bottom: var(--space-5);">
+                    <div class="quote-mark">"</div>
+                    <p class="quote-text">That's one small step for [a] man, one giant leap for mankind.</p>
+                    <p class="quote-author">-- Neil Armstrong, July 21, 1969, 02:56 UTC</p>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/98/Aldrin_Apollo_11_original.jpg" alt="Buzz Aldrin on the Moon during Apollo 11" style="max-width: 100%; height: auto; border: 3px solid #5D3A1A; border-radius: 2px;">
+                    <div style="font-size: 0.75rem; margin-top: 0.5rem; color: #CC5500; text-transform: uppercase; letter-spacing: 0.08em; font-family: 'Josefin Sans', sans-serif;">Buzz Aldrin walks on the lunar surface - Photo by Neil Armstrong</div>
+                </div>
+
+                <div class="card-featured" style="padding: var(--space-6); border-radius: var(--radius-lg); margin-bottom: var(--space-5);">
+                    <h2 style="color: var(--brass-light); margin-bottom: var(--space-4);">First Steps</h2>
+                    <p style="color: var(--birch); font-size: 1.05rem; max-width: none;">At 02:56 UTC on July 21, 1969, Neil Armstrong descends the Lunar Module's ladder and places his left boot onto the surface of the Moon. An estimated <strong style="color: var(--brass-light);">530 million people</strong> — one-fifth of the world's population — watch on television as a human being stands on another world for the first time.</p>
+                    <p style="color: var(--birch); font-size: 1.05rem; max-width: none;"><strong style="color: var(--brass-light);">Buzz Aldrin</strong> joins him 19 minutes later. Together, they spend <strong style="color: var(--brass-light);">2 hours and 31 minutes</strong> outside the Lunar Module, collecting <strong style="color: var(--brass-light);">47.5 pounds (21.5 kg)</strong> of lunar rock and soil samples. They plant an American flag, set up scientific instruments, and take photographs that will define a generation.</p>
+                </div>
+
+                <div class="table-wrapper" style="margin-bottom: var(--space-5);">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Moonwalk Detail</th>
+                                <th>Record</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Armstrong's first step</strong></td>
+                                <td>02:56 UTC, July 21, 1969</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Aldrin joins</strong></td>
+                                <td>19 minutes after Armstrong</td>
+                            </tr>
+                            <tr>
+                                <td><strong>EVA duration</strong></td>
+                                <td>2 hours, 31 minutes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Samples collected</strong></td>
+                                <td>47.5 pounds (21.5 kg)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total time on Moon</strong></td>
+                                <td>21 hours, 36 minutes</td>
+                            </tr>
+                            <tr>
+                                <td><strong>TV audience</strong></td>
+                                <td>~530 million viewers</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tapered-divider">
+                    <span class="tapered-leg"></span>
+                    <span class="divider-dot"></span>
+                    <span class="tapered-leg reverse"></span>
+                </div>
+
+                <p class="lead" style="text-align: center; max-width: none;">Humanity stands on another world. What meaning do you take from this moment?</p>
+            `,
+            choices: [
+                { text: 'This is a triumph of human engineering', next: 'ending_engineering' },
+                { text: 'This is a story about the people behind the mission', next: 'ending_people' },
+                { text: 'This is the beginning of humanity\'s future in space', next: 'ending_future' }
+            ]
+        },
+
+        // --- ENDING A: Engineering Triumph ---
+        ending_engineering: {
+            year: '1969',
+            era: 'Legacy — Engineering',
+            fact: 'The Apollo program employed over 400,000 people and cost $25.4 billion ($200+ billion in today\'s dollars).',
+            content: `
+                <div class="scene-ending">
+                    <div class="starburst-decoration" style="margin-bottom: var(--space-6);"></div>
+                    <div class="ending-label">Mission Complete</div>
+                    <div class="ending-title">The Engineer's Dream</div>
+
+                    <div class="ending-text">
+                        <p>On July 24, 1969, the Command Module <em>Columbia</em> splashes down in the Pacific Ocean, 900 miles southwest of Hawaii. The three astronauts are safe. The mission is complete.</p>
+                        <p>The Apollo program stands as perhaps the greatest engineering achievement in human history. More than <strong>400,000 people</strong> across 20,000 companies contributed to putting two men on the Moon. The Saturn V flew <strong>13 times without a single failure</strong>. The onboard computer, with less processing power than a modern calculator, guided astronauts across 240,000 miles of void.</p>
+                        <p>Every microchip in your phone, every satellite guiding your car, every weather forecast on your television — all descend, in some way, from the technologies developed to reach the Moon. The Space Race didn't just conquer distance. It built the modern world.</p>
+                        <p>The atomic age dream of the 1950s — that clean lines, bold design, and boundless optimism could shape a better tomorrow — found its ultimate expression not in a piece of furniture, but in a footprint on the Moon.</p>
+                    </div>
+
+                    <div class="boomerang-divider">
+                        <span class="boomerang-shape flip"></span>
+                        <span class="boomerang-shape"></span>
+                    </div>
+
+                    <div class="the-end">The End</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING B: The People ---
+        ending_people: {
+            year: '1969',
+            era: 'Legacy — The People',
+            fact: 'Michael Collins orbited the Moon alone in Columbia, losing radio contact with Earth for 48 minutes on each pass behind the far side.',
+            content: `
+                <div class="scene-ending">
+                    <div class="starburst-decoration" style="margin-bottom: var(--space-6);"></div>
+                    <div class="ending-label">Mission Complete</div>
+                    <div class="ending-title">The Human Story</div>
+
+                    <div class="ending-text">
+                        <p>While Armstrong and Aldrin walked on the Moon, <strong>Michael Collins</strong> orbited alone in the Command Module <em>Columbia</em>. On each pass behind the far side of the Moon, he lost all radio contact with Earth for <strong>48 minutes</strong>. In those moments, he was the most isolated human being who had ever lived — further from any other person than anyone in history.</p>
+                        <p>Katherine Johnson, the mathematician whose calculations made the mission possible, watched the landing on television at home. She had given NASA her best work and trusted the numbers. The numbers held.</p>
+                        <p>In Moscow, Soviet engineers watched in silence. Their N1 rocket lay in ruins. Their dream was over. Yet many of them felt something unexpected: pride. Not national pride, but human pride. A human being — any human being — had walked on the Moon.</p>
+                        <p>The Space Race was a competition between nations, but its greatest achievement was universal. When Armstrong's boot pressed into lunar dust, it pressed down on behalf of every dreamer, every engineer, every mathematician, every person who ever looked up at the night sky and wondered: <em>What if?</em></p>
+                    </div>
+
+                    <div class="boomerang-divider">
+                        <span class="boomerang-shape flip"></span>
+                        <span class="boomerang-shape"></span>
+                    </div>
+
+                    <div class="the-end">The End</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING C: The Future ---
+        ending_future: {
+            year: '1969',
+            era: 'Legacy — The Future',
+            fact: 'Armstrong and Aldrin left a plaque on the Moon reading: "We came in peace for all mankind."',
+            content: `
+                <div class="scene-ending">
+                    <div class="starburst-decoration" style="margin-bottom: var(--space-6);"></div>
+                    <div class="ending-label">Mission Complete</div>
+                    <div class="ending-title">One Giant Leap</div>
+
+                    <div class="ending-text">
+                        <p>Before leaving the Moon, Armstrong and Aldrin placed a stainless steel plaque on the Lunar Module's descent stage — the part that would remain on the Moon forever. It reads:</p>
+                    </div>
+                </div>
+
+                <div class="quote-block" style="margin-bottom: var(--space-5);">
+                    <div class="quote-mark">"</div>
+                    <p class="quote-text">Here men from the planet Earth first set foot upon the Moon, July 1969 A.D. We came in peace for all mankind.</p>
+                    <p class="quote-author">-- Plaque left on the Moon, Apollo 11</p>
+                </div>
+
+                <div class="scene-ending">
+                    <div class="ending-text">
+                        <p>That plaque is still there. So are the bootprints. With no wind and no weather on the Moon, they will remain undisturbed for millions of years — long after every building on Earth has crumbled to dust.</p>
+                        <p>The Space Race proved something profound: when humanity unites behind a goal, there is no challenge too great. In twelve years, we went from launching an 85-kilogram sphere to landing human beings on the Moon. The journey from Sputnik's beep to Armstrong's footprint represents the fastest technological acceleration in human history.</p>
+                        <p>The mid-century optimism that drove the Space Race — the belief that technology, design, and human ingenuity could build a better tomorrow — lives on. Every time a new rocket lifts off, every time a rover rolls across Mars, every time a telescope peers deeper into the cosmos, we are continuing the journey that began with a simple signal from the sky on an October night in 1957.</p>
+                        <p>The race to the Moon is over. The race to the stars has only just begun.</p>
+                    </div>
+
+                    <div class="boomerang-divider">
+                        <span class="boomerang-shape flip"></span>
+                        <span class="boomerang-shape"></span>
+                    </div>
+
+                    <div class="the-end">The End</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart' }
+            ]
+        }
+    };
+
+    // ===============================================================
+    //  STORY ENGINE
+    // ===============================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('sputnik');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Starburst transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 400);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1000);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update header
+            if (scene.era) {
+                document.getElementById('sceneEra').textContent = scene.era;
+            }
+
+            let html = '<div class="scene-content">';
+
+            // Render content HTML directly (uses style guide CSS classes)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += `${choice.text}`;
+                    html += `</button>`;
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No facts discovered yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => `<div class="fact-item">${f}</div>`).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

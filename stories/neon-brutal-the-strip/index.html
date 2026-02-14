@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Strip — A Neon Brutal Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@300;400;500;600;700&family=Monoton&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: "Monoton", "Chakra Petch";
+            --font-body: "Chakra Petch", "Share Tech Mono";
+            --font-mono: "Share Tech Mono", "Chakra Petch";
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+
+            --radius-1: 6px;
+            --radius-2: 14px;
+            --radius-3: 24px;
+            --border-strong: 2px solid var(--ink);
+
+            --dur-fast: 180ms;
+            --dur-med: 420ms;
+            --dur-slow: 1200ms;
+
+            --ink: #eef7ff;
+            --muted: #b5c9ff;
+            --bg: #0a0c18;
+            --bg-alt: #12162b;
+            --accent: #28f3ff;
+            --accent-2: #ff3b8d;
+            --accent-3: #ffd84f;
+            --shadow: #05070f;
+            --grid: rgba(40, 243, 255, 0.12);
+            --glow: 0 0 24px rgba(40, 243, 255, 0.45);
+            --glow-magenta: 0 0 24px rgba(255, 59, 141, 0.45);
+            --glow-gold: 0 0 24px rgba(255, 216, 79, 0.45);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--ink);
+            min-height: 100vh;
+            letter-spacing: 0.4px;
+            overflow-x: hidden;
+            line-height: 1.7;
+        }
+
+        /* Scanlines overlay */
+        .scanlines::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                to bottom,
+                rgba(255, 255, 255, 0.03) 0px,
+                rgba(255, 255, 255, 0.03) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            mix-blend-mode: soft-light;
+            opacity: 0.45;
+            z-index: 1000;
+        }
+
+        /* Grid background */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+            background-size: 64px 64px;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 0;
+            transform: perspective(600px) rotateX(8deg);
+            transform-origin: top;
+        }
+
+        /* Radial gradient backgrounds for scenes */
+        .bg-workshop {
+            background: radial-gradient(800px 400px at 50% 0%, rgba(255, 216, 79, 0.2), transparent 60%),
+                var(--bg);
+        }
+        .bg-timessquare {
+            background: radial-gradient(900px 500px at 30% 10%, rgba(40, 243, 255, 0.3), transparent 55%),
+                var(--bg);
+        }
+        .bg-fremont {
+            background: radial-gradient(900px 500px at 70% 10%, rgba(255, 59, 141, 0.3), transparent 55%),
+                var(--bg);
+        }
+        .bg-tokyo {
+            background: radial-gradient(600px 400px at 20% 0%, rgba(40, 243, 255, 0.25), transparent 50%),
+                radial-gradient(600px 400px at 80% 20%, rgba(255, 59, 141, 0.25), transparent 50%),
+                radial-gradient(400px 300px at 50% 60%, rgba(255, 216, 79, 0.2), transparent 50%),
+                var(--bg);
+        }
+        .bg-secret {
+            background: radial-gradient(800px 500px at 50% 30%, rgba(255, 216, 79, 0.15), transparent 50%),
+                var(--bg);
+        }
+        .bg-ending {
+            background: radial-gradient(600px 400px at 50% 50%, rgba(40, 243, 255, 0.1), transparent 50%),
+                var(--bg);
+        }
+
+        /* ══════════════════════════════════
+           LAYOUT
+        ══════════════════════════════════ */
+        .game-container {
+            position: relative;
+            z-index: 2;
+            max-width: 860px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-5);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ══════════════════════════════════
+           TITLE SCREEN
+        ══════════════════════════════════ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2rem;
+            padding: 6px 16px;
+            border: 1px solid var(--accent-2);
+            color: var(--accent-2);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: var(--glow), 0 0 60px rgba(255, 59, 141, 0.3);
+            margin-bottom: 0.5rem;
+            line-height: 1.1;
+        }
+
+        .title-subtitle {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            color: var(--accent-3);
+            margin-bottom: 2rem;
+        }
+
+        .title-tagline {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--muted);
+            margin-bottom: 3rem;
+            max-width: 500px;
+            line-height: 1.8;
+        }
+
+        .title-orb {
+            display: grid;
+            place-items: center;
+            width: 120px;
+            aspect-ratio: 1;
+            margin: 0 auto 2rem;
+            border-radius: 50%;
+            border: 2px dashed var(--accent);
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(255, 216, 79, 0.2), transparent 45%);
+            box-shadow: var(--glow);
+            animation: pulse 3.8s ease-in-out infinite;
+            position: relative;
+        }
+
+        .title-orb::before {
+            content: "NEON";
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            color: var(--accent-3);
+        }
+
+        .title-orb::after {
+            content: "";
+            position: absolute;
+            inset: 18% 18%;
+            border-radius: 50%;
+            border: 2px solid var(--accent-2);
+            filter: blur(0.6px);
+            animation: spin 8s linear infinite;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 48px;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: var(--border-strong);
+            border-radius: 999px;
+            background: var(--accent);
+            color: var(--bg);
+            cursor: pointer;
+            transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+        }
+
+        .title-start:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glow);
+        }
+
+        .title-credits {
+            margin-top: 2rem;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.5;
+        }
+
+        /* ══════════════════════════════════
+           SCENE WRAPPER
+        ══════════════════════════════════ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-5);
+            border-bottom: 1px solid rgba(40, 243, 255, 0.2);
+        }
+
+        .scene-location {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent-3);
+            letter-spacing: 1px;
+        }
+
+        /* ══════════════════════════════════
+           SCENE CONTENT AREA
+        ══════════════════════════════════ */
+        .scene-content {
+            animation: sceneFadeIn 0.7s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hero Title */
+        .scene-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: var(--glow);
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-title.glow-magenta {
+            text-shadow: var(--glow-magenta);
+            color: var(--accent-2);
+        }
+
+        .scene-title.glow-gold {
+            text-shadow: var(--glow-gold);
+            color: var(--accent-3);
+        }
+
+        /* Hero Sub / Exposition */
+        .scene-exposition {
+            font-size: 1.05rem;
+            color: var(--muted);
+            margin-bottom: var(--space-5);
+            max-width: 60ch;
+            line-height: 1.8;
+        }
+
+        /* Card - for dialogue, journal entries */
+        .scene-card {
+            border: var(--border-strong);
+            border-radius: var(--radius-2);
+            padding: var(--space-5);
+            background: linear-gradient(135deg, rgba(255, 59, 141, 0.08), rgba(40, 243, 255, 0.1));
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-card::after {
+            content: "";
+            position: absolute;
+            inset: -50% -50% auto auto;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            border: 1px solid var(--accent-3);
+            opacity: 0.2;
+        }
+
+        .scene-card p {
+            margin-bottom: var(--space-3);
+            position: relative;
+            z-index: 2;
+        }
+
+        .scene-card p:last-child {
+            margin-bottom: 0;
+        }
+
+        .scene-card .speaker {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-2);
+        }
+
+        .scene-card .dialogue {
+            font-style: italic;
+            color: var(--ink);
+            font-size: 1.05rem;
+        }
+
+        .scene-card.journal {
+            border-color: var(--accent-3);
+            background: linear-gradient(135deg, rgba(255, 216, 79, 0.08), rgba(40, 243, 255, 0.05));
+        }
+
+        .scene-card.journal .journal-date {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--accent-3);
+            letter-spacing: 1px;
+            margin-bottom: var(--space-3);
+        }
+
+        .scene-card.journal .journal-text {
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--muted);
+            line-height: 1.9;
+        }
+
+        /* Type Sample - flavor text */
+        .flavor-text {
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: var(--muted);
+            border-bottom: 1px dashed var(--grid);
+            padding-bottom: var(--space-2);
+            margin-bottom: var(--space-4);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .flavor-text span {
+            font-size: 0.75rem;
+            color: var(--accent);
+        }
+
+        /* Badges */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+
+        .badge {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--accent-2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.75rem;
+            font-family: var(--font-mono);
+        }
+
+        .badge.alt {
+            border-color: var(--accent-3);
+            color: var(--accent-3);
+        }
+
+        .badge.soft {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Scale bar (progress / tension) */
+        .progress-row {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            align-items: center;
+            gap: var(--space-3);
+            margin-bottom: var(--space-3);
+        }
+
+        .progress-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar {
+            height: 12px;
+            border-radius: 999px;
+            box-shadow: var(--glow);
+            transition: width 0.6s ease;
+        }
+
+        .progress-bar.cyan { background: var(--accent); }
+        .progress-bar.magenta { background: var(--accent-2); box-shadow: var(--glow-magenta); }
+        .progress-bar.gold { background: var(--accent-3); box-shadow: var(--glow-gold); }
+
+        /* Memory Orb (inline, smaller) */
+        .memory-orb-inline {
+            display: inline-grid;
+            place-items: center;
+            width: 80px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            border: 2px dashed var(--accent);
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.15), transparent 40%),
+                radial-gradient(circle at 70% 70%, rgba(255, 216, 79, 0.2), transparent 45%);
+            box-shadow: var(--glow);
+            animation: pulse 3.8s ease-in-out infinite;
+            vertical-align: middle;
+            margin: var(--space-3);
+        }
+
+        /* Fact discovered notification */
+        .fact-found {
+            display: inline-block;
+            background: var(--accent-3);
+            color: var(--bg);
+            padding: 6px 16px 6px 28px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: var(--space-4);
+            position: relative;
+            border-radius: 999px;
+            animation: factSlideIn 0.6s ease-out;
+        }
+
+        .fact-found::before {
+            content: "";
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            background: var(--bg);
+            border-radius: 50%;
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ══════════════════════════════════
+           CHOICES
+        ══════════════════════════════════ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.6s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            border: var(--border-strong);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer;
+            transition: transform var(--dur-fast) ease, box-shadow var(--dur-fast) ease, background var(--dur-med) ease;
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--glow);
+            background: rgba(40, 243, 255, 0.08);
+        }
+
+        .choice-btn.ghost-choice {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .choice-btn.ghost-choice:hover {
+            background: rgba(40, 243, 255, 0.05);
+        }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border: 1px solid var(--muted);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+        }
+
+        .choice-btn:hover .choice-key {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ══════════════════════════════════
+           TRANSITION OVERLAY
+        ══════════════════════════════════ */
+        .transition-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            background: var(--bg);
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: scanlineTransition 1s ease-in-out;
+        }
+
+        .transition-overlay.time-jump {
+            animation: timeJump 1.4s ease-in-out;
+        }
+
+        @keyframes scanlineTransition {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            50% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        @keyframes timeJump {
+            0% { opacity: 0; background: var(--bg); }
+            15% { opacity: 1; background: var(--accent); }
+            30% { opacity: 1; background: var(--bg); }
+            45% { opacity: 1; background: var(--accent-2); }
+            60% { opacity: 1; background: var(--bg); }
+            80% { opacity: 0.5; }
+            100% { opacity: 0; }
+        }
+
+        .transition-scanlines {
+            position: absolute;
+            inset: 0;
+            background-image: repeating-linear-gradient(
+                to bottom,
+                rgba(40, 243, 255, 0.1) 0px,
+                rgba(40, 243, 255, 0.1) 2px,
+                transparent 2px,
+                transparent 6px
+            );
+        }
+
+        /* ══════════════════════════════════
+           FACT TRACKER SIDEBAR
+        ══════════════════════════════════ */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--bg-alt);
+            border: 1px solid rgba(40, 243, 255, 0.3);
+            border-radius: 999px;
+            color: var(--accent-3);
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: var(--accent);
+            box-shadow: var(--glow);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-2);
+            background: var(--bg-alt);
+            border: 1px solid rgba(40, 243, 255, 0.2);
+            border-radius: var(--radius-2);
+            padding: var(--space-4);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent);
+            margin-bottom: var(--space-3);
+        }
+
+        .fact-item {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--accent-3);
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(40, 243, 255, 0.1);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.5;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--muted);
+            opacity: 0.5;
+        }
+
+        /* ══════════════════════════════════
+           ENDING SCENE
+        ══════════════════════════════════ */
+        .ending-block {
+            text-align: center;
+            padding: var(--space-7) var(--space-5);
+        }
+
+        .ending-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--accent-2);
+            margin-bottom: var(--space-3);
+        }
+
+        .ending-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3rem);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: var(--glow);
+            margin-bottom: var(--space-5);
+        }
+
+        .ending-text {
+            max-width: 550px;
+            margin: 0 auto;
+            color: var(--muted);
+            line-height: 1.9;
+        }
+
+        .ending-text p {
+            margin-bottom: var(--space-4);
+        }
+
+        .the-end {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 6px;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-top: var(--space-6);
+            opacity: 0.5;
+        }
+
+        /* ══════════════════════════════════
+           GAME CONTROLS
+        ══════════════════════════════════ */
+        .game-controls {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            padding-top: var(--space-4);
+            border-top: 1px solid rgba(40, 243, 255, 0.15);
+        }
+
+        .ctrl-btn {
+            padding: 8px 20px;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(40, 243, 255, 0.3);
+            border-radius: 999px;
+            background: transparent;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--accent);
+            color: var(--ink);
+            box-shadow: var(--glow);
+        }
+
+        /* ══════════════════════════════════
+           ANIMATIONS
+        ══════════════════════════════════ */
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(0.98);
+                box-shadow: var(--glow);
+            }
+            50% {
+                transform: scale(1.03);
+                box-shadow: 0 0 40px rgba(255, 59, 141, 0.5);
+            }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes orbit {
+            0% { transform: rotate(0deg) translate(0, 0); }
+            100% { transform: rotate(360deg) translate(0, 0); }
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-alt); }
+        ::-webkit-scrollbar-thumb { background: rgba(40, 243, 255, 0.3); border-radius: 999px; }
+        ::selection { background: var(--accent-2); color: var(--bg); }
+
+        /* ══════════════════════════════════
+           RESPONSIVE
+        ══════════════════════════════════ */
+        @media (max-width: 720px) {
+            .game-container { padding: var(--space-5) var(--space-3); }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .progress-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="scanlines">
+    <div class="grid-bg"></div>
+
+    <!-- Transition Overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-scanlines"></div>
+    </div>
+
+    <!-- Fact Tracker Sidebar -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span>Knowledge</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Historical Facts Discovered</h4>
+            <div id="factList">
+                <p class="no-facts">No facts discovered yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-badge">Interactive Neon History</div>
+            <div class="title-orb" aria-hidden="true"></div>
+            <h1>The Strip</h1>
+            <div class="title-subtitle">A Neon Brutal Story</div>
+            <p class="title-tagline">"Neon isn't light. It's presence. It says: We're here. We're alive. Look at us."</p>
+            <button class="title-start" id="startBtn">Light the Torch</button>
+            <p class="title-credits">A story of glass, gas, and cities that refuse the dark</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-location" id="sceneLocation">Fremont Street, Las Vegas</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Restart</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  THE STRIP — Story Data
+    // ═══════════════════════════════════════════════════════════════
+
+    const STORY = {
+
+        // ─── SCENE 1: THE WORKSHOP ───
+        workshop: {
+            location: "Fremont Street, Las Vegas — 1980",
+            bgClass: "bg-workshop",
+            content: `
+                <h2 class="scene-title">The Last Shift</h2>
+                <p class="scene-exposition">The workshop smells of burnt glass and ozone. Rows of hollow glass tubes line the walls like transparent bones. Through the window, the 40-foot neon cowboy Vegas Vic waves his mechanical arm, his cigarette glowing against the desert night. Every 15 minutes, a recording calls out "Howdy Partner" to nobody in particular.</p>
+                <div class="flavor-text">
+                    Hydrogen-oxygen torch / Glass temperature: 1,600&deg;F / Tube diameter: 15mm
+                    <span>WORKSHOP LOG</span>
+                </div>
+                <div class="scene-card">
+                    <p class="speaker">Ray Delacroix &mdash; Master Neon Fabricator</p>
+                    <p class="dialogue">"You're the last one, kid. Martinez left for California. Chen took a job wiring LEDs. And me? I'm leaving town tomorrow."</p>
+                    <p>He holds a leather journal, its pages swollen with decades of notes. Red neon light from the window paints half his face in crimson.</p>
+                    <p class="dialogue">"General Electric's new light-emitting diodes are going to kill everything we built. The number of working neon fabricators has been falling since the fifties. By the time you're my age, hand-bent neon will be a lost art."</p>
+                </div>
+                <div class="badge-row">
+                    <span class="badge alt">1980 &mdash; The Decline</span>
+                    <span class="badge soft">Vegas Vic: Active</span>
+                </div>
+            `,
+            fact: "Vegas Vic, a 40-foot neon cowboy, was erected on the Pioneer Club at 1st & Fremont Street in 1951. Designed by Pat Denner and built by YESCO, he featured a waving arm and spoke 'Howdy Partner' every 15 minutes.",
+            choices: [
+                { text: 'Ask Ray about the journal', next: 'journal', style: 'primary' },
+                { text: 'Ignore him and bend neon', next: 'craft', style: 'ghost' },
+                { text: 'Walk outside to Vegas Vic', next: 'vicnight', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 2: THE JOURNAL ───
+        journal: {
+            location: "Workshop, Fremont Street — 1980",
+            bgClass: "bg-workshop",
+            content: `
+                <h2 class="scene-title">A Secret Across Time</h2>
+                <div class="badge-row">
+                    <span class="badge soft">Discovery</span>
+                </div>
+                <p class="scene-exposition">Ray opens the journal. The leather is cracked, the spine held together with electrical tape. Inside, three distinct handwritings fill the pages &mdash; spanning decades and continents.</p>
+                <div class="scene-card journal">
+                    <p class="journal-date">Entry One &mdash; Times Square, New York, 1924</p>
+                    <p class="journal-text">"Today the Willys-Overland sign went live. Two massive neon tubes, glowing red and blue above Broadway. People stopped their automobiles in the middle of the street just to stare. Traffic jammed for three blocks. The police came. I watched from the fire escape and wept. We have stolen fire from the gods and written it on glass."</p>
+                </div>
+                <div class="scene-card journal">
+                    <p class="journal-date">Entry Two &mdash; Fremont Street, Las Vegas, 1951</p>
+                    <p class="journal-text">"Binion's Horseshoe opened at 128 Fremont Street tonight. The YESCO crew and I finished the installation at dusk. The rotating horseshoes lit up the whole block. Benny Binion himself shook my hand. He said, 'Make it so bright they can see it from the moon.' We are trying."</p>
+                </div>
+                <div class="scene-card journal">
+                    <p class="journal-date">Entry Three &mdash; Kabukicho, Tokyo, 1964</p>
+                    <p class="journal-text">"The Olympics have transformed Shinjuku. Neon signs multiply each week &mdash; pink, blue, gold, competing for every inch of wall space. The district named Kabukicho, officially designated on April 1, 1948, has become the brightest square mile on Earth. We are the new calligraphers, writing with gas and glass instead of ink."</p>
+                </div>
+                <div class="scene-card">
+                    <p class="speaker">Ray</p>
+                    <p class="dialogue">"Three master benders. Three cities. They corresponded in secret for thirty years. And they left instructions &mdash; for a sign that was never built."</p>
+                </div>
+            `,
+            fact: "The first neon sign in Times Square was installed in 1924 by the Willys-Overland automobile company. It caused such a sensation that pedestrians stopped in the streets, creating traffic jams.",
+            choices: [
+                { text: '"Tell me everything about this journal"', next: 'flashback_ny', style: 'primary' },
+                { text: '"I don\'t believe this is real"', next: 'craft', style: 'ghost' },
+                { text: '"Let me read it myself"', next: 'flashback_vegas', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 3: BENDING TUBES ───
+        craft: {
+            location: "Workshop, Fremont Street — 1980",
+            bgClass: "bg-workshop",
+            content: `
+                <h2 class="scene-title">The Torch Never Lies</h2>
+                <p class="scene-exposition">You pick up a length of hollow glass tubing and light the hydrogen-oxygen torch. The blue flame hisses to life. In the 1950s and 60s, this craft required years of specialized training. Artisans heated glass to precise temperatures, bent tubes freehand against line drawings, welded connections, and filled tubes with neon gas. Tens of thousands of custom signs were produced this way across North America and Asia.</p>
+                <div class="progress-row">
+                    <span class="progress-label">Heat</span>
+                    <div class="progress-bar gold" style="width: 45%"></div>
+                </div>
+                <div class="progress-row">
+                    <span class="progress-label">Precision</span>
+                    <div class="progress-bar cyan" style="width: 30%"></div>
+                </div>
+                <div class="badge-row">
+                    <span class="badge alt">Skill Check</span>
+                </div>
+                <div class="scene-card">
+                    <p>The glass softens, glowing orange at the bend point. You have maybe three seconds before it hardens again &mdash; or shatters from overheating. Every instinct says to hesitate, but neon benders learn that hesitation kills the tube.</p>
+                    <p>The flame reflects in your safety glasses. You can feel the heat on your forearms.</p>
+                </div>
+            `,
+            fact: "During the 1950s-60s golden age, hand-bending neon required years of training. Artisans used hydrogen-oxygen torches to heat glass, bend tubes freehand, weld connections, and fill tubes with neon gas.",
+            choices: [
+                { text: 'Bend the tube with confidence', next: 'vicnight', style: 'primary' },
+                { text: 'Hesitate and ask Ray for guidance', next: 'journal', style: 'ghost' },
+                { text: 'Let it overheat deliberately', next: 'flashback_tokyo', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 4: VEGAS VIC AT NIGHT ───
+        vicnight: {
+            location: "Fremont Street, Las Vegas — 1980",
+            bgClass: "bg-fremont",
+            content: `
+                <h2 class="scene-title glow-magenta">Neon Never Sleeps</h2>
+                <p class="scene-exposition">You step outside into the warm desert night. Fremont Street is a canyon of light. The Golden Nugget's massive neon facade &mdash; redesigned in 1961 by YESCO designer Kermit Wayne &mdash; wraps the building in glowing tubes, the iconic "bull nose" sign blazing at the corner of 2nd and Fremont. Above you, Vegas Vic's arm waves in its endless greeting.</p>
+                <div class="scene-card">
+                    <p class="speaker">A Young Sign Painter</p>
+                    <p class="dialogue">"I'm heading to California next week. LEDs are cheaper, brighter, last longer. Nobody's ordering neon anymore. You know the Oasis Cafe? First neon sign in Vegas, 1929, right at 123 Fremont? They tore it down. Nobody even took a photograph."</p>
+                    <p>He kicks a pebble into the gutter. The Golden Nugget's neon buzzes overhead, a sound like a living thing breathing.</p>
+                    <p class="dialogue">"What's the point of learning to bend glass when a factory in Shenzhen can stamp out LEDs by the million?"</p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Welcome_to_Fabulous_Las_Vegas.jpg" alt="Welcome to Fabulous Las Vegas sign" style="max-width: 100%; height: auto; border: 2px solid #28f3ff; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(40, 243, 255, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #a0a0b0;">Welcome to Fabulous Las Vegas — Betty Willis's iconic design, 1959</div></div>
+
+                <div class="flavor-text">
+                    Oasis Cafe: Las Vegas's first neon sign, 1929 / Golden Nugget redesign: 1961 / YESCO est. 1920
+                    <span>FREMONT ST.</span>
+                </div>
+            `,
+            fact: "The Golden Nugget received its transformative neon redesign in 1961 when YESCO designer Kermit Wayne wrapped the exterior in glowing tubes, creating the iconic 'bull nose' sign at 2nd and Fremont Street.",
+            choices: [
+                { text: '"Are you from the 1951 generation?"', next: 'flashback_ny', style: 'primary' },
+                { text: '"There\'s still time to save neon"', next: 'secret', style: 'primary' },
+                { text: 'Return to the workshop', next: 'journal', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 5: TIMES SQUARE FLASHBACK ───
+        flashback_ny: {
+            location: "Times Square, New York — 1924",
+            bgClass: "bg-timessquare",
+            timeJump: true,
+            content: `
+                <h2 class="scene-title">The First Glow in Manhattan</h2>
+                <div class="badge-row">
+                    <span class="badge">Time Shift</span>
+                    <span class="badge soft">1924</span>
+                </div>
+                <p class="scene-exposition">Static crackles. The workshop dissolves. You are standing on Broadway in 1924, the smell of horse manure and gasoline mixing in the cold November air. Above you, the Willys-Overland neon sign has just been switched on for the first time. Two tubes of electrified gas &mdash; one red, one blue &mdash; burning against the Manhattan skyline.</p>
+                <div class="scene-card">
+                    <p class="speaker">Thomas Gibbons &mdash; Neon Artisan, First Generation</p>
+                    <p class="dialogue">"You know where this all started? Paris. 1910. A French engineer named Georges Claude demonstrated neon tubes at the Paris Motor Show, December 3rd through the 18th. He'd figured out how to liquefy air back in 1902 &mdash; and neon was the byproduct. A gas nobody wanted became the most beautiful light the world had ever seen."</p>
+                    <p>Gibbons adjusts his flat cap and gestures at the crowd below, their faces upturned and glowing.</p>
+                    <p class="dialogue">"Neon isn't light. It's <em>presence</em>. It says: We're here. We're alive. Look at us."</p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/9/97/Moulin_rouge.jpg" alt="Moulin Rouge in Paris with neon lights" style="max-width: 100%; height: auto; border: 2px solid #28f3ff; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(40, 243, 255, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #a0a0b0;">Moulin Rouge, Paris — where neon first dazzled the public</div></div>
+
+                <div class="flavor-text">
+                    Georges Claude / Paris Motor Show / December 3&ndash;18, 1910 / Air liquefaction patent: 1902
+                    <span>HISTORICAL</span>
+                </div>
+            `,
+            fact: "Georges Claude developed the air liquefaction process in 1902, producing neon as a byproduct. He unveiled neon tube lighting at the Paris Motor Show, December 3-18, 1910, filing his first neon lighting patent that year.",
+            choices: [
+                { text: '"Teach me the Times Square technique"', next: 'flashback_vegas', style: 'primary' },
+                { text: '"Why does neon matter so much?"', next: 'secret', style: 'ghost' },
+                { text: 'Return to 1980', next: 'vicnight', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 6: FREMONT STREET FLASHBACK ───
+        flashback_vegas: {
+            location: "Fremont Street, Las Vegas — 1951",
+            bgClass: "bg-fremont",
+            timeJump: true,
+            content: `
+                <h2 class="scene-title glow-magenta">The Golden Nugget Rises</h2>
+                <div class="badge-row">
+                    <span class="badge">Time Shift</span>
+                    <span class="badge alt">1951</span>
+                    <span class="badge soft">Monumental Task</span>
+                </div>
+                <p class="scene-exposition">Fremont Street, 1951. The air tastes like dust and ambition. Benny Binion has just opened the Horseshoe Casino at 128 Fremont Street, and the YESCO crew is assembling one of the world's largest neon displays. Rotating horseshoes. A three-story "H Wall." Glass tubes bent by hand, each one a small act of defiance against the dark.</p>
+                <div class="scene-card">
+                    <p class="speaker">Sofia Marcos &mdash; YESCO Lead Fabricator</p>
+                    <p class="dialogue">"Times Square has the crowds. But Vegas? Vegas has the ambition. When the Oasis Cafe put up the first neon sign here in 1929, this was nothing &mdash; a train stop in the desert. Now look at it. Every casino owner wants their sign bigger, brighter, more alive than the one next door."</p>
+                    <p>She welds two glass tubes together with a precision that borders on surgical. Sparks scatter into the desert wind.</p>
+                    <p class="dialogue">"The trick isn't the glass. It's the <em>intention</em>. Every bend has to mean something. You're not making a sign &mdash; you're making a promise. A promise that the night belongs to us."</p>
+                </div>
+                <div class="progress-row">
+                    <span class="progress-label">Construction</span>
+                    <div class="progress-bar magenta" style="width: 60%"></div>
+                </div>
+            `,
+            fact: "Binion's Horseshoe Casino opened at 128 Fremont Street in 1951. Its legendary 1961 YESCO redesign featured rotating horseshoes and a three-story 'H Wall' — one of the world's largest neon displays.",
+            choices: [
+                { text: '"Can I help assemble this sign?"', next: 'flashback_tokyo', style: 'primary' },
+                { text: '"How is this different from Times Square?"', next: 'secret', style: 'ghost' },
+                { text: 'Return to 1980', next: 'vicnight', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 7: TOKYO FLASHBACK ───
+        flashback_tokyo: {
+            location: "Kabukicho, Shinjuku, Tokyo — 1964",
+            bgClass: "bg-tokyo",
+            timeJump: true,
+            content: `
+                <h2 class="scene-title glow-gold">The Neon Olympics</h2>
+                <div class="badge-row">
+                    <span class="badge">Time Shift</span>
+                    <span class="badge alt">1964 Tokyo Olympics</span>
+                </div>
+                <p class="scene-exposition">Tokyo's Kabukicho district is on fire with color. The 1964 Olympics have sparked a frenzy of outdoor advertising &mdash; neon signs multiplying on every surface, in every hue. The district, officially named on April 1, 1948, during Shinjuku's post-war reconstruction, has become the brightest neighborhood on Earth. The Tokyu Koma Theater gleams at the district's heart, surrounded by a galaxy of competing signs.</p>
+                <div class="scene-card">
+                    <p class="speaker">Kenji Tanaka &mdash; Master Neon Calligrapher</p>
+                    <p class="dialogue">"Japan's first neon sign was erected by Tokyo Pan Bakery in Shinjuku in 1926 &mdash; two years before Las Vegas even had one. We learned neon from the French, but we made it our own. In the West, neon shouts. In Japan, neon <em>sings</em>."</p>
+                    <p>Kenji is training three young apprentices, their hands steady as they bend kanji characters in glass. Pink, gold, and cyan tubes crowd the workbench.</p>
+                    <p class="dialogue">"The Olympics brought the world to Tokyo. Now every shopkeeper wants neon. But I fear this is the peak. In twenty years, will anyone remember how to bend glass by hand?"</p>
+                </div>
+                <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1b/Fremont_Street_Experience.jpg" alt="Fremont Street Experience neon canopy" style="max-width: 100%; height: auto; border: 2px solid #28f3ff; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(40, 243, 255, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #a0a0b0;">Fremont Street Experience — the neon heart of old Las Vegas</div></div>
+
+                <div class="flavor-text">
+                    First Japan neon: Tokyo Pan Bakery, Shinjuku, 1926 / Kabukicho named: April 1, 1948 / 1964 Olympics: neon demand peak
+                    <span>TOKYO</span>
+                </div>
+            `,
+            fact: "Japan's first neon sign was erected by Tokyo Pan Bakery in Shinjuku in 1926, two years before Las Vegas. The 1964 Tokyo Olympics caused neon adoption to skyrocket, making neon the visual language of post-war Japanese modernity.",
+            choices: [
+                { text: '"Teach me the Japanese style of bending"', next: 'finaltorch', style: 'primary' },
+                { text: '"Why did neon explode here?"', next: 'secret', style: 'ghost' },
+                { text: 'Return to 1980', next: 'vicnight', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 8: THE SECRET ───
+        secret: {
+            location: "Outside of Time",
+            bgClass: "bg-secret",
+            content: `
+                <h2 class="scene-title glow-gold">Why We Glow</h2>
+                <div class="badge-row">
+                    <span class="badge soft">Existential Moment</span>
+                </div>
+                <p class="scene-exposition">The journal's final pages are written in all three hands at once &mdash; Gibbons, Marcos, and Tanaka &mdash; as if they'd sat together in the same room, passing the pen. But they lived on three different continents, decades apart. The words converge into a single truth.</p>
+                <div class="scene-card journal">
+                    <p class="journal-date">Final Entry &mdash; Undated</p>
+                    <p class="journal-text">"We have corresponded in secret for thirty years. The postal routes from New York to Las Vegas to Tokyo carry our letters like veins carry blood. We have each built one perfect sign in our city &mdash; signs that act as anchors against despair.</p>
+                    <p class="journal-text">"Neon is not decoration. It is humanity's way of reclaiming the night &mdash; of saying 'darkness is no longer in charge.' When Georges Claude captured neon gas from liquefied air in 1902, he didn't invent a technology. He gave us a weapon against the void.</p>
+                    <p class="journal-text">"Fluorescent lamps began replacing neon in the 1950s. Acrylic cabinet faces followed. Now LEDs threaten to finish what fluorescence started. But light that comes from a factory is not the same as light bent by human hands. The machine does not tremble. The machine does not weep. The machine does not glow.</p>
+                    <p class="journal-text">"We leave this journal for the fourth bender. The one who will complete what we began."</p>
+                </div>
+                <div class="scene-card">
+                    <p class="speaker">Ray (reading over your shoulder)</p>
+                    <p class="dialogue">"That's you, kid. You're the fourth bender. The question is: what will you do with it?"</p>
+                </div>
+            `,
+            fact: "Fluorescent lamps and acrylic cabinet faces began replacing neon in the 1950s-60s. GE's LEDs delivered the final blow. By the 2000s, the number of working neon fabricators had dwindled to a handful.",
+            choices: [
+                { text: '"I will become the fourth bender"', next: 'finaltorch', style: 'primary' },
+                { text: '"I should fight the LED corporations"', next: 'resistance', style: 'ghost' },
+                { text: '"Maybe neon\'s time is just over"', next: 'ending_acceptance', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 9: THE FINAL TORCH ───
+        finaltorch: {
+            location: "Workshop, Fremont Street — 1980",
+            bgClass: "bg-workshop",
+            content: `
+                <h2 class="scene-title">One Last Sign</h2>
+                <div class="badge-row">
+                    <span class="badge alt">Deadline Activated</span>
+                    <span class="badge">48 Hours Remain</span>
+                </div>
+                <p class="scene-exposition">Back in the workshop. Dawn light filters through the dusty windows, mixing with the residual glow of neon test tubes. Ray has spread the journal's final pages across the workbench. They contain technical drawings &mdash; precise specifications for a sign that was never built.</p>
+                <div class="scene-card">
+                    <p class="speaker">Ray</p>
+                    <p class="dialogue">"The three benders left instructions for one final sign. It combines the boldness of Times Square, the scale of Fremont Street, and the poetry of Kabukicho. It must be bent within 48 hours &mdash; I leave tomorrow night, and the workshop lease expires the day after."</p>
+                    <p>He places the hydrogen torch on the bench between you.</p>
+                    <p class="dialogue">"This sign isn't just glass and gas. It's a message to the future &mdash; proof that human hands can make light that machines never will."</p>
+                </div>
+                <div class="progress-row">
+                    <span class="progress-label">Time Left</span>
+                    <div class="progress-bar magenta" style="width: 100%"></div>
+                </div>
+                <div class="progress-row">
+                    <span class="progress-label">Skill</span>
+                    <div class="progress-bar cyan" style="width: 55%"></div>
+                </div>
+            `,
+            choices: [
+                { text: '"I\'m ready to build it"', next: 'masterpiece', style: 'primary' },
+                { text: '"This is too much pressure"', next: 'resistance', style: 'ghost' },
+                { text: '"Who are you, really, Ray?"', next: 'masterpiece_reveal', style: 'ghost' }
+            ]
+        },
+
+        // ─── SCENE 10: THE MASTERPIECE (via reveal) ───
+        masterpiece_reveal: {
+            location: "Workshop, Fremont Street — 1980",
+            bgClass: "bg-workshop",
+            content: `
+                <h2 class="scene-title">The Fourth Bender</h2>
+                <div class="badge-row">
+                    <span class="badge soft">Revelation</span>
+                </div>
+                <div class="scene-card">
+                    <p class="speaker">Ray</p>
+                    <p class="dialogue">"You want to know who I am?"</p>
+                    <p>He rolls up his sleeve. On his forearm, a tattoo: three intertwined neon tubes forming an impossible knot. The same symbol appears on the journal's cover.</p>
+                    <p class="dialogue">"Sofia Marcos was my mother. She taught me to bend glass before I could read. Gibbons sent letters from New York. Tanaka sent technique sketches from Tokyo. I'm not the fourth bender, kid. I'm the bridge. <em>You</em> are the fourth."</p>
+                    <p>He picks up the torch and holds it out to you. The flame is steady, blue-white, patient.</p>
+                    <p class="dialogue">"Now build the sign they dreamed about. Build it before the light goes out."</p>
+                </div>
+            `,
+            fact: "Las Vegas's first neon sign was installed at the Oasis Cafe, 123 Fremont Street, in 1929. The Las Vegas Club followed in 1930, establishing neon as the visual signature of downtown Vegas.",
+            choices: [
+                { text: 'Take the torch and begin', next: 'masterpiece', style: 'primary' }
+            ]
+        },
+
+        // ─── SCENE 10: BUILDING THE MASTERPIECE ───
+        masterpiece: {
+            location: "Workshop, Fremont Street — 1980, Night",
+            bgClass: "bg-workshop",
+            content: `
+                <h2 class="scene-title">The Pulse</h2>
+                <div class="badge-row">
+                    <span class="badge">Skill Check: Heat</span>
+                    <span class="badge alt">Skill Check: Angle</span>
+                    <span class="badge soft">Skill Check: Seal</span>
+                </div>
+                <p class="scene-exposition">Forty-eight hours. Three techniques. One sign. You work through the night, the hydrogen torch your only companion. The glass tubes come alive under your hands &mdash; bending, curving, forming letters and shapes that haven't existed before.</p>
+                <div class="progress-row">
+                    <span class="progress-label">Heat</span>
+                    <div class="progress-bar gold" style="width: 85%"></div>
+                </div>
+                <div class="progress-row">
+                    <span class="progress-label">Precision</span>
+                    <div class="progress-bar cyan" style="width: 78%"></div>
+                </div>
+                <div class="progress-row">
+                    <span class="progress-label">Time Left</span>
+                    <div class="progress-bar magenta" style="width: 30%"></div>
+                </div>
+                <div class="scene-card">
+                    <p>The Times Square boldness: thick tubes, aggressive curves, a style that demands attention from two blocks away.</p>
+                    <p>The Fremont Street scale: the sign is six feet tall, a cascade of interlocking shapes that catch and throw light in every direction.</p>
+                    <p>The Kabukicho poetry: hidden within the design, kanji-inspired forms that whisper <em>hikari</em> &mdash; light &mdash; to anyone who looks long enough.</p>
+                    <p>You weld the final connection. Fill the tubes with neon gas. Your hand finds the power switch.</p>
+                </div>
+            `,
+            choices: [
+                { text: 'Rush to completion', next: 'ending_journal', style: 'ghost' },
+                { text: 'Take time for perfection', next: 'ending_museum', style: 'primary' }
+            ]
+        },
+
+        // ─── SCENE 11: THE RESISTANCE ───
+        resistance: {
+            location: "Fremont Street, Las Vegas — 1980",
+            bgClass: "bg-fremont",
+            content: `
+                <h2 class="scene-title glow-magenta">Fight the Fade</h2>
+                <div class="badge-row">
+                    <span class="badge alt">Rebellion</span>
+                </div>
+                <p class="scene-exposition">The LED installers arrive at dawn &mdash; a crew of six with a truck full of flat, efficient, soulless panels. They're here to replace the Golden Nugget's legendary neon with digital displays. Cheaper. Brighter. Programmable. Dead.</p>
+                <div class="scene-card">
+                    <p>You stand in the shadow of Vegas Vic, watching them unload. The cowboy's neon arm waves on, oblivious to the executioners below. Somewhere in the workshop, Ray's journal sits open to a page that reads: <em>"The craft must survive, by any means."</em></p>
+                    <p>But what does that mean? Sabotage? Protest? Or something else entirely?</p>
+                </div>
+            `,
+            choices: [
+                { text: '"No &mdash; I should build instead of destroy"', next: 'masterpiece', style: 'primary' },
+                { text: '"Someone has to fight for this"', next: 'ending_journal', style: 'ghost' },
+                { text: '"Let me walk away from all of it"', next: 'ending_acceptance', style: 'ghost' }
+            ]
+        },
+
+        // ─── ENDING A: THE MUSEUM ───
+        ending_museum: {
+            location: "The Neon Museum, Las Vegas &mdash; Present Day",
+            bgClass: "bg-ending",
+            isEnding: true,
+            content: `
+                <div class="ending-block">
+                    <div class="ending-label">Ending Reached</div>
+                    <h2 class="ending-title">The Neon Boneyard</h2>
+                    <div class="badge-row" style="justify-content:center;">
+                        <span class="badge soft">Legacy Preserved</span>
+                    </div>
+                    <div class="ending-text">
+                        <p>The sign you built that night in 1980 &mdash; six feet of hand-bent glass, filled with neon gas, combining three continents and six decades of craft &mdash; caught the attention of a museum curator named Cathy Henderson.</p>
+                        <p>She found it in a storage unit in 2012, still intact, still capable of glowing. She brought it to the Neon Museum on Las Vegas Boulevard, where it now sits among the rescued bones of old Vegas: the Stardust, the Moulin Rouge, the Binion's Horseshoe.</p>
+                        <p>Thousands of visitors see it each year. Some of them stop and stare, just like those pedestrians on Broadway in 1924, frozen by the impossible beauty of light bent by human hands.</p>
+                        <p>And in the museum's workshop, a new generation of neon fabricators learns the craft &mdash; heat, bend, weld, fill &mdash; keeping alive the art that Georges Claude accidentally invented when he liquefied air in a Paris laboratory over a century ago.</p>
+                        <p>The journal sits in a glass case nearby. Its three handwritings are still legible. And now there is a fourth.</p>
+                    </div>
+                    <div class="the-end">The Light Endures</div>
+                </div>
+            `,
+            fact: "The Neon Museum on Las Vegas Boulevard preserves iconic signs from the city's golden age, including pieces from the Stardust, Moulin Rouge, and other landmarks. It operates workshops to train new neon fabricators.",
+            choices: [
+                { text: 'Play Again', next: '_restart', style: 'primary' }
+            ]
+        },
+
+        // ─── ENDING B: THE JOURNAL SURVIVES ───
+        ending_journal: {
+            location: "Tokyo, Japan &mdash; 2022",
+            bgClass: "bg-tokyo",
+            isEnding: true,
+            content: `
+                <div class="ending-block">
+                    <div class="ending-label">Ending Reached</div>
+                    <h2 class="ending-title glow-gold">The Hidden Craft</h2>
+                    <div class="badge-row" style="justify-content:center;">
+                        <span class="badge alt">Knowledge Survived</span>
+                    </div>
+                    <div class="ending-text">
+                        <p>LEDs won. By the 2000s, the number of working neon fabricators had dwindled to a handful worldwide. The golden age of hand-bent glass &mdash; the era of Vegas Vic and Binion's Horseshoe and the blinding streets of Kabukicho &mdash; faded into memory.</p>
+                        <p>But the journal survived. Passed through underground networks of neon enthusiasts, it traveled from Las Vegas to Portland to Berlin to Tokyo, carried by people who refused to let the craft die in silence.</p>
+                        <p>In 2022, a young artist named Yuki Harada found it in a secondhand bookshop in Shinjuku &mdash; three blocks from where Tokyo Pan Bakery erected Japan's first neon sign in 1926. She opened it. She read the three handwritings. She understood.</p>
+                        <p>Now she bends glass in a small studio above a ramen shop, the hydrogen torch hissing as she shapes kanji characters in glowing tubes. Her signs appear in windows across Kabukicho &mdash; small, imperfect, hand-made, alive.</p>
+                        <p>The craft is no longer ubiquitous. But it is no longer forgotten.</p>
+                    </div>
+                    <div class="the-end">The Craft Endures</div>
+                </div>
+            `,
+            fact: "Kabukicho was officially named on April 1, 1948, during Shinjuku's post-war reconstruction. By 1956, the Tokyu Koma Theater and other entertainment venues had cemented it as Tokyo's premier entertainment district.",
+            choices: [
+                { text: 'Play Again', next: '_restart', style: 'primary' }
+            ]
+        },
+
+        // ─── ENDING C: ACCEPTANCE ───
+        ending_acceptance: {
+            location: "Everywhere and Nowhere &mdash; 1980 to Present",
+            bgClass: "bg-ending",
+            isEnding: true,
+            content: `
+                <div class="ending-block">
+                    <div class="ending-label">Ending Reached</div>
+                    <h2 class="ending-title">The Glow Fades</h2>
+                    <div class="badge-row" style="justify-content:center;">
+                        <span class="badge">Bittersweet Conclusion</span>
+                    </div>
+                    <div class="ending-text">
+                        <p>You chose not to fight. Not to build. Not to rage against the dying of the light.</p>
+                        <p>And the light died. Slowly, over decades, in the way that all beautiful things die &mdash; not with a crash but with a dimming. The Golden Nugget went digital. Vegas Vic was restored but surrounded by LED screens that made his neon arm look quaint. Kabukicho filled with LCD billboards that changed every three seconds, too fast for the eye to rest.</p>
+                        <p>But in small towns and forgotten corners &mdash; a vintage diner in New Mexico, a pachinko parlor in Osaka, a dive bar in Brooklyn &mdash; neon persisted. Not the grand signs of the golden age. Small ones. A cocktail glass. An "OPEN" sign. A single word in pink tubes above a doorway, humming quietly to itself in the dark.</p>
+                        <p>It wasn't the golden age. But it was enough.</p>
+                        <p>Ray left the journal with you. You keep it in a drawer, wrapped in cloth. Sometimes, late at night, you open it and read the three handwritings by lamplight. And you hear Gibbons's words echo across the decades:</p>
+                        <p><em>"We're here. We're alive. Look at us."</em></p>
+                    </div>
+                    <div class="the-end">The Glow Endures &mdash; Quietly</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Play Again', next: '_restart', style: 'primary' }
+            ]
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STORY ENGINE
+    // ═══════════════════════════════════════════════════════════════
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support: 1/2/3 keys for choices
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('workshop');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            // Reset body background
+            document.body.className = 'scanlines';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            const isTimeJump = scene.timeJump;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                if (isTimeJump) overlay.classList.add('time-jump');
+
+                const delay = isTimeJump ? 700 : 500;
+                const duration = isTimeJump ? 1400 : 1000;
+
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, delay);
+
+                setTimeout(() => {
+                    overlay.classList.remove('active', 'time-jump');
+                }, duration);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update location
+            document.getElementById('sceneLocation').textContent = scene.location || '';
+
+            // Update body background class
+            document.body.className = 'scanlines';
+            if (scene.bgClass) document.body.classList.add(scene.bgClass);
+
+            // Render content
+            const container = document.getElementById('sceneContent');
+            let html = '<div class="scene-content">';
+
+            // Scene content (raw HTML from story data)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    const styleClass = choice.style === 'ghost' ? ' ghost-choice' : '';
+                    html += `<button class="choice-btn${styleClass}" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No facts discovered yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => `<div class="fact-item">${f}</div>`).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

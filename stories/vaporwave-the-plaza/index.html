@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Plaza — A Vaporwave Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Libre+Barcode+39+Text&display=swap" rel="stylesheet">
+    <style>
+        @font-face {
+            font-family: 'MS Gothic';
+            src: local('MS Gothic'), local('Yu Gothic');
+        }
+
+        :root {
+            --font-display: 'VT323', monospace;
+            --font-body: 'VT323', monospace;
+            --font-barcode: 'Libre Barcode 39 Text', cursive;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --pink: #ff71ce;
+            --cyan: #01cdfe;
+            --purple: #b967ff;
+            --blue: #05ffa1;
+            --yellow: #fffb96;
+            --orange: #ff9f43;
+
+            --bg-dark: #1a0a2e;
+            --bg-mid: #2d1b4e;
+            --bg-grid: rgba(255, 113, 206, 0.15);
+
+            --text-primary: #ffffff;
+            --text-glow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
+
+            --transition-base: 0.3s ease;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Gradient Background */
+        .bg-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                linear-gradient(180deg,
+                    #1a0a2e 0%,
+                    #2d1b4e 30%,
+                    #16213e 60%,
+                    #0f3460 100%
+                );
+            z-index: -2;
+        }
+
+        /* Grid Floor */
+        .grid-floor {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50vh;
+            background:
+                linear-gradient(90deg, var(--bg-grid) 1px, transparent 1px),
+                linear-gradient(0deg, var(--bg-grid) 1px, transparent 1px);
+            background-size: 60px 60px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: bottom;
+            z-index: -1;
+            animation: grid-scroll 20s linear infinite;
+        }
+
+        @keyframes grid-scroll {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 60px; }
+        }
+
+        /* Sun */
+        .sun {
+            position: fixed;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: linear-gradient(180deg,
+                var(--yellow) 0%,
+                var(--orange) 30%,
+                var(--pink) 60%,
+                var(--purple) 100%
+            );
+            z-index: -1;
+            filter: blur(2px);
+            animation: sun-pulse 4s ease-in-out infinite;
+        }
+
+        .sun::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent 0px,
+                transparent 8px,
+                var(--bg-dark) 8px,
+                var(--bg-dark) 16px
+            );
+            clip-path: polygon(0 50%, 100% 50%, 100% 100%, 0 100%);
+        }
+
+        @keyframes sun-pulse {
+            0%, 100% { transform: translateX(-50%) scale(1); opacity: 0.9; }
+            50% { transform: translateX(-50%) scale(1.05); opacity: 1; }
+        }
+
+        /* VHS Effect */
+        .vhs-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 100;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            opacity: 0.3;
+        }
+
+        /* =============================================
+           LAYOUT
+        ============================================= */
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-5);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* =============================================
+           TITLE SCREEN
+        ============================================= */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 400;
+            letter-spacing: 0.5em;
+            text-transform: uppercase;
+            color: var(--pink);
+            text-shadow: var(--text-glow);
+            margin-bottom: var(--space-4);
+            animation: flicker 3s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            96% { opacity: 0.9; }
+            97% { opacity: 1; }
+        }
+
+        .title-subtitle {
+            font-size: 1.5rem;
+            color: var(--cyan);
+            letter-spacing: 0.3em;
+            text-shadow: 0 0 10px var(--cyan);
+            margin-bottom: var(--space-4);
+        }
+
+        .title-japanese {
+            font-size: 2rem;
+            color: var(--purple);
+            margin-bottom: var(--space-7);
+            letter-spacing: 0.2em;
+        }
+
+        .title-tagline {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: var(--space-7);
+            max-width: 550px;
+            line-height: 1.8;
+        }
+
+        .title-start {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            padding: var(--space-3) var(--space-6);
+            border: 2px solid var(--cyan);
+            background: transparent;
+            color: var(--cyan);
+            cursor: pointer;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--cyan);
+            transition: left 0.3s;
+            z-index: -1;
+        }
+
+        .title-start:hover {
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px var(--cyan);
+        }
+
+        .title-start:hover::before {
+            left: 0;
+        }
+
+        .title-credits {
+            margin-top: 2rem;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 0.15em;
+        }
+
+        .title-barcode {
+            font-family: var(--font-barcode);
+            font-size: 2.5rem;
+            color: var(--pink);
+            margin-top: var(--space-4);
+        }
+
+        /* =============================================
+           SCENE CONTAINER
+        ============================================= */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        /* Scene header bar */
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-5);
+            border-bottom: 1px solid rgba(255, 113, 206, 0.3);
+        }
+
+        .scene-file-id {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--pink);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+        }
+
+        .scene-fact-count {
+            font-size: 0.85rem;
+            color: var(--cyan);
+            letter-spacing: 0.1em;
+        }
+
+        /* =============================================
+           SCENE TYPES (adapted from vaporwave style guide)
+        ============================================= */
+
+        /* --- Standard Section --- */
+        .scene-section {
+            margin-bottom: var(--space-6);
+            padding: var(--space-6);
+            border: 2px solid var(--pink);
+            background: rgba(26, 10, 46, 0.8);
+            box-shadow:
+                0 0 20px rgba(255, 113, 206, 0.3),
+                inset 0 0 60px rgba(255, 113, 206, 0.05);
+            position: relative;
+        }
+
+        .scene-section::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--pink), var(--cyan), var(--purple), var(--pink));
+            background-size: 400% 400%;
+            z-index: -1;
+            animation: gradient-shift 8s ease infinite;
+            filter: blur(8px);
+            opacity: 0.5;
+        }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .scene-section .scene-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+            margin-bottom: var(--space-5);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .scene-section .scene-title::before {
+            content: '// ';
+            color: var(--pink);
+        }
+
+        .scene-section .scene-text {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .scene-section .scene-text p {
+            margin-bottom: 1rem;
+        }
+
+        .scene-section .scene-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* --- Glitch / Corrupted --- */
+        .scene-glitch {
+            margin-bottom: var(--space-6);
+            padding: var(--space-6);
+            border: 2px solid var(--purple);
+            background: rgba(26, 10, 46, 0.9);
+            box-shadow:
+                0 0 30px rgba(185, 103, 255, 0.3),
+                inset 0 0 40px rgba(185, 103, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scene-glitch .scene-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--pink);
+            text-shadow: var(--text-glow);
+            margin-bottom: var(--space-5);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            animation: glitch-text 2s infinite;
+        }
+
+        .scene-glitch .scene-text {
+            color: rgba(255, 255, 255, 0.85);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .scene-glitch .scene-text p {
+            margin-bottom: 1rem;
+        }
+
+        /* --- Card-based scene (for profiles) --- */
+        .scene-cards {
+            margin-bottom: var(--space-6);
+            padding: var(--space-6);
+            border: 2px solid var(--cyan);
+            background: rgba(26, 10, 46, 0.75);
+            box-shadow: 0 0 20px rgba(1, 205, 254, 0.2);
+            position: relative;
+        }
+
+        .scene-cards .scene-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+            margin-bottom: var(--space-5);
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        .scene-cards .scene-title::before {
+            content: '// ';
+            color: var(--pink);
+        }
+
+        .scene-cards .scene-text {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .scene-cards .scene-text p {
+            margin-bottom: 1rem;
+        }
+
+        /* --- Ending scene --- */
+        .scene-ending {
+            margin-bottom: var(--space-6);
+            padding: var(--space-8) var(--space-6);
+            text-align: center;
+            position: relative;
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--purple);
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 6vw, 4rem);
+            color: var(--pink);
+            text-shadow: var(--text-glow);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-6);
+            animation: flicker 3s infinite;
+        }
+
+        .scene-ending .scene-text {
+            max-width: 600px;
+            margin: 0 auto;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .scene-ending .scene-text p {
+            margin-bottom: 1rem;
+        }
+
+        .scene-ending .the-end {
+            font-family: var(--font-barcode);
+            font-size: 3rem;
+            color: var(--cyan);
+            margin-top: var(--space-7);
+        }
+
+        /* =============================================
+           COMPONENTS
+        ============================================= */
+
+        /* Glitch Text */
+        .glitch {
+            position: relative;
+            animation: glitch-text 2s infinite;
+        }
+
+        @keyframes glitch-text {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        /* Badges */
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin: var(--space-4) 0;
+        }
+
+        .badge {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            padding: var(--space-2) var(--space-4);
+            border: 1px solid currentColor;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .badge-pink {
+            color: var(--pink);
+            background: rgba(255, 113, 206, 0.1);
+        }
+
+        .badge-cyan {
+            color: var(--cyan);
+            background: rgba(1, 205, 254, 0.1);
+        }
+
+        .badge-purple {
+            color: var(--purple);
+            background: rgba(185, 103, 255, 0.1);
+        }
+
+        .badge-filled {
+            background: var(--pink);
+            color: var(--bg-dark);
+            border-color: var(--pink);
+        }
+
+        /* Cards */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-5);
+            margin: var(--space-5) 0;
+        }
+
+        .card {
+            border: 2px solid var(--cyan);
+            padding: var(--space-5);
+            background: rgba(0, 0, 0, 0.4);
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: -4px;
+            bottom: -4px;
+            border: 1px solid var(--pink);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: var(--pink);
+            margin-bottom: var(--space-3);
+            letter-spacing: 0.1em;
+        }
+
+        .card-content {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.7;
+        }
+
+        /* Divider */
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, var(--pink), var(--cyan), var(--purple));
+            margin: var(--space-5) 0;
+            position: relative;
+        }
+
+        .divider::before {
+            content: '\25C6 \25C6 \25C6';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-dark);
+            padding: 0 var(--space-4);
+            color: var(--pink);
+            letter-spacing: 0.5em;
+        }
+
+        /* Type Display (for quotes) */
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            color: var(--pink);
+            text-shadow: var(--text-glow);
+            line-height: 1.4;
+            padding: var(--space-4) 0;
+            border-left: 3px solid var(--purple);
+            padding-left: var(--space-5);
+            margin: var(--space-4) 0;
+        }
+
+        /* Barcode text */
+        .type-barcode {
+            font-family: var(--font-barcode);
+            font-size: 2rem;
+            color: var(--cyan);
+        }
+
+        /* Fact notification */
+        .fact-found {
+            display: inline-block;
+            background: var(--cyan);
+            color: var(--bg-dark);
+            padding: 6px 16px 6px 28px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            margin-top: 1.5rem;
+            position: relative;
+            animation: factSlideIn 0.6s ease-out;
+        }
+
+        .fact-found::before {
+            content: '';
+            position: absolute;
+            left: 8px; top: 50%;
+            transform: translateY(-50%);
+            width: 10px; height: 10px;
+            background: var(--cyan);
+            border-radius: 50%;
+            border: 2px solid var(--bg-dark);
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* =============================================
+           CHOICES
+        ============================================= */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            border: 2px solid var(--pink);
+            background: transparent;
+            color: var(--pink);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--pink);
+            transition: left 0.3s;
+            z-index: -1;
+        }
+
+        .choice-btn:hover {
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px var(--pink);
+        }
+
+        .choice-btn:hover::before {
+            left: 0;
+        }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 1px solid currentColor;
+            font-size: 0.9rem;
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+        }
+
+        .choice-btn:nth-child(2) {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+        .choice-btn:nth-child(2)::before {
+            background: var(--cyan);
+        }
+        .choice-btn:nth-child(2):hover {
+            box-shadow: 0 0 30px var(--cyan);
+        }
+
+        .choice-btn:nth-child(3) {
+            border-color: var(--purple);
+            color: var(--purple);
+        }
+        .choice-btn:nth-child(3)::before {
+            background: var(--purple);
+        }
+        .choice-btn:nth-child(3):hover {
+            box-shadow: 0 0 30px var(--purple);
+        }
+
+        /* =============================================
+           TRANSITION OVERLAY
+        ============================================= */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: scanTransition 1.2s ease-in-out;
+        }
+
+        @keyframes scanTransition {
+            0% { opacity: 0; }
+            20% { opacity: 1; }
+            50% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-scanlines {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    var(--bg-dark) 0px,
+                    var(--bg-dark) 2px,
+                    rgba(185, 103, 255, 0.15) 2px,
+                    rgba(185, 103, 255, 0.15) 4px
+                );
+        }
+
+        /* =============================================
+           FACT TRACKER (SIDEBAR)
+        ============================================= */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: rgba(26, 10, 46, 0.9);
+            border: 1px solid var(--cyan);
+            color: var(--cyan);
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+        }
+
+        .fact-tracker-toggle:hover {
+            box-shadow: 0 0 15px rgba(1, 205, 254, 0.3);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: 0.5rem;
+            background: rgba(26, 10, 46, 0.95);
+            border: 1px solid var(--purple);
+            padding: 1rem;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--pink);
+            margin-bottom: 0.75rem;
+        }
+
+        .fact-item {
+            font-size: 0.85rem;
+            color: var(--cyan);
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(185, 103, 255, 0.2);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.4;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* =============================================
+           GAME CONTROLS
+        ============================================= */
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: var(--space-6);
+            padding-top: var(--space-5);
+            border-top: 1px solid rgba(255, 113, 206, 0.2);
+        }
+
+        .ctrl-btn {
+            padding: 8px 20px;
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 1px solid rgba(255, 113, 206, 0.3);
+            background: transparent;
+            color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--pink);
+            color: var(--pink);
+        }
+
+        /* =============================================
+           SCENE FADE IN
+        ============================================= */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* =============================================
+           SCROLLBAR
+        ============================================= */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--purple); }
+        ::selection { background: var(--pink); color: var(--bg-dark); }
+
+        /* =============================================
+           RESPONSIVE
+        ============================================= */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: var(--space-5);
+            }
+
+            .title-screen h1 {
+                letter-spacing: 0.2em;
+            }
+
+            .scene-section,
+            .scene-glitch,
+            .scene-cards {
+                padding: var(--space-5);
+            }
+
+            .sun {
+                width: 200px;
+                height: 200px;
+            }
+
+            .fact-tracker {
+                right: 0.75rem;
+                top: 0.75rem;
+                max-width: 220px;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-gradient"></div>
+    <div class="grid-floor"></div>
+    <div class="sun"></div>
+    <div class="vhs-lines"></div>
+
+    <!-- Transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-scanlines"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span>Data Log</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>// Recovered Data</h4>
+            <div id="factList">
+                <p class="no-facts">No data recovered yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <h1 class="glitch">THE PLAZA</h1>
+            <div class="title-subtitle">A N  I N T E R A C T I V E  S T O R Y</div>
+            <div class="title-japanese">失われたインターネット ・ The Lost Internet</div>
+            <p class="title-tagline">A corrupted hard drive from 1998. A GeoCities page lost to time. You are the digital archaeologist tasked with recovering the memories of the early web — before corporations swallowed it whole.</p>
+            <button class="title-start" id="startBtn">Initialize Recovery</button>
+            <p class="title-credits">A story told in pixels and nostalgia</p>
+            <div class="title-barcode">*19891999*</div>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-file-id" id="sceneFileId">SECTOR_00 // BOOT</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Reboot System</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // =================================================================
+    //  THE PLAZA — Story Data
+    // =================================================================
+
+    const STORY = {
+
+        // --- SCENE 1: Digital Archaeology Begins ---
+        digital_archaeology_begins: {
+            type: 'glitch',
+            fileId: 'SECTOR_01 // CORRUPTED DRIVE',
+            title: 'CORRUPTED DRIVE // 1998',
+            text: [
+                'The screen flickers. Static. Then — fragments.',
+                'You are staring at the contents of a recovered hard drive. The serial number dates it to 1998. Somewhere on this disk is a GeoCities home page — one of millions that once made the web feel like a neighborhood rather than a shopping mall.',
+                '<div class="divider"></div>',
+                'Your task: recover the data. Reconstruct the history. Understand what was built, what was lost, and why anyone would feel nostalgic for a 2-megabyte personal web page rendered in 16-color GIFs.',
+                'The recovery software initializes. Sector by sector, the drive reveals its secrets. The first cluster of readable data takes you back to the beginning — not of this hard drive, but of the web itself.',
+                '<div class="badge-row"><span class="badge badge-purple">RECOVERY MODE</span><span class="badge badge-cyan">1998 HARD DRIVE</span></div>',
+                'The cursor blinks. The data loads. You descend into memory.'
+            ],
+            fact: 'GeoCities offered users 2MB of free web space in themed "neighborhoods" — a virtual geography metaphor for the early web.',
+            choices: [
+                { text: 'Begin data recovery', next: 'the_cern_vision' }
+            ]
+        },
+
+        // --- SCENE 2: The CERN Vision ---
+        the_cern_vision: {
+            type: 'section',
+            fileId: 'SECTOR_02 // ORIGIN POINT',
+            title: 'The Web Is Born // 1989-1991',
+            text: [
+                'The first recoverable file is a text document — a historical summary someone saved, perhaps a student researching the web\'s origins.',
+                '<div class="type-display">"Vague but exciting..." — Mike Sendall, Tim Berners-Lee\'s manager at CERN, March 1989</div>',
+                'In <span class="badge badge-cyan">March 1989</span>, Tim Berners-Lee submitted a proposal at CERN — the European Organization for Nuclear Research — for a system of linked documents that would let scientists share information across institutions worldwide. His manager\'s response was famously understated.',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/6/66/WorldWideWeb.1.png" alt="WorldWideWeb browser screenshot" style="max-width: 100%; height: auto; border: 2px solid #ff71ce; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(255, 113, 206, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #b0a0d0;">WorldWideWeb — the first web browser, created by Tim Berners-Lee, 1990</div></div>',
+                'By <span class="badge badge-pink">November 1990</span>, Berners-Lee had implemented the first successful communication between an HTTP client and server. He defined three foundational technologies that still power every web page you visit: <strong>HTTP</strong> (the protocol), <strong>URLs</strong> (the addresses), and <strong>HTML</strong> (the document format).',
+                '<div class="divider"></div>',
+                'On <span class="badge badge-purple">August 23, 1991</span>, the World Wide Web was released to the entire Internet from CERN, launching the public era of the web. What had begun as a tool for particle physicists was about to change everything.',
+                'The recovered file ends with a question, underlined twice: <em style="color:var(--yellow);">"What should this technology become?"</em>'
+            ],
+            fact: 'Tim Berners-Lee submitted his World Wide Web proposal at CERN in March 1989. By November 1990, he had built the first working HTTP client and server.',
+            choices: [
+                { text: 'The web should remain open — a tool for sharing knowledge freely', next: 'mosaic_moment_open' },
+                { text: 'Someone will find a way to make money from this', next: 'mosaic_moment_commercial' }
+            ]
+        },
+
+        // --- SCENE 3a: Mosaic Moment (Open Path) ---
+        mosaic_moment_open: {
+            type: 'section',
+            fileId: 'SECTOR_03 // BROWSER REVOLUTION',
+            title: 'When Browsers Showed Images // 1993-1994',
+            text: [
+                'Your instinct toward openness mirrors the early web\'s idealism. But idealism has a way of colliding with ambition.',
+                'The next data cluster reveals browser history — literal browser history. The recovered drive contains cached pages from Netscape Navigator, the software that brought the web to the masses.',
+                '<div class="badge-row"><span class="badge badge-cyan">October 13, 1994</span><span class="badge badge-pink">Netscape Navigator 0.9</span></div>',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ea/NCSA_Mosaic_Browser_Screenshot.png" alt="NCSA Mosaic browser screenshot" style="max-width: 100%; height: auto; border: 2px solid #ff71ce; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(255, 113, 206, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #b0a0d0;">NCSA Mosaic — the browser that brought the web to everyone, 1993</div></div>',
+                'On that date, Netscape Communications released Mosaic Netscape 0.9 — later renamed Netscape Navigator. Its co-founder, <strong>Marc Andreessen</strong>, was just <strong>22 years old</strong> and serving as Vice President of Technology.',
+                'Within four months, Navigator captured <strong>three-quarters of the browser market</strong>. For the first time, ordinary people could point and click their way through the web. Images loaded alongside text. Hyperlinks glowed blue and underlined. The internet suddenly looked like something worth exploring.',
+                '<div class="type-display">"The web browser was the killer app that made the internet matter to regular people."</div>',
+                'The open web had its champion. But champions attract rivals.'
+            ],
+            fact: 'Netscape Navigator launched October 13, 1994. Co-founder Marc Andreessen was 22. Within four months, it captured 75% of the browser market.',
+            choices: [
+                { text: 'Continue recovery', next: 'windows_ninety_five' }
+            ]
+        },
+
+        // --- SCENE 3b: Mosaic Moment (Commercial Path) ---
+        mosaic_moment_commercial: {
+            type: 'section',
+            fileId: 'SECTOR_03 // BROWSER REVOLUTION',
+            title: 'When Browsers Showed Images // 1993-1994',
+            text: [
+                'Your instinct is shrewd. Even as the web was born from academic idealism, the smell of money was already in the air.',
+                'The next data cluster reveals cached web pages — artifacts from the browser that first made the web feel commercial. Netscape Navigator turned the internet from a curiosity into a gold rush.',
+                '<div class="badge-row"><span class="badge badge-cyan">October 13, 1994</span><span class="badge badge-pink">Netscape Navigator 0.9</span></div>',
+                'Netscape Communications released its browser and within four months captured <strong>three-quarters of the browser market</strong>. Its co-founder, <strong>Marc Andreessen</strong>, was <strong>22 years old</strong>. The company\'s 1995 IPO would make him a multimillionaire and signal to Wall Street that the internet was open for business.',
+                'Navigator was free for individual users but licensed to corporations. It was the first taste of a business model that would define the tech industry: give it away to consumers, charge the enterprises.',
+                '<div class="type-display">"Software is going to eat the world." — Marc Andreessen</div>',
+                'The web had found its first entrepreneur. But the biggest corporation in the world was watching.'
+            ],
+            fact: 'Netscape Navigator launched October 13, 1994. Co-founder Marc Andreessen was 22. Within four months, it captured 75% of the browser market.',
+            choices: [
+                { text: 'Continue recovery', next: 'windows_ninety_five' }
+            ]
+        },
+
+        // --- SCENE 4: Windows 95 ---
+        windows_ninety_five: {
+            type: 'section',
+            fileId: 'SECTOR_04 // MASS ADOPTION',
+            title: 'The Masses Arrive // August 1995',
+            text: [
+                'The drive\'s timestamps cluster around a pivotal date. The hard drive itself was formatted with the FAT32 file system — a Windows machine. Of course it was.',
+                '<div class="badge-row"><span class="badge badge-filled">August 24, 1995</span><span class="badge badge-cyan">Windows 95</span></div>',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/6/69/IBM_PC_5150.jpg" alt="IBM PC 5150" style="max-width: 100%; height: auto; border: 2px solid #ff71ce; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(255, 113, 206, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #b0a0d0;">IBM PC 5150 — the machine that started the personal computing revolution</div></div>',
+                'Microsoft released Windows 95 to retail on <strong>August 24, 1995</strong>. The launch was a cultural event — people lined up at midnight at electronics stores. The Rolling Stones\' "Start Me Up" blasted from speakers.',
+                'But here is the number that matters: at this moment, only <strong>30% of American homes had a computer</strong> and <strong>less than 10% had internet access</strong> — roughly <strong>12 million online users</strong> in the entire United States.',
+                'Windows 95 changed those numbers fast. It made computers accessible to people who had never used one. And with it came a question that would define the next decade.',
+                '<div class="divider"></div>',
+                'The hard drive holds two diverging threads of history from this moment. One celebrates what the masses built. The other tracks what the corporations did.'
+            ],
+            fact: 'Windows 95 launched August 24, 1995. At that time, only 30% of American homes had a computer and less than 10% had internet access (12 million US users).',
+            choices: [
+                { text: 'The democratization of the web — what ordinary people built', next: 'the_browser_war_ignites' },
+                { text: 'The corporate land grab — what happened when Microsoft noticed', next: 'the_browser_war_ignites' }
+            ]
+        },
+
+        // --- SCENE 5: Browser War Ignites ---
+        the_browser_war_ignites: {
+            type: 'cards',
+            fileId: 'SECTOR_05 // BROWSER WARS',
+            title: 'Navigator vs. Explorer // 1995-1996',
+            text: [
+                'The recovered data paints a battlefield. Two browsers. Two visions. One internet.',
+                '<div class="card-grid"><div class="card"><h3 class="card-title">NETSCAPE NAVIGATOR</h3><p class="card-content">The people\'s browser. Born from university research. Navigator held 80%+ of the market by 1995. It was fast, innovative, and independent. Netscape\'s IPO on August 9, 1995 valued the company at $2.9 billion — on its first day of trading.</p></div><div class="card"><h3 class="card-title">INTERNET EXPLORER</h3><p class="card-content">Microsoft\'s answer. In <strong>August 1996</strong>, Microsoft released Internet Explorer 3 — the first commercial browser to support CSS. But its real weapon was not technology. It was distribution. IE was bundled free with every copy of Windows, shipped to every PC manufacturer and ISP.</p></div></div>',
+                '<div class="divider"></div>',
+                'Websites began displaying banners: <em style="color:var(--cyan);">"Best viewed in Netscape"</em> or <em style="color:var(--blue);">"Best viewed in Internet Explorer."</em> The web was fracturing into camps.',
+                'The recovered bookmarks on this drive tell the story. Some sites only worked in one browser. Developers cursed. Users suffered. And Microsoft had a strategy that Netscape could not match: <strong>give the browser away for free and bundle it with the operating system</strong>.'
+            ],
+            fact: 'Microsoft released Internet Explorer 3 in August 1996 — the first commercial browser to support CSS. It was bundled free with Windows to crush Netscape.',
+            choices: [
+                { text: 'Side with Netscape — the independent web must survive', next: 'the_netscape_resistance' },
+                { text: 'Accept Explorer\'s dominance — bundling wins', next: 'the_microsoft_juggernaut' }
+            ]
+        },
+
+        // --- SCENE 6a: Netscape Resistance ---
+        the_netscape_resistance: {
+            type: 'section',
+            fileId: 'SECTOR_06A // OPEN WEB',
+            title: 'Fighting for the Open Web',
+            text: [
+                'You follow the Netscape thread deeper into the drive. The cached pages glow with the energy of an underdog fight.',
+                'Netscape Navigator was more than a browser. It was a philosophy: the web should belong to everyone, not to the company that happened to control the operating system. Netscape\'s engineers invented JavaScript, SSL encryption, and cookies — technologies we still use today.',
+                '<div class="type-display">"Netscape believed the browser was a platform, not just a viewer. They were right — just too early."</div>',
+                'But philosophy does not pay the bills when your competitor gives away a product you charge for. As Microsoft bundled IE with Windows, shipping it to every PC manufacturer and ISP for free, Netscape\'s revenue model crumbled.',
+                '<div class="badge-row"><span class="badge badge-pink">1995: Netscape 80%+ market share</span><span class="badge badge-purple">1999: Netscape below 1%</span></div>',
+                'The independent web was losing its champion. But the drive still has more data. The technologies that emerged from this conflict would shape everything that followed.'
+            ],
+            fact: 'By 1999, Internet Explorer captured 99% of the browser market. Netscape\'s market share collapsed from 80%+ to near zero in just four years.',
+            choices: [
+                { text: 'Continue recovery', next: 'flash_and_css' }
+            ]
+        },
+
+        // --- SCENE 6b: Microsoft Juggernaut ---
+        the_microsoft_juggernaut: {
+            type: 'section',
+            fileId: 'SECTOR_06B // CORPORATE WEB',
+            title: 'The Bundling Strategy',
+            text: [
+                'You follow the Internet Explorer thread. The cached pages are dense with corporate communications and trade press coverage.',
+                'Microsoft\'s strategy was brutally effective. Internet Explorer was not just free — it was inescapable. Every copy of Windows shipped with IE pre-installed. Microsoft signed licensing agreements with PC manufacturers requiring IE as the default browser. They offered ISPs incentives to distribute IE.',
+                '<div class="type-display">"We are going to cut off their air supply." — attributed to Microsoft executives regarding Netscape</div>',
+                'The U.S. Department of Justice eventually filed antitrust charges against Microsoft in 1998, arguing that bundling IE with Windows was an illegal monopoly tactic. The trial became one of the defining legal battles of the tech industry.',
+                '<div class="badge-row"><span class="badge badge-cyan">1996: IE 3 launches</span><span class="badge badge-pink">1999: IE reaches 99% market share</span></div>',
+                'Whether this was innovation or monopoly depended on who you asked. But the result was undeniable: by the time this hard drive was last used, <strong>Internet Explorer had won</strong>. The browser war was over.'
+            ],
+            fact: 'By 1999, Internet Explorer captured 99% of the browser market. The U.S. DOJ filed antitrust charges against Microsoft in 1998 for bundling IE with Windows.',
+            choices: [
+                { text: 'Continue recovery', next: 'flash_and_css' }
+            ]
+        },
+
+        // --- SCENE 7: Flash and CSS ---
+        flash_and_css: {
+            type: 'cards',
+            fileId: 'SECTOR_07 // NEW TOOLS',
+            title: 'New Tools of Creation // 1996-1997',
+            text: [
+                'The drive holds something unexpected: project files. Someone was building web pages. The tools they used tell a story of their own.',
+                '<div class="card-grid"><div class="card"><h3 class="card-title">MACROMEDIA FLASH</h3><p class="card-content">In <strong>December 1996</strong>, Macromedia acquired FutureWave Software and rebranded FutureSplash Animator as <strong>Macromedia Flash</strong>. Suddenly, the web could move. Animations danced. Intro sequences played. Splash pages loaded with spinning logos and techno music. It was garish, slow, and absolutely magical.</p></div><div class="card"><h3 class="card-title">CSS LEVEL 1</h3><p class="card-content">On <strong>December 17, 1996</strong>, the W3C published CSS Level 1 as an official recommendation. Development had begun in <strong>October 1994</strong> by <strong>Hakon Wium Lie</strong>. CSS separated content from presentation — letting designers control layout, color, and typography without hacking HTML tables. It was elegant, powerful, and almost universally ignored by browsers for years.</p></div></div>',
+                '<div class="divider"></div>',
+                'Flash and CSS represented two philosophies of web design. Flash was freedom through control — the designer dictated every pixel. CSS was freedom through standards — the content adapted to any device. This tension never fully resolved.',
+                'The web page files on this drive use both. Animated GIFs sit alongside hand-coded HTML tables. Somewhere in the mess is a single CSS file, barely 40 lines long, that someone was experimenting with.'
+            ],
+            fact: 'Macromedia Flash launched December 1996. CSS Level 1 was published by the W3C on December 17, 1996, after development began in October 1994 by Hakon Wium Lie.',
+            choices: [
+                { text: 'Flash is the future — animation and interactivity above all', next: 'geocities_golden_age_flash' },
+                { text: 'CSS will win — standards and accessibility matter more', next: 'geocities_golden_age_css' }
+            ]
+        },
+
+        // --- SCENE 8a: GeoCities Golden Age (Flash path) ---
+        geocities_golden_age_flash: {
+            type: 'section',
+            fileId: 'SECTOR_08 // THE HOMESTEADERS',
+            title: 'The Homesteader Dream // 1995-1998',
+            text: [
+                'And there it is. The GeoCities page. The whole reason this drive exists.',
+                'The recovery software reconstructs the HTML like an archaeologist brushing dirt from a fossil. Background stars. A visitor counter frozen at 00847. A guestbook link. Animated construction-worker GIFs marking sections "under construction." A MIDI file that would have auto-played a tinny rendition of a pop song.',
+                'It is beautiful. It is terrible. It is the most human thing on the entire internet.',
+                '<div class="divider"></div>',
+                '<div class="badge-row"><span class="badge badge-cyan">November 1994</span><span class="badge badge-pink">GeoCities Founded</span></div>',
+                'In <strong>November 1994</strong>, David Bohnett and John Rezner launched GeoCities — originally called <strong>Beverly Hills Internet</strong>. They offered "Homesteaders" free web pages within themed neighborhoods. You could live in <em>Area51</em> for sci-fi, <em>Athens</em> for education, <em>SunsetStrip</em> for music, or <em>TimesSquare</em> for gaming.',
+                'By <strong>December 1995</strong>, GeoCities had 14 neighborhoods and was registering <strong>thousands of new Homesteaders daily</strong>, generating over <strong>6 million monthly page views</strong>.',
+                'Flash animations adorned the fancier pages. Dancing babies. Spinning skulls. Scrolling marquee text. Every page was a declaration: <em style="color:var(--pink);">I exist. I made this. Come see.</em>',
+                'The drive holds dozens of bookmarked GeoCities pages. Each one a universe in 2 megabytes.'
+            ],
+            fact: 'GeoCities was founded in November 1994 by David Bohnett and John Rezner as "Beverly Hills Internet." By December 1995, it had 14 neighborhoods and 6 million monthly page views.',
+            choices: [
+                { text: 'Continue recovery', next: 'the_acquisition_moment' }
+            ]
+        },
+
+        // --- SCENE 8b: GeoCities Golden Age (CSS path) ---
+        geocities_golden_age_css: {
+            type: 'section',
+            fileId: 'SECTOR_08 // THE HOMESTEADERS',
+            title: 'The Homesteader Dream // 1995-1998',
+            text: [
+                'And there it is. The GeoCities page. The whole reason this drive exists.',
+                'The recovery software reconstructs the HTML like a restorer uncovering a fresco. Nested tables three layers deep. Inline font tags specifying Comic Sans in seven colors. Background images that tile endlessly. A hit counter. A webrings navigation bar at the bottom.',
+                'It is chaotic. It is earnest. It is a monument to what people build when nobody tells them they are doing it wrong.',
+                '<div class="divider"></div>',
+                '<div class="badge-row"><span class="badge badge-cyan">November 1994</span><span class="badge badge-pink">GeoCities Founded</span></div>',
+                'In <strong>November 1994</strong>, David Bohnett and John Rezner launched GeoCities — originally called <strong>Beverly Hills Internet</strong>. They offered "Homesteaders" free web pages within themed neighborhoods: <em>Area51</em> for sci-fi, <em>Athens</em> for education, <em>SunsetStrip</em> for music, <em>TimesSquare</em> for gaming.',
+                'By <strong>December 1995</strong>, GeoCities had 14 neighborhoods and was registering <strong>thousands of new Homesteaders daily</strong>, generating over <strong>6 million monthly page views</strong>.',
+                'CSS could have brought order to this beautiful chaos. But almost nobody used it yet. The browsers barely supported it. The Homesteaders did not care about standards — they cared about self-expression. And in that gap between standards and creativity, something irreplaceable flourished.',
+                'The drive holds dozens of bookmarked GeoCities pages. Each one a universe in 2 megabytes.'
+            ],
+            fact: 'GeoCities was founded in November 1994 by David Bohnett and John Rezner as "Beverly Hills Internet." By December 1995, it had 14 neighborhoods and 6 million monthly page views.',
+            choices: [
+                { text: 'Continue recovery', next: 'the_acquisition_moment' }
+            ]
+        },
+
+        // --- SCENE 9: The Acquisition ---
+        the_acquisition_moment: {
+            type: 'glitch',
+            fileId: 'SECTOR_09 // CRITICAL EVENT',
+            title: 'When Yahoo! Bought It All // January 28, 1999',
+            text: [
+                'The drive stutters. Data corruption spikes. Something about this sector is damaged — as if the drive itself does not want to remember what happened next.',
+                '<div class="badge-row"><span class="badge badge-filled">January 28, 1999</span><span class="badge badge-purple">CRITICAL DATA</span></div>',
+                '<div class="type-display">Yahoo! acquires GeoCities for $3.57 billion in stock.</div>',
+                'At the height of the dot-com bubble, Yahoo! purchased GeoCities — at that moment the <strong>third-most-visited website on the World Wide Web</strong> — for <strong>$3.57 billion in stock</strong>.',
+                'Three and a half billion dollars for a collection of personal web pages. For animated GIFs and guestbooks and MIDI files. For millions of people\'s first attempts at self-expression on the internet.',
+                'The Homesteaders were not consulted. Their neighborhoods — their digital homes — were now corporate property.',
+                '<div class="divider"></div>',
+                'The recovered page shows a banner that Yahoo! added after the acquisition. It covers part of the original design. The Homesteader\'s carefully chosen background image peeks out from behind corporate branding.',
+                'This is the moment. The turning point. What does it mean?'
+            ],
+            fact: 'On January 28, 1999, Yahoo! acquired GeoCities for $3.57 billion in stock. GeoCities was the third-most-visited website on the entire World Wide Web.',
+            choices: [
+                { text: 'This was the death of the personal web — mourn what was lost', next: 'the_dot_com_shadow_mourn' },
+                { text: 'This was validation — the web mattered enough to be worth billions', next: 'the_dot_com_shadow_celebrate' }
+            ]
+        },
+
+        // --- SCENE 10a: Dot-Com Shadow (Mourn) ---
+        the_dot_com_shadow_mourn: {
+            type: 'section',
+            fileId: 'SECTOR_10 // APPROACHING CRASH',
+            title: 'The Crash Looms // 1999-2000',
+            text: [
+                'You chose to mourn. The data agrees with you.',
+                'After the Yahoo! acquisition, GeoCities pages began to change. Terms of service shifted. Advertising crept in. Some Homesteaders left. Others stayed but felt the difference — like renters who realize their neighborhood has been sold to a developer.',
+                '<div class="badge-row"><span class="badge badge-pink">1995: 16 million internet users worldwide</span><span class="badge badge-cyan">1999: nearly 400 million</span></div>',
+                'Global internet users exploded from <strong>16 million in 1995</strong> to <strong>nearly 400 million by the end of the decade</strong>. The web was no longer a frontier — it was an industry. Internet Explorer held 99% of the browser market. Flash-heavy sites proliferated. CSS support remained inconsistent across browsers.',
+                'But the economics did not add up. Companies with no revenue and no plan were valued at billions. The NASDAQ soared past 5,000 in March 2000.',
+                'The drive\'s last entries are from late 1999. The GeoCities page was last updated on December 3, 1999. After that — nothing. The owner stopped maintaining it. Perhaps they sensed what was coming.',
+                'The dot-com crash was months away. And with it, the end of the dream that the internet would remain a place of individual creation.'
+            ],
+            fact: 'Global internet users grew from 16 million in 1995 to nearly 400 million by 1999. The dot-com bubble saw companies with no revenue valued at billions.',
+            choices: [
+                { text: 'Continue recovery — what was lost?', next: 'memory_corruption_loss' }
+            ]
+        },
+
+        // --- SCENE 10b: Dot-Com Shadow (Celebrate) ---
+        the_dot_com_shadow_celebrate: {
+            type: 'section',
+            fileId: 'SECTOR_10 // APPROACHING CRASH',
+            title: 'The Crash Looms // 1999-2000',
+            text: [
+                'You chose to see validation. There is truth in that, too.',
+                'The Yahoo! acquisition meant that personal web pages — the scribblings of teenagers, the fan pages of hobbyists, the recipe collections of grandmothers — were worth $3.57 billion to one of the biggest companies on earth. The web had become a mass medium.',
+                '<div class="badge-row"><span class="badge badge-pink">1995: 16 million internet users worldwide</span><span class="badge badge-cyan">1999: nearly 400 million</span></div>',
+                'Global internet users exploded from <strong>16 million in 1995</strong> to <strong>nearly 400 million by the end of the decade</strong>. The web was no longer experimental — it was essential. Internet Explorer held 99% of the browser market. Flash animations dazzled. CSS promised a more structured future.',
+                'But the economics were fragile. Companies with no revenue were valued at billions. The NASDAQ soared past 5,000 in March 2000, fueled by euphoria that could not last.',
+                'The drive\'s last entries are from late 1999. The GeoCities page was last updated on December 3, 1999. The owner may have moved on to bigger platforms, newer tools, a broader audience.',
+                'The dot-com crash was months away. But what survived it — the idea that anyone could publish anything to the world — that survived forever.'
+            ],
+            fact: 'Global internet users grew from 16 million in 1995 to nearly 400 million by 1999. The dot-com bubble saw companies with no revenue valued at billions.',
+            choices: [
+                { text: 'Continue recovery — what survived?', next: 'memory_corruption_growth' }
+            ]
+        },
+
+        // --- SCENE 11a: Memory Corruption (Loss path) ---
+        memory_corruption_loss: {
+            type: 'glitch',
+            fileId: 'SECTOR_11 // DRIVE FAILING',
+            title: 'What Was Lost?',
+            text: [
+                'The drive is failing. Sectors are going dark. The read head clicks and stutters. You are running out of time.',
+                '<span class="glitch" style="display:inline-block;color:var(--pink);">ERR0R: SECT0R C0RRUPT1ON AT 87%... DATA L0SS IMM1NENT...</span>',
+                'You can save one more fragment before the drive dies completely. The recovery software presents two final options.',
+                '<div class="divider"></div>',
+                'The GeoCities page is still on screen — damaged, partial, its visitor counter forever frozen. Behind it, the cached history of browser wars and corporate acquisitions and the dreams of twenty-two-year-old entrepreneurs who thought software could change the world.',
+                'In 2009, Yahoo! shut down GeoCities entirely. Millions of pages — each one someone\'s first website, someone\'s creative expression, someone\'s corner of the internet — vanished. Digital archaeologists scrambled to archive what they could. Most was lost forever.',
+                'What do you preserve?'
+            ],
+            fact: 'Yahoo! shut down GeoCities in 2009, destroying millions of personal web pages. Digital archivists saved only a fraction of the content.',
+            choices: [
+                { text: 'Preserve the spirit of creative chaos — the personal web matters', next: 'ending_nostalgia' },
+                { text: 'Preserve the technical history — the standards and protocols endure', next: 'ending_ironic' }
+            ]
+        },
+
+        // --- SCENE 11b: Memory Corruption (Growth path) ---
+        memory_corruption_growth: {
+            type: 'glitch',
+            fileId: 'SECTOR_11 // DRIVE FAILING',
+            title: 'What Survived?',
+            text: [
+                'The drive is failing. Sectors are going dark. The read head clicks and stutters. You are running out of time.',
+                '<span class="glitch" style="display:inline-block;color:var(--cyan);">ERR0R: SECT0R C0RRUPT1ON AT 87%... DATA L0SS IMM1NENT...</span>',
+                'You can save one more fragment before the drive dies completely. The recovery software presents two final options.',
+                '<div class="divider"></div>',
+                'The GeoCities page is still on screen — battered but readable. It represents something: the moment ordinary people realized they could broadcast their thoughts, their art, their obsessions to the entire world.',
+                'That impulse did not die with GeoCities. It evolved into blogs, social media, YouTube, TikTok — every platform where someone posts something and hopes a stranger will see it. The tools changed. The desire did not.',
+                'In 2009, Yahoo! shut down GeoCities. But by then, the idea it pioneered — that everyone deserves a place on the internet — had already won.',
+                'What do you choose to remember?'
+            ],
+            fact: 'Yahoo! shut down GeoCities in 2009, but the concept of user-generated web content had already transformed into blogs, social media, and modern platforms.',
+            choices: [
+                { text: 'Remember the individuals — every page was someone\'s voice', next: 'ending_nostalgia' },
+                { text: 'Remember the progress — the web became something greater', next: 'ending_acceptance' }
+            ]
+        },
+
+        // --- ENDING 1: Nostalgia / Resistance ---
+        ending_nostalgia: {
+            type: 'ending',
+            fileId: 'SECTOR_12 // FINAL RECOVERY',
+            endingLabel: 'Data Recovery Complete',
+            endingTitle: 'Forever Beautiful',
+            text: [
+                'The drive goes silent. The last fragment is saved.',
+                'You stare at the screen. The vaporwave aesthetic that has surrounded this entire experience — the pink neon, the purple gradients, the retro grid floor receding to infinity — suddenly makes sense.',
+                '<div class="divider"></div>',
+                'Vaporwave emerged in the early 2010s as a musical and visual art movement. Its signature sound: slowed-down elevator music, corporate smooth jazz, fragments of 1990s advertising. Its signature look: the exact aesthetic you have been immersed in.',
+                'It was never just nostalgia. It was a critique. A elegy. A love letter written in irony.',
+                'The neon pink glow of a GeoCities page. The purple haze of a Windows 95 desktop. The cyan flash of a Netscape loading bar. These colors mean something specific: <em style="color:var(--yellow);">they are the colors of a web that belonged to people, before it belonged to corporations.</em>',
+                'The GeoCities page you recovered is a monument to a version of the internet that was messy, personal, creative, and free. It did not need to be optimized. It did not need to generate engagement. It just needed to exist.',
+                '<div class="type-display">The personal web is dead. Long live the personal web.</div>',
+                'Every time someone customizes a Tumblr theme, hand-codes a personal site, or builds something impractical and beautiful for no reason other than self-expression — the spirit of the Homesteaders lives on.',
+                '<span class="type-barcode">*FOREVER_BEAUTIFUL*</span>'
+            ],
+            choices: [
+                { text: 'Reboot System', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING 2: Ironic Celebration ---
+        ending_ironic: {
+            type: 'ending',
+            fileId: 'SECTOR_12 // FINAL RECOVERY',
+            endingLabel: 'Data Recovery Complete',
+            endingTitle: 'The Protocols Endure',
+            text: [
+                'The drive goes silent. The last fragment is saved.',
+                'You chose to preserve the technical history. And perhaps that is the truest legacy of the 1990s web.',
+                '<div class="divider"></div>',
+                'HTTP. HTML. CSS. URLs. The technologies Tim Berners-Lee defined in 1990 still power every web page on earth. The W3C standards he championed outlasted every company that tried to control the web.',
+                'Netscape is gone. GeoCities is gone. Internet Explorer itself was retired by Microsoft in 2022. Flash was officially killed in December 2020.',
+                'But open the source code of any web page — any page, anywhere in the world — and you will find HTML tags, CSS rules, and HTTP headers. The protocols endure.',
+                'The vaporwave aesthetic you have been immersed in is itself built on these standards. This page — right now — is HTML, CSS, and JavaScript. The same technologies, refined and evolved, that Tim Berners-Lee envisioned in a Swiss laboratory in 1989.',
+                '<div class="type-display">The web is not a product. It is a protocol. And protocols do not die.</div>',
+                'The 1990s taught us that browsers come and go, companies rise and fall, and three-billion-dollar acquisitions can evaporate overnight. But the open standards beneath it all — those are permanent.',
+                '<span class="type-barcode">*PROTOCOLS_ENDURE*</span>'
+            ],
+            choices: [
+                { text: 'Reboot System', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING 3: Acceptance / Progress ---
+        ending_acceptance: {
+            type: 'ending',
+            fileId: 'SECTOR_12 // FINAL RECOVERY',
+            endingLabel: 'Data Recovery Complete',
+            endingTitle: 'Something Greater',
+            text: [
+                'The drive goes silent. The last fragment is saved.',
+                'You chose to look forward. And there is something honest in that.',
+                '<div class="divider"></div>',
+                'The web that GeoCities pioneered — the idea that anyone can publish anything — did not die. It metastasized. It became so successful that we forgot it was ever revolutionary.',
+                'In 1995, having a personal web page was extraordinary. By 2025, not having an online presence is extraordinary. The Homesteaders won. Their vision of a web where ordinary people create and share became the default state of human communication.',
+                'Yes, corporations control the platforms now. Yes, the anarchic creativity of GeoCities was replaced by algorithmic feeds and engagement metrics. But the fundamental promise — <em style="color:var(--cyan);">that your voice can reach the world</em> — that promise was kept.',
+                'The vaporwave aesthetic is not mourning. It is celebration through a retro filter. It says: <em style="color:var(--pink);">look how far we came from those 2-megabyte pages with dancing baby GIFs.</em>',
+                '<div class="type-display">The dream did not die. It grew up.</div>',
+                'The GeoCities page on this drive is a fossil. But the creature it came from — the impulse to create, to share, to connect — that creature is everywhere now. It evolved. It adapted. It won.',
+                '<span class="type-barcode">*SOMETHING_GREATER*</span>'
+            ],
+            choices: [
+                { text: 'Reboot System', next: '_restart' }
+            ]
+        }
+    };
+
+    // =================================================================
+    //  STORY ENGINE
+    // =================================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('digital_archaeology_begins');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 500);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1200);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update file ID header
+            if (scene.fileId) {
+                document.getElementById('sceneFileId').textContent = scene.fileId;
+            }
+
+            let html = '<div class="scene-content">';
+
+            switch (scene.type) {
+                case 'section':
+                    html += this.renderSection(scene);
+                    break;
+                case 'glitch':
+                    html += this.renderGlitch(scene);
+                    break;
+                case 'cards':
+                    html += this.renderCards(scene);
+                    break;
+                case 'ending':
+                    html += this.renderEnding(scene);
+                    break;
+            }
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += '<button class="choice-btn" onclick="engine.goTo(\'' + choice.next + '\')">';
+                    html += '<span class="choice-key">' + (i + 1) + '</span>';
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            this.updateFactUI();
+        },
+
+        renderSection(scene) {
+            let html = '<div class="scene-section">';
+            if (scene.title) html += '<h2 class="scene-title">' + scene.title + '</h2>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(function(p) { html += '<p>' + p + '</p>'; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderGlitch(scene) {
+            let html = '<div class="scene-glitch">';
+            if (scene.title) html += '<h2 class="scene-title">' + scene.title + '</h2>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(function(p) { html += '<p>' + p + '</p>'; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderCards(scene) {
+            let html = '<div class="scene-cards">';
+            if (scene.title) html += '<h2 class="scene-title">' + scene.title + '</h2>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(function(p) { html += '<p>' + p + '</p>'; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderEnding(scene) {
+            let html = '<div class="scene-ending">';
+            if (scene.endingLabel) html += '<div class="ending-label">' + scene.endingLabel + '</div>';
+            if (scene.endingTitle) html += '<div class="ending-title">' + scene.endingTitle + '</div>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(function(p) { html += '<p>' + p + '</p>'; });
+            html += '</div>';
+            html += '<div class="the-end">*THE_END*</div>';
+            html += '</div>';
+            return html;
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            var count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            var list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No data recovered yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(function(f, i) {
+                    return '<div class="fact-item">[' + (i + 1) + '] ' + f + '</div>';
+                }).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factPanelOpen = !this.factPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

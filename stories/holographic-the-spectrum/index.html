@@ -1,0 +1,1892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Spectrum — A Holographic Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'Outfit', sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --radius-full: 9999px;
+
+            --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-base: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-slow: 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+
+            --bg-dark: #0a0a0f;
+            --bg-surface: #12121a;
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.45);
+
+            --holo-pink: #ff6bd6;
+            --holo-purple: #c86bff;
+            --holo-blue: #6bb3ff;
+            --holo-cyan: #6bffe0;
+            --holo-green: #a6ff6b;
+            --holo-yellow: #ffe86b;
+            --holo-orange: #ff9f6b;
+            --holo-red: #ff6b8a;
+
+            --chrome-light: #f0f0f5;
+            --chrome-mid: #a8a8b3;
+            --chrome-dark: #5a5a6e;
+
+            --holo-gradient: linear-gradient(
+                135deg,
+                var(--holo-pink) 0%,
+                var(--holo-purple) 14%,
+                var(--holo-blue) 28%,
+                var(--holo-cyan) 42%,
+                var(--holo-green) 56%,
+                var(--holo-yellow) 70%,
+                var(--holo-orange) 84%,
+                var(--holo-pink) 100%
+            );
+
+            --holo-gradient-animated: linear-gradient(
+                90deg,
+                var(--holo-pink),
+                var(--holo-purple),
+                var(--holo-blue),
+                var(--holo-cyan),
+                var(--holo-green),
+                var(--holo-yellow),
+                var(--holo-orange),
+                var(--holo-red),
+                var(--holo-pink)
+            );
+
+            --pearl-gradient: linear-gradient(
+                135deg,
+                rgba(255, 255, 255, 0.9) 0%,
+                rgba(200, 220, 255, 0.8) 25%,
+                rgba(255, 200, 230, 0.8) 50%,
+                rgba(200, 255, 240, 0.8) 75%,
+                rgba(255, 255, 255, 0.9) 100%
+            );
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background: var(--bg-dark);
+            overflow-x: hidden;
+        }
+
+        /* Animated holographic background */
+        .holo-bg {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .holo-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(255, 107, 214, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(107, 179, 255, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 40% 80%, rgba(107, 255, 224, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(200, 107, 255, 0.12) 0%, transparent 50%);
+            animation: holo-drift 20s ease-in-out infinite;
+        }
+
+        @keyframes holo-drift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(2%, 1%) rotate(1deg); }
+            50% { transform: translate(-1%, 2%) rotate(-1deg); }
+            75% { transform: translate(-2%, -1%) rotate(0.5deg); }
+        }
+
+        /* Prismatic light rays */
+        .light-rays {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.4;
+        }
+
+        .light-ray {
+            position: absolute;
+            width: 2px;
+            height: 300vh;
+            transform-origin: top center;
+            animation: ray-shimmer 8s ease-in-out infinite;
+        }
+
+        .light-ray:nth-child(1) { left: 10%; background: linear-gradient(180deg, transparent, var(--holo-pink), transparent); animation-delay: 0s; transform: rotate(15deg); }
+        .light-ray:nth-child(2) { left: 30%; background: linear-gradient(180deg, transparent, var(--holo-cyan), transparent); animation-delay: -2s; transform: rotate(-10deg); }
+        .light-ray:nth-child(3) { left: 50%; background: linear-gradient(180deg, transparent, var(--holo-purple), transparent); animation-delay: -4s; transform: rotate(5deg); }
+        .light-ray:nth-child(4) { left: 70%; background: linear-gradient(180deg, transparent, var(--holo-green), transparent); animation-delay: -6s; transform: rotate(-15deg); }
+        .light-ray:nth-child(5) { left: 90%; background: linear-gradient(180deg, transparent, var(--holo-yellow), transparent); animation-delay: -1s; transform: rotate(8deg); }
+
+        @keyframes ray-shimmer {
+            0%, 100% { opacity: 0.2; filter: blur(3px); }
+            50% { opacity: 0.6; filter: blur(1px); }
+        }
+
+        /* Mouse glow */
+        .mouse-glow {
+            position: fixed;
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.15;
+            background: radial-gradient(circle, rgba(255, 107, 214, 0.5) 0%, rgba(107, 255, 224, 0.3) 30%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: opacity 0.3s ease;
+        }
+
+        /* Container */
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--space-6) var(--space-5);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Holographic surface */
+        .holo-surface {
+            position: relative;
+            background: var(--bg-surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .holo-surface::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--holo-gradient);
+            background-size: 400% 400%;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            animation: gradient-shift 8s ease infinite;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+
+        .holo-surface::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.8s ease;
+            pointer-events: none;
+        }
+
+        .holo-surface:hover::before { opacity: 0.3; }
+        .holo-surface:hover::after { left: 150%; }
+
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Chrome effect */
+        .chrome {
+            background: linear-gradient(180deg, var(--chrome-light) 0%, var(--chrome-mid) 40%, var(--chrome-dark) 50%, var(--chrome-mid) 60%, var(--chrome-light) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Iridescent text */
+        .holo-text {
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: text-shimmer 5s linear infinite;
+        }
+
+        @keyframes text-shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        /* Floating badge */
+        .holo-badge-float {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            margin-bottom: var(--space-5);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 4s linear infinite;
+            color: var(--bg-dark);
+        }
+
+        /* Cards */
+        .card-holo {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%), var(--bg-surface);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all var(--transition-base);
+            position: relative;
+            margin-bottom: var(--space-5);
+        }
+
+        .card-holo::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: var(--holo-gradient);
+            background-size: 300% 300%;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            animation: gradient-shift 6s ease infinite;
+            mix-blend-mode: overlay;
+            pointer-events: none;
+        }
+
+        .card-holo::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 3s linear infinite;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card-holo:hover::before { opacity: 0.15; }
+        .card-holo:hover::after { opacity: 1; }
+
+        /* Pearl card */
+        .card-pearl {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(200, 220, 255, 0.05) 25%, rgba(255, 200, 230, 0.05) 50%, rgba(200, 255, 240, 0.05) 75%, rgba(255, 255, 255, 0.08) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            margin-bottom: var(--space-5);
+        }
+
+        /* Alert */
+        .alert-holo {
+            padding: var(--space-5);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-4);
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-start;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .alert-holo::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--holo-gradient);
+        }
+
+        .alert-icon { font-size: 1.25rem; line-height: 1; }
+        .alert-content { flex: 1; }
+        .alert-title { font-weight: 600; margin-bottom: var(--space-1); font-family: var(--font-display); }
+        .alert-message { font-size: 0.9375rem; color: var(--text-secondary); }
+
+        /* Showcase */
+        .holo-showcase {
+            padding: var(--space-7);
+            border-radius: var(--radius-xl);
+            background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 40%), var(--bg-surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-6);
+        }
+
+        .holo-showcase::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 107, 214, 0.1), transparent, rgba(107, 255, 224, 0.1), transparent, rgba(200, 107, 255, 0.1), transparent);
+            animation: rotate-gradient 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes rotate-gradient {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .showcase-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .showcase-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: var(--space-3);
+        }
+
+        .showcase-desc {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Foil card */
+        .foil-card {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            background: var(--bg-surface);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: var(--space-5);
+        }
+
+        .foil-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--holo-gradient);
+            background-size: 200% 200%;
+            opacity: 0.5;
+            filter: blur(40px);
+            animation: gradient-shift 8s ease infinite;
+        }
+
+        .foil-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(105deg, transparent 20%, rgba(255, 255, 255, 0.1) 35%, rgba(255, 255, 255, 0.2) 38%, rgba(255, 255, 255, 0.1) 41%, transparent 60%);
+            background-size: 200% 100%;
+            animation: foil-shine 3s ease-in-out infinite;
+        }
+
+        @keyframes foil-shine {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .foil-content { position: relative; z-index: 1; }
+
+        /* Progress */
+        .progress-container { margin-bottom: var(--space-5); }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-size: 0.875rem;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill-holo {
+            height: 100%;
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 3s linear infinite;
+            border-radius: var(--radius-full);
+            position: relative;
+            transition: width 0.6s ease;
+        }
+
+        .progress-fill-holo::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Badges */
+        .badge-holo {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 4s linear infinite;
+            color: var(--bg-dark);
+        }
+
+        .badge-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+        }
+
+        .badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ═══════════════════════════════════════════
+           TITLE SCREEN
+        ═══════════════════════════════════════════ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            font-weight: 800;
+            letter-spacing: -2px;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .title-subtitle {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 500;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .title-tagline {
+            color: var(--text-muted);
+            margin-bottom: 3rem;
+            max-width: 500px;
+            font-weight: 300;
+            font-size: 1.05rem;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4) var(--space-7);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 4s linear infinite;
+            color: var(--bg-dark);
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 15px rgba(255, 107, 214, 0.3), 0 0 30px -10px rgba(107, 255, 224, 0.5);
+            transition: all var(--transition-fast);
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .title-start:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 107, 214, 0.4), 0 0 40px -5px rgba(107, 255, 224, 0.6);
+        }
+
+        .title-start:hover::before { left: 100%; }
+
+        .title-credits {
+            margin-top: 3rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE CONTAINER
+        ═══════════════════════════════════════════ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .scene-wrapper.active { display: flex; }
+
+        /* Scene header */
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-4);
+            margin-bottom: var(--space-5);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .scene-era-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .scene-fact-count {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE CONTENT STYLES
+        ═══════════════════════════════════════════ */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Scene text defaults */
+        .scene-text p {
+            margin-bottom: 1rem;
+            line-height: 1.8;
+        }
+
+        .scene-text p:last-child { margin-bottom: 0; }
+
+        .scene-text h3 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-3);
+            letter-spacing: -0.5px;
+        }
+
+        .scene-text .scientist-name {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .scene-text .date-marker {
+            color: var(--holo-cyan);
+            font-weight: 600;
+        }
+
+        .scene-text .wavelength {
+            font-family: var(--font-display);
+            font-weight: 600;
+        }
+
+        .scene-text .era-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 3vw, 2rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: var(--space-4);
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT DISCOVERED TOAST
+        ═══════════════════════════════════════════ */
+        .fact-discovered {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius-md);
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-top: var(--space-5);
+            animation: factSlideIn 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fact-discovered::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 3px;
+            background: var(--holo-gradient);
+        }
+
+        .fact-discovered .fact-icon {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 4s linear infinite;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--bg-dark);
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ═══════════════════════════════════════════
+           CHOICES
+        ═══════════════════════════════════════════ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            border: 2px solid transparent;
+            background-image: linear-gradient(var(--bg-surface), var(--bg-surface)), var(--holo-gradient-animated);
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            background-size: 100% 100%, 300% 100%;
+            animation: text-shimmer 4s linear infinite;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border-radius: var(--radius-md);
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background-image: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            color: var(--bg-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 214, 0.3), 0 0 30px -10px rgba(107, 255, 224, 0.4);
+        }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-secondary);
+            transition: all var(--transition-fast);
+        }
+
+        .choice-btn:hover .choice-key {
+            background: rgba(0, 0, 0, 0.15);
+            border-color: rgba(0, 0, 0, 0.2);
+            color: var(--bg-dark);
+        }
+
+        /* Primary choice (btn-holo style) */
+        .choice-btn-primary {
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 4s linear infinite;
+            color: var(--bg-dark);
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 107, 214, 0.3), 0 0 30px -10px rgba(107, 255, 224, 0.5);
+        }
+
+        .choice-btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 107, 214, 0.4), 0 0 40px -5px rgba(107, 255, 224, 0.6);
+        }
+
+        .choice-btn-primary .choice-key {
+            background: rgba(0, 0, 0, 0.15);
+            border-color: rgba(0, 0, 0, 0.2);
+            color: var(--bg-dark);
+        }
+
+        /* ═══════════════════════════════════════════
+           TRANSITION OVERLAY
+        ═══════════════════════════════════════════ */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: holoTransition 1.2s ease-in-out;
+        }
+
+        @keyframes holoTransition {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            50% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-prism {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--bg-dark);
+        }
+
+        .transition-prism::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--holo-gradient);
+            background-size: 400% 400%;
+            animation: gradient-shift 2s ease infinite;
+            opacity: 0.15;
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT TRACKER (SIDEBAR)
+        ═══════════════════════════════════════════ */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            background: var(--bg-surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-left: auto;
+        }
+
+        .fact-tracker-toggle:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .fact-tracker-toggle .toggle-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            background: var(--holo-gradient-animated);
+            background-size: 300% 100%;
+            animation: text-shimmer 4s linear infinite;
+            color: var(--bg-dark);
+            font-size: 0.7rem;
+            font-weight: 800;
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-2);
+            background: var(--bg-surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .fact-item {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            animation: factSlideIn 0.4s ease-out;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .fact-item .fact-year {
+            font-weight: 700;
+            font-family: var(--font-display);
+        }
+
+        .no-facts {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ═══════════════════════════════════════════
+           ENDING SCENE
+        ═══════════════════════════════════════════ */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-7) var(--space-5);
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-ending .scene-text {
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        .scene-ending .scene-text p {
+            color: var(--text-secondary);
+        }
+
+        .scene-ending .the-end {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            margin-top: var(--space-6);
+            text-transform: uppercase;
+        }
+
+        /* ═══════════════════════════════════════════
+           GAME CONTROLS
+        ═══════════════════════════════════════════ */
+        .game-controls {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            padding-top: var(--space-5);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .ctrl-btn {
+            padding: var(--space-2) var(--space-4);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-sm);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .ctrl-btn:hover {
+            border-color: rgba(255, 255, 255, 0.25);
+            color: var(--text-primary);
+        }
+
+        /* ═══════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .game-container { padding: var(--space-4); }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .holo-showcase { padding: var(--space-5); }
+            .card-holo, .card-pearl { padding: var(--space-5); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-surface); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 3px; }
+        ::selection { background: var(--holo-purple); color: white; }
+    </style>
+</head>
+<body>
+    <div class="holo-bg"></div>
+
+    <div class="light-rays">
+        <div class="light-ray"></div>
+        <div class="light-ray"></div>
+        <div class="light-ray"></div>
+        <div class="light-ray"></div>
+        <div class="light-ray"></div>
+    </div>
+
+    <div class="mouse-glow" id="mouseGlow"></div>
+
+    <!-- Transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-prism"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span>Discoveries</span>
+            <span class="toggle-count" id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Scientific Facts Discovered</h4>
+            <div id="factList">
+                <p class="no-facts">No discoveries yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="holo-badge-float"><span class="badge-dot"></span> Interactive History</div>
+            <h1 class="holo-text">The Spectrum</h1>
+            <div class="title-subtitle">A Journey Through Light</div>
+            <p class="title-tagline">From Newton's prism to the first hologram: 300 years of humanity uncovering the invisible universe of electromagnetic radiation.</p>
+            <button class="title-start" id="startBtn">Begin the Journey</button>
+            <p class="title-credits">A story told in wavelengths and discoveries</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-era-label holo-text" id="eraLabel">The Scientific Revolution</span>
+
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  THE SPECTRUM — Story Data
+    // ═══════════════════════════════════════════════════════════════
+
+    const STORY = {
+
+        // ── SCENE 1: Newton's Prism (1666) ──
+        newton: {
+            era: '1666 — Cambridge, England',
+            content: `
+                <div class="holo-showcase">
+                    <div class="showcase-content">
+                        <h2 class="showcase-title holo-text">The Prism in Darkness</h2>
+                        <p class="showcase-desc">A darkened room. A single shaft of sunlight. A glass prism. The moment everything changes.</p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <p class="scene-text">
+                        <span class="holo-badge-float" style="margin-bottom:var(--space-4)">1666</span>
+                    </p>
+                    <div class="scene-text">
+                        <p><span class="scientist-name holo-text">Sir Isaac Newton</span> has sealed every crack in his study at Trinity College, Cambridge. The room is utterly dark, save for a single pinhole of sunlight streaming through a gap in the window shutters.</p>
+                        <p>He positions a glass prism in the narrow beam. The white light bends, refracts, and fans out across the opposite wall in a ribbon of colors: red, orange, yellow, green, blue, indigo, violet.</p>
+                        <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Dispersive_Prism_Illustration_by_Spigget.jpg" alt="Light through a prism" style="max-width: 100%; height: auto; border: 1px solid rgba(107, 179, 255, 0.4); border-radius: 8px; opacity: 0.9; max-height: 400px; object-fit: contain; box-shadow: 0 0 20px rgba(200, 107, 255, 0.2);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic;">Light through a prism — Newton proved white light contains all colors, 1666</div></div>
+                        <p>It is not the prism creating these colors. The colors were always there, hidden inside the white light itself. Newton has just proven that <strong>white light is a mixture of all visible colors</strong>, each bending at a different angle because each has a different wavelength.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">In 1666, Newton completely darkened his study and created a small hole in the window shutters to conduct his groundbreaking prism experiment, proving that white light is composed of all colors from red to violet, each with a different wavelength.</div>
+                    </div>
+                </div>
+            `,
+            fact: '1666 — Newton proved white light is composed of all colors using a glass prism at Trinity College, Cambridge',
+            choices: [
+                { text: 'Follow the spectrum deeper into color', next: 'herschel', primary: true },
+                { text: 'Question what else might be invisible', next: 'ritter' }
+            ]
+        },
+
+        // ── SCENE 2: Herschel's Infrared (1800) ──
+        herschel: {
+            era: '1800 — Bath, England',
+            content: `
+                <div class="foil-card">
+                    <div class="foil-content">
+                        <p class="scene-text" style="text-align:center;">
+                            <span class="era-title" style="color:var(--holo-red);">Beyond Red: Herschel's Calorific Rays</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">March 27, 1800</span></p>
+                        <p>More than a century after Newton, <span class="scientist-name" style="color:var(--holo-purple);">William Herschel</span> — the British astronomer who discovered the planet Uranus — is conducting a deceptively simple experiment in Bath, England.</p>
+                        <p>He splits sunlight through a prism, just as Newton did. But Herschel is not studying color. He is measuring <em>temperature</em>. Using blackened-bulb thermometers, he carefully records the heating effect of each color band.</p>
+                        <p>Red light is warmer than violet. That much he expects. But then, on a hunch, he places a thermometer <strong>beyond the red end of the spectrum</strong> — in the darkness where no visible light falls.</p>
+                        <p>The mercury rises. The temperature is <em>higher</em> than anywhere in the visible spectrum.</p>
+                        <p>There is invisible light. Herschel calls it <strong>"calorific rays"</strong> — what we now know as infrared radiation. The visible spectrum, Newton's rainbow, is not the whole story. It is only the beginning.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">On March 27, 1800, William Herschel discovered infrared radiation by measuring temperature beyond the red end of the visible spectrum. He called them "calorific rays" and presented his findings to the Royal Society.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">15%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 15%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1800 — William Herschel discovered infrared radiation beyond the red end of the spectrum using thermometers, calling them "calorific rays"',
+            choices: [
+                { text: 'Search the other end of the spectrum', next: 'ritter', primary: true },
+                { text: 'Leap ahead to electromagnetic waves', next: 'hertz' }
+            ]
+        },
+
+        // ── SCENE 3: Ritter's Ultraviolet (1801) ──
+        ritter: {
+            era: '1801 — Jena, Germany',
+            content: `
+                <div class="foil-card">
+                    <div class="foil-content">
+                        <p class="scene-text" style="text-align:center;">
+                            <span class="era-title" style="color:var(--holo-purple);">One Year Later: Ritter's Chemical Rays</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-pearl">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">February 22, 1801</span></p>
+                        <p>The news of Herschel's invisible heat rays has traveled fast. In Jena, Germany, a young physicist named <span class="scientist-name" style="color:var(--holo-purple);">Johann Wilhelm Ritter</span> asks a brilliant question: <em>if there is invisible radiation beyond the red end, might there also be something beyond the violet end?</em></p>
+                        <p>Ritter knows that silver chloride — the chemical used in early photography — darkens when exposed to light. He sets strips of silver chloride paper along a prismatic spectrum.</p>
+                        <p>As expected, the violet light causes the fastest darkening. But when Ritter places a strip <strong>beyond the violet end</strong> — in what should be total darkness — the chemical reaction is <em>even stronger</em>.</p>
+                        <p>Ritter has discovered <strong>ultraviolet radiation</strong>, which he calls "Chemical Rays." In just one year, the known spectrum has expanded in both directions. The universe of invisible light is growing.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">On February 22, 1801, Johann Wilhelm Ritter discovered ultraviolet radiation by observing that silver chloride darkened faster when placed beyond the violet end of the visible spectrum. He called them "Chemical Rays."</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">25%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 25%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1801 — Johann Wilhelm Ritter discovered ultraviolet radiation using silver chloride, calling them "Chemical Rays," just one year after Herschel found infrared',
+            choices: [
+                { text: 'What other invisible radiations exist?', next: 'hertz', primary: true },
+                { text: 'Pursue the rays that pierce through matter', next: 'rontgen' }
+            ]
+        },
+
+        // ── SCENE 4: Hertz's Radio Waves (1887) ──
+        hertz: {
+            era: '1887 — Karlsruhe, Germany',
+            content: `
+                <div class="holo-showcase">
+                    <div class="showcase-content">
+                        <h2 class="showcase-title" style="color:var(--holo-blue);">Waves in the Void</h2>
+                        <p class="showcase-desc">A spark leaps across a gap. Across the room, another spark answers. Electromagnetic waves are real.</p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">November 1887</span></p>
+                        <p>Nearly a century has passed since Herschel and Ritter expanded the spectrum. The Scottish physicist James Clerk Maxwell has predicted mathematically that light is just one form of electromagnetic wave — and that there should be waves of much longer wavelength, invisible and undetectable by any human sense.</p>
+                        <p>In Karlsruhe, <span class="scientist-name" style="color:var(--holo-blue);">Heinrich Hertz</span> sets out to prove Maxwell right. He builds an ingenious apparatus: a dipole antenna powered by a <strong>30-kilovolt spark gap</strong> that generates rapid electrical oscillations. Across the room, a simple resonant receiver loop waits.</p>
+                        <p>Hertz charges the transmitter. A spark arcs across the gap. And in the receiver loop — with no physical connection, no wire, nothing but empty air between them — a tiny spark appears.</p>
+                        <p>Electromagnetic waves exist. They travel in straight lines. They can be focused and refracted. And they move at approximately <strong>300,000 kilometers per second</strong> — the speed of light.</p>
+                        <p>Radio waves, light waves, infrared, ultraviolet — they are all the same phenomenon. The spectrum is not a narrow ribbon. It is a vast, invisible ocean.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">In November 1887, Heinrich Hertz used a 30-kilovolt spark gap and a resonant receiver to prove that electromagnetic waves travel at approximately 300,000 km/s (the speed of light), confirming Maxwell's theory and establishing that radio waves, light, and other radiation are all part of one unified spectrum.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">40%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 40%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1887 — Heinrich Hertz proved electromagnetic waves travel at ~300,000 km/s using a 30-kilovolt spark gap, confirming that radio waves and light are the same phenomenon',
+            choices: [
+                { text: 'Continue exploring the spectrum', next: 'rontgen', primary: true },
+                { text: 'Examine the nature of light itself', next: 'spectrum_complete' }
+            ]
+        },
+
+        // ── SCENE 5: Rontgen's X-rays (1895) ──
+        rontgen: {
+            era: '1895 — Wurzburg, Germany',
+            content: `
+                <div class="foil-card">
+                    <div class="foil-content">
+                        <p class="scene-text" style="text-align:center;">
+                            <span class="era-title" style="color:var(--holo-cyan);">The Accidental Discovery: X-rays Revealed</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">November 8, 1895</span></p>
+                        <p>It is late at night in a darkened laboratory. <span class="scientist-name" style="color:var(--holo-cyan);">Wilhelm Rontgen</span> is experimenting with cathode-ray tubes — glass tubes from which most of the air has been pumped out, through which electrical current flows in eerie, glowing streams.</p>
+                        <p>He has covered the tube with black cardboard. No light should escape. But across the room, a screen coated with <strong>barium platinocyanide</strong> begins to glow with a faint, ghostly fluorescence.</p>
+                        <p>Something invisible is passing through the cardboard. Through paper. Through wood. Through flesh.</p>
+                        <p>For the next <strong>seven weeks</strong>, Rontgen barely leaves his laboratory. He eats and sleeps there, methodically documenting these mysterious rays. He discovers they cast shadows of bones inside living hands. He places his wife Anna Bertha's hand before the rays, and the resulting image shows her skeleton and wedding ring — the first medical X-ray in history.</p>
+                        <p>He calls them "X-rays" — X for the unknown. In 1901, he will receive the very first Nobel Prize in Physics for this discovery.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">On November 8, 1895, Wilhelm Rontgen accidentally discovered X-rays while experimenting with cathode-ray tubes. He noticed a distant barium platinocyanide screen glowing and spent seven weeks documenting rays that could penetrate flesh but cast shadows from bones. He won the first Nobel Prize in Physics in 1901.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">50%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 50%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1895 — Wilhelm Rontgen discovered X-rays accidentally while studying cathode-ray tubes and won the first Nobel Prize in Physics in 1901',
+            choices: [
+                { text: 'Map the complete electromagnetic spectrum', next: 'spectrum_complete', primary: true },
+                { text: 'Find a way to capture light in three dimensions', next: 'gabor' }
+            ]
+        },
+
+        // ── SCENE 6: The Complete Spectrum ──
+        spectrum_complete: {
+            era: '1900s-1940s — The Unified Picture',
+            content: `
+                <div class="holo-showcase">
+                    <div class="showcase-content">
+                        <h2 class="showcase-title holo-text">The Unified Spectrum</h2>
+                        <p class="showcase-desc">From radio to gamma rays: one continuous phenomenon stretching across an unimaginable range of wavelengths.</p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p>By the early twentieth century, the picture is becoming clear. The discoveries of Newton (1666), Herschel (1800), Ritter (1801), Hertz (1887), and Rontgen (1895) are pieces of the same vast puzzle.</p>
+                        <p>All electromagnetic radiation — from the longest radio waves stretching kilometers to the shortest gamma rays smaller than an atom — travels at the same speed and follows the same laws. The only difference is wavelength.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">The Electromagnetic Spectrum</div>
+                        <div class="alert-message">
+                            <strong>Radio waves</strong> (longest) &rarr; <strong>Microwaves</strong> &rarr; <strong>Infrared</strong> &rarr; <strong style="background:var(--holo-gradient-animated);background-size:300% 100%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:text-shimmer 5s linear infinite;">Visible light</strong> &rarr; <strong>Ultraviolet</strong> &rarr; <strong>X-rays</strong> &rarr; <strong>Gamma rays</strong> (shortest)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-pearl">
+                    <div class="scene-text">
+                        <p>Human eyes detect only a tiny sliver of this spectrum — wavelengths between about 380 and 700 nanometers. Everything else is invisible to us. We are nearly blind to the universe of radiation that surrounds us.</p>
+                        <p>And in 1945, an American engineer named <span class="scientist-name">Percy Spencer</span> will accidentally discover yet another use for the spectrum. While testing a military magnetron — a device that generates microwaves — he notices the candy bar in his pocket has <strong>melted</strong>. He files the first patent for a microwave oven on <span class="date-marker">October 8, 1945</span>, calling it the "Radarange."</p>
+                        <p>But the most extraordinary application of electromagnetic radiation is still ahead. What if you could capture light itself — not as a flat photograph, but as a <em>three-dimensional record of the wavefront</em>?</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">In 1945, Percy Spencer discovered microwave heating when a candy bar melted in his pocket while testing a magnetron at Raytheon. He had previously improved magnetron manufacturing to 2,600 units per day. He filed the first microwave oven patent on October 8, 1945.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">60%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 60%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1945 — Percy Spencer discovered microwave heating when a candy bar melted in his pocket while testing a magnetron. He filed the first microwave oven patent on October 8, 1945',
+            choices: [
+                { text: 'Can we store light in three dimensions?', next: 'gabor', primary: true },
+                { text: 'What if we could manipulate light coherently?', next: 'coherent_search' }
+            ]
+        },
+
+        // ── SCENE 7: Gabor Invents Holography (1947) ──
+        gabor: {
+            era: '1947 — Rugby, England',
+            content: `
+                <div class="holo-showcase">
+                    <div class="showcase-content">
+                        <h2 class="showcase-title" style="color:var(--holo-green);">Gabor's Wavefront Reconstruction</h2>
+                        <p class="showcase-desc">Holography is born — theoretically. But the technology to make it real does not yet exist.</p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">1947</span></p>
+                        <p>At the laboratories of British Thomson-Houston in Rugby, England, a Hungarian-British physicist named <span class="scientist-name" style="color:var(--holo-green);">Dennis Gabor</span> is working on a frustrating problem: how to improve the blurry images produced by electron microscopes.</p>
+                        <p>Gabor has a radical idea. Instead of simply recording the <em>intensity</em> of light (as a photograph does), what if you could record the complete <strong>wavefront</strong> — both the amplitude and the phase of the light waves? If you captured this interference pattern, you could later reconstruct the original light field in three dimensions.</p>
+                        <p>He calls his invention <strong>"holography"</strong> — from the Greek <em>holos</em> (whole) and <em>graphe</em> (writing). Whole-writing. A complete record of the light.</p>
+                        <p>But there is a fundamental problem. Holography requires <strong>coherent light</strong> — a light source where all the waves are perfectly synchronized, moving in lockstep, all the same wavelength and all in phase. Ordinary light, even from the best laboratory lamps, is chaotic and incoherent. The waves jostle and interfere randomly.</p>
+                        <p>Gabor's invention is revolutionary but impractical. It will wait thirteen years for the technology to catch up.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">In 1947, Dennis Gabor invented holography ("wavefront reconstruction") at British Thomson-Houston to improve electron microscope images. The concept required recording light interference patterns to reconstruct 3D images, but it remained impractical without a coherent light source. He later won the Nobel Prize in Physics in 1971.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">70%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 70%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1947 — Dennis Gabor invented holography (wavefront reconstruction) at British Thomson-Houston, but it required coherent light that did not yet exist. He won the 1971 Nobel Prize',
+            choices: [
+                { text: 'Wait for the technology to catch up', next: 'maiman', primary: true },
+                { text: 'Push forward with existing light sources', next: 'coherent_search' }
+            ]
+        },
+
+        // ── SCENE 8: The Search for Coherent Light ──
+        coherent_search: {
+            era: '1950s — Laboratories Worldwide',
+            content: `
+                <div class="foil-card">
+                    <div class="foil-content">
+                        <p class="scene-text" style="text-align:center;">
+                            <span class="era-title chrome">The Search for Coherent Light</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="card-pearl">
+                    <div class="scene-text">
+                        <p>The 1950s are a decade of frustration and feverish ambition. Physicists around the world know that a coherent light source — a device that produces perfectly ordered light waves, all in phase and moving in the same direction — would transform optics, communications, and Gabor's holography.</p>
+                        <p>In 1954, Charles Townes and Arthur Schawlow produce the <strong>maser</strong>, which amplifies microwaves using stimulated emission. The principle is sound: force atoms into an excited state, then trigger them to release their energy as perfectly synchronized radiation.</p>
+                        <p>But microwaves are not visible light. The jump from maser to <strong>laser</strong> (Light Amplification by Stimulated Emission of Radiation) requires materials that can be pumped to excitement and triggered at optical frequencies — a vastly more difficult engineering challenge.</p>
+                        <p>Multiple teams are racing. Theodore Maiman at Hughes Aircraft. Ali Javan at Bell Labs. Gordon Gould, who coined the word "laser" itself. The question is not <em>if</em>, but <em>who</em> and <em>when</em>.</p>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">75%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 75%;"></div>
+                    </div>
+                </div>
+            `,
+            choices: [
+                { text: 'Try solid-state materials for laser development', next: 'maiman', primary: true },
+                { text: 'Return to Gabor\'s original holographic vision', next: 'gabor' }
+            ]
+        },
+
+        // ── SCENE 9: Maiman's Laser (1960) ──
+        maiman: {
+            era: 'May 16, 1960 — Malibu, California',
+            content: `
+                <div class="holo-showcase">
+                    <div class="showcase-content">
+                        <h2 class="showcase-title holo-text">The Moment Light Becomes Coherent</h2>
+                        <p class="showcase-desc">A pink ruby crystal. A flash lamp. The first laser pulse in human history.</p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">May 16, 1960</span></p>
+                        <p>At Hughes Aircraft Company's research laboratory in Malibu, California, <span class="scientist-name holo-text">Theodore Maiman</span> holds in his hand a synthetic pink ruby rod measuring just <strong>1 centimeter by 1.5 centimeters</strong>.</p>
+                        <p>While other researchers have been pursuing complex gas systems and exotic materials, Maiman has bet everything on this small crystal. His colleagues are skeptical. Many believe ruby cannot work.</p>
+                        <p>He wraps a helical xenon flash lamp around the ruby rod. The flash lamp will pump energy into the crystal, exciting the chromium atoms embedded in the aluminum oxide lattice. If his calculations are correct, the stimulated emission will cascade — photon triggering photon, each one identical in wavelength, phase, and direction.</p>
+                        <p>Maiman charges the capacitor bank. Fires the flash lamp.</p>
+                        <p>A pulse of <strong>deep red light</strong> — coherent, monochromatic, and impossibly intense — erupts from the end of the ruby rod.</p>
+                        <p>It is the first laser. The first coherent light beam in human history. The missing piece that Gabor needed thirteen years ago.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">On May 16, 1960, Theodore Maiman created the first functional laser at Hughes Aircraft in Malibu, California, using a synthetic pink ruby rod (1 cm x 1.5 cm) and a helical xenon flash lamp. He published his results in Nature on August 6, 1960, and announced the laser to the world on July 7, 1960.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">85%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 85%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1960 — Theodore Maiman built the first laser on May 16, 1960, using a 1cm x 1.5cm pink ruby rod and xenon flash lamp at Hughes Aircraft in Malibu, California',
+            choices: [
+                { text: 'Announce this to the scientific community', next: 'publication', primary: true },
+                { text: 'Apply the laser to Gabor\'s holography', next: 'leith' }
+            ]
+        },
+
+        // ── SCENE 10: Publication and Recognition ──
+        publication: {
+            era: 'August 6, 1960 — The World Takes Notice',
+            content: `
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">August 6, 1960</span></p>
+                        <p>Maiman's path to recognition is not smooth. His initial paper is <strong>rejected</strong> by Physical Review Letters. The editors consider it merely incremental — an extension of the maser, not a breakthrough.</p>
+                        <p>But Nature accepts it. On <span class="date-marker">August 6, 1960</span>, Maiman's brief, elegant paper is published in one of the world's most prestigious scientific journals. A month earlier, on July 7, he held a press conference in New York.</p>
+                        <p>The response is electric. Newspapers call it a "science fiction ray gun." The Pentagon wants to know about weapons applications. But physicists around the world immediately grasp the true significance: <strong>coherent light</strong> opens doors that have been locked for decades.</p>
+                        <p>And in a laboratory at the University of Michigan, two optical engineers are already reading Maiman's paper with intense excitement. They have been waiting for exactly this.</p>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">Maiman's laser paper was initially rejected by Physical Review Letters but was published in Nature on August 6, 1960. His discovery transformed optical physics and made possible the practical realization of holography that Gabor had theoretically conceived 13 years earlier.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">90%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 90%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1960 — Maiman\'s laser paper was rejected by Physical Review Letters but published in Nature on August 6, 1960, transforming optical physics',
+            choices: [
+                { text: 'Follow the engineers at Michigan', next: 'leith', primary: true }
+            ]
+        },
+
+        // ── SCENE 11: Leith & Upatnieks (1962-1964) ──
+        leith: {
+            era: '1962-1964 — University of Michigan',
+            content: `
+                <div class="holo-showcase">
+                    <div class="showcase-content">
+                        <h2 class="showcase-title holo-text">The Quest for 3-D Light</h2>
+                        <p class="showcase-desc">Emmett Leith and Juris Upatnieks take Gabor's theory and Maiman's laser and create the impossible: a practical three-dimensional hologram.</p>
+                    </div>
+                </div>
+
+                <div class="card-holo">
+                    <div class="scene-text">
+                        <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">1962 - 1964</span></p>
+                        <p>At the University of Michigan, optical engineers <span class="scientist-name" style="color:var(--holo-cyan);">Emmett Leith</span> and <span class="scientist-name" style="color:var(--holo-green);">Juris Upatnieks</span> have been working on radar signal processing. But they immediately see the connection to Gabor's holography.</p>
+                        <p>With Maiman's laser providing the coherent light source that Gabor never had, Leith and Upatnieks begin creating the first practical three-dimensional holograms. They split a laser beam into two paths: one illuminates the object, the other serves as a reference beam. Where the two beams meet on a photographic plate, they create an interference pattern — a hologram.</p>
+                        <p>When laser light illuminates this pattern, it reconstructs the original wavefront. The viewer sees a three-dimensional image floating in space. Move your head, and the perspective shifts. Look around the edges of the object. It is, for all visual purposes, <em>there</em>.</p>
+                        <p>Their subject for the first demonstration is a toy train.</p>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">95%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 95%;"></div>
+                    </div>
+                </div>
+            `,
+            choices: [
+                { text: 'Demonstrate the hologram publicly', next: 'demonstration', primary: true },
+                { text: 'Reflect on the complete journey of light', next: 'ending_unified' }
+            ]
+        },
+
+        // ── SCENE 12: The First Public Hologram (Spring 1964) ──
+        demonstration: {
+            era: 'Spring 1964 — Optical Society of America',
+            content: `
+                <div class="holo-showcase">
+                    <div class="showcase-content">
+                        <h2 class="showcase-title holo-text">The First Three-Dimensional Hologram</h2>
+                        <p class="showcase-desc">Spring 1964. The Optical Society of America conference. The world is about to see what light can truly do.</p>
+                    </div>
+                </div>
+
+                <div class="foil-card">
+                    <div class="foil-content">
+                        <div class="scene-text">
+                            <p><span class="holo-badge-float" style="margin-bottom:var(--space-4)">Spring 1964</span></p>
+                            <p>Leith and Upatnieks set up their demonstration at the <span class="date-marker">Spring 1964 meeting of the Optical Society of America</span>. On a table, they place a photographic plate — to the naked eye, nothing more than an abstract pattern of fine lines and swirls.</p>
+                            <p>They switch on the laser.</p>
+                            <p>And there, floating in the air above the plate, <strong>a toy train appears in three dimensions</strong>. Viewers gasp. They move their heads and see different angles of the train. They try to reach behind the image. It is the first practical demonstration of Dennis Gabor's 1947 theoretical invention, made possible by Theodore Maiman's 1960 laser.</p>
+                            <p>Three hundred years of discovery have led to this moment. Newton's prism. Herschel's invisible heat. Ritter's chemical rays. Hertz's electromagnetic waves. Rontgen's X-rays. Gabor's theoretical insight. Maiman's ruby laser.</p>
+                            <p>Light has been captured. Not as a flat shadow, but as a complete, three-dimensional wavefront. <strong>A hologram.</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert-holo">
+                    <span class="alert-icon">&#9670;</span>
+                    <div class="alert-content">
+                        <div class="alert-title holo-text">Historical Fact</div>
+                        <div class="alert-message">At the Spring 1964 meeting of the Optical Society of America, Emmett Leith and Juris Upatnieks displayed the world's first practical 3-D hologram of a toy train. This was the first practical demonstration of Gabor's 1947 invention, made possible only by Maiman's 1960 laser breakthrough.</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-header">
+                        <span>Spectrum Explored</span>
+                        <span class="holo-text">100%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill-holo" style="width: 100%;"></div>
+                    </div>
+                </div>
+            `,
+            fact: '1964 — Emmett Leith and Juris Upatnieks displayed the first practical 3-D hologram (a toy train) at the Optical Society of America, completing the journey from Gabor\'s 1947 theory',
+            choices: [
+                { text: 'View the hologram and reflect on the journey', next: 'ending_wonder', primary: true },
+                { text: 'Imagine future applications', next: 'ending_future' },
+                { text: 'Consider the unification of 300 years of science', next: 'ending_unified' }
+            ]
+        },
+
+        // ── ENDING A: Wonder ──
+        ending_wonder: {
+            era: 'Epilogue — Light Captured',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Journey Complete</div>
+                    <div class="ending-title holo-text">Light Captured</div>
+                    <div class="scene-text">
+                        <p>You stand before the hologram. A toy train, frozen in light, floating in three dimensions above a photographic plate. You move your head and the perspective shifts. The train has depth, shadow, detail. It is not a projection. It is not a trick of mirrors. It is a complete reconstruction of the light that once bounced off a real object.</p>
+                        <p>You think about Newton, alone in his darkened room in 1666, watching white light split into a rainbow. He could never have imagined this. He proved that light hides colors; now you are watching it hide entire <em>worlds</em>.</p>
+                        <p>From a prism in a Cambridge study to a ruby crystal in a Malibu laboratory: 298 years of humanity peeling back the invisible layers of reality. Each discovery revealing that the universe contains far more than our eyes can see.</p>
+                        <p>The hologram shimmers. The light dances. And for a moment, standing in the glow of coherent photons, you feel the wonder that has driven every scientist in this story.</p>
+                        <p>The spectrum was never just a ribbon of colors. It was a doorway.</p>
+                    </div>
+                    <div class="the-end holo-text">The End</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart', primary: true }
+            ]
+        },
+
+        // ── ENDING B: Future ──
+        ending_future: {
+            era: 'Epilogue — The Future of Light',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Journey Complete</div>
+                    <div class="ending-title chrome">A Three-Dimensional Vision</div>
+                    <div class="scene-text">
+                        <p>The hologram of the toy train is just the beginning. You can see it already — a future branching outward like the spectrum itself.</p>
+                        <p>Holograms on credit cards and currency, making forgery nearly impossible. Holographic data storage, encoding information in three dimensions instead of two. Holographic displays that replace flat screens with floating, walk-around images.</p>
+                        <p>And deeper still: holographic interferometry to measure vibrations invisible to the eye. Holographic microscopy to image living cells without killing them. Holographic art that captures moments of light with a fidelity no photograph can match.</p>
+                        <p>All of it flows from the same river: Newton's realization that light is more complex than it appears. Herschel and Ritter's proof that invisible radiation exists beyond our vision. Hertz's demonstration that all electromagnetic waves are fundamentally the same. Gabor's insight that you can record a complete wavefront. And Maiman's laser, the key that unlocked every door.</p>
+                        <p>The electromagnetic spectrum, once hidden and unknown, has become humanity's most powerful tool. And we are still only beginning to learn what it can do.</p>
+                    </div>
+                    <div class="the-end holo-text">The End</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart', primary: true }
+            ]
+        },
+
+        // ── ENDING C: Unified ──
+        ending_unified: {
+            era: 'Epilogue — 300 Years of Light',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Journey Complete</div>
+                    <div class="ending-title holo-text">The Unified Light</div>
+                    <div class="scene-text">
+                        <p>Consider the chain of discovery.</p>
+                        <p><strong>1666:</strong> Newton proves white light contains hidden colors. <strong>1800:</strong> Herschel finds invisible heat beyond red. <strong>1801:</strong> Ritter finds invisible chemistry beyond violet. <strong>1887:</strong> Hertz proves all of it — radio, light, everything — is electromagnetic waves. <strong>1895:</strong> Rontgen discovers X-rays that pass through flesh.</p>
+                        <p><strong>1945:</strong> Spencer accidentally discovers microwaves can heat food. <strong>1947:</strong> Gabor theorizes a way to capture 3D light patterns. <strong>1960:</strong> Maiman builds the first laser from a pink ruby. <strong>1964:</strong> Leith and Upatnieks produce the first practical hologram.</p>
+                        <p>Each discovery depended on the ones before it. No laser without understanding electromagnetic radiation. No holography without the laser. No laser without understanding coherence. No coherence without Maxwell and Hertz. No Hertz without Newton's fundamental insight that light is not simple.</p>
+                        <p>Three hundred years. Ten scientists. One unbroken chain of curiosity and revelation.</p>
+                        <p>The spectrum was always there. Surrounding us. Invisible. Patient. Waiting for the right minds to look beyond what the eye can see.</p>
+                    </div>
+                    <div class="the-end holo-text">The End</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Start Over', next: '_restart', primary: true }
+            ]
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STORY ENGINE
+    // ═══════════════════════════════════════════════════════════════
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('newton');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 500);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1200);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            // Update era label
+            if (scene.era) {
+                document.getElementById('eraLabel').textContent = scene.era;
+            }
+
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+            let html = '<div class="scene-content">';
+
+            // Scene content (raw HTML)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    const cls = choice.primary ? 'choice-btn choice-btn-primary' : 'choice-btn';
+                    html += '<button class="' + cls + '" onclick="engine.goTo(\'' + choice.next + '\')">';
+                    html += '<span class="choice-key">' + (i + 1) + '</span>';
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No discoveries yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => {
+                    const yearMatch = f.match(/^(\d{4})/);
+                    const year = yearMatch ? yearMatch[1] : '';
+                    const rest = yearMatch ? f.substring(yearMatch[0].length) : f;
+                    return '<div class="fact-item"><span class="fact-year holo-text">' + year + '</span>' + rest + '</div>';
+                }).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Mouse glow
+    const mouseGlow = document.getElementById('mouseGlow');
+    let mouseX = 0, mouseY = 0, glowX = 0, glowY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+    });
+
+    function animateGlow() {
+        glowX += (mouseX - glowX) * 0.1;
+        glowY += (mouseY - glowY) * 0.1;
+        mouseGlow.style.left = glowX + 'px';
+        mouseGlow.style.top = glowY + 'px';
+        requestAnimationFrame(animateGlow);
+    }
+    animateGlow();
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

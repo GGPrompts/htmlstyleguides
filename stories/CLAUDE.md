@@ -1,6 +1,6 @@
 # Interactive Stories
 
-31 self-contained HTML interactive narratives that teach history through a style guide's visual aesthetic.
+32 interactive HTML narratives that teach history through a style guide's visual aesthetic.
 
 For deep reference (audio narration, parallel workflows, advanced patterns), see `STORY-CREATION-GUIDE.md` in this directory.
 
@@ -39,7 +39,7 @@ Each story pairs a style guide from `/styles/` with a historical topic that matc
     <div class="game-container">
         <!-- Title Screen -->
         <div class="title-screen" id="titleScreen">
-            <a href="index.html" class="back-to-stories">Stories</a>
+            <a href="../index.html" class="back-to-stories">Stories</a>
             <h1>[Story Title]</h1>
             <p>[Tagline]</p>
             <button onclick="engine.start()">Begin</button>
@@ -98,7 +98,7 @@ Each story pairs a style guide from `/styles/` with a historical topic that matc
 - **1 convergence point** where branches rejoin
 - **Every scene teaches** at least one real historical fact
 - **Use real names, dates, and numbers** — not vague generalizations
-- **Back-to-stories link** on the title screen: `<a href="index.html">`
+- **Back-to-stories link** on the title screen: `<a href="../index.html">`
 
 ## Scene Data Format
 
@@ -122,14 +122,35 @@ scene_id: {
 4. **Build the story** using an existing story as template reference
 5. **Validate**: all `next` values point to defined scenes, no orphan scenes, keyboard 1-9 works
 
-## Naming Convention
+## File Organization
 
-`[style-guide-name]-[short-descriptor].html`
+Each story lives in its own folder as `index.html`:
 
-Examples:
-- `noir-the-morrison-case.html` (noir style + detective story)
-- `bauhaus-the-last-semester.html` (bauhaus style + school history)
-- `cosmic-the-golden-record.html` (cosmic style + space exploration)
+```
+stories/
+├── noir-the-morrison-case/
+│   └── index.html
+├── bauhaus-the-last-semester/
+│   └── index.html
+├── cosmic-the-golden-record/
+│   └── index.html
+```
+
+Folder names use kebab-case: `[style-guide-name]-[short-descriptor]/`
+
+Since each story is in a subfolder, relative links point up one level:
+- Back-to-stories link: `href="../index.html"`
+- JS `_exit` handler: `window.location.href = '../index.html'`
+
+## Media & External Content
+
+Stories may include external media to enrich the experience, as long as it works on GitHub Pages with no build step:
+
+- **YouTube embeds** (`<iframe>`) are fine — use `loading="lazy"` and `allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"`
+- **External links** (Wikipedia, Know Your Meme, etc.) should use `target="_blank" rel="noopener"`
+- **Images/assets** can be placed alongside `index.html` in the story's folder
+- **The story must remain fully playable without media** — embeds and links are enhancements, not requirements
+- Style guides (`/styles/`) remain strictly self-contained single HTML files — this media flexibility applies only to stories
 
 ## After Creating a New Story
 

@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pigment Trail — A Watercolor Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: 'Cormorant Garamond', Georgia, serif;
+            --font-body: 'Lora', Georgia, serif;
+
+            --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+            --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+            --space-9: 96px; --space-10: 128px;
+
+            --indigo: #4a5568; --indigo-light: #718096;
+            --indigo-wash: rgba(74, 85, 104, 0.15); --indigo-deep: #2d3748;
+
+            --ochre: #c6956c; --ochre-light: #ddb892;
+            --ochre-wash: rgba(198, 149, 108, 0.2); --ochre-deep: #a67c52;
+
+            --sage: #7d9a78; --sage-light: #a8c4a2;
+            --sage-wash: rgba(125, 154, 120, 0.18); --sage-deep: #5a7a56;
+
+            --coral: #d4837a; --coral-light: #e8a8a2;
+            --coral-wash: rgba(212, 131, 122, 0.2); --coral-deep: #b86960;
+
+            --lavender: #9a8eb8; --lavender-light: #c4bbd8;
+            --lavender-wash: rgba(154, 142, 184, 0.18); --lavender-deep: #7a6e9a;
+
+            --paper: #f9f6f2; --paper-warm: #f5f0e8; --paper-cool: #f2f4f6;
+            --cream: #fffef8; --parchment: #e8e2d8;
+            --shadow-soft: rgba(74, 85, 104, 0.08);
+            --shadow-medium: rgba(74, 85, 104, 0.12);
+
+            --text-primary: #3d4852; --text-secondary: #606f7b;
+            --text-muted: #8795a1; --text-light: #b8c2cc;
+
+            --transition-slow: 0.4s ease;
+            --transition-base: 0.25s ease;
+            --transition-fast: 0.15s ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--paper);
+            -webkit-font-smoothing: antialiased;
+            background-image:
+                radial-gradient(ellipse at 20% 30%, var(--ochre-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, var(--lavender-wash) 0%, transparent 45%),
+                radial-gradient(ellipse at 60% 20%, var(--sage-wash) 0%, transparent 40%),
+                linear-gradient(180deg, var(--paper) 0%, var(--paper-warm) 100%);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 500;
+            line-height: 1.2;
+            letter-spacing: 0.01em;
+        }
+
+        h1 { font-size: clamp(3rem, 8vw, 5rem); font-weight: 400; font-style: italic; color: var(--indigo-deep); }
+        h2 { font-size: 2.5rem; font-weight: 500; color: var(--indigo); margin-bottom: var(--space-5); }
+        h3 { font-size: 1.5rem; font-weight: 600; color: var(--indigo-deep); margin-bottom: var(--space-4); }
+        p { margin-bottom: var(--space-4); max-width: 60ch; }
+        .lead { font-size: 1.2rem; line-height: 1.8; color: var(--text-secondary); font-style: italic; }
+
+        /* Wash Effect */
+        .wash { position: relative; }
+        .wash::before {
+            content: ''; position: absolute;
+            top: -10px; left: -15px; right: -15px; bottom: -10px;
+            background:
+                radial-gradient(ellipse at 30% 40%, var(--ochre-wash) 0%, transparent 60%),
+                radial-gradient(ellipse at 70% 60%, var(--lavender-wash) 0%, transparent 55%);
+            filter: blur(8px); z-index: -1; opacity: 0.8;
+            border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
+        }
+
+        /* Splatter */
+        .splatter { position: relative; }
+        .splatter::after {
+            content: ''; position: absolute;
+            width: 120px; height: 80px;
+            background:
+                radial-gradient(ellipse at 20% 30%, var(--coral-wash) 0%, transparent 40%),
+                radial-gradient(ellipse at 60% 70%, var(--sage-wash) 0%, transparent 35%),
+                radial-gradient(ellipse at 80% 20%, var(--lavender-wash) 0%, transparent 30%),
+                radial-gradient(ellipse at 40% 80%, var(--ochre-wash) 0%, transparent 25%);
+            filter: blur(2px); opacity: 0.7; pointer-events: none;
+        }
+
+        /* Section Divider */
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--ochre-wash) 20%, var(--lavender-wash) 50%, var(--sage-wash) 80%, transparent 100%);
+            margin: var(--space-6) 0;
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        /* Paint Stroke */
+        .paint-stroke {
+            height: 4px;
+            background: linear-gradient(90deg, transparent 0%, var(--coral-wash) 10%, var(--coral) 30%, var(--ochre) 50%, var(--sage) 70%, var(--lavender-wash) 90%, transparent 100%);
+            border-radius: 50%;
+            margin: var(--space-5) 0;
+            filter: blur(1px);
+        }
+
+        /* Cards */
+        .card {
+            background: linear-gradient(145deg, var(--cream) 0%, var(--paper-warm) 100%);
+            padding: var(--space-6);
+            position: relative; overflow: hidden;
+            transition: all var(--transition-base);
+            border-radius: 5% 15% 10% 8% / 8% 5% 15% 10%;
+            box-shadow: 0 4px 20px var(--shadow-soft), 0 1px 3px var(--shadow-soft);
+        }
+        .card::before {
+            content: ''; position: absolute;
+            top: -20%; right: -20%; width: 60%; height: 60%;
+            background: radial-gradient(ellipse, var(--ochre-wash) 0%, transparent 70%);
+            filter: blur(15px); opacity: 0.6;
+            transition: opacity var(--transition-base);
+        }
+        .card::after {
+            content: ''; position: absolute;
+            bottom: -15%; left: -10%; width: 50%; height: 50%;
+            background: radial-gradient(ellipse, var(--sage-wash) 0%, transparent 70%);
+            filter: blur(15px); opacity: 0.5;
+            transition: opacity var(--transition-base);
+        }
+        .card-content { position: relative; z-index: 1; }
+
+        /* Quote Block */
+        .quote-block {
+            padding: var(--space-6);
+            position: relative;
+            margin: var(--space-5) 0;
+        }
+        .quote-block::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 30%, var(--lavender-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, var(--ochre-wash) 0%, transparent 45%);
+            filter: blur(15px); z-index: -1;
+            border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
+        }
+        .quote-block blockquote {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-style: italic;
+            color: var(--indigo);
+            line-height: 1.6;
+            margin: 0;
+        }
+        .quote-block cite {
+            display: block; margin-top: var(--space-4);
+            font-family: var(--font-body);
+            font-size: 0.9rem; font-style: normal;
+            color: var(--text-secondary);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex; align-items: center;
+            padding: var(--space-1) var(--space-3);
+            font-family: var(--font-display);
+            font-size: 0.8rem; font-weight: 500;
+            border-radius: 40% 60% 55% 45% / 55% 45% 55% 45%;
+            position: relative;
+            background: var(--indigo-wash); color: var(--indigo);
+        }
+        .badge::before {
+            content: ''; position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: inherit; filter: blur(4px); opacity: 0.5;
+            z-index: -1; border-radius: inherit;
+        }
+        .badge-coral { background: var(--coral-wash); color: var(--coral-deep); }
+        .badge-sage { background: var(--sage-wash); color: var(--sage-deep); }
+        .badge-ochre { background: var(--ochre-wash); color: var(--ochre-deep); }
+        .badge-lavender { background: var(--lavender-wash); color: var(--lavender-deep); }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: var(--space-3) var(--space-6);
+            font-family: var(--font-display);
+            font-size: 1rem; font-weight: 500;
+            text-decoration: none; border: none;
+            background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-light) 100%);
+            color: var(--cream); cursor: pointer;
+            transition: all var(--transition-base);
+            border-radius: 30% 70% 65% 35% / 55% 45% 55% 45%;
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 15px var(--shadow-medium), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        .btn::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+            opacity: 0; transition: opacity var(--transition-base);
+        }
+        .btn:hover {
+            transform: translateY(-2px) rotate(0.5deg);
+            box-shadow: 0 8px 25px var(--shadow-medium), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .btn:hover::before { opacity: 1; }
+        .btn:active { transform: translateY(0) rotate(0deg); }
+        .btn-coral { background: linear-gradient(135deg, var(--coral) 0%, var(--coral-light) 100%); }
+        .btn-sage { background: linear-gradient(135deg, var(--sage) 0%, var(--sage-light) 100%); }
+        .btn-ochre { background: linear-gradient(135deg, var(--ochre) 0%, var(--ochre-light) 100%); }
+        .btn-lavender { background: linear-gradient(135deg, var(--lavender) 0%, var(--lavender-light) 100%); }
+        .btn-lg { padding: var(--space-4) var(--space-8); font-size: 1.1rem; }
+
+        /* Color Swatches */
+        .color-swatches { display: flex; gap: var(--space-3); flex-wrap: wrap; margin: var(--space-4) 0; }
+        .color-swatch {
+            width: 36px; height: 36px;
+            border-radius: 50%; position: relative;
+            box-shadow: 0 4px 12px var(--shadow-medium), inset 0 -2px 6px rgba(0,0,0,0.1);
+            transition: transform var(--transition-fast);
+        }
+        .color-swatch::after {
+            content: ''; position: absolute;
+            top: 15%; left: 20%; width: 25%; height: 20%;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: 50%; filter: blur(2px);
+        }
+        .color-swatch:hover { transform: scale(1.15); }
+
+        /* Table */
+        .table-container {
+            background: linear-gradient(180deg, var(--cream) 0%, var(--paper) 100%);
+            border-radius: 4% 6% 8% 4% / 6% 4% 6% 8%;
+            padding: var(--space-4);
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            overflow: hidden;
+        }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { text-align: left; padding: var(--space-3) var(--space-4); }
+        .table th {
+            font-family: var(--font-display); font-size: 0.85rem; font-weight: 600;
+            color: var(--text-secondary);
+            border-bottom: 2px solid var(--lavender-wash);
+            background: linear-gradient(180deg, transparent, var(--lavender-wash));
+        }
+        .table td { border-bottom: 1px solid var(--parchment); color: var(--text-primary); font-size: 0.9rem; }
+        .table tr:last-child td { border-bottom: none; }
+        .table tr:hover td { background: linear-gradient(90deg, var(--ochre-wash), transparent); }
+
+        /* Ink Spot */
+        .ink-spot {
+            width: 8px; height: 8px;
+            background: var(--indigo);
+            border-radius: 50%; display: inline-block;
+            margin-right: var(--space-2);
+            box-shadow: 0 2px 4px var(--shadow-soft);
+        }
+
+        /* ============================================
+           GAME LAYOUT
+        ============================================ */
+        .game-container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ============================================
+           TITLE SCREEN
+        ============================================ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-label {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--coral);
+            margin-bottom: var(--space-2);
+            font-weight: 500;
+        }
+
+        .title-screen h1 {
+            margin-bottom: var(--space-3);
+            text-shadow: 2px 2px 4px var(--shadow-soft);
+        }
+
+        .title-subtitle {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 400;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-6);
+            letter-spacing: 0.05em;
+        }
+
+        .title-tagline {
+            font-style: italic;
+            color: var(--text-muted);
+            margin-bottom: var(--space-7);
+            max-width: 500px;
+            font-size: 0.95rem;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4) var(--space-8);
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            border: 2px solid var(--coral);
+            background: transparent;
+            color: var(--coral-deep);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 30% 70% 65% 35% / 55% 45% 55% 45%;
+            position: relative;
+            overflow: hidden;
+        }
+        .title-start::before {
+            content: ''; position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--coral) 0%, var(--coral-light) 100%);
+            transition: left 0.3s ease;
+            z-index: -1;
+        }
+        .title-start:hover {
+            color: var(--cream);
+            border-color: var(--coral-light);
+            transform: translateY(-2px) rotate(0.5deg);
+            box-shadow: 0 8px 25px var(--shadow-medium);
+        }
+        .title-start:hover::before { left: 0; }
+
+        .title-period {
+            margin-top: var(--space-5);
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 0.1em;
+        }
+
+        .title-decoration {
+            width: 200px; height: 3px;
+            margin: var(--space-5) auto;
+            background: linear-gradient(90deg, transparent, var(--coral-wash), var(--ochre), var(--sage-wash), transparent);
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        /* ============================================
+           SCENE WRAPPER
+        ============================================ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 1rem;
+        }
+        .scene-wrapper.active { display: flex; }
+
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: var(--space-3);
+            margin-bottom: var(--space-5);
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(90deg, transparent, var(--ochre-wash), var(--lavender-wash), transparent) 1;
+        }
+        .scene-chapter {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--coral);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+        .scene-fact-count {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--sage-deep);
+            letter-spacing: 0.08em;
+            font-style: italic;
+        }
+
+        /* ============================================
+           SCENE CONTENT
+        ============================================ */
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Narration scene */
+        .scene-narration {
+            padding: var(--space-6);
+            position: relative;
+            margin-bottom: var(--space-5);
+        }
+        .scene-narration::before {
+            content: ''; position: absolute;
+            top: -10px; left: -15px; right: -15px; bottom: -10px;
+            background:
+                radial-gradient(ellipse at 25% 35%, var(--ochre-wash) 0%, transparent 55%),
+                radial-gradient(ellipse at 75% 65%, var(--lavender-wash) 0%, transparent 50%);
+            filter: blur(10px); z-index: -1; opacity: 0.7;
+            border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
+        }
+        .scene-narration .scene-text p { margin-bottom: 1rem; }
+        .scene-narration .scene-text p:last-child { margin-bottom: 0; }
+
+        /* Exposition scene (card-like) */
+        .scene-exposition {
+            background: linear-gradient(145deg, var(--cream) 0%, var(--paper-warm) 100%);
+            padding: var(--space-6);
+            position: relative; overflow: hidden;
+            border-radius: 5% 15% 10% 8% / 8% 5% 15% 10%;
+            box-shadow: 0 4px 20px var(--shadow-soft), 0 1px 3px var(--shadow-soft);
+            margin-bottom: var(--space-5);
+        }
+        .scene-exposition::before {
+            content: ''; position: absolute;
+            top: -20%; right: -20%; width: 60%; height: 60%;
+            background: radial-gradient(ellipse, var(--sage-wash) 0%, transparent 70%);
+            filter: blur(15px); opacity: 0.6;
+        }
+        .scene-exposition::after {
+            content: ''; position: absolute;
+            bottom: -15%; left: -10%; width: 50%; height: 50%;
+            background: radial-gradient(ellipse, var(--ochre-wash) 0%, transparent 70%);
+            filter: blur(15px); opacity: 0.5;
+        }
+        .scene-exposition .scene-text { position: relative; z-index: 1; }
+        .scene-exposition .scene-text p { margin-bottom: 1rem; }
+
+        /* Climax scene */
+        .scene-climax {
+            padding: var(--space-7) var(--space-6);
+            position: relative;
+            text-align: center;
+            margin-bottom: var(--space-5);
+        }
+        .scene-climax::before {
+            content: ''; position: absolute;
+            top: -20px; left: -20px; right: -20px; bottom: -20px;
+            background:
+                radial-gradient(ellipse at 30% 30%, var(--coral-wash) 0%, transparent 45%),
+                radial-gradient(ellipse at 70% 70%, var(--lavender-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, var(--ochre-wash) 0%, transparent 40%);
+            filter: blur(15px); z-index: -1; opacity: 0.8;
+            border-radius: 40% 60% 55% 45% / 50% 40% 60% 50%;
+        }
+        .scene-climax .scene-text { max-width: 600px; margin: 0 auto; }
+        .scene-climax .scene-text p { margin-bottom: 1.25rem; max-width: none; }
+
+        /* Ending scene */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-7) var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+        .scene-ending .ending-label {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--coral);
+            margin-bottom: var(--space-3);
+        }
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 500;
+            font-style: italic;
+            color: var(--indigo-deep);
+            margin-bottom: var(--space-6);
+            text-shadow: 2px 2px 4px var(--shadow-soft);
+        }
+        .scene-ending .scene-text {
+            max-width: 550px; margin: 0 auto;
+        }
+        .scene-ending .scene-text p { margin-bottom: 1rem; color: var(--text-secondary); max-width: none; }
+        .scene-ending .the-end {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            letter-spacing: 0.25em;
+            color: var(--text-muted);
+            margin-top: var(--space-6);
+            text-transform: uppercase;
+            font-style: italic;
+        }
+
+        /* ============================================
+           FACT DISCOVERED TOAST
+        ============================================ */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            background: var(--sage-wash);
+            color: var(--sage-deep);
+            padding: 6px 16px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: var(--space-4);
+            border-radius: 40% 60% 55% 45% / 55% 45% 55% 45%;
+            animation: factSlideIn 0.6s ease-out;
+        }
+        .fact-found .fact-icon {
+            width: 10px; height: 10px;
+            background: var(--sage);
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ============================================
+           CHOICES
+        ============================================ */
+        .choices {
+            display: flex; flex-direction: column;
+            gap: 0.75rem; margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.8s forwards;
+        }
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .choice-btn {
+            display: flex; align-items: center;
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-display);
+            font-size: 1rem; font-weight: 500;
+            border: 1px solid var(--parchment);
+            background: linear-gradient(145deg, var(--cream) 0%, var(--paper-warm) 100%);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border-radius: 5% 15% 10% 8% / 8% 5% 15% 10%;
+            text-align: left;
+            position: relative; overflow: hidden;
+        }
+        .choice-btn::before {
+            content: ''; position: absolute;
+            top: 0; left: 0; width: 3px; height: 100%;
+            background: linear-gradient(180deg, var(--coral), var(--ochre));
+            transform: scaleY(0);
+            transition: transform 0.25s ease;
+            transform-origin: bottom;
+        }
+        .choice-btn:hover {
+            border-color: var(--ochre-light);
+            box-shadow: 0 4px 15px var(--shadow-medium);
+            transform: translateY(-2px) rotate(0.3deg);
+            padding-left: var(--space-6);
+        }
+        .choice-btn:hover::before { transform: scaleY(1); }
+        .choice-btn .choice-key {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px;
+            border: 1px solid var(--parchment);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-right: var(--space-3);
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: var(--paper);
+        }
+        .choice-btn:hover .choice-key {
+            border-color: var(--coral);
+            color: var(--coral-deep);
+            background: var(--coral-wash);
+        }
+
+        /* Choice button color variants */
+        .choice-btn.choice-coral:hover { border-color: var(--coral-light); }
+        .choice-btn.choice-coral:hover::before { background: linear-gradient(180deg, var(--coral), var(--coral-light)); }
+        .choice-btn.choice-sage:hover { border-color: var(--sage-light); }
+        .choice-btn.choice-sage:hover::before { background: linear-gradient(180deg, var(--sage), var(--sage-light)); }
+        .choice-btn.choice-ochre:hover { border-color: var(--ochre-light); }
+        .choice-btn.choice-ochre:hover::before { background: linear-gradient(180deg, var(--ochre), var(--ochre-light)); }
+
+        /* ============================================
+           TRANSITION OVERLAY
+        ============================================ */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            background:
+                radial-gradient(ellipse at 30% 40%, var(--ochre-wash) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 60%, var(--lavender-wash) 0%, transparent 45%),
+                var(--paper);
+        }
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: washTransition 1s ease-in-out;
+        }
+        @keyframes washTransition {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            60% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* ============================================
+           FACT TRACKER (SIDEBAR)
+        ============================================ */
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem; right: 1.5rem;
+            z-index: 100;
+            max-width: 250px;
+        }
+        .fact-tracker-toggle {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 14px;
+            background: linear-gradient(145deg, var(--cream) 0%, var(--paper-warm) 100%);
+            border: 1px solid var(--parchment);
+            color: var(--sage-deep);
+            font-family: var(--font-display);
+            font-size: 0.8rem; font-weight: 600;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 40% 60% 55% 45% / 55% 45% 55% 45%;
+            box-shadow: 0 2px 10px var(--shadow-soft);
+        }
+        .fact-tracker-toggle:hover {
+            border-color: var(--sage);
+            box-shadow: 0 4px 15px var(--shadow-medium);
+        }
+        .fact-tracker-panel {
+            display: none;
+            margin-top: 0.5rem;
+            background: linear-gradient(145deg, var(--cream) 0%, var(--paper-warm) 100%);
+            border: 1px solid var(--parchment);
+            padding: var(--space-4);
+            border-radius: 5% 10% 8% 6% / 6% 5% 10% 8%;
+            box-shadow: 0 4px 20px var(--shadow-soft);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fact-tracker-panel h4 {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+        .fact-item {
+            font-size: 0.78rem;
+            font-family: var(--font-body);
+            color: var(--text-secondary);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--parchment);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.5;
+        }
+        .fact-item:last-child { border-bottom: none; }
+        .fact-item .fact-date {
+            font-family: var(--font-display);
+            font-weight: 600;
+            color: var(--coral-deep);
+            font-size: 0.72rem;
+        }
+        .no-facts {
+            font-size: 0.78rem;
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* ============================================
+           GAME CONTROLS
+        ============================================ */
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: var(--space-5);
+            padding-top: var(--space-4);
+            border-top: 2px solid transparent;
+            border-image: linear-gradient(90deg, transparent, var(--parchment), transparent) 1;
+        }
+        .ctrl-btn {
+            padding: 8px 16px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            border: 1px solid var(--parchment);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 30% 70% 60% 40% / 50% 40% 60% 50%;
+        }
+        .ctrl-btn:hover {
+            border-color: var(--ochre);
+            color: var(--text-primary);
+            background: var(--ochre-wash);
+        }
+
+        /* ============================================
+           RESPONSIVE
+        ============================================ */
+        @media (max-width: 768px) {
+            .game-container { padding: 1rem; }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .scene-narration, .scene-exposition, .scene-climax { padding: var(--space-5); }
+        }
+
+        /* Selection styling */
+        ::selection { background: var(--lavender-wash); color: var(--indigo-deep); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--paper); }
+        ::-webkit-scrollbar-thumb { background: var(--parchment); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <!-- Transition overlay -->
+    <div class="transition-overlay" id="transition"></div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span class="ink-spot" style="background: var(--sage); width: 8px; height: 8px; margin: 0;"></span>
+            <span>Knowledge</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Historical Discoveries</h4>
+            <div id="factList">
+                <p class="no-facts">No discoveries yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-label">An Interactive Watercolor Story</div>
+            <h1>The Pigment Trail</h1>
+            <div class="title-subtitle">England, 1780 &ndash; 1851</div>
+            <div class="title-decoration"></div>
+            <p class="title-tagline">"In watercolor, water is not just a medium &mdash; it is a collaborator, guiding the pigment in unexpected and beautiful ways."</p>
+            <button class="title-start" id="startBtn">Dip Your Brush</button>
+            <p class="title-period">A journey through the Golden Age of English Watercolor</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-chapter" id="sceneChapter">Chapter I</span>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Start Anew</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ================================================================
+    //  THE PIGMENT TRAIL — Story Data
+    // ================================================================
+
+    const STORY = {
+
+        // --- SCENE 1: The Arrival (1780) ---
+        arrival: {
+            type: 'narration',
+            chapter: 'Chapter I',
+            title: 'The Arrival',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The Arrival</h3>
+                <div class="badge badge-ochre" style="margin-bottom: var(--space-4);">London, 1780</div>
+                <p>The coach rattles to a halt on the Strand, and you step out into London's grey drizzle with nothing but a leather satchel and a letter of introduction written in your father's careful hand. You are eighteen years old, and you have come to learn to paint.</p>
+                <p>The city is enormous &mdash; a labyrinth of soot and spires. Somewhere in this tangle of streets, the Royal Academy of Arts stands as the temple of British painting, founded just twelve years ago in 1768. And somewhere nearby, the man your father calls "the greatest watercolourist alive" keeps his studio.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;"><strong>Paul Sandby (c. 1730&ndash;1809)</strong>, remembered as "the father of English watercolour," was one of the founding members of the Royal Academy in 1768. He transformed watercolor from a tool for tinting maps and manuscripts into a respected artistic medium.</p>
+                    </div>
+                </div>
+
+                <p>As you round the corner near Covent Garden, you catch sight of a shopfront window filled with small, orderly cakes of pigment &mdash; hard blocks of colour arranged like jewels. A hand-painted sign reads: <em>Reeves &amp; Son &mdash; Colourmen</em>.</p>
+
+                <div class="quote-block">
+                    <blockquote>"In 1780, William Reeves invented the first commercially available watercolor cakes &mdash; small, hard blocks of soluble pigment that artists could purchase ready-made."</blockquote>
+                    <cite>&mdash; Historical record</cite>
+                </div>
+
+                <p>You stand at a crossroads. The letter in your satchel will gain you entry to Paul Sandby's studio. But the colours in that shop window call to you with a different kind of promise.</p>
+            `,
+            fact: { date: '1780', text: 'William Reeves invented the first commercially available watercolor cakes, revolutionizing how artists accessed pigments.' },
+            choices: [
+                { text: 'Present your letter at Paul Sandby\'s studio', next: 'masters_studio', color: 'sage' },
+                { text: 'Step into the Reeves colour shop first', next: 'colour_shop', color: 'ochre' }
+            ]
+        },
+
+        // --- SCENE 2A: The Colour Shop ---
+        colour_shop: {
+            type: 'exposition',
+            chapter: 'Chapter II',
+            title: 'The Colour Shop',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The Colour Shop</h3>
+                <div class="badge badge-ochre" style="margin-bottom: var(--space-4);">Reeves & Son, Covent Garden, 1780</div>
+                <p>The shop smells of linseed oil, gum arabic, and something sweet you cannot name. Behind the counter, a young man with ink-stained fingers arranges cakes of pigment into wooden boxes.</p>
+                <p>"Just arrived, have you?" He grins. "You're looking at the future of painting, friend. My brother William figured out how to add honey and other humectants to the pigment mixture, then press it into cakes. Before us, artists had to grind their own colours fresh each morning."</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;">The Reeves brothers were awarded the <strong>Silver Palette</strong> by the Society for the Encouragement of Arts, Manufactures, and Commerce in <strong>April 1781</strong> for their innovation of adding humectants to watercolor formulations and forming the paint into portable cakes.</p>
+                    </div>
+                </div>
+
+                <p>He shows you the range: vermilion, gamboge, indigo, burnt sienna. Each cake costs a few pence. For the first time in history, a young artist need not be wealthy to own a complete palette.</p>
+
+                <div class="color-swatches">
+                    <div class="color-swatch" style="background: var(--coral);" title="Vermilion"></div>
+                    <div class="color-swatch" style="background: var(--ochre);" title="Gamboge"></div>
+                    <div class="color-swatch" style="background: var(--indigo);" title="Indigo"></div>
+                    <div class="color-swatch" style="background: var(--sage);" title="Terre Verte"></div>
+                    <div class="color-swatch" style="background: var(--lavender);" title="Ultramarine"></div>
+                </div>
+
+                <p style="margin-top: var(--space-4);">You purchase a small box of cakes and tuck them into your satchel alongside the letter. Now it is time to find your master.</p>
+            `,
+            fact: { date: '1781', text: 'The Reeves brothers won the Silver Palette award for adding humectants to watercolor and forming portable paint cakes.' },
+            choices: [
+                { text: 'Proceed to Paul Sandby\'s studio', next: 'masters_studio', color: 'sage' }
+            ]
+        },
+
+        // --- SCENE 2B / 3: The Master's Studio ---
+        masters_studio: {
+            type: 'exposition',
+            chapter: 'Chapter III',
+            title: 'The Master\'s Studio',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The Master's Studio</h3>
+                <div class="badge badge-sage" style="margin-bottom: var(--space-4);">Sandby's Studio, London, 1781&ndash;1785</div>
+                <p>Paul Sandby is older than you expected &mdash; past fifty now, with a painter's stoop and eyes that miss nothing. He reads your father's letter, grunts, and puts you to work immediately.</p>
+                <p>"Watercolour is not a lesser art," he tells you on that first morning, mixing a wash of indigo with the precision of an apothecary. "It is the art of light itself. Oil painters <em>build</em> their light. We <em>reveal</em> it &mdash; by leaving the paper bare."</p>
+
+                <div class="quote-block">
+                    <blockquote>"The ancient Egyptians used water-soluble plant resins on papyrus around 3000 BC, making watercolor one of humanity's oldest painting techniques."</blockquote>
+                    <cite>&mdash; Art historical record</cite>
+                </div>
+
+                <p>Under Sandby's instruction, you learn the foundations: topographical drawing for the military surveys, careful washes for manuscript illumination, the discipline of working light-to-dark. You grind pigments, stretch paper, and ruin dozens of studies before anything begins to work.</p>
+                <p>The other apprentices debate endlessly. Some say watercolour will never be taken seriously &mdash; it is merely a <em>tinting</em> medium, suitable for maps and ladies' albums. Others whisper about a German master from centuries past who proved otherwise.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;"><strong>Albrecht Durer (1471&ndash;1528)</strong>, the German Renaissance master, is credited as the ancestor of European watercolor technique. He elevated the medium from manuscript illumination and map-coloring toward independent artistic expression with works like <em>The Great Piece of Turf</em> and <em>Young Hare</em>.</p>
+                    </div>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Albrecht_D%C3%BCrer_-_Hare%2C_1502_-_Google_Art_Project.jpg" alt="Young Hare by Albrecht Dürer, 1502" style="max-width: 100%; height: auto; border: 1px solid #c6956c; border-radius: 8px; opacity: 0.9; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(74, 85, 104, 0.1);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: var(--text-muted, #8795a1);">Young Hare, Albrecht Dürer, 1502 — watercolor and gouache masterpiece</div></div>
+
+                <p>By 1785, you have learned everything Sandby can teach you about tradition. But a restless feeling has taken root. You want to push further.</p>
+                <div class="paint-stroke"></div>
+                <p><em>The question is: in which direction?</em></p>
+            `,
+            fact: { date: '1471-1528', text: 'Albrecht Durer, the German Renaissance master, pioneered European watercolor as an independent art form beyond map-coloring and manuscript illumination.' },
+            choices: [
+                { text: 'Study the new synthetic pigments emerging from chemistry', next: 'new_pigments', color: 'coral' },
+                { text: 'Focus on ambitious landscape compositions', next: 'girtins_vision', color: 'sage' }
+            ]
+        },
+
+        // --- SCENE 4: The New Pigments ---
+        new_pigments: {
+            type: 'exposition',
+            chapter: 'Chapter IV',
+            title: 'The New Pigments',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The New Pigments</h3>
+                <div class="badge badge-coral" style="margin-bottom: var(--space-4);">London, 1785&ndash;1790</div>
+                <p>Your curiosity leads you to the colourmen's workshops and the lectures at the Royal Institution, where chemists speak of pigments the way alchemists once spoke of gold. A revolution is underway &mdash; not on canvas, but in the laboratory.</p>
+
+                <div class="table-container" style="margin: var(--space-5) 0;">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Pigment</th>
+                                <th>Origin</th>
+                                <th>Discovery</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="ink-spot" style="background: #003153;"></span>Prussian Blue</td>
+                                <td>Synthetic (accidental)</td>
+                                <td>Early 1700s</td>
+                            </tr>
+                            <tr>
+                                <td><span class="ink-spot" style="background: #1a3c8f;"></span>Natural Ultramarine</td>
+                                <td>Lapis lazuli (Afghanistan)</td>
+                                <td>Ancient</td>
+                            </tr>
+                            <tr>
+                                <td><span class="ink-spot" style="background: #2850a8;"></span>Synthetic Ultramarine</td>
+                                <td>Kaolinite, soda, sulfur</td>
+                                <td>1826 (Guimet)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;"><strong>Prussian blue</strong> &mdash; the first modern synthetic pigment &mdash; was discovered by accident in the early 1700s by a chemist attempting to create red. It gave artists a vivid, affordable alternative to natural indigo and transformed the palette available to watercolourists.</p>
+                    </div>
+                </div>
+
+                <p>An old colourman tells you about the prohibitive cost of true ultramarine, ground from lapis lazuli mined in Afghanistan. "More expensive than gold, ounce for ounce," he says. "Only the wealthiest patrons can afford it. But mark my words &mdash; some clever chemist will find a way to make it in a kiln."</p>
+                <p>His prophecy will prove correct within your lifetime. But for now, you experiment with the blues you can afford, layering Prussian blue over washes of indigo, learning how synthetic and natural pigments behave differently on wet paper.</p>
+
+                <div class="paint-stroke"></div>
+                <p><em>Word reaches you of a young painter named Thomas Girtin, barely twenty, who is doing extraordinary things with watercolour landscapes...</em></p>
+            `,
+            fact: { date: 'Early 1700s', text: 'Prussian blue, the first modern synthetic pigment, was discovered by accident by a chemist trying to create red paint.' },
+            choices: [
+                { text: 'Seek out Thomas Girtin\'s work', next: 'girtins_vision', color: 'sage' }
+            ]
+        },
+
+        // --- SCENE 5: Girtin's Vision ---
+        girtins_vision: {
+            type: 'narration',
+            chapter: 'Chapter V',
+            title: 'Girtin\'s Vision',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">Girtin's Vision</h3>
+                <div class="badge badge-sage" style="margin-bottom: var(--space-4);">London, 1795&ndash;1800</div>
+                <p>The first time you see Thomas Girtin's watercolours, the room seems to tilt. These are not the careful topographical studies you trained under &mdash; these are <em>paintings</em>. Full-scale, ambitious compositions that refuse to apologise for their medium.</p>
+                <p>Girtin works on large sheets of paper, applying bold washes directly, building atmosphere with a confidence that borders on recklessness. His skies <em>breathe</em>. His ruins carry the weight of centuries. Where Sandby was precise, Girtin is passionate.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;"><strong>Thomas Girtin (1775&ndash;1802)</strong> pioneered watercolor's use for large-format, romantic landscape paintings. He proved the medium could handle ambitious compositions previously reserved for oil painting, transforming what critics and academicians believed watercolour could achieve.</p>
+                    </div>
+                </div>
+
+                <p>"They say it cannot be done," Girtin tells you one evening, gesturing at a half-finished panorama of the Thames. He is thin, intense, already coughing. "They say watercolour is for sketches and studies. For <em>preparation</em>. I say it is the thing itself."</p>
+                <p>You are inspired. But you also notice something troubling &mdash; Girtin's health is failing. He paints with an urgency that suggests he knows time is not on his side.</p>
+
+                <div class="section-divider"></div>
+
+                <p>You throw yourself into larger compositions. The conservative academicians shake their heads. "Watercolour is a minor art," they insist. "Oil painting is the serious medium."</p>
+                <p><em>But you have seen what Girtin can do, and you know they are wrong.</em></p>
+            `,
+            fact: { date: '1775-1802', text: 'Thomas Girtin pioneered large-format watercolor landscapes, proving the medium could rival oil painting in scale and ambition.' },
+            choices: [
+                { text: 'Try to work larger, following Girtin\'s example', next: 'girtins_death', color: 'coral' },
+                { text: 'Perfect smaller, more detailed compositions', next: 'girtins_death', color: 'sage' }
+            ]
+        },
+
+        // --- SCENE 6: Girtin's Death ---
+        girtins_death: {
+            type: 'climax',
+            chapter: 'Chapter VI',
+            title: 'The Short Flame',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The Short Flame</h3>
+                <div class="badge badge-coral" style="margin-bottom: var(--space-4);">London, November 1802</div>
+
+                <div class="splatter" style="display: inline-block; margin-bottom: var(--space-5);">
+                    <p style="font-family: var(--font-display); font-size: 1.3rem; font-style: italic; color: var(--indigo);">Thomas Girtin is dead. He was twenty-seven years old.</p>
+                </div>
+
+                <p>The news arrives on a cold November morning and strikes you like a physical blow. Twenty-seven. An entire revolution in watercolour, compressed into a life barely longer than a candle flame.</p>
+                <p>At the memorial, you overhear a young painter &mdash; a stocky fellow with sharp eyes and paint-stained cuffs &mdash; say quietly to his companion:</p>
+
+                <div class="quote-block">
+                    <blockquote>"If Tom Girtin had lived, I should have starved."</blockquote>
+                    <cite>&mdash; Attributed to J.M.W. Turner</cite>
+                </div>
+
+                <p>You look at the speaker more carefully. You have heard this name: Turner. Joseph Mallord William Turner, elected a full Royal Academician just months ago, at the astonishing age of twenty-seven &mdash; the same age at which Girtin has just died.</p>
+                <p>Girtin's death leaves a void in the watercolour world. Someone must fill it. The question of legacy &mdash; what endures, what is forgotten &mdash; settles over you like the London fog.</p>
+            `,
+            fact: { date: '1802', text: 'Turner was elected a full Royal Academician at age 27, the same year Thomas Girtin died at the same age.' },
+            choices: [
+                { text: 'Honour Girtin by continuing his vision of ambitious watercolour', next: 'turners_rise', color: 'coral' },
+                { text: 'Seek out this Turner and learn what drives him', next: 'turners_rise', color: 'ochre' }
+            ]
+        },
+
+        // --- SCENE 7: Turner's Rise ---
+        turners_rise: {
+            type: 'narration',
+            chapter: 'Chapter VII',
+            title: 'The Rising Star',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The Rising Star</h3>
+                <div class="badge badge-lavender" style="margin-bottom: var(--space-4);">Royal Academy, London, 1800&ndash;1810</div>
+                <p>You first encounter Turner's work at the Royal Academy exhibition. While other artists paint careful likenesses and historical tableaux, Turner's canvases seem to <em>glow</em> from within. His watercolours are something else entirely &mdash; they capture light, atmosphere, and raw emotion with a freedom that makes even Girtin's boldest work look restrained.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;"><strong>J.M.W. Turner (born April 23, 1775; died December 19, 1851)</strong> exhibited his first oil painting in 1796 and was elected an Associate Member of the Royal Academy in <strong>1799 at just 24 years old</strong>. His extraordinary career would produce over 550 oil paintings, 2,000 watercolors, and 30,000 works on paper.</p>
+                    </div>
+                </div>
+
+                <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/b/bc/Turner_-_The_Fighting_Temeraire.jpg" alt="The Fighting Temeraire by J.M.W. Turner, 1839" style="max-width: 100%; height: auto; border: 1px solid #c6956c; border-radius: 8px; opacity: 0.9; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(74, 85, 104, 0.1);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: var(--text-muted, #8795a1);">The Fighting Temeraire, J.M.W. Turner, 1839 — master of light and atmosphere</div></div>
+
+                <p>Turner is not an easy man. He guards his methods jealously, works in bursts of ferocious energy, and speaks about light the way a mystic speaks about God. But his work is undeniable.</p>
+                <p>At a Royal Academy varnishing day, you watch Turner transform a dull grey canvas into a blaze of golden light in a matter of hours, working with a fury that silences the room. Other painters stop to watch. Some are awed. Some are furious.</p>
+                <p><em>"He paints as if possessed," whispers the painter next to you. "Nobody can do what he does with colour."</em></p>
+
+                <div class="paint-stroke"></div>
+                <p>You are now in your forties. You have your own modest reputation, your own students. But Turner's work challenges everything you thought you knew about what watercolour can be.</p>
+            `,
+            fact: { date: '1799', text: 'Turner was elected an Associate of the Royal Academy at just 24, and his career would produce 550+ oil paintings, 2,000 watercolors, and 30,000 works on paper.' },
+            choices: [
+                { text: 'Seek Turner\'s mentorship directly', next: 'turners_studio', color: 'coral' },
+                { text: 'Develop your own independent artistic voice', next: 'academy_debate', color: 'sage' }
+            ]
+        },
+
+        // --- SCENE 8: Turner's Studio ---
+        turners_studio: {
+            type: 'climax',
+            chapter: 'Chapter VIII',
+            title: 'Turner\'s Studio',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">Turner's Studio</h3>
+                <div class="badge badge-lavender" style="margin-bottom: var(--space-4);">Queen Anne Street, London, 1815</div>
+                <p>Turner's studio is a chaos of genius. Canvases lean against every wall. Palettes crust with dried pigment. Sketches litter the floor like autumn leaves. In the centre of this storm, Turner works on three paintings simultaneously, moving between them with the focus of a man who hears music nobody else can.</p>
+                <p>He allows you to watch, but not to speak. For three hours you sit in silence as he layers wash upon wash &mdash; wet into wet, dry brush over damp paper, scraping back highlights with his thumbnail. The watercolour seems to <em>breathe</em> as it dries.</p>
+
+                <div class="quote-block">
+                    <blockquote>"Turner's method was revolutionary: he would soak the paper, apply broad washes of colour, then work back into them with sponges, rags, and even his fingernails to pull out the light trapped beneath."</blockquote>
+                    <cite>&mdash; Art historical account</cite>
+                </div>
+
+                <p>Finally, Turner speaks without turning around: "The sun is God."</p>
+                <p>You understand, watching the golden light emerge from beneath layers of blue and grey wash. He is not painting <em>things</em>. He is painting light itself &mdash; the way it moves through atmosphere, the way it transforms everything it touches.</p>
+                <p>This is the moment you understand that watercolour is not a lesser medium. It is perhaps the <em>only</em> medium that can truly capture the way light behaves &mdash; transparent, layered, luminous, alive.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;">Meanwhile, across the Channel, French chemist <strong>Jean-Baptiste Guimet</strong> invented synthetic ultramarine in <strong>1826</strong> by heating kaolinite, sodium carbonate, and sulfur in a kiln. This breakthrough made the once-impossibly-expensive pigment &mdash; previously derived from lapis lazuli &mdash; affordable for all artists.</p>
+                    </div>
+                </div>
+            `,
+            fact: { date: '1826', text: 'Jean-Baptiste Guimet invented synthetic ultramarine by heating kaolinite, sodium carbonate, and sulfur, making the precious pigment affordable for all artists.' },
+            choices: [
+                { text: 'Adopt Turner\'s techniques and push toward abstraction', next: 'academy_debate', color: 'coral' },
+                { text: 'Find your own voice, blending tradition and innovation', next: 'academy_debate', color: 'sage' }
+            ]
+        },
+
+        // --- SCENE 9: The Academy Debate ---
+        academy_debate: {
+            type: 'exposition',
+            chapter: 'Chapter IX',
+            title: 'The Academy Debate',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The Academy Debate</h3>
+                <div class="badge badge-lavender" style="margin-bottom: var(--space-4);">Royal Academy, London, 1820&ndash;1835</div>
+                <p>The argument has been building for decades, and now it erupts in the galleries and lecture halls of the Academy: <em>does watercolour deserve equal status with oil painting?</em></p>
+                <p>The conservatives are entrenched. "Watercolour is ephemeral," they declare. "It fades. It cannot achieve the depth or permanence of oils. It is a <em>drawing</em> medium, not a <em>painting</em> medium."</p>
+                <p>But Turner's work &mdash; and the work of the generation he has inspired &mdash; makes their arguments sound hollow. When you stand before Turner's great watercolour studies of Venice, the Alps, and the English coast, the word "ephemeral" is the last one that comes to mind.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;">By the 1840s, a wave of new synthetic pigments became commercially available: <strong>cobalt blue, viridian, cadmium yellow, synthetic ultramarine, and cerulean blue (1860s)</strong>. These vivid, stable colours enabled bold new experiments in painting &mdash; and would soon fuel the Impressionist revolution.</p>
+                    </div>
+                </div>
+
+                <p>You are now in your sixties. Your hair has gone grey, your hands are not as steady as they once were, but your eye is sharper than ever. You have watched watercolour transform from a humble craft to a medium that can express the sublime.</p>
+                <p>Turner himself is ageing now, growing more reclusive, more radical. His late watercolours are almost pure light and colour &mdash; some visitors to the Academy cannot tell what they are looking at. But you can. You see the culmination of everything the medium has been striving toward.</p>
+
+                <div class="section-divider"></div>
+                <p><em>A new innovation reaches your ears &mdash; one that will change everything again...</em></p>
+            `,
+            fact: { date: '1840s', text: 'New synthetic pigments (cobalt blue, viridian, cadmium yellow, cerulean blue) became available, enabling the bold color experiments of the Impressionist movement.' },
+            choices: [
+                { text: 'Become a teacher, passing on what you have learned', next: 'winsor_newton', color: 'sage' },
+                { text: 'Continue as an independent artist, embracing the new materials', next: 'winsor_newton', color: 'coral' }
+            ]
+        },
+
+        // --- SCENE 10: The Winsor & Newton Revolution ---
+        winsor_newton: {
+            type: 'exposition',
+            chapter: 'Chapter X',
+            title: 'The Winsor & Newton Revolution',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">The Winsor &amp; Newton Revolution</h3>
+                <div class="badge badge-coral" style="margin-bottom: var(--space-4);">London, 1846</div>
+                <p>You hold the small metal tube in your paint-stained fingers, turning it over in the light. It is an unremarkable object &mdash; a collapsible tube with a screw cap, not much larger than your thumb. But what it represents is nothing less than a revolution.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;">In <strong>1846</strong>, <strong>Winsor &amp; Newton</strong> introduced moist watercolors in metal tubes with screw caps (patented in 1842). This innovation revolutionized artists' ability to paint outdoors <em>en plein air</em> with a convenience previously impossible &mdash; no more grinding pigments, no more dry cakes that required careful wetting.</p>
+                    </div>
+                </div>
+
+                <p>You squeeze a ribbon of moist cerulean blue onto your palette. It is vivid, ready to use, portable. You think of the dry cakes you bought from Reeves' shop sixty-six years ago &mdash; those were revolutionary then. Now, even those seem primitive.</p>
+                <p>You carry your new tubes and a folding easel to Hampstead Heath. For the first time, you paint entirely outdoors &mdash; not sketching to finish later in the studio, but completing a full watercolour in the open air, the actual sky above you as your reference.</p>
+
+                <div class="quote-block">
+                    <blockquote>"The tube of paint freed the artist from the studio. It made the whole world a studio."</blockquote>
+                    <cite>&mdash; Art historical reflection</cite>
+                </div>
+
+                <p>The wind moves the clouds. The light shifts. You chase it with your brush, and for the first time, the gap between what you see and what you paint narrows to almost nothing.</p>
+                <p>You are seventy years old, and you are painting better than you ever have.</p>
+
+                <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Winslow_Homer_-_Breezing_Up_%28A_Fair_Wind%29.jpg" alt="Breezing Up (A Fair Wind) by Winslow Homer, 1876" style="max-width: 100%; height: auto; border: 1px solid #c6956c; border-radius: 8px; opacity: 0.9; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(74, 85, 104, 0.1);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: var(--text-muted, #8795a1);">Breezing Up (A Fair Wind), Winslow Homer, 1876</div></div>
+
+                <div class="paint-stroke"></div>
+                <p><em>But the news from Queen Anne Street is not good. Turner is unwell...</em></p>
+            `,
+            fact: { date: '1846', text: 'Winsor & Newton introduced moist watercolors in metal tubes with screw caps, enabling true en plein air painting for the first time.' },
+            choices: [
+                { text: 'Visit Turner one last time', next: 'turners_legacy', color: 'lavender' },
+                { text: 'Reflect on your own journey in solitude', next: 'ending_solitude', color: 'sage' }
+            ]
+        },
+
+        // --- SCENE 11: Turner's Legacy ---
+        turners_legacy: {
+            type: 'climax',
+            chapter: 'Chapter XI',
+            title: 'Turner\'s Legacy',
+            text: `
+                <h3 style="margin-bottom: var(--space-3);">Turner's Legacy</h3>
+                <div class="badge badge-lavender" style="margin-bottom: var(--space-4);">Chelsea, London, December 1851</div>
+                <p>The house on Cheyne Walk is small and dark, nothing like the grand studios of his earlier years. Turner has been living here under a false name &mdash; Mr. Booth &mdash; as if trying to disappear into one of his own paintings.</p>
+                <p>He is seventy-six years old and dying. But his eyes &mdash; those sharp, restless eyes &mdash; still flicker with something when the December light catches them through the window.</p>
+
+                <div class="card" style="margin: var(--space-5) 0;">
+                    <div class="card-content">
+                        <div class="badge badge-sage" style="margin-bottom: var(--space-3);">Historical Fact</div>
+                        <p style="margin-bottom: 0;"><strong>J.M.W. Turner died on December 19, 1851</strong>, at the age of 76. He left behind an astonishing body of work: <strong>over 550 oil paintings, 2,000 watercolors, and 30,000 works on paper</strong>. His will stipulated that his finished paintings be given to the nation, and they now reside in the Tate Gallery.</p>
+                    </div>
+                </div>
+
+                <p>You sit with him as the sun moves across the floor. He does not say much. But at one point, as a beam of golden light falls across the bedsheets, he whispers:</p>
+
+                <div class="quote-block">
+                    <blockquote>"The sun is God."</blockquote>
+                    <cite>&mdash; Reportedly among Turner's last words</cite>
+                </div>
+
+                <p>You leave Cheyne Walk with tears on your cheeks, but also with a strange, fierce joy. You have witnessed the entire arc &mdash; from Sandby's careful washes to Turner's incandescent light. From hand-ground pigments in mussel shells to synthetic colours in metal tubes. From a "minor art" to something that can stop your heart.</p>
+
+                <div class="section-divider"></div>
+                <p><em>Now there is only the question of your own ending...</em></p>
+            `,
+            fact: { date: 'December 19, 1851', text: 'Turner died leaving over 550 oil paintings, 2,000 watercolors, and 30,000 works on paper to the nation, now housed in the Tate Gallery.' },
+            choices: [
+                { text: 'Find meaning in passing your knowledge to the next generation', next: 'ending_teacher', color: 'sage' },
+                { text: 'Attempt one final, ambitious masterwork', next: 'ending_masterwork', color: 'coral' },
+                { text: 'Reflect quietly on the beauty you have witnessed', next: 'ending_solitude', color: 'lavender' }
+            ]
+        },
+
+        // --- ENDING 1: The Teacher ---
+        ending_teacher: {
+            type: 'ending',
+            chapter: 'Epilogue',
+            endingTitle: 'The Continuing Wash',
+            text: `
+                <p>You open a small studio near the Strand &mdash; not far from where Reeves' colour shop once stood. Your students are young, eager, full of the same fire you once carried in your own chest.</p>
+                <p>You teach them what Sandby taught you: discipline, observation, the sanctity of the white paper. You teach them what Girtin showed you: ambition, courage, the refusal to accept limits. You teach them what Turner proved: that watercolour can capture the very soul of light.</p>
+                <p>And you tell them about Durer, who saw the possibility four hundred years ago. About the Reeves brothers, who put colour in every artist's pocket. About Guimet, who unlocked the secret of ultramarine in a kiln.</p>
+                <p>You tell them that art is not made by individuals alone. It is made by a chain of hands passing knowledge forward, each one adding a wash of colour to the great, unfinished painting of human expression.</p>
+                <p>On your last morning, you sit by the window with a cup of tea and a half-finished watercolour of the Thames. The light is beautiful. It is always beautiful, if you know how to see it.</p>
+                <p><em>Your students will carry this forward. The wash continues.</em></p>
+            `,
+            choices: [
+                { text: 'Begin the journey anew', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING 2: The Masterwork ---
+        ending_masterwork: {
+            type: 'ending',
+            chapter: 'Epilogue',
+            endingTitle: 'The Final Wash',
+            text: `
+                <p>You purchase the finest sheet of Whatman paper you can find &mdash; the largest you have ever worked on. You set up your easel facing the window, where the Thames curves silver in the winter light.</p>
+                <p>You lay out every pigment you own: the ancient earth ochres, the revolutionary Prussian blue, the miraculous synthetic ultramarine, the new cadmium yellow in its metal tube. Seventy years of colour chemistry, spread across your palette like a history of human ingenuity.</p>
+                <p>You wet the paper. You touch your brush to the surface. And the colour begins to flow.</p>
+                <p>You paint all day. You paint the light as Turner taught you &mdash; not as an object, but as a force. You paint the landscape as Girtin showed you &mdash; bold, ambitious, unapologetic. You paint with the precision Sandby drilled into your hands, and with the freedom the new pigments have given your imagination.</p>
+                <p>When you set down your brush, the winter sun is setting. The painting on your easel glows with the accumulated knowledge of a lifetime &mdash; and the accumulated knowledge of five thousand years of watercolour, stretching back to the papyrus-painters of ancient Egypt.</p>
+                <p><em>It is the best thing you have ever made. It is enough.</em></p>
+            `,
+            choices: [
+                { text: 'Begin the journey anew', next: '_restart' }
+            ]
+        },
+
+        // --- ENDING 3: The Quiet Reflection ---
+        ending_solitude: {
+            type: 'ending',
+            chapter: 'Epilogue',
+            endingTitle: 'Water and Light',
+            text: `
+                <p>You take your paints to the coast &mdash; to the chalk cliffs and grey-green sea that Turner loved to paint. You sit on the shingle with your sketchbook and let the wind carry away everything that does not matter.</p>
+                <p>You have lived through a revolution. You arrived in London when watercolour was a humble craft for tinting maps, and you have watched it become a medium that can express the sublime, the transcendent, the inexpressible.</p>
+                <p>You think of Sandby, patient and precise. Of Girtin, burning bright and brief as a shooting star. Of Turner, who saw God in the sun and spent his life trying to paint the proof. Of Reeves, who put colour in a cake. Of Guimet, who unlocked ultramarine from a kiln. Of Winsor and Newton, who put paint in a tube and set the artist free.</p>
+                <p>You dip your brush in the sea itself &mdash; salt water and pigment, the oldest medium in the world &mdash; and you make one last mark on the paper. A single wash of blue-grey, the colour of the English Channel under December clouds.</p>
+                <p>It is not a painting. It is barely even a mark. But it catches the light in a way that makes you catch your breath, and you understand at last what Turner meant.</p>
+                <p><em>The sun is God. The water carries the light. And the paper &mdash; the bare, white, untouched paper &mdash; is where the light lives.</em></p>
+            `,
+            choices: [
+                { text: 'Begin the journey anew', next: '_restart' }
+            ]
+        }
+    };
+
+    // ================================================================
+    //  STORY ENGINE
+    // ================================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('arrival');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 400);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1000);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update chapter header
+            if (scene.chapter) {
+                document.getElementById('sceneChapter').textContent = scene.chapter;
+            }
+
+            let html = '<div class="scene-content">';
+
+            // Build scene based on type
+            switch (scene.type) {
+                case 'narration':
+                    html += `<div class="scene-narration"><div class="scene-text">${scene.text}</div></div>`;
+                    break;
+                case 'exposition':
+                    html += `<div class="scene-exposition"><div class="scene-text">${scene.text}</div></div>`;
+                    break;
+                case 'climax':
+                    html += `<div class="scene-climax"><div class="scene-text">${scene.text}</div></div>`;
+                    break;
+                case 'ending':
+                    html += '<div class="scene-ending">';
+                    html += '<div class="ending-label">Story Complete</div>';
+                    html += `<div class="ending-title">${scene.endingTitle}</div>`;
+                    html += '<div class="paint-stroke"></div>';
+                    html += `<div class="scene-text">${scene.text}</div>`;
+                    html += '<div class="the-end">Finis</div>';
+                    html += '</div>';
+                    break;
+            }
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    const colorClass = choice.color ? ` choice-${choice.color}` : '';
+                    html += `<button class="choice-btn${colorClass}" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            const exists = this.facts.some(f => f.text === fact.text);
+            if (!exists) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No discoveries yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f =>
+                    `<div class="fact-item"><span class="fact-date">${f.date}</span> &mdash; ${f.text}</div>`
+                ).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

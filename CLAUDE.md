@@ -9,11 +9,13 @@ A collection of self-contained HTML design systems, interactive educational stor
 ├── index.html              # Master index (links to all 3 sections)
 ├── styles/                 # 103 CSS design system showcases
 │   └── CLAUDE.md           # How to build style guides
-├── stories/                # 31 interactive educational narratives
+├── stories/                # 32 interactive educational narratives
 │   ├── CLAUDE.md           # How to build stories
 │   ├── STORY-CREATION-GUIDE.md  # Deep reference (audio, parallel workflows)
 │   ├── briefs/             # Research briefs (Markdown)
-│   └── audio/              # Optional narration MP3s
+│   ├── audio/              # Optional narration MP3s
+│   └── [story-name]/       # Each story in its own folder
+│       └── index.html      # Story file (may include media assets alongside)
 └── techguides/             # 23 styled developer reference docs
     └── CLAUDE.md           # How to build tech guides
 ```
@@ -24,6 +26,7 @@ A collection of self-contained HTML design systems, interactive educational stor
 - **Google Fonts only**: The sole external dependency. Loaded via `<link>` in `<head>`.
 - **No build step**: Files open directly in a browser. Deployed via GitHub Pages.
 - **No frameworks**: Vanilla HTML/CSS/JS only.
+- **Media in stories**: Stories may embed YouTube iframes and link to external resources (Wikipedia, Know Your Meme). Style guides and tech guides remain strictly self-contained.
 
 ## Cross-Cutting Patterns
 

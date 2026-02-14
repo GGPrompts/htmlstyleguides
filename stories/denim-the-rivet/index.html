@@ -1,0 +1,1850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Rivet — A Denim Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           DENIM DESIGN SYSTEM — Story Adaptation
+           ============================================ */
+
+        :root {
+            --raw-denim: #1a2a3a;
+            --dark-indigo: #2c3e50;
+            --classic-indigo: #3d5a80;
+            --medium-wash: #5b7fa3;
+            --light-wash: #8fadc8;
+            --stonewash: #b8cfe0;
+            --bleached: #dce8f1;
+
+            --thread-orange: #d97706;
+            --thread-gold: #f59e0b;
+            --copper-rivet: #b87333;
+            --copper-bright: #cd7f32;
+            --copper-dark: #8b5a2b;
+            --leather-brown: #6b4423;
+            --leather-tan: #a67c52;
+            --leather-light: #c9a86c;
+
+            --selvage-red: #dc2626;
+            --selvage-white: #fafafa;
+
+            --white-cotton: #fefefe;
+            --off-white: #f8f6f3;
+            --cream: #f5f0e8;
+            --gray-thread: #6b7280;
+            --charcoal: #374151;
+
+            --font-display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
+            --font-heading: 'Barlow', 'Helvetica Neue', sans-serif;
+            --font-body: 'Source Sans 3', 'Segoe UI', sans-serif;
+
+            --stitch-width: 2px;
+            --rivet-size: 10px;
+
+            --transition-base: 0.25s ease;
+
+            --shadow-soft: 0 2px 8px rgba(26, 42, 58, 0.12);
+            --shadow-medium: 0 4px 16px rgba(26, 42, 58, 0.18);
+            --shadow-hard: 0 8px 32px rgba(26, 42, 58, 0.24);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.65;
+            color: var(--charcoal);
+            background-color: var(--stonewash);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            background-image:
+                repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(61, 90, 128, 0.03) 1px, rgba(61, 90, 128, 0.03) 2px),
+                repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(61, 90, 128, 0.03) 1px, rgba(61, 90, 128, 0.03) 2px),
+                repeating-linear-gradient(45deg, transparent, transparent 2px, rgba(61, 90, 128, 0.02) 2px, rgba(61, 90, 128, 0.02) 3px);
+            background-attachment: fixed;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            line-height: 1.2;
+            color: var(--raw-denim);
+        }
+
+        p { margin-bottom: 1rem; max-width: 65ch; }
+
+        .lead {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            color: var(--dark-indigo);
+        }
+
+        .uppercase {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 600;
+        }
+
+        /* ============================================
+           STITCHING EFFECTS
+           ============================================ */
+
+        .stitch-border { border: var(--stitch-width) dashed var(--thread-orange); }
+        .stitch-top { border-top: var(--stitch-width) dashed var(--thread-orange); }
+
+        .double-stitch { position: relative; }
+        .double-stitch::before, .double-stitch::after {
+            content: '';
+            position: absolute;
+            left: 16px; right: 16px;
+            height: 0;
+            border-top: var(--stitch-width) dashed var(--thread-orange);
+        }
+        .double-stitch::before { top: 8px; }
+        .double-stitch::after { bottom: 8px; }
+
+        .rivet {
+            display: inline-block;
+            width: var(--rivet-size);
+            height: var(--rivet-size);
+            background: radial-gradient(circle at 30% 30%, var(--copper-bright), var(--copper-rivet) 50%, var(--copper-dark));
+            border-radius: 50%;
+            box-shadow:
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .rivet-large { width: 14px; height: 14px; }
+
+        .selvage-edge { position: relative; }
+        .selvage-edge::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 6px;
+            background: repeating-linear-gradient(0deg, var(--selvage-red) 0px, var(--selvage-red) 3px, var(--selvage-white) 3px, var(--selvage-white) 6px);
+        }
+
+        /* ============================================
+           GAME CONTAINER
+           ============================================ */
+
+        .game-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ============================================
+           TITLE SCREEN
+           ============================================ */
+
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 24px;
+            background: var(--leather-brown);
+            color: var(--cream);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 2rem;
+            border-radius: 2px;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .title-header {
+            background: linear-gradient(180deg, var(--dark-indigo) 0%, var(--raw-denim) 100%);
+            color: var(--white-cotton);
+            padding: 3rem 2.5rem;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            width: 100%;
+            border-radius: 4px;
+        }
+
+        .title-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(255, 255, 255, 0.02) 1px, rgba(255, 255, 255, 0.02) 2px),
+                repeating-linear-gradient(-45deg, transparent, transparent 1px, rgba(255, 255, 255, 0.02) 1px, rgba(255, 255, 255, 0.02) 2px);
+            pointer-events: none;
+        }
+
+        .title-header-content {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3.5rem, 10vw, 6rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--white-cotton);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .title-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.125rem;
+            font-weight: 400;
+            color: var(--light-wash);
+            margin-bottom: 1.5rem;
+        }
+
+        .title-stitch {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .title-stitch-line {
+            width: 100px;
+            height: 0;
+            border-top: 2px dashed var(--thread-orange);
+        }
+
+        .title-tagline {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--gray-thread);
+            max-width: 500px;
+            margin-bottom: 2.5rem;
+            line-height: 1.7;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 48px;
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: var(--dark-indigo);
+            color: var(--white-cotton);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 1px dashed var(--thread-orange);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .title-start:hover {
+            background: var(--classic-indigo);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .title-credits {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: var(--gray-thread);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        /* ============================================
+           SCENE WRAPPER
+           ============================================ */
+
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 1rem;
+        }
+
+        .scene-wrapper.active { display: flex; }
+
+        .scene-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: var(--stitch-width) dashed var(--thread-gold);
+        }
+
+        .scene-era-label {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--leather-brown);
+        }
+
+        .scene-fact-count {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            color: var(--copper-rivet);
+            letter-spacing: 0.1em;
+        }
+
+        /* ============================================
+           SCENE CONTENT TYPES
+           ============================================ */
+
+        .scene-content {
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Section scene (main narrative block) --- */
+        .scene-section {
+            background: var(--white-cotton);
+            border-radius: 6px;
+            padding: 2rem 2rem 2rem 2.5rem;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .scene-section .scene-text { position: relative; z-index: 2; }
+        .scene-section .scene-text p { margin-bottom: 1rem; color: var(--charcoal); }
+        .scene-section .scene-text p:last-child { margin-bottom: 0; }
+
+        /* --- Header scene (era title) --- */
+        .scene-era-header {
+            background: linear-gradient(180deg, var(--dark-indigo) 0%, var(--raw-denim) 100%);
+            color: var(--white-cotton);
+            padding: 2.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .scene-era-header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(255, 255, 255, 0.02) 1px, rgba(255, 255, 255, 0.02) 2px),
+                repeating-linear-gradient(-45deg, transparent, transparent 1px, rgba(255, 255, 255, 0.02) 1px, rgba(255, 255, 255, 0.02) 2px);
+            pointer-events: none;
+        }
+
+        .scene-era-header h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 5vw, 2.5rem);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--white-cotton);
+            margin-bottom: 0.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .scene-era-header .era-date {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--thread-orange);
+            position: relative;
+            z-index: 1;
+        }
+
+        .scene-era-header .stitch-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .scene-era-header .stitch-line {
+            width: 80px;
+            height: 0;
+            border-top: 2px dashed var(--thread-orange);
+        }
+
+        /* --- Pocket card (character intro) --- */
+        .card-pocket {
+            background: var(--white-cotton);
+            border-radius: 6px;
+            padding: 2rem 2rem 2rem 2rem;
+            padding-top: 2.5rem;
+            border: 2px solid var(--medium-wash);
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-pocket::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            left: 16px; right: 16px;
+            height: 0;
+            border-top: 2px dashed var(--thread-orange);
+        }
+
+        .card-pocket::after {
+            content: '';
+            position: absolute;
+            top: 19px;
+            left: 24px;
+            width: 10px; height: 10px;
+            background: radial-gradient(circle at 30% 30%, var(--copper-bright), var(--copper-rivet) 50%, var(--copper-dark));
+            border-radius: 50%;
+            box-shadow:
+                inset -1px -1px 2px rgba(0, 0, 0, 0.3),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-pocket h3 {
+            color: var(--dark-indigo);
+            font-size: 1.375rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .card-pocket p { color: var(--charcoal); margin-bottom: 0.75rem; }
+        .card-pocket p:last-child { margin-bottom: 0; }
+
+        /* --- Patch card (historical fact) --- */
+        .card-patch {
+            background: linear-gradient(135deg, var(--leather-tan) 0%, var(--leather-brown) 100%);
+            color: var(--cream);
+            border-radius: 6px;
+            padding: 2rem;
+            position: relative;
+            box-shadow:
+                var(--shadow-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -2px 8px rgba(0, 0, 0, 0.15);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .card-patch::before {
+            content: '';
+            position: absolute;
+            top: 12px; left: 12px; right: 12px; bottom: 12px;
+            border: 1px solid var(--leather-light);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .card-patch h3 { color: var(--cream); font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .card-patch p { color: rgba(255, 255, 255, 0.85); margin-bottom: 0.75rem; }
+        .card-patch p:last-child { margin-bottom: 0; }
+
+        /* --- Selvage scene (transition/conflict) --- */
+        .scene-selvage {
+            position: relative;
+            background: var(--white-cotton);
+            border-radius: 6px;
+            padding: 2rem 2rem 2rem 2.5rem;
+            border-left: 6px solid transparent;
+            background-image:
+                linear-gradient(var(--white-cotton), var(--white-cotton)),
+                repeating-linear-gradient(0deg, var(--selvage-red) 0px, var(--selvage-red) 4px, var(--selvage-white) 4px, var(--selvage-white) 8px);
+            background-origin: padding-box, border-box;
+            background-clip: padding-box, border-box;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 1.5rem;
+        }
+
+        .scene-selvage h3 {
+            color: var(--dark-indigo);
+            font-size: 1.375rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .scene-selvage p { color: var(--charcoal); margin-bottom: 1rem; }
+        .scene-selvage p:last-child { margin-bottom: 0; }
+
+        /* --- Ending scene --- */
+        .scene-ending {
+            text-align: center;
+            padding: 2.5rem 2rem;
+            background: var(--white-cotton);
+            border-radius: 6px;
+            box-shadow: var(--shadow-soft);
+            margin-bottom: 1.5rem;
+        }
+
+        .scene-ending .ending-label {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--copper-rivet);
+            margin-bottom: 0.75rem;
+        }
+
+        .scene-ending .ending-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--raw-denim);
+            margin-bottom: 1.5rem;
+        }
+
+        .scene-ending .scene-text { max-width: 550px; margin: 0 auto; }
+        .scene-ending .scene-text p { margin-bottom: 1rem; color: var(--charcoal); max-width: none; }
+
+        .scene-ending .the-end {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: var(--gray-thread);
+            margin-top: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        /* ============================================
+           BADGES
+           ============================================ */
+
+        .badge-stitched {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 3px;
+            position: relative;
+            background: var(--classic-indigo);
+            color: var(--white-cotton);
+        }
+
+        .badge-stitched::before {
+            content: '';
+            position: absolute;
+            top: 3px; left: 3px; right: 3px; bottom: 3px;
+            border: 1px dashed var(--thread-orange);
+            border-radius: 2px;
+            pointer-events: none;
+        }
+
+        .badge-leather {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 3px;
+            background: var(--leather-brown);
+            color: var(--cream);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                inset 0 -1px 2px rgba(0, 0, 0, 0.15);
+        }
+
+        .badge-copper {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 3px;
+            background: linear-gradient(135deg, var(--copper-bright), var(--copper-rivet));
+            color: var(--raw-denim);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.3),
+                var(--shadow-soft);
+        }
+
+        .badge-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-radius: 3px;
+            background: var(--selvage-red);
+            color: var(--white-cotton);
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* ============================================
+           FACT FOUND TOAST
+           ============================================ */
+
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, var(--copper-bright), var(--copper-rivet));
+            color: var(--raw-denim);
+            padding: 8px 20px;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            border-radius: 3px;
+            animation: factSlideIn 0.6s ease-out;
+            box-shadow: var(--shadow-soft);
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ============================================
+           CHOICES
+           ============================================ */
+
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.5s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: 14px 24px;
+            font-family: var(--font-heading);
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background: var(--dark-indigo);
+            color: var(--white-cotton);
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+            text-align: left;
+            box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 1px dashed var(--thread-orange);
+            border-radius: 2px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .choice-btn:hover {
+            background: var(--classic-indigo);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+
+        .choice-btn:hover::before { opacity: 1; }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px; height: 24px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 3px;
+            font-size: 0.75rem;
+            color: var(--thread-orange);
+            margin-right: 12px;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        /* ============================================
+           TRANSITION OVERLAY
+           ============================================ */
+
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: denimTransition 1s ease-in-out;
+        }
+
+        @keyframes denimTransition {
+            0% { opacity: 0; }
+            25% { opacity: 1; }
+            50% { opacity: 1; }
+            75% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .transition-weave {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--raw-denim);
+            background-image:
+                repeating-linear-gradient(45deg, transparent, transparent 1px, rgba(255, 255, 255, 0.03) 1px, rgba(255, 255, 255, 0.03) 2px),
+                repeating-linear-gradient(-45deg, transparent, transparent 1px, rgba(255, 255, 255, 0.03) 1px, rgba(255, 255, 255, 0.03) 2px);
+        }
+
+        /* ============================================
+           FACT TRACKER (SIDEBAR)
+           ============================================ */
+
+        .fact-tracker {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 100;
+            max-width: 240px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            background: var(--leather-brown);
+            border: none;
+            border-radius: 3px;
+            color: var(--cream);
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-left: auto;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.1),
+                var(--shadow-soft);
+        }
+
+        .fact-tracker-toggle:hover {
+            background: var(--copper-dark);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: 0.5rem;
+            background: var(--white-cotton);
+            border: 2px solid var(--medium-wash);
+            border-radius: 4px;
+            padding: 1rem;
+            box-shadow: var(--shadow-medium);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-family: var(--font-heading);
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--classic-indigo);
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px dashed var(--thread-orange);
+        }
+
+        .fact-item {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--charcoal);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--bleached);
+            animation: factSlideIn 0.4s ease-out;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-size: 0.75rem;
+            color: var(--gray-thread);
+            font-style: italic;
+        }
+
+        /* ============================================
+           GAME CONTROLS
+           ============================================ */
+
+        .game-controls {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: var(--stitch-width) dashed var(--thread-gold);
+        }
+
+        .ctrl-btn {
+            padding: 10px 20px;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 2px solid var(--medium-wash);
+            background: transparent;
+            color: var(--classic-indigo);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            border-color: var(--classic-indigo);
+            background: var(--bleached);
+            color: var(--dark-indigo);
+        }
+
+        /* Section divider */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin: 1.5rem 0;
+        }
+
+        .section-divider-line {
+            flex: 1;
+            max-width: 120px;
+            height: 0;
+            border-top: 2px dashed var(--thread-gold);
+        }
+
+        /* Dialogue styling */
+        .dialogue {
+            font-style: italic;
+            color: var(--dark-indigo);
+            border-left: 3px solid var(--thread-orange);
+            padding-left: 1rem;
+            margin: 1rem 0;
+        }
+
+        .dialogue-speaker {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--copper-rivet);
+            margin-bottom: 0.25rem;
+            font-style: normal;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .game-container { padding: 1rem; }
+            .fact-tracker { right: 0.75rem; top: 0.75rem; max-width: 200px; }
+            .scene-section, .card-pocket, .card-patch, .scene-selvage { padding: 1.5rem; }
+            .title-header { padding: 2rem 1.5rem; }
+        }
+
+        /* Selection */
+        ::selection { background: var(--classic-indigo); color: var(--white-cotton); }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bleached); }
+        ::-webkit-scrollbar-thumb { background: var(--medium-wash); border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <!-- Transition overlay -->
+    <div class="transition-overlay" id="transition">
+        <div class="transition-weave"></div>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span class="rivet" style="width:8px;height:8px;"></span>
+            <span>Facts</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Historical Facts Discovered</h4>
+            <div id="factList">
+                <p class="no-facts">No facts discovered yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-badge">
+                <span class="rivet" style="width:8px;height:8px;"></span>
+                An Interactive History
+                <span class="rivet" style="width:8px;height:8px;"></span>
+            </div>
+
+            <div class="title-header">
+                <div class="title-header-content">
+                    <h1>The Rivet</h1>
+                    <div class="title-subtitle">How One Stitch Changed Everything</div>
+                    <div class="title-stitch">
+                        <span class="title-stitch-line"></span>
+                        <span class="rivet rivet-large"></span>
+                        <span class="title-stitch-line"></span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="title-tagline">From a Bavarian immigrant's dry goods venture to the uniform of rebellion and revolution — trace the journey of denim through 150 years of American history.</p>
+
+            <button class="title-start" id="startBtn">
+                <span class="rivet" style="width:8px;height:8px;"></span>
+                Begin the Story
+                <span class="rivet" style="width:8px;height:8px;"></span>
+            </button>
+
+            <p class="title-credits">A story woven in indigo and copper</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header-bar">
+                <span class="scene-era-label" id="eraLabel">1829 - Bavaria</span>
+
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ===============================================================
+    //  THE RIVET — Story Data
+    // ===============================================================
+
+    const STORY = {
+
+        // === SCENE 1: A Bavarian Son ===
+        bavarian_son: {
+            era: '1829 - Bavaria',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">February 26, 1829</span>
+                    <h2>A Bavarian Son</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="card-pocket">
+                    <h3>Levi Strauss</h3>
+                    <p>Born Loeb Strauss on February 26, 1829, in the small town of Buttenheim, Bavaria. The youngest of six children in a Jewish family, young Levi would grow up knowing both the warmth of family and the sting of prejudice.</p>
+                    <p>His father Hirsch was a dry goods peddler — a trade that would shape the family's destiny across two continents.</p>
+
+                    <div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Levi_Strauss.jpg" alt="Levi Strauss portrait" style="max-width: 100%; height: auto; filter: contrast(1.05); border: 2px dashed #d97706; opacity: 0.85; max-height: 400px; object-fit: contain;"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic; color: #7a9ab8;">Levi Strauss — the Bavarian immigrant who dressed the American West</div></div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>Levi Strauss was born in Buttenheim, Bavaria on February 26, 1829. At age 18 in 1847, he traveled to the United States to join his brothers Jonas and Louis, who ran a wholesale dry goods business in New York City called J. Strauss Brother & Co.</p>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>By 1847, Bavaria was no place for a young Jewish man seeking his fortune. Levi's father had passed away, and his older brothers Jonas and Louis had already crossed the Atlantic, establishing themselves in the bustling trade of New York City.</p>
+                        <p>At eighteen years old, Levi Strauss packed everything he owned into a single trunk and boarded a ship bound for America. He carried with him nothing but a family name, a knowledge of dry goods, and an immigrant's unshakeable belief that somewhere across that gray ocean, a better life waited.</p>
+                        <p>The question was what to do with it.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'Levi Strauss was born Feb 26, 1829 in Buttenheim, Bavaria and emigrated to America in 1847 at age 18',
+            choices: [
+                { text: 'Follow the family business in New York', next: 'new_york' },
+                { text: 'Dream of adventure out West', next: 'dream_west' }
+            ]
+        },
+
+        // === SCENE 2a: New York Peddler ===
+        new_york: {
+            era: '1847-1852 - New York',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1847 - 1852</span>
+                    <h2>The New York Peddler</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Levi threw himself into the family trade. Working alongside Jonas and Louis at J. Strauss Brother & Co., he learned the business from the ground up — selling kettles, blankets, sewing supplies, and bolts of fabric to shops and homes across the city.</p>
+                        <p>He became an itinerant peddler, hauling goods through the crowded streets of lower Manhattan, learning to read a customer's needs before they even opened their mouth. It was honest work. Safe work.</p>
+                        <p>But the streets of New York were alive with whispers of something extraordinary happening 3,000 miles to the west.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>The word "denim" originates from "serge de Nimes." In the late 17th century, weavers in Nimes, France accidentally created the first modern denim while trying to replicate sturdy serge fabric. The resulting cotton twill became known as "de Nimes" — later shortened to "denim."</p>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>Whispers of Gold</h3>
+                    <p>Every newspaper carried stories of the California Gold Rush. Men were pulling fortunes from the earth with their bare hands. San Francisco was exploding from a small settlement into a roaring city overnight.</p>
+                    <p>Levi's brothers were content with New York. But Levi heard something in those stories that his brothers didn't — not the call of gold, but the call of need. Thousands of miners needed supplies. They needed goods. They needed someone who knew how to sell them.</p>
+                </div>
+            `,
+            fact: 'Weavers in Nimes, France created the first modern denim in the late 17th century — "serge de Nimes" shortened to "denim"',
+            choices: [
+                { text: 'Head West to California', next: 'san_francisco' },
+                { text: 'Stay safe in New York', next: 'stay_east' }
+            ]
+        },
+
+        // === SCENE 2b: Dream of the West ===
+        dream_west: {
+            era: '1847-1852 - New York',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1847 - 1852</span>
+                    <h2>Dreams of the Frontier</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Even as Levi learned the family trade at J. Strauss Brother & Co., his mind wandered westward. The newspapers were thick with stories of the California Gold Rush — fortunes made and lost in a single day, a wild frontier where a man could become anything.</p>
+                        <p>He worked the New York streets dutifully, selling kettles and blankets and sewing goods, but every evening he pored over maps of California, tracing the route around Cape Horn with his finger.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>Indigo dye, which gives denim its characteristic blue color, was originally manufactured and exported from India during the Greco-Roman era. For centuries, it remained the only source of this deep blue pigment, making it one of the most valuable trade commodities in the ancient world.</p>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>A Merchant's Eye</h3>
+                    <p>Where others saw gold, Levi saw something different. Miners didn't need another man with a pickaxe — they needed someone who could supply them. Fabric, tools, provisions. The real fortune wasn't in the ground. It was in the men standing on top of it.</p>
+                    <p>In 1852, Levi made his decision. He would go West — not as a miner, but as a merchant.</p>
+                </div>
+            `,
+            fact: 'Indigo dye was originally manufactured in India during the Greco-Roman era — it colored denim blue for centuries',
+            choices: [
+                { text: 'Set sail for San Francisco', next: 'san_francisco' }
+            ]
+        },
+
+        // === SCENE 2c: Stay East (short redirect) ===
+        stay_east: {
+            era: '1852 - New York',
+            content: `
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Levi tried to stay. He really did. The family business was comfortable. New York was familiar.</p>
+                        <p>But every bolt of sturdy denim fabric he unrolled reminded him of the miners who needed it most. Every ship leaving the harbor called to him like a hymn he couldn't unhear.</p>
+                        <p>Three months later, he packed his trunk again. Some destinies can't be avoided — they can only be delayed.</p>
+                    </div>
+                </div>
+            `,
+            choices: [
+                { text: 'Head West to California', next: 'san_francisco' }
+            ]
+        },
+
+        // === SCENE 3: San Francisco ===
+        san_francisco: {
+            era: '1853 - San Francisco',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1853 - The Gold Rush</span>
+                    <h2>San Francisco Goldfields</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>San Francisco in 1853 was chaos made into a city. Mud streets. Canvas tents. The smell of smoke and ambition. Men from every nation on earth scrambled over each other for a chance at the goldfields, and behind them trailed a desperate need for everything — food, tools, clothing.</p>
+                        <p>Levi Strauss stepped off the ship and into the greatest commercial opportunity of the nineteenth century.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>Levi Strauss moved to San Francisco in 1853 at the height of the California Gold Rush to open a Western branch of his family's dry goods company. He began selling sturdy imported denim fabric and other supplies to miners, recognizing that the real fortune lay in outfitting the prospectors, not joining them.</p>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>The Problem with Pants</h3>
+                    <p>Within weeks, Levi noticed something that no other merchant seemed to care about. Miners were tearing through their trousers at an alarming rate. The rough work — kneeling in streams, hauling rock, crouching in tunnels — destroyed ordinary cloth in days.</p>
+                    <p>They needed something tougher. Something that could survive the goldfields as stubbornly as the men who worked them.</p>
+                    <p>Levi began importing heavy denim fabric from the East. Sturdy. Reliable. Blue as the California sky. But even denim had its weak points — particularly where the pockets met the seams.</p>
+                </div>
+            `,
+            fact: 'Levi Strauss moved to San Francisco in 1853 during the Gold Rush to open a Western branch of his dry goods company',
+            choices: [
+                { text: 'Focus on building a denim empire', next: 'meeting_davis' },
+                { text: 'Sell basic provisions instead', next: 'provisions' }
+            ]
+        },
+
+        // === SCENE 3b: Provisions (short redirect) ===
+        provisions: {
+            era: '1853-1870 - San Francisco',
+            content: `
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Levi sold provisions for a while — flour, tools, blankets. Good business. Safe business. But every day he watched miners trudge past his shop with ripped pockets and torn seams, and every day the same thought gnawed at him.</p>
+                        <p>Someone was going to solve the pants problem. If it wasn't Levi Strauss, it would be someone else.</p>
+                        <p>And Levi Strauss did not cross an ocean to let someone else seize the opportunity.</p>
+                    </div>
+                </div>
+            `,
+            choices: [
+                { text: 'Turn your attention to durable workwear', next: 'meeting_davis' }
+            ]
+        },
+
+        // === SCENE 4: Meeting the Tailor ===
+        meeting_davis: {
+            era: '1870-1872 - San Francisco & Reno',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1870 - 1872</span>
+                    <h2>Meeting the Tailor</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="card-pocket">
+                    <h3>Jacob Davis</h3>
+                    <p>A Latvian-born tailor working in Reno, Nevada. Davis had become a regular customer of Levi Strauss's wholesale fabric business, purchasing bolts of denim and duck cloth for the work pants he sewed for miners, laborers, and teamsters.</p>
+                    <p>Davis was practical, inventive, and perpetually short on capital — a combination that would change history.</p>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>The letter arrived at Levi's San Francisco office on a Tuesday in 1872. It was from Jacob Davis, a tailor in Reno who had been buying fabric from Strauss for years.</p>
+
+                        <div class="dialogue">
+                            <div class="dialogue-speaker">Jacob Davis, in his letter to Levi Strauss</div>
+                            <p>"The secret of them Pants is the Rivets that I put in those Pockets. I cannot afford to take out a Patent, and as you are my best customer, I thought it would be to your interest to take it up."</p>
+                        </div>
+
+                        <p>Rivets. Small copper fasteners, the kind used on horse blankets and leather goods. Davis had started placing them at the stress points on work pants — the corners of pockets, the base of the fly — and the results were extraordinary. The pants were nearly indestructible.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>In January 1871, tailor Jacob Davis conceived the idea of using metal rivets at stress points on work pants after a woman asked him to make pants strong enough for her woodcutter husband. He adapted rivets he had previously used on horse blankets to reinforce pocket corners and the base of the button fly.</p>
+                </div>
+            `,
+            fact: 'In January 1871, Jacob Davis invented riveted work pants after a woman requested unbreakable pants for her husband',
+            choices: [
+                { text: 'Fund the patent application', next: 'rivet_revelation' },
+                { text: 'Decline the risky venture', next: 'decline_patent' }
+            ]
+        },
+
+        // === SCENE 4b: Decline Patent (alternate ending 1) ===
+        decline_patent: {
+            era: '1872 - An Alternate History',
+            content: `
+                <div class="scene-ending">
+                    <div class="ending-label">Alternate History</div>
+                    <div class="ending-title">The Road Not Stitched</div>
+                    <div class="scene-text">
+                        <p>Levi Strauss read Davis's letter, weighed the risks, and wrote back: "Too speculative. I'll stick with selling fabric."</p>
+                        <p>In this version of history, Davis approached another investor. The riveted jean was still invented — but it bore someone else's name. Levi Strauss & Co. remained a successful regional dry goods company, never becoming the global icon we know today.</p>
+                        <p>Sometimes the biggest risk is refusing to take one.</p>
+                        <p><em>But that's not what happened. In our history, Levi said yes.</em></p>
+                    </div>
+                    <div class="the-end">An Alternate Ending</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Return to the true story — Fund the patent', next: 'rivet_revelation' },
+                { text: 'Restart from the beginning', next: '_restart' }
+            ]
+        },
+
+        // === SCENE 5: The Rivet Revelation ===
+        rivet_revelation: {
+            era: '1871 - Reno, Nevada',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">January 1871</span>
+                    <h2>The Rivet Revelation</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet rivet-large"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>The moment deserves to be remembered.</p>
+                        <p>January 1871. Jacob Davis's small tailor shop in Reno. A woman comes in with a simple request: make a pair of pants strong enough for her husband, a woodcutter who tears through his clothing like paper.</p>
+                        <p>Davis looks at the pile of denim on his cutting table. Then his eyes drift to the copper rivets sitting in a tin beside his sewing machine — the same rivets he uses to reinforce horse blankets.</p>
+                    </div>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>The Eureka Moment</h3>
+                    <p>What if the rivets could hold the seams together at the points of greatest strain? The corners of the pockets. The base of the fly. Every place where fabric pulls apart under the stress of hard labor.</p>
+                    <p>Davis hammered the first rivet into position at the corner of a pocket. Then another. Then another. He held up the finished pants and knew, with the certainty of a craftsman who has just solved an impossible problem, that he was looking at something that would last.</p>
+                </div>
+
+                <div class="section-divider">
+                    <div class="section-divider-line"></div>
+                    <span class="rivet rivet-large"></span>
+                    <div class="section-divider-line"></div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>The pants held. They held through splitting logs and hauling timber. They held through months of the hardest work the frontier could throw at them. Word spread through Reno, and soon Davis could barely keep up with demand.</p>
+                        <p>He had the innovation. But he didn't have the money to protect it. A patent cost $68 — a fortune for a small-town tailor. Without protection, anyone could copy his idea.</p>
+                        <p>He needed a partner. He needed Levi Strauss.</p>
+                    </div>
+                </div>
+            `,
+            choices: [
+                { text: 'Race to the patent office', next: 'patent_race' }
+            ]
+        },
+
+        // === SCENE 6: Patent Race ===
+        patent_race: {
+            era: '1872-1873 - Washington, D.C.',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1872 - May 20, 1873</span>
+                    <h2>The Patent Race</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet rivet-large"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Levi Strauss read Davis's letter and recognized genius when he saw it. He agreed immediately to fund the patent application and share the rights.</p>
+                        <p>The paperwork was filed in 1872. Then began the waiting — months of bureaucratic uncertainty while competitors sniffed around the same idea. Other tailors had noticed the rivet trick. Other businessmen had noted the demand.</p>
+                        <p>The question wasn't whether riveted pants would succeed. It was whether Strauss and Davis would be the ones to own the idea.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>On May 20, 1873, Levi Strauss and Jacob Davis received U.S. Patent No. 139,121 for "an Improvement in Fastening Pocket Openings." This date officially marks the birth of the copper-riveted blue jean. Davis had approached Strauss in 1872 with the idea, and Strauss agreed to fund the $68 patent application.</p>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>Patent No. 139,121</h3>
+                    <p>May 20, 1873. The answer came from Washington: <strong>Granted.</strong></p>
+                    <p>U.S. Patent No. 139,121, for "an Improvement in Fastening Pocket Openings." The language was dry and bureaucratic, as patent language always is. But what it described was nothing less than the birth certificate of the blue jean.</p>
+                    <p>The copper-riveted "waist overall" was officially, legally, and irrevocably the invention of Jacob Davis and Levi Strauss.</p>
+                </div>
+            `,
+            fact: 'On May 20, 1873, U.S. Patent No. 139,121 was granted for riveted jeans — the official birthday of blue jeans',
+            choices: [
+                { text: 'Build the factory and scale production', next: 'factory' }
+            ]
+        },
+
+        // === SCENE 7: Factory to Goldfields ===
+        factory: {
+            era: '1873-1890s - San Francisco',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1873 - 1890s</span>
+                    <h2>From Factory to Goldfields</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>With the patent secured, Levi Strauss moved fast. He established a factory in San Francisco — starting with seamstresses who worked from their homes, then expanding into a dedicated manufacturing facility by the 1880s.</p>
+                        <p>The product was called "waist overalls." Nobody called them "jeans" yet. That word would come later, borrowed from the sturdy pants Genoese sailors wore — "genes" in French, after Genoa.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>In 1883, German chemist Adolf von Baeyer successfully synthesized natural indigo after 18 years of research (begun in 1865). By 1897, synthetic indigo was being mass-produced industrially, making the blue dye affordable and abundant — and ensuring denim's signature color could scale with global demand.</p>
+                </div>
+
+                <div class="card-pocket">
+                    <h3>An Empire in Blue</h3>
+                    <p>The waist overalls spread like wildfire through the mining camps. Cowboys adopted them. Railroad workers swore by them. Farmers discovered that no other fabric could survive the combination of sweat, soil, and sun.</p>
+                    <p>Levi Strauss & Co. grew from a single merchant's operation into one of the largest clothing manufacturers in America. The copper rivet became a symbol of quality — a small, shining guarantee that these pants would not fail.</p>
+                    <p>For sixty years, jeans belonged to the working class. Then Hollywood changed everything.</p>
+                </div>
+            `,
+            fact: 'In 1883, Adolf von Baeyer synthesized indigo after 18 years of research — mass production followed by 1897',
+            choices: [
+                { text: 'Jump forward to the 1950s', next: 'wild_one' }
+            ]
+        },
+
+        // === SCENE 8: The Wild One ===
+        wild_one: {
+            era: '1953 - Hollywood',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1953 - Hollywood</span>
+                    <h2>The Wild One</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Eighty years after Patent No. 139,121, denim was about to undergo a transformation that Levi Strauss never could have imagined.</p>
+                        <p>In 1953, a film called "The Wild One" hit theaters. Its star was a young actor named Marlon Brando, and he wore Levi's 501 jeans with a white T-shirt, straddling a motorcycle with a sneer that said he didn't care what anyone thought of him.</p>
+                    </div>
+                </div>
+
+                <div class="card-pocket">
+                    <h3>Marlon Brando</h3>
+                    <p>Brando didn't just wear jeans in "The Wild One." He weaponized them. His outfit — the white T-shirt, the leather jacket, the 501s — became a uniform of defiance. It told every teenager in America that you didn't have to dress like your parents. You didn't have to follow the rules.</p>
+                    <p>Overnight, denim stopped being workwear. It became a symbol.</p>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>With the release of "The Wild One" in 1953, Marlon Brando wore Levi's 501s in a way that transformed denim from workwear into a symbol of rebellion and cool. His provocative jeans-and-white-T-shirt uniform galvanized teenagers and young adults across America.</p>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>A Cultural Earthquake</h3>
+                    <p>The impact was immediate and seismic. Teenagers rushed to buy jeans — not because they needed durable work pants, but because they wanted to look like Brando. They wanted to feel dangerous. They wanted to rebel.</p>
+                    <p>Parents were horrified. Authorities were alarmed. And denim's second life had just begun.</p>
+                </div>
+            `,
+            fact: 'Marlon Brando wore Levi\'s 501s in "The Wild One" (1953), transforming denim from workwear into a rebel symbol',
+            choices: [
+                { text: 'Embrace the rebellion', next: 'rebel' },
+                { text: 'Question jeans\' dangerous new image', next: 'backlash' }
+            ]
+        },
+
+        // === SCENE 9: Rebel Without a Cause ===
+        rebel: {
+            era: '1955 - America',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1955</span>
+                    <h2>Rebel Without a Cause</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Two years after Brando, James Dean raised the stakes. In "Rebel Without a Cause" (1955), Dean wore jeans and a red jacket that became the most iconic outfit in cinema history. His character, Jim Stark, was angry, sensitive, and lost — and every teenager in America saw themselves in him.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>Director Nicholas Ray cast James Dean in "Rebel Without a Cause" (1955), where denim jeans became a visual cue separating the cool rebels from the conformists. Dean's red jacket and jeans became an iconic image of teenage rebellion and nonconformity that defined an entire generation.</p>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>The Great Denim Panic</h3>
+                    <p>The cultural backlash was swift and furious. Schools across America banned denim. Hotels refused entry to guests wearing jeans. Restaurants posted signs: "No denim allowed."</p>
+                    <div class="dialogue">
+                        <div class="dialogue-speaker">A School Administrator, 1956</div>
+                        <p>"These pants are dangerous. They make our children question authority. Any student wearing dungarees will be sent home immediately."</p>
+                    </div>
+                    <p>The bans, of course, only made jeans more desirable. Nothing sells rebellion like being told you can't have it.</p>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>The cultural impact of denim in the 1950s was so profound that schools, hotels, and restaurants across America implemented anti-denim dress codes and denied entrance to people wearing jeans, viewing them as subversive symbols of juvenile delinquency.</p>
+                </div>
+            `,
+            fact: 'James Dean\'s jeans in "Rebel Without a Cause" (1955) led to schools and restaurants banning denim as "subversive"',
+            choices: [
+                { text: 'Continue to the protest era', next: 'protest_uniform' }
+            ]
+        },
+
+        // === SCENE 9b: Backlash path ===
+        backlash: {
+            era: '1955 - America',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1955 - The Backlash</span>
+                    <h2>The Anti-Denim Crusade</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section double-stitch" style="padding: 2.5rem;">
+                    <div class="scene-text">
+                        <p>Not everyone celebrated denim's transformation. For every teenager who saw freedom in a pair of jeans, there was a parent, a teacher, or a city councilmember who saw moral decay.</p>
+                        <p>When James Dean appeared in "Rebel Without a Cause" (1955) wearing his now-famous jeans and red jacket, the panic intensified. Jeans weren't just clothing anymore. They were a declaration of war against the establishment.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>In the 1950s, schools, hotels, and restaurants across America implemented anti-denim dress codes and denied entrance to people wearing jeans. They were viewed as subversive symbols of juvenile delinquency, and some communities tried to ban them outright.</p>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>A Question of Fabric</h3>
+                    <p>Could a pair of pants really be dangerous? The establishment thought so. But every ban, every confiscation, every lecture about "proper attire" only reinforced what the young already knew: denim was power.</p>
+                    <p>The fabric that Levi Strauss had sold to miners for its durability was now valued for something entirely different — its ability to say, without words, "I refuse to conform."</p>
+                    <p>And the revolution was just getting started.</p>
+                </div>
+            `,
+            fact: 'In the 1950s, schools, hotels, and restaurants banned denim — viewing jeans as subversive symbols of delinquency',
+            choices: [
+                { text: 'Continue to the protest era', next: 'protest_uniform' }
+            ]
+        },
+
+        // === SCENE 10: The Protest Uniform ===
+        protest_uniform: {
+            era: '1960s - Civil Rights',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1960 - 1963</span>
+                    <h2>The Protest Uniform</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>In the 1960s, denim's meaning shifted once more. It was no longer just about teenage rebellion. It became the uniform of the most important social movements in American history.</p>
+                        <p>Civil rights activists wore denim overalls and jeans as a deliberate statement. Denim was the clothing of the working class, the poor, the disenfranchised. By wearing it, protesters declared their solidarity with the people they were fighting for.</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>On August 28, 1963, over 250,000 people participated in Martin Luther King Jr.'s March on Washington. Many wore denim overalls as a deliberate symbol of solidarity with working-class Americans. Denim became the uniform of democratic values, accessibility, and the rejection of bourgeois consumerism.</p>
+                </div>
+
+                <div class="card-pocket">
+                    <h3>A Fabric of Solidarity</h3>
+                    <p>The March on Washington in August 1963 was a sea of denim. Over 250,000 people stood before the Lincoln Memorial, many in overalls and jeans, listening to Martin Luther King Jr. speak of a dream that America had not yet earned.</p>
+                    <p>Denim was no longer about looking cool or breaking rules. It was about justice. It was about equality. It was about demanding that the promise of America apply to everyone, not just those who could afford silk and wool.</p>
+                </div>
+            `,
+            fact: 'At the 1963 March on Washington, 250,000+ wore denim overalls as a symbol of solidarity and democratic values',
+            choices: [
+                { text: 'Join the counterculture movement', next: 'counterculture' },
+                { text: 'Question the symbol\'s power', next: 'question_symbol' }
+            ]
+        },
+
+        // === SCENE 11a: Counterculture Rising ===
+        counterculture: {
+            era: '1965-1975 - Counterculture',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1965 - 1975</span>
+                    <h2>Counterculture Rising</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>The late 1960s and 1970s took denim further than anyone could have predicted. Hippies, feminists, and anti-war activists all claimed jeans as their own.</p>
+                        <p>Denim was customized, patched, embroidered, tie-dyed, and covered with protest slogans. Every pair of jeans became a canvas for personal expression and political resistance.</p>
+                    </div>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>Voices in Denim</h3>
+                    <div class="dialogue">
+                        <div class="dialogue-speaker">A Hippie Activist, San Francisco, 1967</div>
+                        <p>"We don't buy new. We patch, we mend, we make it ours. Every stitch is a rejection of the machine that wants to dress us all the same."</p>
+                    </div>
+                    <div class="dialogue">
+                        <div class="dialogue-speaker">A Feminist, New York, 1970</div>
+                        <p>"I wear jeans because they're not a skirt, they're not heels, they're not what anyone expects a woman to wear. They're freedom."</p>
+                    </div>
+                    <div class="dialogue">
+                        <div class="dialogue-speaker">A Vietnam Veteran, Washington D.C., 1971</div>
+                        <p>"I wore fatigues over there. I wear denim here. Both are uniforms — but this one I chose."</p>
+                    </div>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>From 1963 to 1975, denim became the universal symbol of social protest. Civil rights activists, counterculture hippies, feminists, and anti-war protesters all embraced jeans as a symbol of democratic values, accessibility, and rejection of bourgeois consumerism. Patchwork and customization reflected DIY culture and resistance.</p>
+                </div>
+            `,
+            fact: 'From 1963-1975, hippies, feminists, and anti-war activists embraced customized denim as protest wear',
+            choices: [
+                { text: 'See the legacy of denim', next: 'ending_legacy' }
+            ]
+        },
+
+        // === SCENE 11b: Question the Symbol ===
+        question_symbol: {
+            era: '1965-1975 - Counterculture',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">1965 - 1975</span>
+                    <h2>The Weight of a Symbol</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-section">
+                    <div class="scene-text">
+                        <p>Can a pair of pants really change the world? It's a fair question.</p>
+                        <p>Denim didn't march on Washington. People did. Denim didn't burn draft cards. Hands did. Denim didn't write speeches or face down police dogs or chain itself to fences.</p>
+                        <p>But symbols matter. They bind movements together. They give people a way to recognize each other, to say without speaking: <em>I am with you.</em></p>
+                    </div>
+                </div>
+
+                <div class="scene-selvage">
+                    <h3>More Than Fabric</h3>
+                    <p>Throughout the late 1960s and 1970s, hippies patched and embroidered their jeans as an act of creative resistance. Feminists wore them as a rejection of restrictive women's fashion. Anti-war protesters wore them to distinguish themselves from the suited politicians who sent young men to die.</p>
+                    <p>Each generation found something new in denim. Each generation made it their own. The fabric was always the same — sturdy, blue, unpretentious — but its meaning kept evolving.</p>
+                    <p>Levi Strauss wanted to make pants that wouldn't rip. He ended up making pants that meant something.</p>
+                </div>
+
+                <div class="card-patch">
+                    <h3>Historical Fact</h3>
+                    <p>Denim became a universal symbol of social protest from 1963 to 1975. Counterculture movements embraced elaborate patchwork and customization as expressions of DIY culture and resistance to consumerism, transforming mass-produced workwear into deeply personal statements of identity and resistance.</p>
+                </div>
+            `,
+            fact: 'Counterculture movements of 1963-1975 transformed denim through patchwork and customization into personal protest',
+            choices: [
+                { text: 'See the legacy of denim', next: 'ending_legacy' }
+            ]
+        },
+
+        // === ENDING 1: Legacy in Blue ===
+        ending_legacy: {
+            era: 'The Present Day',
+            content: `
+                <div class="scene-era-header">
+                    <span class="era-date">Then and Now</span>
+                    <h2>Legacy in Blue</h2>
+                    <div class="stitch-row">
+                        <span class="stitch-line"></span>
+                        <span class="rivet rivet-large"></span>
+                        <span class="stitch-line"></span>
+                    </div>
+                </div>
+
+                <div class="scene-ending">
+                    <div class="ending-label">Epilogue</div>
+                    <div class="ending-title">Woven Into History</div>
+                    <div class="scene-text">
+                        <p>A Bavarian immigrant with a trunk full of dry goods. A Latvian tailor with a tin of copper rivets. A woman who just wanted her husband's pants to survive a day's work.</p>
+                        <p>From these unlikely threads, an icon was woven.</p>
+                        <p>Today, denim is worn by billions of people worldwide. It has been the uniform of miners and movie stars, rebels and revolutionaries, farmers and fashion designers. It has been banned by schools and celebrated by museums. It has crossed every border, every class divide, every political line.</p>
+                        <p>The copper rivet that Jacob Davis hammered into a pocket corner in 1871 is still there — a small, shining circle of metal that holds together not just fabric, but meaning. Durability. Authenticity. Defiance. Democracy.</p>
+                        <p>Levi Strauss asked a simple question: how do you make pants that won't rip? The answer — a rivet, a stitch, a bolt of indigo-dyed cloth — became something no one could have predicted: the uniform of America itself.</p>
+                    </div>
+                    <div class="the-end">The End</div>
+                </div>
+            `,
+            choices: [
+                { text: 'Start a new journey', next: '_restart' }
+            ]
+        }
+    };
+
+    // ===============================================================
+    //  STORY ENGINE
+    // ===============================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('bavarian_son');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 400);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 1000);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update era label
+            if (scene.era) {
+                document.getElementById('eraLabel').textContent = scene.era;
+            }
+
+            let html = '<div class="scene-content">';
+
+            // Scene content (raw HTML from data)
+            html += scene.content;
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += '<button class="choice-btn" onclick="engine.goTo(\'' + choice.next + '\')">';
+                    html += '<span class="choice-key">' + (i + 1) + '</span>';
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            const count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+
+            const list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No facts discovered yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => '<div class="fact-item">' + f + '</div>').join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>

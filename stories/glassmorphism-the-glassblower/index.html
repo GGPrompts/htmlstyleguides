@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Glassblower's Legacy — A Glassmorphism Interactive Story</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --radius-sm: 8px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
+            --radius-full: 9999px;
+
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient-1: #0f0c29;
+            --bg-gradient-2: #302b63;
+            --bg-gradient-3: #24243e;
+            --text-primary: rgba(255, 255, 255, 0.95);
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --glass-bg-hover: rgba(255, 255, 255, 0.12);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --accent-1: #667eea;
+            --accent-2: #764ba2;
+            --accent-3: #f093fb;
+            --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --orb-1: rgba(102, 126, 234, 0.6);
+            --orb-2: rgba(240, 147, 251, 0.5);
+            --orb-3: rgba(118, 75, 162, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-gradient-1: #e0c3fc;
+            --bg-gradient-2: #8ec5fc;
+            --bg-gradient-3: #f5f7fa;
+            --text-primary: rgba(0, 0, 0, 0.9);
+            --text-secondary: rgba(0, 0, 0, 0.65);
+            --text-muted: rgba(0, 0, 0, 0.4);
+            --glass-bg: rgba(255, 255, 255, 0.5);
+            --glass-bg-hover: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            --accent-1: #667eea;
+            --accent-2: #764ba2;
+            --accent-3: #f093fb;
+            --accent-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --orb-1: rgba(102, 126, 234, 0.5);
+            --orb-2: rgba(240, 147, 251, 0.4);
+            --orb-3: rgba(142, 197, 252, 0.5);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-sans);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3));
+            background-attachment: fixed;
+            overflow-x: hidden;
+        }
+
+        /* Floating Orbs Background */
+        .orbs {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 600px; height: 600px;
+            background: var(--orb-1);
+            top: -200px; left: -100px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 500px; height: 500px;
+            background: var(--orb-2);
+            top: 50%; right: -150px;
+            animation-delay: -5s;
+        }
+
+        .orb-3 {
+            width: 400px; height: 400px;
+            background: var(--orb-3);
+            bottom: -100px; left: 30%;
+            animation-delay: -10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(50px, -30px) scale(1.05); }
+            50% { transform: translate(-30px, 50px) scale(0.95); }
+            75% { transform: translate(-50px, -20px) scale(1.02); }
+        }
+
+        /* Glass Effect */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Layout */
+        .game-container {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-5);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: fixed;
+            top: var(--space-5);
+            left: var(--space-5);
+            z-index: 100;
+        }
+
+        .theme-toggle button {
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .theme-toggle button:hover {
+            background: var(--glass-bg-hover);
+            transform: translateY(-2px);
+        }
+
+        /* ═══════════════════════════════════════════
+           TITLE SCREEN
+        ═══════════════════════════════════════════ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+            text-align: center;
+        }
+
+        .title-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-5);
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: var(--accent-gradient);
+            color: white;
+            margin-bottom: var(--space-6);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .title-screen h1 {
+            font-size: clamp(2.5rem, 8vw, 4.5rem);
+            font-weight: 700;
+            letter-spacing: -2px;
+            margin-bottom: var(--space-4);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1.1;
+        }
+
+        .title-subtitle {
+            font-size: 1.15rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-7);
+            max-width: 480px;
+            line-height: 1.7;
+        }
+
+        .title-start {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--space-4) var(--space-7);
+            border-radius: var(--radius-md);
+            background: var(--accent-gradient);
+            color: white;
+            font-family: var(--font-sans);
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-start::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .title-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .title-start:hover::before { left: 100%; }
+
+        .title-credits {
+            margin-top: var(--space-6);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE WRAPPER
+        ═══════════════════════════════════════════ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .scene-wrapper.active {
+            display: flex;
+        }
+
+        /* Scene Header */
+        .scene-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-era {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scene-fact-count {
+            font-size: 0.75rem;
+            color: var(--accent-3);
+            letter-spacing: 0.1em;
+        }
+
+        /* Progress bar for timeline */
+        .timeline-progress {
+            margin-bottom: var(--space-6);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--space-2);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: var(--glass-bg);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent-gradient);
+            border-radius: var(--radius-full);
+            transition: width var(--transition-slow);
+            position: relative;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* ═══════════════════════════════════════════
+           SCENE CONTENT TYPES
+        ═══════════════════════════════════════════ */
+
+        /* Section scene */
+        .scene-section {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-5);
+            animation: sceneFadeIn 0.6s ease-out;
+        }
+
+        .scene-section .section-subtitle {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-3);
+        }
+
+        .scene-section .section-title {
+            font-size: clamp(1.5rem, 4vw, 2rem);
+            font-weight: 700;
+            margin-bottom: var(--space-5);
+            letter-spacing: -0.5px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scene-section .scene-text p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .scene-section .scene-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Card scene */
+        .scene-card {
+            padding: var(--space-6);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-5);
+            position: relative;
+            overflow: hidden;
+            animation: sceneFadeIn 0.6s ease-out;
+        }
+
+        .scene-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
+        }
+
+        .scene-card .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-card .scene-text p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        /* Alert types within scenes */
+        .alert {
+            padding: var(--space-5);
+            border-radius: var(--radius-md);
+            margin: var(--space-4) 0;
+            display: flex;
+            gap: var(--space-4);
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+
+        .alert-content { flex: 1; }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: var(--space-1);
+            font-size: 0.95rem;
+        }
+
+        .alert-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .alert-info {
+            background: rgba(102, 126, 234, 0.15);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            margin-right: var(--space-2);
+            margin-bottom: var(--space-2);
+        }
+
+        .badge-primary {
+            background: var(--accent-gradient);
+            border: none;
+            color: white;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: #10b981;
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #f59e0b;
+        }
+
+        .badge-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Ending scene */
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-8) var(--space-6);
+            border-radius: var(--radius-xl);
+            margin-bottom: var(--space-5);
+            animation: sceneFadeIn 0.8s ease-out;
+        }
+
+        .scene-ending .ending-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+            margin-bottom: var(--space-4);
+        }
+
+        .scene-ending .ending-title {
+            font-size: clamp(2rem, 5vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: var(--space-6);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .scene-ending .scene-text p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+            max-width: 550px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .scene-ending .the-end {
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            color: var(--text-muted);
+            margin-top: var(--space-6);
+            text-transform: uppercase;
+        }
+
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT DISCOVERED TOAST
+        ═══════════════════════════════════════════ */
+        .fact-found {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-3);
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius-full);
+            background: var(--accent-gradient);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: var(--space-5);
+            animation: factSlideIn 0.6s ease-out;
+            letter-spacing: 0.05em;
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ═══════════════════════════════════════════
+           CHOICES
+        ═══════════════════════════════════════════ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-5);
+            opacity: 0;
+            animation: choicesFadeIn 0.6s ease-out 0.4s forwards;
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            padding: var(--space-4) var(--space-5);
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 0.95rem;
+            font-weight: 500;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .choice-btn::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .choice-btn:hover {
+            background: var(--glass-bg-hover);
+            transform: translateY(-2px);
+            border-color: var(--accent-1);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .choice-btn:hover::before { left: 100%; }
+
+        .choice-btn .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px; height: 28px;
+            border-radius: var(--radius-sm);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-right: var(--space-4);
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+        }
+
+        .choice-btn:hover .choice-key {
+            background: var(--accent-gradient);
+            color: white;
+            border-color: transparent;
+        }
+
+        .choice-btn.btn-primary-choice {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .choice-btn.btn-primary-choice:hover {
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .choice-btn.btn-primary-choice .choice-key {
+            background: rgba(255,255,255,0.2);
+            border-color: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        /* ═══════════════════════════════════════════
+           GLASS TRANSITION
+        ═══════════════════════════════════════════ */
+        .transition-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 500;
+            pointer-events: none;
+            opacity: 0;
+            background: linear-gradient(135deg, var(--bg-gradient-1), var(--bg-gradient-2));
+            backdrop-filter: blur(40px);
+        }
+
+        .transition-overlay.active {
+            pointer-events: all;
+            animation: glassTransition 0.8s ease-in-out;
+        }
+
+        @keyframes glassTransition {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* ═══════════════════════════════════════════
+           FACT TRACKER (SIDEBAR)
+        ═══════════════════════════════════════════ */
+        .fact-tracker {
+            position: fixed;
+            top: var(--space-5);
+            right: var(--space-5);
+            z-index: 100;
+            max-width: 260px;
+        }
+
+        .fact-tracker-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--accent-3);
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-left: auto;
+        }
+
+        .fact-tracker-toggle:hover {
+            background: var(--glass-bg-hover);
+            border-color: var(--accent-3);
+        }
+
+        .fact-tracker-panel {
+            display: none;
+            margin-top: var(--space-3);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            box-shadow: var(--glass-shadow);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .fact-tracker-panel.open {
+            display: block;
+            animation: panelSlideIn 0.3s ease-out;
+        }
+
+        @keyframes panelSlideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fact-tracker-panel h4 {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .fact-item {
+            font-size: 0.75rem;
+            color: var(--accent-3);
+            padding: var(--space-2) 0;
+            border-bottom: 1px solid var(--glass-border);
+            animation: factSlideIn 0.4s ease-out;
+            line-height: 1.5;
+        }
+
+        .fact-item:last-child { border-bottom: none; }
+
+        .no-facts {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ═══════════════════════════════════════════
+           GAME CONTROLS
+        ═══════════════════════════════════════════ */
+        .game-controls {
+            display: flex;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .ctrl-btn {
+            padding: var(--space-3) var(--space-5);
+            border-radius: var(--radius-md);
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            font-weight: 500;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .ctrl-btn:hover {
+            background: var(--glass-bg-hover);
+            color: var(--text-primary);
+            transform: translateY(-1px);
+        }
+
+        /* ═══════════════════════════════════════════
+           RESPONSIVE
+        ═══════════════════════════════════════════ */
+        @media (max-width: 768px) {
+            .game-container { padding: var(--space-5); }
+            .fact-tracker { right: var(--space-3); top: var(--space-3); max-width: 220px; }
+            .theme-toggle { left: var(--space-3); top: var(--space-3); }
+            .scene-section, .scene-card { padding: var(--space-5); }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--glass-bg);
+            border-radius: var(--radius-full);
+        }
+        ::selection {
+            background: var(--accent-1);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="orbs">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Glass transition overlay -->
+    <div class="transition-overlay" id="transition"></div>
+
+    <!-- Theme Toggle -->
+    <div class="theme-toggle">
+        <button onclick="toggleTheme()" id="theme-btn">Light Mode</button>
+    </div>
+
+    <!-- Fact Tracker -->
+    <div class="fact-tracker" id="factTracker" style="display: none;">
+        <button class="fact-tracker-toggle" id="factToggle">
+            <span class="badge-dot"></span>
+            <span>Facts</span>
+            <span id="factCount">0</span>
+        </button>
+        <div class="fact-tracker-panel" id="factPanel">
+            <h4>Historical Discoveries</h4>
+            <div id="factList">
+                <p class="no-facts">No facts discovered yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <div class="title-badge">An Interactive Journey Through Glass</div>
+            <h1>The Glassblower's Legacy</h1>
+            <p class="title-subtitle">From the sacred light of medieval cathedrals to the invisible pulses of fiber optics, trace 1,500 years of humanity's relationship with glass — and the secrets locked within it.</p>
+            <button class="title-start" id="startBtn">Begin the Journey</button>
+            <p class="title-credits">A story of light, craft, and the pursuit of clarity</p>
+            <a href="../index.html" class="back-to-stories" style="display:inline-block;margin-top:1.5rem;color:inherit;text-decoration:none;font-size:0.8rem;opacity:0.5;transition:opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.5'">&larr; All Stories</a>
+        </div>
+
+        <!-- Scene Container -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="scene-header">
+                <span class="scene-era" id="sceneEra"></span>
+
+            </div>
+
+            <div class="timeline-progress" id="timelineProgress">
+                <div class="progress-header">
+                    <span>1150 CE</span>
+                    <span>1970 CE</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="ctrl-btn" id="restartBtn">Start Over</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    //  THE GLASSBLOWER'S LEGACY — Story Data
+    // ═══════════════════════════════════════════════════════════════
+
+    const STORY = {
+
+        // ── SCENE 1: Chartres Cathedral ──────────────────────────
+        chartres_light: {
+            type: 'section',
+            era: 'Chartres, France / 1205-1240',
+            subtitle: 'Chapter I',
+            title: 'Light Through Color',
+            progress: 5,
+            text: [
+                'The scaffolding creaks beneath your feet. Below, the vast nave of Chartres Cathedral stretches into shadow, but here — three stories above the stone floor — the morning sun is just beginning to strike the eastern windows.',
+                'Brother Matthaeus steadies a panel of glass against the iron armature, his hands blackened by decades of lead and flux. He does not look at you, but speaks with the quiet certainty of a man who has spent his life translating light into scripture.',
+                '"They will say these windows teach the illiterate to read," he murmurs. "But that is only half the truth. The glass does not merely show — it transforms. Sunlight enters as common daylight and leaves as something holy."',
+                'He gestures to the vast expanse of color surrounding you. One hundred and sixty-seven windows. Two thousand six hundred square meters of painted glass, fitted piece by piece between 1205 and 1240. The largest surviving collection of medieval stained glass in the world.',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Notre-Dame_de_Paris_-_Rosace_nord.jpg" alt="North Rose Window, Notre-Dame de Paris" style="max-width: 100%; height: auto; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic;">North Rose Window, Notre-Dame de Paris — medieval stained glass mastery</div></div>'
+            ],
+            fact: 'Chartres Cathedral contains 167 stained glass windows covering 2,600 square meters, created between 1205-1240 — the most complete medieval glass collection in existence.',
+            choices: [
+                { text: 'Ask Brother Matthaeus how the glass is made', next: 'glass_craft' },
+                { text: 'Ask why light through glass is considered sacred', next: 'sacred_light' }
+            ]
+        },
+
+        // ── SCENE 2A: The Craft of Glass ─────────────────────────
+        glass_craft: {
+            type: 'card',
+            era: 'Chartres, France / 1210',
+            title: 'The Craft of Color',
+            progress: 10,
+            text: [
+                'Brother Matthaeus leads you down through the scaffolding to the workshop beside the cathedral. The heat hits you first — a furnace glowing orange in the center of the room, where assistants feed wood into its belly.',
+                '"Glass begins as sand," he says, scooping a handful of pale silica from a barrel. "Sand and ash, heated until they forget they were ever solid. Then we add the metals."',
+                'He shows you small crucibles of mineral powder. Cobalt for the famous Chartres blue. Manganese for purple. Copper for green. Gold — dissolved in acid — for the deepest reds.',
+                '"But the secret," he says, holding a fragment of ruby glass to the light, "is not in what you add. It is in what you take away. Impurities cloud the glass. Clarity requires patience and discipline."',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Roman_glass_unguentarium.jpg" alt="Roman glass unguentarium" style="max-width: 100%; height: auto; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic;">Roman glass unguentarium — perfume bottle, 1st century CE</div></div>',
+                '<div class="alert alert-info glass"><span class="alert-icon">&#8505;</span><div class="alert-content"><div class="alert-title">Technical Note</div><div class="alert-message">Medieval glassmakers used metallic oxides to color glass: cobalt for blue, manganese for purple, copper for green, and colloidal gold for red. The earliest surviving stained glass fragments come from the Baume-Les-Messieurs Monastery in Jura, France, dating to the 8th century CE.</div></div></div>',
+                'As you watch, Matthaeus lifts a molten gather of glass on a blowpipe and shapes it into a thin disc — a crown glass roundel that will join the thousands already set into the cathedral walls.',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/3/3e/Glass_blowing.jpg" alt="Glassblower at work" style="max-width: 100%; height: auto; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic;">Glassblower at work — a craft unchanged for millennia</div></div>',
+                '<div style="margin: 1.5rem 0; text-align: center;"><img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/Portland_Vase_BM_Gem4036_n5.jpg" alt="The Portland Vase" style="max-width: 100%; height: auto; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 12px; opacity: 0.85; max-height: 400px; object-fit: contain; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);"><div style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6; font-style: italic;">The Portland Vase, c. 25 CE — Roman cameo glass masterpiece</div></div>'
+            ],
+            fact: 'Window glass first appeared in religious buildings around the 8th century CE. The earliest surviving stained glass comes from the Baume-Les-Messieurs Monastery in Jura, France.',
+            choices: [
+                { text: 'Travel south to Venice, where glass secrets are guarded fiercely', next: 'venice_guild' }
+            ]
+        },
+
+        // ── SCENE 2B: Sacred Light ───────────────────────────────
+        sacred_light: {
+            type: 'card',
+            era: 'Chartres / Sainte-Chapelle / 1242-1248',
+            title: 'Windows of the Divine',
+            progress: 10,
+            text: [
+                'Brother Matthaeus pauses, then leads you to the south transept. Here the light falls in sheets of blue and red, so vivid the air itself seems to glow.',
+                '"Abbot Suger of Saint-Denis wrote that the beauty of glass lifts the mind from the material to the immaterial," Matthaeus says. "He believed colored light was a passage to God. And King Louis — he believes this too, with all his heart."',
+                'He tells you about a chapel being built in Paris at this very moment, commissioned by King Louis IX to house his collection of Passion relics. The Sainte-Chapelle, consecrated on April 26, 1248, will contain fifteen great stained-glass windows in its upper chapel — one of the most extensive thirteenth-century glass collections ever assembled.',
+                '<div class="alert alert-success glass"><span class="alert-icon">&#10004;</span><div class="alert-content"><div class="alert-title">Royal Commission</div><div class="alert-message">King Louis IX commissioned the Sainte-Chapelle in Paris to house his collection of Passion relics. The fifteen stained-glass windows of the upper chapel, composed between 1242 and 1248, contain over 1,100 biblical scenes.</div></div></div>',
+                '"Glass is theology made visible," Matthaeus says. "But it is also power. And power always travels south."',
+                'He means Venice. The city where glass is not prayer but profit — and where the secrets of the craft are guarded under penalty of death.'
+            ],
+            fact: 'King Louis IX commissioned the Sainte-Chapelle (consecrated April 26, 1248) in Paris. Its fifteen great upper-chapel windows, composed 1242-1248, are among the most extensive 13th-century glass collections in the world.',
+            choices: [
+                { text: 'Travel south to Venice, where glass secrets are guarded fiercely', next: 'venice_guild' }
+            ]
+        },
+
+        // ── SCENE 3: Venice Guild ────────────────────────────────
+        venice_guild: {
+            type: 'section',
+            era: 'Venice, Italy / 1288',
+            subtitle: 'Chapter II',
+            title: 'The Guild of Fire',
+            progress: 20,
+            text: [
+                'Venice in the late thirteenth century is a city of water, stone, and secrets. The canals reflect a hundred church spires, and the air smells of salt and burning wood. Somewhere in the dense tangle of workshops near the Rialto, molten glass glows in a dozen furnaces.',
+                'You find Marco, a young apprentice, carrying a bucket of silica sand through a narrow alley. His hands are already scarred from the furnace. He cannot be more than fourteen.',
+                '"You want to know about glass?" He grins. "Everyone wants to know. That is exactly the problem."',
+                'He explains that glass production has become Venice\'s most important industry. So important that the glassmakers have just established their own guild — the Arte dei Vereri — around 1288, formalizing centuries of craft into law, hierarchy, and protected secrets.',
+                '<div class="alert alert-warning glass"><span class="alert-icon">&#9888;</span><div class="alert-content"><div class="alert-title">Guild Law</div><div class="alert-message">Venice\'s Glassmakers Guild (Arte dei Vereri), established around 1288, made Venice the Mediterranean\'s dominant glass center. Guild members were forbidden from leaving the Republic or sharing trade secrets, under severe penalty.</div></div></div>',
+                '"My master, Maestro Giuseppe, says the Republic will do whatever it takes to keep our secrets," Marco says. "The furnaces are too valuable — and too dangerous."',
+                'He glances toward the wooden buildings clustered around the workshop. Fire is a constant threat. The furnaces burn day and night, and Venice is built on wood and stone.'
+            ],
+            fact: 'Venice\'s Glassmakers Guild (Arte dei Vereri) was established around 1288, making Venice the Mediterranean\'s dominant glass production center.',
+            choices: [
+                { text: 'Ask Marco about the danger of fire in these workshops', next: 'murano_decree' },
+                { text: 'Ask to meet Maestro Giuseppe and learn the craft', next: 'murano_decree' }
+            ]
+        },
+
+        // ── SCENE 4: Murano Decree ───────────────────────────────
+        murano_decree: {
+            type: 'section',
+            era: 'Venice / November 8, 1291',
+            subtitle: 'Chapter III',
+            title: 'The Island Decree',
+            progress: 30,
+            text: [
+                'The decree arrives on November 8, 1291. Every glassmaker in Venice is ordered to dismantle their furnaces and relocate to the island of Murano, a short boat ride across the lagoon.',
+                'Marco finds you at the dock as families load their tools and materials onto barges. The mood is tense — some glassmakers see opportunity, others see a prison.',
+                '"The Doge says it is for fire safety," Marco says, watching a barge loaded with crucibles push off from the shore. "And he is right — fires have destroyed whole neighborhoods. But Maestro Giuseppe says the real reason is control. On Murano, they can watch us. Make sure no one leaves. Make sure no secrets escape."',
+                '<div class="alert alert-info glass"><span class="alert-icon">&#8505;</span><div class="alert-content"><div class="alert-title">Historical Milestone</div><div class="alert-message">The Venetian Republic officially ordered all glassmakers to relocate to Murano on November 8, 1291 — creating the world\'s first industrial zoning regulation. The law served dual purposes: preventing devastating fires in crowded Venice and protecting closely guarded glassmaking secrets.</div></div></div>',
+                'On Murano, the furnaces will burn hotter, the secrets will be kept closer, and for the next two centuries the island will produce the most exquisite glass the world has ever seen.',
+                'But all that brilliance carries a cost. The glassmakers of Murano are simultaneously the most privileged and the most imprisoned artisans in Europe.'
+            ],
+            fact: 'On November 8, 1291, the Venetian Republic ordered all glassmakers to relocate to Murano — the world\'s first industrial zoning regulation, designed to prevent fires and protect trade secrets.',
+            choices: [
+                { text: 'Stay on Murano and witness the invention that changes everything', next: 'cristallo' },
+                { text: 'Resist — try to smuggle glass secrets beyond Venice\'s borders', next: 'cristallo_smuggler' }
+            ]
+        },
+
+        // ── SCENE 5A: Cristallo (embracing the island) ──────────
+        cristallo: {
+            type: 'card',
+            era: 'Murano, Italy / Mid-15th Century',
+            title: 'The Clarity of Angelo Barovier',
+            progress: 40,
+            text: [
+                'One hundred and fifty years pass on Murano. Generations of glassmakers are born, work, and die on this island, never leaving, never sharing. The furnaces have grown larger, the techniques more refined.',
+                'And then Angelo Barovier does something that no one thought possible. He creates glass that is almost perfectly clear.',
+                'You stand in his workshop, watching him hold a goblet to the light. Through it, you can see the furnace flames without distortion — no green tint, no cloudiness, no bubbles. It looks like water frozen in midair.',
+                '"Cristallo," Barovier says. The word sounds like a prayer.',
+                'His secret: manganese dioxide, which Murano glassmakers have used as a bleaching agent since 1290. But Barovier has perfected the formula, removing impurities so completely that his glass rivals natural rock crystal.',
+                '<div class="alert alert-success glass"><span class="alert-icon">&#10004;</span><div class="alert-content"><div class="alert-title">Breakthrough</div><div class="alert-message">Angelo Barovier invented cristallo in the mid-15th century — nearly transparent glass almost indistinguishable from natural rock crystal. His technique used manganese dioxide (employed in Murano since 1290) to create perfectly colorless glass, making it the most valuable glass in Europe for centuries.</div></div></div>',
+                '"For a thousand years, glass has been about color," Barovier says. "About adding things — cobalt, copper, gold. But cristallo is about removing. The purest glass is the one that hides nothing."',
+                'His words will echo across five hundred years of innovation, from crystal palaces to fiber optics. The pursuit of clarity is the pursuit of truth.'
+            ],
+            fact: 'Angelo Barovier invented cristallo in the mid-15th century — nearly transparent glass that used manganese dioxide (in use since 1290 in Murano) to achieve perfect clarity. It became Europe\'s most prized glass.',
+            choices: [
+                { text: 'Leap forward to London, 1851 — where glass becomes architecture', next: 'crystal_palace' },
+                { text: 'Leap forward to a laboratory — where glass becomes a conduit for light', next: 'colladon_babinet' }
+            ]
+        },
+
+        // ── SCENE 5B: Cristallo (smuggler path) ─────────────────
+        cristallo_smuggler: {
+            type: 'card',
+            era: 'Murano / Mid-15th Century',
+            title: 'The Price of Secrets',
+            progress: 40,
+            text: [
+                'You choose defiance. But on Murano, defiance has consequences.',
+                'Over the decades that follow, a handful of glassmakers do attempt to flee — to France, to Bohemia, to the Low Countries. The Venetian Republic responds with assassins. This is not metaphor. The Council of Ten dispatches agents to track down fugitive glassmakers and, if they cannot be persuaded to return, to ensure they never work again.',
+                'Meanwhile, on the island, a different kind of escape occurs. Angelo Barovier, working within the system, achieves something that smuggling could never provide: he invents cristallo.',
+                'Using manganese dioxide — a bleaching agent employed in Murano since 1290 — Barovier creates glass so clear it is nearly indistinguishable from natural rock crystal. No color. No distortion. Pure transparency.',
+                '<div class="alert alert-warning glass"><span class="alert-icon">&#9888;</span><div class="alert-content"><div class="alert-title">Dangerous Knowledge</div><div class="alert-message">Venetian authorities treated glassmaking secrets as state secrets. Glassmakers who attempted to leave Murano or share techniques abroad risked assassination by agents of the Council of Ten. Yet the island\'s isolation also concentrated talent, leading to cristallo — Angelo Barovier\'s revolutionary transparent glass.</div></div></div>',
+                'The irony is bitter and beautiful: the prison that held the glassmakers also concentrated their genius. Barovier could only have invented cristallo because three generations of masters worked, taught, and experimented in proximity on this single island.',
+                'Freedom and innovation are not always allies. Sometimes constraint is the furnace that forges the breakthrough.'
+            ],
+            fact: 'Angelo Barovier invented cristallo in the mid-15th century — nearly transparent glass that used manganese dioxide (in use since 1290 in Murano) to achieve perfect clarity. It became Europe\'s most prized glass.',
+            choices: [
+                { text: 'Leap forward to London, 1851 — where glass becomes architecture', next: 'crystal_palace' },
+                { text: 'Leap forward to a laboratory — where glass becomes a conduit for light', next: 'colladon_babinet' }
+            ]
+        },
+
+        // ── SCENE 6: Crystal Palace ──────────────────────────────
+        crystal_palace: {
+            type: 'section',
+            era: 'London, England / 1851',
+            subtitle: 'Chapter IV',
+            title: 'The Crystal Vision',
+            progress: 55,
+            text: [
+                'Four hundred years after Barovier, glass has conquered Europe. But no one has imagined what Joseph Paxton is about to propose: a building made almost entirely of glass.',
+                'You stand in Hyde Park on a spring morning in 1851, watching the last panes being fitted into the most extraordinary structure the world has ever seen. The Crystal Palace rises 128 feet into the London sky — three times the height of St. Paul\'s Cathedral — and its walls are made of light.',
+                'Two hundred and ninety-three thousand panes of glass, manufactured by Chance Brothers of Birmingham, covering 990,000 square feet. Built in just 39 weeks for the Great Exhibition.',
+                '<div class="alert alert-success glass"><span class="alert-icon">&#10004;</span><div class="alert-content"><div class="alert-title">Engineering Marvel</div><div class="alert-message">Joseph Paxton\'s Crystal Palace for the Great Exhibition of 1851 contained 293,000 panes of glass by Chance Brothers, covering 990,000 square feet. Completed in just 39 weeks, it stood 128 feet (39 meters) high — three times taller than St. Paul\'s Cathedral.</div></div></div>',
+                'Inside, the building glows. Sunlight floods through every surface, casting no shadow. For the first time in history, an interior space feels like the outdoors. Visitors weep. Children stand with their mouths open. Queen Victoria calls it "every conceivable invention."',
+                'Paxton, a former gardener who designed greenhouses, has proven something radical: glass is not decoration. Glass is architecture. Glass is a way of seeing the world without barriers.',
+                'But even the Crystal Palace has limits. Its glass is a wall — transparent, yes, but still a boundary between inside and out. It will take another century before someone asks: what if glass could carry light itself?'
+            ],
+            fact: 'The Crystal Palace (1851) contained 293,000 panes of glass covering 990,000 sq ft, built in 39 weeks, standing 128 feet high — three times the height of St. Paul\'s Cathedral.',
+            choices: [
+                { text: 'Follow the story of flat glass — the Pilkington revolution', next: 'float_glass' },
+                { text: 'Follow the story of light through glass — the fiber optics path', next: 'colladon_babinet' }
+            ]
+        },
+
+        // ── SCENE 7: Float Glass ─────────────────────────────────
+        float_glass: {
+            type: 'card',
+            era: 'St Helens, England / 1952-1959',
+            title: 'The Perfect Surface',
+            progress: 65,
+            text: [
+                'The Crystal Palace proved that glass could be architecture. But for a century afterward, flat glass remained expensive, imperfect, and difficult to produce at scale. Every window in every building carried subtle distortions — waves, bubbles, variations in thickness.',
+                'Then, in December 1952, a British engineer named Alastair Pilkington was washing dishes.',
+                'He watched the grease float on top of the water in a thin, perfectly flat film. And he thought: what if molten glass could float on something denser? What if gravity itself could be the tool that created perfection?',
+                'Seven years of experimentation followed. Pilkington and his team at the Pilkington Glass Works poured molten glass — at approximately 1,000 degrees Celsius — onto a bath of molten tin. The glass, lighter than tin, spread into a perfectly flat ribbon.',
+                '<div class="alert alert-info glass"><span class="alert-icon">&#8505;</span><div class="alert-content"><div class="alert-title">The Float Process</div><div class="alert-message">Sir Alastair Pilkington invented the float glass process, announced to the world on January 20, 1959 after seven years of development from his initial 1952 inspiration. Molten glass at ~1,000 degrees C floats on molten tin, creating perfectly flat, uniform glass — the process still used for virtually all flat glass today.</div></div></div>',
+                'On January 20, 1959, Pilkington announced his float glass process to the world. It was the most important advance in flat glass manufacturing since the Romans.',
+                'Today, virtually every pane of glass you look through — every window, every screen, every skyscraper facade — is made using Pilkington\'s process. The dishwashing insight that changed how humanity sees the world.'
+            ],
+            fact: 'Sir Alastair Pilkington\'s float glass process, announced January 20, 1959, floats molten glass (~1,000 degrees C) on molten tin to create perfectly flat glass. Virtually all flat glass today uses this method.',
+            choices: [
+                { text: 'Now follow light itself — the fiber optics revolution', next: 'colladon_babinet' },
+                { text: 'Reflect on what the hands of craftspeople have built', next: 'ending_craft' }
+            ]
+        },
+
+        // ── SCENE 8: Colladon & Babinet ──────────────────────────
+        colladon_babinet: {
+            type: 'section',
+            era: 'Paris, France / 1840s',
+            subtitle: 'Chapter V',
+            title: 'Light\'s Ancient Dance',
+            progress: 70,
+            text: [
+                'Before the Crystal Palace, before Pilkington, before any of it — there was a question that haunted the physicists of Paris.',
+                'Can light be guided?',
+                'In the early 1840s, Daniel Colladon and Jacques Babinet demonstrated something remarkable in their Paris laboratories. They showed that light could be guided by refraction — bent and channeled through a medium, following curves, turning corners.',
+                'Colladon used a stream of water illuminated by a lamp. The light followed the water\'s path, curving where the stream curved, bending where it bent. It was, in a sense, light trapped inside transparency.',
+                '<div class="alert alert-info glass"><span class="alert-icon">&#8505;</span><div class="alert-content"><div class="alert-title">The Founding Principle</div><div class="alert-message">Daniel Colladon and Jacques Babinet demonstrated the principle of guiding light by refraction in Paris in the early 1840s. This foundational discovery — that light could be steered through a transparent medium — laid the groundwork for modern fiber optics, though more than a century would pass before anyone realized its full potential.</div></div></div>',
+                '"If light can follow water," you wonder, standing in Colladon\'s laboratory, watching the bright arc of his illuminated fountain, "what else can it follow? Can it follow glass?"',
+                'Colladon smiles. "That," he says, "is a question for the next century."',
+                'He is right. It will take 120 years for this principle to transform civilization.'
+            ],
+            fact: 'Daniel Colladon and Jacques Babinet demonstrated light guiding by refraction in Paris in the early 1840s — the foundational discovery that made fiber optics possible over a century later.',
+            choices: [
+                { text: 'Jump to 1960 — when the field finally gets its name', next: 'kapany_term' },
+                { text: 'Jump to 1966 — the revelation that changes everything', next: 'kao_breakthrough' }
+            ]
+        },
+
+        // ── SCENE 9: Kapany Names the Field ──────────────────────
+        kapany_term: {
+            type: 'card',
+            era: 'London & New York / 1953-1960',
+            title: 'The Hidden Language of Glass',
+            progress: 78,
+            text: [
+                'For over a century after Colladon\'s demonstration, the principle of guided light remained a curiosity — a parlor trick for physics lectures, not a technology.',
+                'Then Narinder Singh Kapany changed that.',
+                'Born in Moga, Punjab, in 1926, Kapany came to Imperial College London in the early 1950s with a singular obsession: could images — not just light, but structured information — be transmitted through bundles of glass fibers?',
+                'In 1953, he achieved it. Good image transmission through glass fiber bundles. It was not perfect, but it was real. Light carried a picture from one end of a glass thread to the other.',
+                'But Kapany\'s greatest contribution may have been linguistic, not technical. In 1960, he published an article in Scientific American that introduced the concept to a wide audience and gave it a name: "fiber optics."',
+                '<div class="alert alert-success glass"><span class="alert-icon">&#10004;</span><div class="alert-content"><div class="alert-title">A Field is Born</div><div class="alert-message">Narinder Singh Kapany (1926-2020) achieved image transmission through glass fiber bundles at Imperial College London in 1953. In 1960, his Scientific American article coined the term "fiber optics," crystallizing a new field of science and giving the world a vocabulary for light-through-glass communication.</div></div></div>',
+                'A name matters. Before Kapany, there were scattered experiments. After his article, there was a field — a direction for research, a language for collaboration, a vision of what glass might become.',
+                'But there was still a problem. Glass fibers could carry light, yes. But they lost signal so rapidly that communication over any useful distance seemed impossible. Light entered one end and faded to nothing within a few meters.',
+                'Everyone assumed the problem was fundamental — that glass itself was the limit. Everyone, that is, except one man.'
+            ],
+            fact: 'Narinder Singh Kapany (1926-2020) coined the term "fiber optics" in a 1960 Scientific American article. He had achieved image transmission through fiber bundles at Imperial College London in 1953.',
+            choices: [
+                { text: 'Meet the man who saw what everyone else missed', next: 'kao_breakthrough' }
+            ]
+        },
+
+        // ── SCENE 10: Kao's Revelation ───────────────────────────
+        kao_breakthrough: {
+            type: 'section',
+            era: 'Harlow, England / July 1966',
+            subtitle: 'Chapter VI',
+            title: 'The Revelation',
+            progress: 85,
+            text: [
+                'Standard Telecommunication Laboratories in Harlow, England. A quiet building in a quiet town. Not the kind of place where you expect the future to be invented.',
+                'Charles K. Kao is a young Shanghai-born engineer. His colleague George Hockham is a theorist. Together, in July 1966, they publish a paper that will eventually win Kao the Nobel Prize.',
+                'Their argument is elegant and revolutionary: the reason glass fibers lose light over short distances is not because glass is inherently opaque. It is because the glass is dirty.',
+                'Impurities — trace metals, water vapor, microscopic contaminants — scatter and absorb the light. If you could make glass pure enough, Kao argues, it could carry optical signals over vast distances. He proposes that fused silica — ultra-purified glass — is the answer.',
+                '<div class="alert alert-success glass"><span class="alert-icon">&#10004;</span><div class="alert-content"><div class="alert-title">The Key Insight</div><div class="alert-message">In July 1966, Charles K. Kao and George Hockham at Standard Telecommunication Laboratories in Harlow published their revolutionary findings: impurities in glass — not fundamental physics — caused signal loss. Purified fused silica could transmit information over long distances. This paper laid the foundation for the entire fiber optic communication revolution.</div></div></div>',
+                'Remember Angelo Barovier on Murano, five centuries earlier? "The purest glass is the one that hides nothing." He was talking about cristallo. But the principle is the same: clarity is not about what you add. It is about what you remove.',
+                'Kao and Hockham know their idea is right. But can anyone actually make glass that pure?'
+            ],
+            fact: 'In July 1966, Charles K. Kao and George Hockham published their revolutionary finding: impurities, not physics, caused signal loss in glass fibers. Purified fused silica could enable long-distance optical communication.',
+            choices: [
+                { text: 'See if the impossible can be achieved — travel to Corning, New York', next: 'corning_success' },
+                { text: 'Reflect on the parallels between Barovier and Kao', next: 'ending_circle' }
+            ]
+        },
+
+        // ── SCENE 11: Corning Success ────────────────────────────
+        corning_success: {
+            type: 'card',
+            era: 'Corning, New York / 1970',
+            title: 'From Contaminant to Crystal',
+            progress: 95,
+            text: [
+                'Corning Glass Works, upstate New York, 1970. A team of researchers has been working for four years on what many consider an impossible task: making glass pure enough to carry light over meaningful distances.',
+                'The standard glass fibers of the 1960s lose signal at a rate of about 1,000 decibels per kilometer. Kao\'s calculations suggest that for practical communication, the loss must be reduced to below 20 decibels per kilometer. That means making glass fifty times more transparent than anything that exists.',
+                'And then they do it.',
+                'In 1970, Corning Glass Works produces an optical fiber with attenuation of approximately 20 dB/km — exactly what Kao predicted was possible. It is made of ultra-pure fused silica, with impurities measured in parts per billion.',
+                '<div class="alert alert-success glass"><span class="alert-icon">&#10004;</span><div class="alert-content"><div class="alert-title">The Fiber Optic Revolution Begins</div><div class="alert-message">In 1970, Corning Glass Works developed optical fiber with attenuation of about 20 dB/km — 50 times more transparent than previous fibers. This breakthrough, realizing Kao\'s vision, enabled fiber optic communication and eventually the modern internet. Today, over 400 million kilometers of optical fiber circle the globe.</div></div></div>',
+                'From this moment forward, the story accelerates beyond imagining. Fiber optic cables will cross the oceans. They will carry telephone calls, television signals, and eventually the entire internet. By the twenty-first century, more than 400 million kilometers of optical fiber will encircle the planet.',
+                'All of it — every video call, every streamed song, every piece of data crossing a continent — travels as light through glass. The same principle Colladon demonstrated with his illuminated fountain in Paris, 130 years earlier.'
+            ],
+            fact: 'In 1970, Corning Glass Works achieved optical fiber with ~20 dB/km attenuation (vs. 1,000 dB/km previously), realizing Kao\'s vision and launching the fiber optic communication revolution.',
+            choices: [
+                { text: 'Complete the journey — see how the circle closes', next: 'ending_circle' },
+                { text: 'Ask: what message would you send across 1,500 years?', next: 'ending_message' }
+            ]
+        },
+
+        // ── ENDING A: The Circle Closes ──────────────────────────
+        ending_circle: {
+            type: 'ending',
+            era: 'Then and Now',
+            endingTitle: 'Light Eternal',
+            progress: 100,
+            text: [
+                'Stand in Chartres Cathedral at dawn and watch the sunlight strike the eastern windows. Cobalt blue, manganese purple, copper green — light filtered through medieval glass, carrying stories to the illiterate faithful.',
+                'Now consider: at this very moment, beneath the ocean floor, pulses of laser light race through glass fibers thinner than a human hair. Each pulse carries millions of conversations, billions of data points, the accumulated knowledge of civilization.',
+                'The glass in Chartres and the glass in a fiber optic cable are separated by eight hundred years, yet they serve the same purpose: to transmit light, and through light, meaning.',
+                'Brother Matthaeus shaped glass to teach scripture. Angelo Barovier pursued clarity because he believed purity was its own reward. Joseph Paxton proved glass could shelter a world. Charles Kao proved glass could connect one.',
+                'And the principle — from Colladon\'s fountain to Corning\'s laboratory — has always been the same: light wants to travel. Glass is the medium that lets it.',
+                'From sacred color to invisible signal. From cathedral to cable. From stained glass to fiber optics.',
+                'The glassblower\'s legacy is the story of light finding its way home.'
+            ],
+            choices: [
+                { text: 'Begin the journey again', next: '_restart' }
+            ]
+        },
+
+        // ── ENDING B: The Message ────────────────────────────────
+        ending_message: {
+            type: 'ending',
+            era: 'Across Time',
+            endingTitle: 'The Message',
+            progress: 100,
+            text: [
+                'If you could send a single message through 1,500 years of glass — from Chartres to Corning, from colored window to optical fiber — what would it say?',
+                'Perhaps it would be what Brother Matthaeus knew: that light transformed by glass becomes something more than illumination. It becomes communication. It becomes communion.',
+                'Perhaps it would be what Angelo Barovier discovered: that the path to clarity is the path of removal. Take away the impurities, the distractions, the assumptions about what is and is not possible. What remains is truth.',
+                'Or perhaps it would be what Charles Kao proved in that quiet laboratory in Harlow: that the limits we accept are often not limits at all. They are merely impurities — contaminants in the glass of our understanding, waiting to be refined away.',
+                'The message would be this: every generation inherits the light of the one before it. Every discovery builds on ten thousand forgotten experiments. Every clear pane of glass carries the memory of sand, fire, and a human hand that shaped it.',
+                'The glass does not end. It refracts, redirects, and carries forward.',
+                'And the light always finds its way through.'
+            ],
+            choices: [
+                { text: 'Begin the journey again', next: '_restart' }
+            ]
+        },
+
+        // ── ENDING C: The Craftsperson ───────────────────────────
+        ending_craft: {
+            type: 'ending',
+            era: 'The Eternal Workshop',
+            endingTitle: 'The Craftsperson\'s Truth',
+            progress: 100,
+            text: [
+                'In every era, the breakthrough came from someone who worked with their hands.',
+                'Brother Matthaeus cutting glass in the scaffolding of Chartres. Angelo Barovier tending his furnace through the night on Murano. Joseph Paxton, the gardener, sketching a glass palace on a railway blotter. Alastair Pilkington washing dishes and seeing the future in floating grease.',
+                'Even Kao and the Corning team — their insight was theoretical, but the proof required physical mastery. Someone had to draw the fiber. Someone had to achieve the purity. Science proposed; craft delivered.',
+                'This is the glassblower\'s truth: knowledge without craft is hypothesis. Craft without knowledge is tradition. But together — the hand that knows and the mind that makes — they create clarity.',
+                'And clarity, whether in a cathedral window or a fiber optic cable, is the beginning of everything.',
+                'The furnace is still burning. The glass is still molten. And somewhere, right now, someone is shaping light into something the world has never seen before.'
+            ],
+            choices: [
+                { text: 'Begin the journey again', next: '_restart' }
+            ]
+        }
+    };
+
+    // ═══════════════════════════════════════════════════════════════
+    //  STORY ENGINE
+    // ═══════════════════════════════════════════════════════════════
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        factsPanelOpen: false,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('factToggle').addEventListener('click', () => this.toggleFacts());
+
+            // Keyboard support
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('factTracker').style.display = 'block';
+            this.goTo('chartres_light');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.factsPanelOpen = false;
+            document.getElementById('factPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('factTracker').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+            this.updateFactUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            // Transition effect
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 300);
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                }, 800);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            const container = document.getElementById('sceneContent');
+            const gameControls = document.querySelector('.game-controls');
+            if (gameControls) gameControls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            // Update era label
+            document.getElementById('sceneEra').textContent = scene.era || '';
+
+            // Update progress bar
+            if (scene.progress !== undefined) {
+                document.getElementById('progressFill').style.width = scene.progress + '%';
+            }
+
+            let html = '<div class="scene-content">';
+
+            // Build scene based on type
+            switch (scene.type) {
+                case 'section':
+                    html += this.renderSection(scene);
+                    break;
+                case 'card':
+                    html += this.renderCard(scene);
+                    break;
+                case 'ending':
+                    html += this.renderEnding(scene);
+                    break;
+            }
+
+            // Fact notification
+            if (scene.fact) {
+                this.addFact(scene.fact);
+
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    const isPrimary = scene.type === 'ending' ? ' btn-primary-choice' : '';
+                    html += '<button class="choice-btn' + isPrimary + '" onclick="engine.goTo(\'' + choice.next + '\')">';
+                    html += '<span class="choice-key">' + (i + 1) + '</span>';
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            this.updateFactUI();
+        },
+
+        renderSection(scene) {
+            let html = '<div class="scene-section glass">';
+            if (scene.subtitle) html += '<p class="section-subtitle">' + scene.subtitle + '</p>';
+            if (scene.title) html += '<h2 class="section-title">' + scene.title + '</h2>';
+            if (scene.badges) {
+                html += '<div style="margin-bottom: var(--space-4);">';
+                scene.badges.forEach(function(b) { html += '<span class="badge">' + b + '</span>'; });
+                html += '</div>';
+            }
+            html += '<div class="scene-text">';
+            scene.text.forEach(function(p) { html += '<p>' + p + '</p>'; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderCard(scene) {
+            let html = '<div class="scene-card glass">';
+            if (scene.title) html += '<h3 class="card-title">' + scene.title + '</h3>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(function(p) { html += '<p>' + p + '</p>'; });
+            html += '</div></div>';
+            return html;
+        },
+
+        renderEnding(scene) {
+            let html = '<div class="scene-ending glass">';
+            html += '<div class="ending-label">Journey Complete</div>';
+            html += '<div class="ending-title">' + scene.endingTitle + '</div>';
+            html += '<div class="scene-text">';
+            scene.text.forEach(function(p) { html += '<p>' + p + '</p>'; });
+            html += '</div>';
+            html += '<div class="the-end">The End</div>';
+            html += '</div>';
+            return html;
+        },
+
+        addFact(fact) {
+            if (!this.facts.includes(fact)) {
+                this.facts.push(fact);
+            }
+        },
+
+        updateFactUI() {
+            var count = this.facts.length;
+            document.getElementById('factCount').textContent = count;
+
+
+            var list = document.getElementById('factList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-facts">No facts discovered yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(function(f) { return '<div class="fact-item">' + f + '</div>'; }).join('');
+            }
+        },
+
+        toggleFacts() {
+            this.factsPanelOpen = !this.factsPanelOpen;
+            document.getElementById('factPanel').classList.toggle('open', this.factsPanelOpen);
+        }
+    };
+
+    // Theme toggle
+    function toggleTheme() {
+        var html = document.documentElement;
+        var btn = document.getElementById('theme-btn');
+        if (html.getAttribute('data-theme') === 'dark') {
+            html.setAttribute('data-theme', 'light');
+            btn.textContent = 'Dark Mode';
+        } else {
+            html.setAttribute('data-theme', 'dark');
+            btn.textContent = 'Light Mode';
+        }
+    }
+
+    // Boot
+    engine.init();
+    </script>
+</body>
+</html>
