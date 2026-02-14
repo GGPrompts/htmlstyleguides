@@ -1332,6 +1332,20 @@ function gameLoop(timestamp) {
       e.x += (dx/d) * e.speed * dt;
       e.y += (dy/d) * e.speed * dt;
     }
+    // Separation from nearby enemies
+    const nearby = enemyHash.query(e.x, e.y, e.size * 2.5);
+    for(const other of nearby) {
+      if(other === e) continue;
+      const sx = e.x - other.x;
+      const sy = e.y - other.y;
+      const sd = Math.hypot(sx, sy);
+      const minDist = (e.size + other.size) * 0.8;
+      if(sd < minDist && sd > 0.1) {
+        const push = (minDist - sd) / minDist * 120 * dt;
+        e.x += (sx/sd) * push;
+        e.y += (sy/sd) * push;
+      }
+    }
     e.hitFlash -= dt;
 
     // Hit player
@@ -1415,10 +1429,13 @@ function render(dt) {
     sx = (Math.random()-0.5) * 8;
     sy = (Math.random()-0.5) * 8;
   }
-  ctx.translate(sx - cam.x, sy - cam.y);
-
-  // Background
+  // Background (drawn in screen space before camera transform)
+  ctx.save();
+  ctx.translate(sx, sy);
   THEME.drawBackground(ctx, cam, W, H, gameTime);
+  ctx.restore();
+
+  ctx.translate(sx - cam.x, sy - cam.y);
 
   // Field effects (below everything)
   for(const ef of activeEffects) {
