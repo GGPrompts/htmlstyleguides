@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gothic — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&family=Cinzel+Decorative:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color Palette */
+            --obsidian: #1a1a2e;
+            --gargoyle: #2d2d44;
+            --cathedral: #4a3f5c;
+            --blood-glass: #8b0000;
+            --sacred-gold: #c9a726;
+            --bone: #e8e0d0;
+            --shadow: #0d0d1a;
+
+            /* Extended Palette */
+            --blood-glass-light: #a50d0d;
+            --blood-glass-dark: #5c0000;
+            --sacred-gold-light: #e0c040;
+            --sacred-gold-dark: #8a7018;
+            --bone-dark: #c8bca8;
+            --nave: #232340;
+            --crypt: #141428;
+            --incense: #6b5b7b;
+            --moonstone: #b8b0c8;
+            --iron: #4a4a5e;
+
+            /* Semantic Colors */
+            --text-primary: var(--bone);
+            --text-secondary: rgba(232, 224, 208, 0.72);
+            --text-muted: rgba(232, 224, 208, 0.45);
+            --bg-primary: var(--shadow);
+            --bg-secondary: var(--obsidian);
+            --accent-primary: var(--sacred-gold);
+            --accent-danger: var(--blood-glass);
+
+            /* Typography */
+            --font-display: 'UnifrakturCook', cursive;
+            --font-heading: 'Cinzel Decorative', serif;
+            --font-body: 'Crimson Text', Georgia, serif;
+
+            /* Spacing Scale (4px base) */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* Borders & Shadows */
+            --border-stone: 1px solid rgba(201, 167, 38, 0.25);
+            --border-arch: 2px solid var(--sacred-gold);
+            --shadow-crypt: 0 8px 32px rgba(0, 0, 0, 0.6);
+            --shadow-candle: 0 0 30px rgba(201, 167, 38, 0.15);
+            --shadow-deep: 0 16px 48px rgba(0, 0, 0, 0.8);
+
+            /* Transitions */
+            --transition-slow: 0.4s ease;
+            --transition-fast: 0.2s ease;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 17px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.75;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           STONE TEXTURE BACKGROUND
+           ============================================ */
+
+        .stone-texture {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.04;
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* Ribbed vault line pattern overlay */
+        .vault-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.025;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 80px,
+                    rgba(201, 167, 38, 0.3) 80px,
+                    rgba(201, 167, 38, 0.3) 81px
+                );
+        }
+
+        /* Vignette effect */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(13, 13, 26, 0.5) 100%);
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1080px;
+            margin: 0 auto;
+            padding: var(--space-8) var(--space-6);
+        }
+
+        /* ============================================
+           POINTED ARCH DIVIDER
+           ============================================ */
+
+        .arch-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: var(--space-7) 0;
+            position: relative;
+        }
+
+        .arch-divider::before,
+        .arch-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sacred-gold), transparent);
+            opacity: 0.4;
+        }
+
+        .arch-divider svg {
+            margin: 0 var(--space-4);
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+
+        .header {
+            text-align: center;
+            padding: var(--space-9) var(--space-6);
+            margin-bottom: var(--space-8);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 60px;
+            background: linear-gradient(to bottom, transparent, var(--sacred-gold));
+            opacity: 0.5;
+        }
+
+        .header-flourish {
+            position: relative;
+            margin-bottom: var(--space-6);
+        }
+
+        .header-flourish svg {
+            width: 220px;
+            height: 100px;
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: var(--sacred-gold-light);
+            text-shadow:
+                0 0 60px rgba(201, 167, 38, 0.4),
+                0 4px 8px rgba(0, 0, 0, 0.6);
+            margin-bottom: var(--space-4);
+            position: relative;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .header-epigraph {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            font-style: italic;
+            letter-spacing: 0.04em;
+            margin-top: var(--space-6);
+            max-width: 480px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Pointed arch decorative elements beneath header */
+        .header-arches {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+        }
+
+        .header-arches span {
+            display: block;
+            width: 16px;
+            height: 24px;
+            border: 1px solid var(--sacred-gold);
+            border-radius: 50% 50% 0 0;
+            opacity: 0.4;
+        }
+
+        .header-arches span:nth-child(2) {
+            width: 20px;
+            height: 30px;
+            opacity: 0.6;
+        }
+
+        .header-arches span:nth-child(4) {
+            width: 20px;
+            height: 30px;
+            opacity: 0.6;
+        }
+
+        .header-arches span:nth-child(3) {
+            width: 24px;
+            height: 36px;
+            opacity: 0.8;
+            border-color: var(--blood-glass);
+        }
+
+        /* ============================================
+           SECTION HEADERS
+           ============================================ */
+
+        .section {
+            margin-bottom: var(--space-9);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-7);
+        }
+
+        .section-numeral {
+            font-family: var(--font-heading);
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--sacred-gold);
+            opacity: 0.5;
+            margin-bottom: var(--space-2);
+            letter-spacing: 0.25em;
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: 1.75rem;
+            font-weight: 400;
+            letter-spacing: 0.12em;
+            color: var(--bone);
+            margin-bottom: var(--space-3);
+            text-transform: uppercase;
+        }
+
+        .section-subtitle {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-style: italic;
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+        }
+
+        .buttress-line {
+            width: 140px;
+            height: 2px;
+            margin: var(--space-4) auto 0;
+            position: relative;
+            background: transparent;
+        }
+
+        .buttress-line::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sacred-gold), transparent);
+        }
+
+        .buttress-line::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 15%;
+            width: 70%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(201, 167, 38, 0.4), transparent);
+        }
+
+        /* ============================================
+           I. COLOR PALETTE
+           ============================================ */
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .color-swatch {
+            text-align: center;
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 90px;
+            margin-bottom: var(--space-3);
+            border: var(--border-stone);
+            position: relative;
+            clip-path: polygon(50% 0%, 100% 15%, 100% 100%, 0% 100%, 0% 15%);
+        }
+
+        .color-name {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-1);
+            color: var(--bone);
+        }
+
+        .color-value {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ============================================
+           II. TYPOGRAPHY
+           ============================================ */
+
+        .type-specimen {
+            margin-bottom: var(--space-7);
+            padding: var(--space-6);
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.6), rgba(45, 45, 68, 0.3));
+            border: var(--border-stone);
+            position: relative;
+        }
+
+        .type-specimen::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px solid rgba(201, 167, 38, 0.1);
+            pointer-events: none;
+        }
+
+        .type-label {
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--sacred-gold);
+            margin-bottom: var(--space-4);
+            opacity: 0.7;
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            color: var(--bone);
+            line-height: 1.2;
+            margin-bottom: var(--space-3);
+        }
+
+        .type-heading {
+            font-family: var(--font-heading);
+            font-size: clamp(1.25rem, 3vw, 2rem);
+            font-weight: 400;
+            color: var(--bone);
+            letter-spacing: 0.1em;
+            line-height: 1.4;
+            margin-bottom: var(--space-3);
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1.0625rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            max-width: 600px;
+        }
+
+        .type-caption {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            font-style: italic;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .type-meta {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: var(--space-3);
+            opacity: 0.6;
+        }
+
+        /* Type scale demonstration */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        .type-scale-item {
+            display: flex;
+            align-items: baseline;
+            gap: var(--space-5);
+            padding-bottom: var(--space-4);
+            border-bottom: 1px solid rgba(201, 167, 38, 0.08);
+        }
+
+        .type-scale-size {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--sacred-gold);
+            opacity: 0.6;
+            min-width: 60px;
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           III. SPACING
+           ============================================ */
+
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .spacing-label {
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            min-width: 90px;
+            flex-shrink: 0;
+        }
+
+        .spacing-bar {
+            height: 24px;
+            background: linear-gradient(90deg, var(--blood-glass), var(--cathedral));
+            border: 1px solid rgba(201, 167, 38, 0.2);
+            position: relative;
+        }
+
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 50%);
+        }
+
+        .spacing-value {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            min-width: 40px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ============================================
+           IV. BUTTONS
+           ============================================ */
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            margin-bottom: var(--space-6);
+            align-items: center;
+        }
+
+        .btn {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: var(--space-3) var(--space-6);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-slow);
+            position: relative;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Primary: Blood glass with gold border */
+        .btn-primary {
+            background: linear-gradient(180deg, var(--blood-glass-light) 0%, var(--blood-glass) 60%, var(--blood-glass-dark) 100%);
+            color: var(--bone);
+            border: 1px solid var(--sacred-gold);
+            box-shadow:
+                0 4px 16px rgba(139, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(180deg, #bb1515 0%, var(--blood-glass-light) 60%, var(--blood-glass) 100%);
+            box-shadow:
+                0 6px 24px rgba(139, 0, 0, 0.5),
+                0 0 20px rgba(139, 0, 0, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* Secondary: Stone slab */
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--gargoyle) 0%, var(--obsidian) 100%);
+            color: var(--bone);
+            border: 1px solid rgba(201, 167, 38, 0.3);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(180deg, var(--cathedral) 0%, var(--gargoyle) 100%);
+            border-color: rgba(201, 167, 38, 0.5);
+            transform: translateY(-1px);
+        }
+
+        /* Ghost: Spectral outline */
+        .btn-ghost {
+            background: transparent;
+            color: var(--sacred-gold);
+            border: 1px solid var(--sacred-gold);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(201, 167, 38, 0.08);
+            box-shadow: 0 0 20px rgba(201, 167, 38, 0.1);
+        }
+
+        /* Disabled */
+        .btn-disabled {
+            background: var(--gargoyle);
+            color: var(--text-muted);
+            border: 1px solid rgba(232, 224, 208, 0.1);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .btn-disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Large button */
+        .btn-lg {
+            padding: var(--space-4) var(--space-7);
+            font-size: 0.8125rem;
+        }
+
+        /* Small button */
+        .btn-sm {
+            padding: var(--space-2) var(--space-4);
+            font-size: 0.6875rem;
+            letter-spacing: 0.15em;
+        }
+
+        /* Button with pointed arch shape */
+        .btn-arch {
+            clip-path: polygon(50% 0%, 95% 12%, 100% 100%, 0% 100%, 5% 12%);
+            padding: var(--space-5) var(--space-7) var(--space-4);
+        }
+
+        /* ============================================
+           V. FORMS
+           ============================================ */
+
+        .form-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--sacred-gold);
+            margin-bottom: var(--space-2);
+            opacity: 0.8;
+        }
+
+        .form-input {
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--bone);
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid rgba(201, 167, 38, 0.2);
+            padding: var(--space-3) var(--space-4);
+            transition: all var(--transition-fast);
+            outline: none;
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .form-input:focus {
+            border-color: var(--sacred-gold);
+            box-shadow:
+                0 0 0 2px rgba(201, 167, 38, 0.1),
+                var(--shadow-candle);
+            background: rgba(26, 26, 46, 0.7);
+        }
+
+        .form-select {
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--bone);
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid rgba(201, 167, 38, 0.2);
+            padding: var(--space-3) var(--space-4);
+            transition: all var(--transition-fast);
+            outline: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M6 8L0 0h12z' fill='%23c9a726'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right var(--space-4) center;
+            cursor: pointer;
+        }
+
+        .form-select:focus {
+            border-color: var(--sacred-gold);
+            box-shadow: 0 0 0 2px rgba(201, 167, 38, 0.1);
+        }
+
+        .form-textarea {
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--bone);
+            background: rgba(26, 26, 46, 0.5);
+            border: 1px solid rgba(201, 167, 38, 0.2);
+            padding: var(--space-4);
+            transition: all var(--transition-fast);
+            outline: none;
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.7;
+        }
+
+        .form-textarea:focus {
+            border-color: var(--sacred-gold);
+            box-shadow: 0 0 0 2px rgba(201, 167, 38, 0.1);
+        }
+
+        .form-hint {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            font-style: italic;
+            color: var(--text-muted);
+            margin-top: var(--space-2);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-5);
+        }
+
+        .form-panel {
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.4), rgba(45, 45, 68, 0.2));
+            border: var(--border-stone);
+            padding: var(--space-6);
+        }
+
+        /* ============================================
+           VI. CARDS
+           ============================================ */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .card {
+            background: linear-gradient(180deg, var(--obsidian) 0%, rgba(26, 26, 46, 0.7) 100%);
+            border: var(--border-stone);
+            padding: var(--space-6);
+            position: relative;
+            transition: all var(--transition-slow);
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--blood-glass), var(--sacred-gold), var(--blood-glass));
+            opacity: 0.6;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid rgba(201, 167, 38, 0.06);
+            pointer-events: none;
+        }
+
+        .card:hover {
+            border-color: rgba(201, 167, 38, 0.4);
+            box-shadow: var(--shadow-crypt), var(--shadow-candle);
+            transform: translateY(-2px);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: var(--space-4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--sacred-gold-light);
+            margin-bottom: var(--space-3);
+        }
+
+        .card-content {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: var(--space-4);
+        }
+
+        .card-footer {
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding-top: var(--space-3);
+            border-top: 1px solid rgba(201, 167, 38, 0.1);
+        }
+
+        /* Feature card with arch top */
+        .card-arch {
+            clip-path: polygon(0% 8%, 10% 2%, 50% 0%, 90% 2%, 100% 8%, 100% 100%, 0% 100%);
+            padding-top: var(--space-7);
+        }
+
+        /* ============================================
+           VII. ALERTS & BADGES
+           ============================================ */
+
+        .alert {
+            padding: var(--space-4) var(--space-5);
+            border-left: 3px solid var(--sacred-gold);
+            background: rgba(26, 26, 46, 0.5);
+            margin-bottom: var(--space-4);
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+        }
+
+        .alert-title {
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--sacred-gold);
+            margin-bottom: var(--space-2);
+        }
+
+        .alert-danger {
+            border-left-color: var(--blood-glass);
+        }
+
+        .alert-danger .alert-title {
+            color: var(--blood-glass-light);
+        }
+
+        .alert-cathedral {
+            border-left-color: var(--cathedral);
+        }
+
+        .alert-cathedral .alert-title {
+            color: var(--incense);
+        }
+
+        .alert-success {
+            border-left-color: #2d6a4f;
+        }
+
+        .alert-success .alert-title {
+            color: #52b788;
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-3);
+            margin-bottom: var(--space-5);
+        }
+
+        .badge {
+            font-family: var(--font-heading);
+            font-size: 0.625rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: var(--space-1) var(--space-3);
+            border: 1px solid rgba(201, 167, 38, 0.4);
+            color: var(--sacred-gold);
+            background: transparent;
+        }
+
+        .badge-blood {
+            border-color: var(--blood-glass);
+            color: var(--blood-glass-light);
+        }
+
+        .badge-cathedral {
+            border-color: var(--cathedral);
+            color: var(--incense);
+        }
+
+        .badge-bone {
+            border-color: var(--bone-dark);
+            color: var(--bone);
+        }
+
+        .badge-filled {
+            background: var(--sacred-gold);
+            color: var(--shadow);
+            border-color: var(--sacred-gold);
+        }
+
+        .badge-filled-blood {
+            background: var(--blood-glass);
+            color: var(--bone);
+            border-color: var(--blood-glass);
+        }
+
+        /* ============================================
+           VIII. DESIGN PHILOSOPHY
+           ============================================ */
+
+        .philosophy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--space-6);
+        }
+
+        .philosophy-item {
+            padding: var(--space-6);
+            border: var(--border-stone);
+            background: linear-gradient(180deg, rgba(45, 45, 68, 0.3), rgba(26, 26, 46, 0.2));
+            text-align: center;
+        }
+
+        .philosophy-icon {
+            margin-bottom: var(--space-4);
+        }
+
+        .philosophy-term {
+            font-family: var(--font-heading);
+            font-size: 0.9375rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--sacred-gold-light);
+            margin-bottom: var(--space-3);
+        }
+
+        .philosophy-desc {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .philosophy-quote {
+            margin-top: var(--space-7);
+            text-align: center;
+            padding: var(--space-7) var(--space-6);
+            border-top: 1px solid rgba(201, 167, 38, 0.12);
+            border-bottom: 1px solid rgba(201, 167, 38, 0.12);
+        }
+
+        .philosophy-quote blockquote {
+            font-family: var(--font-body);
+            font-size: 1.25rem;
+            font-style: italic;
+            color: var(--bone);
+            line-height: 1.7;
+            max-width: 600px;
+            margin: 0 auto var(--space-4);
+        }
+
+        .philosophy-quote cite {
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            font-style: normal;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            text-align: center;
+            padding: var(--space-8) var(--space-6);
+            margin-top: var(--space-7);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sacred-gold), transparent);
+            opacity: 0.3;
+        }
+
+        .footer-emblem {
+            margin-bottom: var(--space-5);
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--sacred-gold);
+            margin-bottom: var(--space-3);
+            letter-spacing: 0.06em;
+        }
+
+        .footer p {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .footer-terminus {
+            font-family: var(--font-heading);
+            font-size: 0.6875rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            opacity: 0.5;
+            margin-top: var(--space-6);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 15px;
+            }
+
+            .container {
+                padding: var(--space-6) var(--space-4);
+            }
+
+            .header {
+                padding: var(--space-7) var(--space-4);
+            }
+
+            .section-title {
+                font-size: 1.375rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: var(--space-3);
+            }
+
+            .color-preview {
+                height: 65px;
+            }
+
+            .type-specimen {
+                padding: var(--space-4);
+            }
+
+            .type-scale-item {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+
+            .spacing-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-2);
+            }
+
+            .spacing-bar {
+                width: 100%;
+            }
+
+            .button-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .philosophy-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .badge-row {
+                gap: var(--space-2);
+            }
+
+            .header-arches span {
+                width: 12px;
+                height: 18px;
+            }
+
+            .header-arches span:nth-child(2),
+            .header-arches span:nth-child(4) {
+                width: 15px;
+                height: 22px;
+            }
+
+            .header-arches span:nth-child(3) {
+                width: 18px;
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background textures -->
+    <div class="stone-texture"></div>
+    <div class="vault-lines"></div>
+    <div class="vignette"></div>
+
+    <div class="container">
+
+        <!-- ================================ -->
+        <!-- HEADER                           -->
+        <!-- ================================ -->
+
+        <header class="header">
+            <div class="header-flourish">
+                <!-- Rose Window SVG Ornament -->
+                <svg width="220" height="100" viewBox="0 0 220 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Outer ring -->
+                    <circle cx="110" cy="50" r="46" stroke="#c9a726" stroke-width="1.5" fill="none" opacity="0.4"/>
+                    <circle cx="110" cy="50" r="40" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.25"/>
+                    <!-- Inner petal pattern (rose window) -->
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(0 110 50)"/>
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(45 110 50)"/>
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(90 110 50)"/>
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(135 110 50)"/>
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(180 110 50)"/>
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(225 110 50)"/>
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(270 110 50)"/>
+                    <ellipse cx="110" cy="26" rx="8" ry="16" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.5" transform="rotate(315 110 50)"/>
+                    <!-- Centre jewel -->
+                    <circle cx="110" cy="50" r="5" fill="#8b0000" opacity="0.35"/>
+                    <circle cx="110" cy="50" r="3" fill="#c9a726" opacity="0.3"/>
+                    <!-- Flanking pointed arches -->
+                    <path d="M20 90 Q20 50 35 40 Q50 50 50 90" stroke="#c9a726" stroke-width="0.8" fill="none" opacity="0.25"/>
+                    <path d="M170 90 Q170 50 185 40 Q200 50 200 90" stroke="#c9a726" stroke-width="0.8" fill="none" opacity="0.25"/>
+                    <!-- Horizontal flourish lines -->
+                    <line x1="0" y1="92" x2="65" y2="92" stroke="#c9a726" stroke-width="0.5" opacity="0.2"/>
+                    <line x1="155" y1="92" x2="220" y2="92" stroke="#c9a726" stroke-width="0.5" opacity="0.2"/>
+                </svg>
+            </div>
+            <h1>Gothic</h1>
+            <p class="header-subtitle">Cathedral Architecture as Design Language</p>
+            <p class="header-epigraph">&ldquo;The Gothic cathedral is a blossoming in stone subdued by the insatiable demand of harmony in man.&rdquo; &mdash; Ralph Waldo Emerson</p>
+            <div class="header-arches">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </header>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- I. COLOR PALETTE                 -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">I</div>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-subtitle">Hues of stone, glass, and gilded reliquaries</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #0d0d1a;"></div>
+                    <div class="color-name">Shadow</div>
+                    <div class="color-value">#0d0d1a</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #1a1a2e;"></div>
+                    <div class="color-name">Obsidian</div>
+                    <div class="color-value">#1a1a2e</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #2d2d44;"></div>
+                    <div class="color-name">Gargoyle</div>
+                    <div class="color-value">#2d2d44</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #4a3f5c;"></div>
+                    <div class="color-name">Cathedral</div>
+                    <div class="color-value">#4a3f5c</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #8b0000;"></div>
+                    <div class="color-name">Blood Glass</div>
+                    <div class="color-value">#8b0000</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #c9a726;"></div>
+                    <div class="color-name">Sacred Gold</div>
+                    <div class="color-value">#c9a726</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #e8e0d0;"></div>
+                    <div class="color-name">Bone</div>
+                    <div class="color-value">#e8e0d0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- II. TYPOGRAPHY                   -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">II</div>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-subtitle">Blackletter, carved capitals, and monastic serifs</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <!-- Display Font -->
+            <div class="type-specimen">
+                <div class="type-label">Display &mdash; UnifrakturCook</div>
+                <div class="type-display">Soli Deo Gloria</div>
+                <div class="type-meta">Blackletter Gothic &bull; 700 weight &bull; For titles and proclamations</div>
+            </div>
+
+            <!-- Heading Font -->
+            <div class="type-specimen">
+                <div class="type-label">Heading &mdash; Cinzel Decorative</div>
+                <div class="type-heading">Notre-Dame de Paris</div>
+                <div class="type-meta">Carved stone capitals &bull; 400/700/900 weight &bull; For section heads and inscriptions</div>
+            </div>
+
+            <!-- Body Font -->
+            <div class="type-specimen">
+                <div class="type-label">Body &mdash; Crimson Text</div>
+                <p class="type-body">The pointed arch, ribbed vault, and flying buttress compose the structural trinity of Gothic architecture. These innovations allowed builders to dissolve the heavy Romanesque wall into luminous curtains of stained glass, flooding the nave with coloured light that was itself read as divine scripture made visible.</p>
+                <div class="type-meta">Humanist serif &bull; 400/600/700 + italic &bull; For running text and descriptions</div>
+            </div>
+
+            <!-- Caption -->
+            <div class="type-specimen">
+                <div class="type-label">Caption</div>
+                <p class="type-caption">Chartres Cathedral, west facade, c. 1194&ndash;1220. Royal Portal tympanum depicting Christ in Majesty.</p>
+                <div class="type-meta">Crimson Text italic &bull; 13px &bull; For annotations and attributions</div>
+            </div>
+
+            <!-- Type Scale -->
+            <div class="type-specimen" style="margin-top: var(--space-6);">
+                <div class="type-label">Type Scale</div>
+                <div class="type-scale">
+                    <div class="type-scale-item">
+                        <span class="type-scale-size">4rem</span>
+                        <span style="font-family: var(--font-display); font-size: 4rem; font-weight: 700; color: var(--bone); line-height: 1.1;">Vault</span>
+                    </div>
+                    <div class="type-scale-item">
+                        <span class="type-scale-size">2rem</span>
+                        <span style="font-family: var(--font-heading); font-size: 2rem; letter-spacing: 0.1em; color: var(--bone);">Nave &amp; Transept</span>
+                    </div>
+                    <div class="type-scale-item">
+                        <span class="type-scale-size">1.5rem</span>
+                        <span style="font-family: var(--font-heading); font-size: 1.5rem; letter-spacing: 0.08em; color: var(--bone);">Clerestory Windows</span>
+                    </div>
+                    <div class="type-scale-item">
+                        <span class="type-scale-size">1.0625rem</span>
+                        <span style="font-family: var(--font-body); font-size: 1.0625rem; color: var(--text-secondary);">The master mason directed scores of craftsmen over decades.</span>
+                    </div>
+                    <div class="type-scale-item">
+                        <span class="type-scale-size">0.8125rem</span>
+                        <span style="font-family: var(--font-body); font-size: 0.8125rem; font-style: italic; color: var(--text-muted);">Ambulatory inscription, north transept, c. 1250</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- III. SPACING                     -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">III</div>
+                <h2 class="section-title">Spacing</h2>
+                <p class="section-subtitle">Proportional intervals upon a 4px cornerstone</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-item">
+                    <span class="spacing-label">Space I</span>
+                    <div class="spacing-bar" style="width: 4px;"></div>
+                    <span class="spacing-value">4px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space II</span>
+                    <div class="spacing-bar" style="width: 8px;"></div>
+                    <span class="spacing-value">8px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space III</span>
+                    <div class="spacing-bar" style="width: 12px;"></div>
+                    <span class="spacing-value">12px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space IV</span>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">16px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space V</span>
+                    <div class="spacing-bar" style="width: 24px;"></div>
+                    <span class="spacing-value">24px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space VI</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">32px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space VII</span>
+                    <div class="spacing-bar" style="width: 48px;"></div>
+                    <span class="spacing-value">48px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space VIII</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">64px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">Space IX</span>
+                    <div class="spacing-bar" style="width: 96px;"></div>
+                    <span class="spacing-value">96px</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- IV. BUTTONS                      -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">IV</div>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-subtitle">Forged in iron, sealed in wax</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <div class="type-label" style="margin-bottom: var(--space-4);">Primary</div>
+            <div class="button-row">
+                <button class="btn btn-primary btn-lg">Enter the Cathedral</button>
+                <button class="btn btn-primary">Consecrate</button>
+                <button class="btn btn-primary btn-sm">Amen</button>
+            </div>
+
+            <div class="type-label" style="margin-bottom: var(--space-4);">Secondary</div>
+            <div class="button-row">
+                <button class="btn btn-secondary btn-lg">View Reliquary</button>
+                <button class="btn btn-secondary">Illuminate</button>
+                <button class="btn btn-secondary btn-sm">Vespers</button>
+            </div>
+
+            <div class="type-label" style="margin-bottom: var(--space-4);">Ghost</div>
+            <div class="button-row">
+                <button class="btn btn-ghost btn-lg">Explore Crypt</button>
+                <button class="btn btn-ghost">Transcribe</button>
+                <button class="btn btn-ghost btn-sm">Matins</button>
+            </div>
+
+            <div class="type-label" style="margin-bottom: var(--space-4);">Disabled</div>
+            <div class="button-row">
+                <button class="btn btn-disabled btn-lg" disabled>Sealed Portal</button>
+                <button class="btn btn-disabled" disabled>Forbidden</button>
+                <button class="btn btn-disabled btn-sm" disabled>Locked</button>
+            </div>
+
+            <div class="type-label" style="margin-bottom: var(--space-4);">Arch Shape</div>
+            <div class="button-row">
+                <button class="btn btn-primary btn-arch">Through the Pointed Arch</button>
+                <button class="btn btn-secondary btn-arch">Stone Passage</button>
+            </div>
+        </section>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- V. FORMS                         -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">V</div>
+                <h2 class="section-title">Forms</h2>
+                <p class="section-subtitle">Inscriptions upon vellum and stone tablets</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <div class="form-panel">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="mason-name">Master Mason</label>
+                        <input class="form-input" type="text" id="mason-name" placeholder="e.g. Pierre de Montreuil">
+                        <p class="form-hint">The architect of the great work</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="cathedral-name">Cathedral</label>
+                        <input class="form-input" type="text" id="cathedral-name" placeholder="e.g. Notre-Dame de Reims">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="diocese">Diocese</label>
+                    <select class="form-select" id="diocese">
+                        <option value="">Select a diocese...</option>
+                        <option value="paris">Paris</option>
+                        <option value="chartres">Chartres</option>
+                        <option value="amiens">Amiens</option>
+                        <option value="reims">Reims</option>
+                        <option value="beauvais">Beauvais</option>
+                        <option value="bourges">Bourges</option>
+                        <option value="cologne">Cologne</option>
+                        <option value="canterbury">Canterbury</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="inscription">Dedicatory Inscription</label>
+                    <textarea class="form-textarea" id="inscription" placeholder="Ad maiorem Dei gloriam..."></textarea>
+                    <p class="form-hint">Latin or vernacular inscription for the foundation stone</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="year-begun">Year Begun</label>
+                        <input class="form-input" type="text" id="year-begun" placeholder="MCLXIII">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="year-completed">Year Completed</label>
+                        <input class="form-input" type="text" id="year-completed" placeholder="MCCXLV">
+                    </div>
+                </div>
+
+                <div style="margin-top: var(--space-5); display: flex; gap: var(--space-4);">
+                    <button class="btn btn-primary">Lay Foundation Stone</button>
+                    <button class="btn btn-ghost">Cancel</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- VI. CARDS                        -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">VI</div>
+                <h2 class="section-title">Cards</h2>
+                <p class="section-subtitle">Reliquaries of knowledge and chronicle</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">
+                        <!-- Pointed arch icon -->
+                        <svg width="40" height="48" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 48 Q2 12 20 2 Q38 12 38 48" stroke="#c9a726" stroke-width="1.5" fill="none" opacity="0.6"/>
+                            <path d="M8 48 Q8 18 20 8 Q32 18 32 48" stroke="#8b0000" stroke-width="1" fill="none" opacity="0.4"/>
+                            <line x1="20" y1="20" x2="20" y2="48" stroke="#c9a726" stroke-width="0.5" opacity="0.3"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Chartres Cathedral</h3>
+                    <p class="card-content">The labyrinth set in the nave floor traces a path of 261.5 metres within its eleven concentric rings. Pilgrims walked it on their knees as a substitute for the journey to Jerusalem, each turn a meditation on the winding road to salvation.</p>
+                    <p class="card-footer">Chartres &bull; c. 1205</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <!-- Rose window mini icon -->
+                        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="22" cy="22" r="20" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                            <circle cx="22" cy="22" r="14" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+                            <ellipse cx="22" cy="10" rx="4" ry="10" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.4" transform="rotate(0 22 22)"/>
+                            <ellipse cx="22" cy="10" rx="4" ry="10" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.4" transform="rotate(60 22 22)"/>
+                            <ellipse cx="22" cy="10" rx="4" ry="10" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.4" transform="rotate(120 22 22)"/>
+                            <circle cx="22" cy="22" r="3" fill="#c9a726" opacity="0.25"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Sainte-Chapelle</h3>
+                    <p class="card-content">Walls dissolved into fifteen immense lancet windows rising fifteen metres, each a luminous page of scripture rendered in ruby, sapphire, and emerald glass. The chapel itself becomes a reliquary of light, holding the Crown of Thorns within its radiance.</p>
+                    <p class="card-footer">Paris &bull; c. 1248</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-icon">
+                        <!-- Flying buttress icon -->
+                        <svg width="44" height="48" viewBox="0 0 44 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="4" width="12" height="44" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.4"/>
+                            <rect x="30" y="0" width="12" height="48" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.4"/>
+                            <path d="M14 12 Q22 8 30 16" stroke="#8b0000" stroke-width="1.2" fill="none" opacity="0.5"/>
+                            <path d="M14 28 Q22 24 30 32" stroke="#8b0000" stroke-width="1.2" fill="none" opacity="0.5"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Cologne Cathedral</h3>
+                    <p class="card-content">Begun in 1248 and not completed until 1880, the twin spires rise 157 metres above the Rhine. Six centuries of labour enact the Gothic conviction that the work exceeds the worker, that the cathedral belongs not to any generation but to all of time.</p>
+                    <p class="card-footer">Cologne &bull; c. 1248&ndash;1880</p>
+                </div>
+            </div>
+
+            <!-- Feature card with arch shape -->
+            <div style="margin-top: var(--space-6);">
+                <div class="card card-arch" style="max-width: 480px; margin: 0 auto; text-align: center;">
+                    <div class="card-icon" style="margin: 0 auto var(--space-4);">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="24" cy="24" r="22" stroke="#c9a726" stroke-width="1.5" fill="none" opacity="0.4"/>
+                            <path d="M12 36 Q12 14 24 6 Q36 14 36 36" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                            <circle cx="24" cy="20" r="6" stroke="#8b0000" stroke-width="0.8" fill="none" opacity="0.4"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Ad Maiorem Dei Gloriam</h3>
+                    <p class="card-content">Every carved boss, every painted keystone, every lead came joining coloured glass to coloured glass was offered as prayer. The anonymous craftsmen sought no fame&mdash;only that the stone might sing.</p>
+                    <p class="card-footer">For the Greater Glory of God</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- VII. ALERTS & BADGES             -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">VII</div>
+                <h2 class="section-title">Alerts &amp; Badges</h2>
+                <p class="section-subtitle">Proclamations, warnings, and marks of distinction</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <!-- Alerts -->
+            <div class="alert">
+                <div class="alert-title">Proclamation</div>
+                <p>The foundation stone has been laid with due ceremony. Construction of the new choir shall proceed according to the master mason's design.</p>
+            </div>
+
+            <div class="alert alert-danger">
+                <div class="alert-title">Interdiction</div>
+                <p>The south transept flying buttresses show signs of fracture. All work on the upper clerestory is suspended until the chapter receives the engineer's report.</p>
+            </div>
+
+            <div class="alert alert-cathedral">
+                <div class="alert-title">Notation</div>
+                <p>The glaziers of the Confraternity of Saint Luke have completed three lancet windows for the apse. Payment is due at Michaelmas.</p>
+            </div>
+
+            <div class="alert alert-success">
+                <div class="alert-title">Consecration</div>
+                <p>The Bishop has consecrated the high altar. The cathedral is now open for the celebration of the divine offices.</p>
+            </div>
+
+            <!-- Badges -->
+            <div style="margin-top: var(--space-7);">
+                <div class="type-label" style="margin-bottom: var(--space-4);">Outline Badges</div>
+                <div class="badge-row">
+                    <span class="badge">Nave</span>
+                    <span class="badge-blood badge">Sanctuary</span>
+                    <span class="badge-cathedral badge">Ambulatory</span>
+                    <span class="badge-bone badge">Narthex</span>
+                </div>
+
+                <div class="type-label" style="margin-bottom: var(--space-4);">Filled Badges</div>
+                <div class="badge-row">
+                    <span class="badge badge-filled">Consecrated</span>
+                    <span class="badge badge-filled-blood">Reliquary</span>
+                    <span class="badge">Rayonnant</span>
+                    <span class="badge">Flamboyant</span>
+                    <span class="badge">Perpendicular</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Arch Divider -->
+        <div class="arch-divider">
+            <svg width="40" height="28" viewBox="0 0 40 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 28 Q2 8 20 2 Q38 8 38 28" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M8 28 Q8 12 20 6 Q32 12 32 28" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- VIII. GOTHIC ARCHITECTURE        -->
+        <!--       PRINCIPLES                 -->
+        <!-- ================================ -->
+
+        <section class="section">
+            <div class="section-header">
+                <div class="section-numeral">VIII</div>
+                <h2 class="section-title">Gothic Architecture Principles</h2>
+                <p class="section-subtitle">The structural theology of light and stone</p>
+                <div class="buttress-line"></div>
+            </div>
+
+            <div class="philosophy-grid">
+                <div class="philosophy-item">
+                    <div class="philosophy-icon">
+                        <!-- Pointed Arch -->
+                        <svg width="60" height="72" viewBox="0 0 60 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 72 Q4 18 30 4 Q56 18 56 72" stroke="#c9a726" stroke-width="1.5" fill="none" opacity="0.5"/>
+                            <path d="M12 72 Q12 26 30 12 Q48 26 48 72" stroke="#8b0000" stroke-width="1" fill="none" opacity="0.35"/>
+                            <path d="M20 72 Q20 34 30 22 Q40 34 40 72" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.2"/>
+                        </svg>
+                    </div>
+                    <div class="philosophy-term">Verticality</div>
+                    <p class="philosophy-desc">The pointed arch draws the eye upward with irresistible force. Every line aspires heavenward, expressing the soul's yearning to transcend the material. In design, this translates to strong vertical rhythm, tall proportions, and elements that lead the gaze toward ascent.</p>
+                </div>
+
+                <div class="philosophy-item">
+                    <div class="philosophy-icon">
+                        <!-- Stained glass rosette -->
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="32" cy="32" r="29" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.4"/>
+                            <circle cx="32" cy="32" r="22" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.25"/>
+                            <!-- Coloured petals -->
+                            <ellipse cx="32" cy="14" rx="5" ry="14" fill="#8b0000" opacity="0.12"/>
+                            <ellipse cx="32" cy="14" rx="5" ry="14" fill="#8b0000" opacity="0.12" transform="rotate(72 32 32)"/>
+                            <ellipse cx="32" cy="14" rx="5" ry="14" fill="#8b0000" opacity="0.12" transform="rotate(144 32 32)"/>
+                            <ellipse cx="32" cy="14" rx="5" ry="14" fill="#8b0000" opacity="0.12" transform="rotate(216 32 32)"/>
+                            <ellipse cx="32" cy="14" rx="5" ry="14" fill="#8b0000" opacity="0.12" transform="rotate(288 32 32)"/>
+                            <circle cx="32" cy="32" r="6" fill="#c9a726" opacity="0.15"/>
+                        </svg>
+                    </div>
+                    <div class="philosophy-term">Luminosity</div>
+                    <p class="philosophy-desc">Abbot Suger called light &ldquo;lux nova&rdquo;&mdash;new light, the visible manifestation of the divine. Gothic builders reduced walls to skeletal frames to admit vast fields of coloured glass. In our design language, light is used sparingly against deep darkness, making every illuminated element feel sacred.</p>
+                </div>
+
+                <div class="philosophy-item">
+                    <div class="philosophy-icon">
+                        <!-- Ribbed vault pattern -->
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 60 Q32 4 60 60" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.4"/>
+                            <path d="M4 60 Q32 20 60 60" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.25"/>
+                            <line x1="32" y1="10" x2="32" y2="60" stroke="#8b0000" stroke-width="0.8" opacity="0.3"/>
+                            <line x1="4" y1="60" x2="60" y2="60" stroke="#c9a726" stroke-width="0.5" opacity="0.2"/>
+                            <!-- Cross ribs -->
+                            <path d="M4 60 L60 10" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.15"/>
+                            <path d="M60 60 L4 10" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.15"/>
+                        </svg>
+                    </div>
+                    <div class="philosophy-term">Skeletal Structure</div>
+                    <p class="philosophy-desc">The ribbed vault and flying buttress channel gravitational forces along visible lines, freeing the wall from its load-bearing duty. Structure becomes ornament; ornament reveals structure. A design system should likewise make its underlying grid and logic visible as part of its beauty.</p>
+                </div>
+
+                <div class="philosophy-item">
+                    <div class="philosophy-icon">
+                        <!-- Trefoil ornament -->
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="30" cy="18" r="12" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.35"/>
+                            <circle cx="19" cy="38" r="12" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.35"/>
+                            <circle cx="41" cy="38" r="12" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.35"/>
+                            <circle cx="30" cy="30" r="4" fill="#8b0000" opacity="0.2"/>
+                        </svg>
+                    </div>
+                    <div class="philosophy-term">Sacred Geometry</div>
+                    <p class="philosophy-desc">The trefoil, quatrefoil, and cinquefoil inscribe circles within circles, encoding the perfection of divine number. Gothic tracery is mathematics made visible in stone. Our spacing scale, proportional relationships, and ornamental patterns all derive from these same harmonic ratios.</p>
+                </div>
+            </div>
+
+            <div class="philosophy-quote">
+                <blockquote>&ldquo;The dull mind rises to truth through that which is material. And, in seeing this light, is resurrected from its former submersion.&rdquo;</blockquote>
+                <cite>Abbot Suger of Saint-Denis &bull; De Administratione &bull; c. 1145</cite>
+            </div>
+        </section>
+
+        <!-- Final Arch Divider -->
+        <div class="arch-divider">
+            <!-- Triple pointed arch -->
+            <svg width="100" height="36" viewBox="0 0 100 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 36 Q2 10 20 2 Q38 10 38 36" stroke="#c9a726" stroke-width="0.8" fill="none" opacity="0.3"/>
+                <path d="M32 36 Q32 10 50 2 Q68 10 68 36" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.5"/>
+                <path d="M62 36 Q62 10 80 2 Q98 10 98 36" stroke="#c9a726" stroke-width="0.8" fill="none" opacity="0.3"/>
+            </svg>
+        </div>
+
+        <!-- ================================ -->
+        <!-- FOOTER                           -->
+        <!-- ================================ -->
+
+        <footer class="footer">
+            <div class="footer-emblem">
+                <!-- Small rose window -->
+                <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="30" cy="30" r="27" stroke="#c9a726" stroke-width="1" fill="none" opacity="0.3"/>
+                    <circle cx="30" cy="30" r="20" stroke="#c9a726" stroke-width="0.5" fill="none" opacity="0.2"/>
+                    <ellipse cx="30" cy="16" rx="5" ry="12" stroke="#8b0000" stroke-width="0.6" fill="none" opacity="0.3" transform="rotate(0 30 30)"/>
+                    <ellipse cx="30" cy="16" rx="5" ry="12" stroke="#8b0000" stroke-width="0.6" fill="none" opacity="0.3" transform="rotate(60 30 30)"/>
+                    <ellipse cx="30" cy="16" rx="5" ry="12" stroke="#8b0000" stroke-width="0.6" fill="none" opacity="0.3" transform="rotate(120 30 30)"/>
+                    <ellipse cx="30" cy="16" rx="5" ry="12" stroke="#8b0000" stroke-width="0.6" fill="none" opacity="0.3" transform="rotate(180 30 30)"/>
+                    <ellipse cx="30" cy="16" rx="5" ry="12" stroke="#8b0000" stroke-width="0.6" fill="none" opacity="0.3" transform="rotate(240 30 30)"/>
+                    <ellipse cx="30" cy="16" rx="5" ry="12" stroke="#8b0000" stroke-width="0.6" fill="none" opacity="0.3" transform="rotate(300 30 30)"/>
+                    <circle cx="30" cy="30" r="4" fill="#c9a726" opacity="0.15"/>
+                </svg>
+            </div>
+            <h2 class="footer-title">Gothic</h2>
+            <p>A design system inspired by the pointed arch, the ribbed vault, and the flying buttress&mdash;where darkness serves the light and stone aspires to become prayer.</p>
+            <div class="footer-terminus">Finis</div>
+        </footer>
+
+    </div>
+</body>
+</html>

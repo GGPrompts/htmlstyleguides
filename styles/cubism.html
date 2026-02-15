@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cubism — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cubism Palette — Analytical earth tones with Synthetic pops */
+            --ochre: #c8a55a;
+            --raw-umber: #6b4e2e;
+            --slate-blue: #4a5a7a;
+            --terracotta: #b85c3a;
+            --charcoal: #2a2a2a;
+            --newspaper: #f0ead6;
+            --olive: #5a6a3a;
+            --wine: #6a2a3a;
+
+            /* Derived / utility colors */
+            --newspaper-dark: #ddd6b8;
+            --newspaper-mid: #e6dfca;
+            --charcoal-light: #3a3a3a;
+            --text-primary: var(--charcoal);
+            --text-secondary: #5a5040;
+            --text-muted: #8a7e6a;
+            --bg-primary: var(--newspaper);
+            --bg-secondary: var(--newspaper-mid);
+            --border-color: var(--charcoal);
+
+            /* Typography */
+            --font-display: 'Archivo Black', Impact, sans-serif;
+            --font-heading: 'Space Grotesk', 'Century Gothic', sans-serif;
+            --font-body: 'Source Serif 4', Georgia, serif;
+
+            /* Spacing Scale (4px base, geometric progression) */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 32px;
+            --space-xl: 64px;
+            --space-2xl: 96px;
+            --space-3xl: 128px;
+
+            /* Transitions */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --transition-angular: 0.25s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Newspaper texture background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 28px,
+                    rgba(107, 78, 46, 0.03) 28px,
+                    rgba(107, 78, 46, 0.03) 29px
+                );
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--space-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .col-12 { grid-column: span 12; }
+        .col-8 { grid-column: span 8; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+
+        @media (max-width: 768px) {
+            .col-8, .col-6, .col-4, .col-3 {
+                grid-column: span 12;
+            }
+        }
+
+        /* Typography — Angular, deconstructed */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            margin-bottom: var(--space-lg);
+        }
+
+        h2 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 2.25rem;
+            margin-bottom: var(--space-md);
+        }
+
+        h3 {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.35rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        h4 {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: var(--space-sm);
+        }
+
+        p {
+            margin-bottom: var(--space-md);
+            max-width: 62ch;
+        }
+
+        .lead {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .small-text {
+            font-size: 0.85rem;
+        }
+
+        .label-text {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+        }
+
+        blockquote {
+            font-family: var(--font-body);
+            font-style: italic;
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: var(--raw-umber);
+            padding: var(--space-lg);
+            border-left: 4px solid var(--ochre);
+            background: linear-gradient(135deg, rgba(200, 165, 90, 0.08), rgba(90, 106, 58, 0.05));
+            position: relative;
+            transform: rotate(-0.5deg);
+            margin: var(--space-lg) 0;
+        }
+
+        blockquote cite {
+            display: block;
+            font-size: 0.85rem;
+            font-style: normal;
+            font-family: var(--font-heading);
+            font-weight: 600;
+            color: var(--slate-blue);
+            margin-top: var(--space-sm);
+        }
+
+        /* ============================================
+           HEADER — Fragmented, multi-plane composition
+           ============================================ */
+        .header {
+            padding: var(--space-3xl) 0 var(--space-2xl);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 3px solid var(--charcoal);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            right: -60px;
+            width: 400px;
+            height: 400px;
+            background: var(--ochre);
+            opacity: 0.12;
+            clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%);
+            transform: rotate(15deg);
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: 120px;
+            width: 250px;
+            height: 250px;
+            background: var(--slate-blue);
+            opacity: 0.1;
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+            transform: rotate(-8deg);
+        }
+
+        .header-content {
+            display: grid;
+            grid-template-columns: 3fr 2fr;
+            gap: var(--space-xl);
+            align-items: end;
+        }
+
+        .header-fragment {
+            position: absolute;
+            pointer-events: none;
+        }
+
+        .header-fragment-1 {
+            top: 30px;
+            right: 50px;
+            width: 180px;
+            height: 120px;
+            background: var(--terracotta);
+            opacity: 0.15;
+            clip-path: polygon(0% 15%, 80% 0%, 100% 85%, 20% 100%);
+            transform: rotate(12deg);
+        }
+
+        .header-fragment-2 {
+            top: 80px;
+            right: 200px;
+            width: 100px;
+            height: 140px;
+            background: var(--olive);
+            opacity: 0.12;
+            clip-path: polygon(30% 0%, 100% 20%, 70% 100%, 0% 80%);
+            transform: rotate(-5deg);
+        }
+
+        .header-fragment-3 {
+            bottom: 40px;
+            right: 80px;
+            width: 150px;
+            height: 90px;
+            background: var(--wine);
+            opacity: 0.1;
+            clip-path: polygon(10% 0%, 90% 10%, 100% 90%, 0% 100%);
+            transform: rotate(7deg);
+        }
+
+        .header h1 {
+            position: relative;
+            z-index: 2;
+            color: var(--charcoal);
+            margin-bottom: var(--space-md);
+        }
+
+        /* Fragmented title effect — overlapping text shadow */
+        .header h1 span {
+            position: relative;
+            display: inline-block;
+        }
+
+        .header h1 .title-fragment {
+            position: absolute;
+            top: 4px;
+            left: 6px;
+            color: var(--ochre);
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--slate-blue);
+            margin-bottom: var(--space-sm);
+        }
+
+        .header-meta {
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-tagline {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text-secondary);
+            border-left: 3px solid var(--ochre);
+            padding-left: var(--space-md);
+            transform: rotate(-0.5deg);
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
+        .section {
+            padding: var(--space-2xl) 0;
+            border-bottom: 3px solid var(--charcoal);
+            position: relative;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-xl);
+            position: relative;
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 4.5rem;
+            color: var(--ochre);
+            opacity: 0.2;
+            position: absolute;
+            top: -25px;
+            left: -8px;
+            z-index: 0;
+            line-height: 1;
+            transform: rotate(-3deg);
+        }
+
+        .section-header h2 {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Fragmented geometric decoration per section */
+        .section-deco {
+            position: absolute;
+            right: 0;
+            top: var(--space-xl);
+            display: flex;
+            gap: var(--space-sm);
+            align-items: center;
+            opacity: 0.6;
+        }
+
+        .deco-shard {
+            width: 20px;
+            height: 30px;
+            transform: rotate(15deg);
+        }
+
+        .deco-shard:nth-child(2) {
+            transform: rotate(-10deg);
+        }
+
+        .deco-shard:nth-child(3) {
+            transform: rotate(25deg);
+        }
+
+        /* ============================================
+           I. COLOR PALETTE — Fragmented overlapping swatches
+           ============================================ */
+        .color-composition {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-md);
+            position: relative;
+        }
+
+        .color-swatch {
+            position: relative;
+            padding: var(--space-lg);
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            transition: transform var(--transition-base);
+            clip-path: polygon(4% 0%, 100% 2%, 96% 100%, 0% 97%);
+        }
+
+        .color-swatch:nth-child(odd) {
+            transform: rotate(-1.5deg);
+        }
+
+        .color-swatch:nth-child(even) {
+            transform: rotate(1deg);
+        }
+
+        .color-swatch:hover {
+            transform: rotate(0deg) scale(1.05);
+            z-index: 10;
+        }
+
+        .color-swatch::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: -6px;
+            width: 100%;
+            height: 100%;
+            background: inherit;
+            opacity: 0.2;
+            clip-path: polygon(8% 3%, 97% 0%, 92% 97%, 3% 100%);
+            z-index: -1;
+            filter: brightness(0.8);
+        }
+
+        .color-name {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .color-hex {
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .color-row-2 {
+            margin-top: var(--space-md);
+        }
+
+        @media (max-width: 768px) {
+            .color-composition {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ============================================
+           II. TYPOGRAPHY — Deconstructed specimens
+           ============================================ */
+        .type-specimen {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .type-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            align-items: baseline;
+            border-bottom: 1px solid var(--newspaper-dark);
+            padding: var(--space-lg) 0;
+            gap: var(--space-lg);
+            position: relative;
+        }
+
+        .type-row:last-child {
+            border-bottom: none;
+        }
+
+        /* Slight angular offset on alternating rows */
+        .type-row:nth-child(even) {
+            transform: translateX(8px) rotate(-0.3deg);
+        }
+
+        .type-row:nth-child(odd) .type-sample {
+            transform: rotate(0.2deg);
+        }
+
+        .type-meta {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-xs);
+        }
+
+        .type-name {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--slate-blue);
+        }
+
+        .type-specs {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        .type-sample {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .type-collage-box {
+            background: var(--charcoal);
+            color: var(--newspaper);
+            padding: var(--space-lg);
+            transform: rotate(-1deg);
+            margin-top: var(--space-lg);
+            position: relative;
+        }
+
+        .type-collage-box::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--ochre);
+            z-index: -1;
+            transform: rotate(1.5deg);
+        }
+
+        @media (max-width: 768px) {
+            .type-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================
+           III. SPACING — Geometric progression
+           ============================================ */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .spacing-label {
+            width: 90px;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .spacing-bar {
+            height: 28px;
+            position: relative;
+            clip-path: polygon(0% 5%, 100% 0%, 98% 95%, 2% 100%);
+            transition: transform var(--transition-base);
+        }
+
+        .spacing-bar:hover {
+            transform: scaleY(1.3);
+        }
+
+        .spacing-value {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            width: 50px;
+        }
+
+        .spacing-geometric {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: var(--space-sm);
+            margin-top: var(--space-xl);
+            align-items: end;
+        }
+
+        .spacing-block {
+            background: var(--ochre);
+            opacity: 0.7;
+            transition: opacity var(--transition-fast);
+            clip-path: polygon(5% 0%, 95% 3%, 100% 100%, 0% 97%);
+        }
+
+        .spacing-block:hover {
+            opacity: 1;
+        }
+
+        .spacing-block:nth-child(1) { height: 8px; background: var(--slate-blue); }
+        .spacing-block:nth-child(2) { height: 16px; background: var(--terracotta); }
+        .spacing-block:nth-child(3) { height: 32px; background: var(--ochre); }
+        .spacing-block:nth-child(4) { height: 48px; background: var(--olive); }
+        .spacing-block:nth-child(5) { height: 64px; background: var(--raw-umber); }
+        .spacing-block:nth-child(6) { height: 96px; background: var(--wine); }
+        .spacing-block:nth-child(7) { height: 128px; background: var(--charcoal); }
+
+        /* ============================================
+           IV. BUTTONS — Faceted, angular
+           ============================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 28px;
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            text-decoration: none;
+            border: 2px solid var(--charcoal);
+            background: var(--newspaper);
+            color: var(--charcoal);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            clip-path: polygon(3% 0%, 100% 4%, 97% 100%, 0% 96%);
+        }
+
+        .btn:hover {
+            transform: rotate(-1deg) scale(1.03);
+            box-shadow: 4px 4px 0 var(--raw-umber);
+        }
+
+        .btn:active {
+            transform: rotate(0.5deg) scale(0.98);
+            box-shadow: 1px 1px 0 var(--raw-umber);
+        }
+
+        .btn-primary {
+            background: var(--charcoal);
+            color: var(--newspaper);
+        }
+
+        .btn-primary:hover {
+            background: var(--charcoal-light);
+        }
+
+        .btn-ochre {
+            background: var(--ochre);
+            color: var(--charcoal);
+            border-color: var(--ochre);
+        }
+
+        .btn-ochre:hover {
+            background: #d4b06a;
+        }
+
+        .btn-slate {
+            background: var(--slate-blue);
+            color: var(--newspaper);
+            border-color: var(--slate-blue);
+        }
+
+        .btn-slate:hover {
+            background: #5a6a8a;
+        }
+
+        .btn-terracotta {
+            background: var(--terracotta);
+            color: var(--newspaper);
+            border-color: var(--terracotta);
+        }
+
+        .btn-terracotta:hover {
+            background: #c86c4a;
+        }
+
+        .btn-wine {
+            background: var(--wine);
+            color: var(--newspaper);
+            border-color: var(--wine);
+        }
+
+        .btn-wine:hover {
+            background: #7a3a4a;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--charcoal);
+            color: var(--charcoal);
+        }
+
+        .btn-outline:hover {
+            background: var(--charcoal);
+            color: var(--newspaper);
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.7rem;
+        }
+
+        .btn-lg {
+            padding: 16px 40px;
+            font-size: 0.9rem;
+        }
+
+        .btn-faceted {
+            clip-path: polygon(8% 0%, 100% 0%, 92% 100%, 0% 100%);
+            padding: 12px 36px;
+        }
+
+        .btn-shard {
+            clip-path: polygon(0% 10%, 85% 0%, 100% 80%, 15% 100%);
+            padding: 14px 32px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-lg);
+            align-items: center;
+        }
+
+        /* ============================================
+           V. FORMS — Rotated/offset collage inputs
+           ============================================ */
+        .form-group {
+            margin-bottom: var(--space-lg);
+            position: relative;
+        }
+
+        .form-group:nth-child(odd) {
+            transform: rotate(-0.4deg);
+        }
+
+        .form-group:nth-child(even) {
+            transform: rotate(0.3deg);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            margin-bottom: var(--space-sm);
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            border: 2px solid var(--charcoal);
+            background: var(--newspaper);
+            color: var(--charcoal);
+            transition: all var(--transition-fast);
+            clip-path: polygon(1% 0%, 100% 2%, 99% 100%, 0% 98%);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--ochre);
+            box-shadow: 3px 3px 0 var(--ochre);
+            transform: rotate(-0.3deg);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 110px;
+        }
+
+        /* Select */
+        .select-wrap {
+            position: relative;
+        }
+
+        .select-wrap::after {
+            content: '';
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%) rotate(45deg);
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid var(--charcoal);
+            border-bottom: 2px solid var(--charcoal);
+            pointer-events: none;
+        }
+
+        select.form-input {
+            appearance: none;
+            padding-right: 40px;
+            cursor: pointer;
+        }
+
+        /* Checkbox & Radio — Angular custom controls */
+        .check-group,
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .check-label,
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+        }
+
+        .check-box {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--charcoal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+            clip-path: polygon(5% 0%, 100% 5%, 95% 100%, 0% 95%);
+        }
+
+        .check-box::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--ochre);
+            transform: scale(0) rotate(45deg);
+            transition: transform var(--transition-angular);
+        }
+
+        input[type="checkbox"]:checked + .check-box::after {
+            transform: scale(1) rotate(45deg);
+        }
+
+        input[type="checkbox"]:checked + .check-box {
+            border-color: var(--ochre);
+        }
+
+        .radio-dot {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--charcoal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+        }
+
+        .radio-dot::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--terracotta);
+            border-radius: 50%;
+            transform: scale(0);
+            transition: transform var(--transition-angular);
+        }
+
+        input[type="radio"]:checked + .radio-dot::after {
+            transform: scale(1);
+        }
+
+        input[type="radio"]:checked + .radio-dot {
+            border-color: var(--terracotta);
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* ============================================
+           VI. CARDS — Multi-plane overlapping panels
+           ============================================ */
+        .card {
+            background: var(--newspaper);
+            border: 2px solid var(--charcoal);
+            padding: var(--space-lg);
+            position: relative;
+            transition: all var(--transition-base);
+            clip-path: polygon(2% 0%, 100% 1%, 98% 100%, 0% 99%);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: -8px;
+            width: 100%;
+            height: 100%;
+            border: 2px solid var(--ochre);
+            opacity: 0.4;
+            z-index: -1;
+            transform: rotate(1deg);
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            right: -6px;
+            width: 100%;
+            height: 100%;
+            border: 1px solid var(--slate-blue);
+            opacity: 0.2;
+            z-index: -2;
+            transform: rotate(-1.5deg);
+        }
+
+        .card:hover {
+            transform: rotate(-0.5deg) translateY(-4px);
+            box-shadow: 6px 8px 0 rgba(42, 42, 42, 0.15);
+        }
+
+        .card h3 {
+            margin-bottom: var(--space-sm);
+        }
+
+        .card p {
+            color: var(--text-secondary);
+            margin-bottom: var(--space-md);
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--newspaper-dark);
+        }
+
+        /* Card variants */
+        .card-collage {
+            background:
+                linear-gradient(135deg, var(--newspaper) 60%, var(--newspaper-mid) 60%);
+            transform: rotate(-0.8deg);
+        }
+
+        .card-collage:hover {
+            transform: rotate(0deg) translateY(-4px);
+        }
+
+        .card-layered {
+            background: var(--charcoal);
+            color: var(--newspaper);
+            clip-path: polygon(0% 3%, 97% 0%, 100% 97%, 3% 100%);
+        }
+
+        .card-layered h3 {
+            color: var(--ochre);
+        }
+
+        .card-layered p {
+            color: var(--newspaper-dark);
+        }
+
+        .card-layered .card-footer {
+            border-top-color: var(--charcoal-light);
+        }
+
+        .card-fragment {
+            background:
+                linear-gradient(160deg, var(--newspaper) 45%, transparent 45%),
+                linear-gradient(200deg, var(--newspaper-mid) 50%, var(--newspaper) 50%);
+            overflow: hidden;
+        }
+
+        .card-fragment::before {
+            background: var(--terracotta);
+            opacity: 0.06;
+            clip-path: polygon(60% 0%, 100% 0%, 100% 60%, 80% 100%);
+            top: 0;
+            left: 0;
+        }
+
+        /* ============================================
+           VII. ALERTS & BADGES — Geometric fragments
+           ============================================ */
+        .alert {
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            position: relative;
+            margin-bottom: var(--space-md);
+            clip-path: polygon(1% 0%, 100% 2%, 99% 100%, 0% 98%);
+        }
+
+        .alert-info {
+            background: var(--slate-blue);
+            color: var(--newspaper);
+            border-left: 4px solid var(--newspaper);
+        }
+
+        .alert-success {
+            background: var(--olive);
+            color: var(--newspaper);
+            border-left: 4px solid var(--newspaper);
+        }
+
+        .alert-warning {
+            background: var(--ochre);
+            color: var(--charcoal);
+            border-left: 4px solid var(--raw-umber);
+        }
+
+        .alert-danger {
+            background: var(--wine);
+            color: var(--newspaper);
+            border-left: 4px solid var(--newspaper);
+        }
+
+        .alert strong {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 12px;
+            font-family: var(--font-heading);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border: 2px solid var(--charcoal);
+            background: var(--newspaper);
+            color: var(--charcoal);
+            clip-path: polygon(4% 0%, 100% 5%, 96% 100%, 0% 95%);
+        }
+
+        .badge-ochre {
+            background: var(--ochre);
+            border-color: var(--ochre);
+            color: var(--charcoal);
+        }
+
+        .badge-slate {
+            background: var(--slate-blue);
+            border-color: var(--slate-blue);
+            color: var(--newspaper);
+        }
+
+        .badge-terra {
+            background: var(--terracotta);
+            border-color: var(--terracotta);
+            color: var(--newspaper);
+        }
+
+        .badge-wine {
+            background: var(--wine);
+            border-color: var(--wine);
+            color: var(--newspaper);
+        }
+
+        .badge-olive {
+            background: var(--olive);
+            border-color: var(--olive);
+            color: var(--newspaper);
+        }
+
+        .badge-outline {
+            background: transparent;
+        }
+
+        .badge-outline.badge-ochre {
+            color: var(--ochre);
+        }
+
+        .badge-outline.badge-slate {
+            color: var(--slate-blue);
+        }
+
+        .badge-outline.badge-terra {
+            color: var(--terracotta);
+        }
+
+        .badge-shard {
+            clip-path: polygon(0% 10%, 90% 0%, 100% 85%, 10% 100%);
+            padding: 5px 16px;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: var(--space-md);
+        }
+
+        /* ============================================
+           VIII. DESIGN PRINCIPLES
+           ============================================ */
+        .principle {
+            position: relative;
+            padding-left: var(--space-xl);
+            margin-bottom: var(--space-lg);
+        }
+
+        .principle-shape {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            transition: transform var(--transition-base);
+        }
+
+        .principle:hover .principle-shape {
+            transform: rotate(15deg);
+        }
+
+        .principle-shape.shard-ochre {
+            background: var(--ochre);
+            clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);
+        }
+
+        .principle-shape.shard-slate {
+            background: var(--slate-blue);
+            clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);
+        }
+
+        .principle-shape.shard-terra {
+            background: var(--terracotta);
+            clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);
+        }
+
+        .principle-shape.shard-wine {
+            background: var(--wine);
+            clip-path: polygon(20% 0%, 100% 20%, 80% 100%, 0% 80%);
+        }
+
+        .principle-shape.shard-olive {
+            background: var(--olive);
+            clip-path: polygon(0% 0%, 100% 10%, 90% 100%, 10% 90%);
+        }
+
+        .principle-shape.shard-umber {
+            background: var(--raw-umber);
+            clip-path: polygon(15% 0%, 100% 5%, 85% 100%, 0% 95%);
+        }
+
+        .principle h3 {
+            margin-bottom: var(--space-sm);
+        }
+
+        .principle p {
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           DIVIDER — Fragmented line
+           ============================================ */
+        .divider {
+            height: 3px;
+            background: var(--charcoal);
+            margin: var(--space-lg) 0;
+            position: relative;
+            clip-path: polygon(0% 0%, 100% 30%, 100% 100%, 0% 70%);
+        }
+
+        .divider::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: -6px;
+            width: 30px;
+            height: 30px;
+            background: var(--ochre);
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+            transform: rotate(10deg);
+        }
+
+        .divider::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -8px;
+            width: 24px;
+            height: 24px;
+            background: var(--slate-blue);
+            clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);
+            transform: rotate(-5deg);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        .footer {
+            padding: var(--space-2xl) 0;
+            background: var(--charcoal);
+            color: var(--newspaper);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -20px;
+            width: 350px;
+            height: 350px;
+            background: var(--ochre);
+            opacity: 0.08;
+            clip-path: polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%);
+            transform: rotate(20deg);
+        }
+
+        .footer::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            left: 100px;
+            width: 200px;
+            height: 200px;
+            background: var(--slate-blue);
+            opacity: 0.06;
+            clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+            transform: rotate(-12deg);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        .footer-right {
+            text-align: right;
+            font-family: var(--font-heading);
+        }
+
+        .footer-right p {
+            opacity: 0.7;
+            font-size: 0.9rem;
+        }
+
+        /* ============================================
+           UTILITIES
+           ============================================ */
+        .text-center { text-align: center; }
+        .mb-0 { margin-bottom: 0; }
+        .mt-sm { margin-top: var(--space-sm); }
+        .mt-md { margin-top: var(--space-md); }
+        .mt-lg { margin-top: var(--space-lg); }
+        .mt-xl { margin-top: var(--space-xl); }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .header-content {
+                grid-template-columns: 1fr;
+            }
+
+            .header-fragment {
+                display: none;
+            }
+
+            .section-deco {
+                display: none;
+            }
+
+            .type-row {
+                grid-template-columns: 1fr;
+            }
+
+            .type-row:nth-child(even) {
+                transform: none;
+            }
+
+            .spacing-geometric {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: var(--space-lg);
+                text-align: center;
+            }
+
+            .footer-right {
+                text-align: center;
+            }
+
+            .form-group:nth-child(odd),
+            .form-group:nth-child(even) {
+                transform: none;
+            }
+
+            blockquote {
+                transform: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ============================================
+             HEADER
+             ============================================ -->
+        <header class="header">
+            <div class="header-fragment header-fragment-1"></div>
+            <div class="header-fragment header-fragment-2"></div>
+            <div class="header-fragment header-fragment-3"></div>
+            <div class="header-content">
+                <div>
+                    <p class="header-subtitle">Design System</p>
+                    <h1>
+                        <span>Cubism<span class="title-fragment" aria-hidden="true">Cubism</span></span>
+                    </h1>
+                    <p class="lead" style="max-width: 50ch;">A design language of fragmentation, simultaneity, and multiple perspectives. Analytical earth tones meet Synthetic boldness.</p>
+                </div>
+                <div class="header-meta">
+                    <p class="header-tagline">
+                        "Every act of creation is first an act of destruction."<br>
+                        <em style="font-size: 0.85rem; color: var(--slate-blue);">-- Pablo Picasso</em>
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- ============================================
+             I. COLOR PALETTE
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-number">I</span>
+                <h2>Color Palette</h2>
+                <p class="lead">The muted earth tones of Analytical Cubism -- ochre, umber, slate -- anchored by the collage textures of Synthetic Cubism. Like Braque's palette knife dragging pigment across layered newsprint.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--ochre);  clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--slate-blue); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--terracotta); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <div class="color-composition">
+                <div class="color-swatch" style="background: var(--ochre); color: var(--charcoal);">
+                    <span class="color-name">Ochre</span>
+                    <span class="color-hex">#c8a55a</span>
+                </div>
+                <div class="color-swatch" style="background: var(--raw-umber); color: var(--newspaper);">
+                    <span class="color-name">Raw Umber</span>
+                    <span class="color-hex">#6b4e2e</span>
+                </div>
+                <div class="color-swatch" style="background: var(--slate-blue); color: var(--newspaper);">
+                    <span class="color-name">Slate Blue</span>
+                    <span class="color-hex">#4a5a7a</span>
+                </div>
+                <div class="color-swatch" style="background: var(--terracotta); color: var(--newspaper);">
+                    <span class="color-name">Terracotta</span>
+                    <span class="color-hex">#b85c3a</span>
+                </div>
+            </div>
+
+            <div class="color-composition color-row-2">
+                <div class="color-swatch" style="background: var(--charcoal); color: var(--newspaper);">
+                    <span class="color-name">Charcoal</span>
+                    <span class="color-hex">#2a2a2a</span>
+                </div>
+                <div class="color-swatch" style="background: var(--newspaper); color: var(--charcoal); border: 2px solid var(--newspaper-dark);">
+                    <span class="color-name">Newspaper</span>
+                    <span class="color-hex">#f0ead6</span>
+                </div>
+                <div class="color-swatch" style="background: var(--olive); color: var(--newspaper);">
+                    <span class="color-name">Olive</span>
+                    <span class="color-hex">#5a6a3a</span>
+                </div>
+                <div class="color-swatch" style="background: var(--wine); color: var(--newspaper);">
+                    <span class="color-name">Wine</span>
+                    <span class="color-hex">#6a2a3a</span>
+                </div>
+            </div>
+
+            <div class="mt-xl">
+                <h3>Analytical vs. Synthetic</h3>
+                <p>Analytical Cubism (1909-1912) favored a restrained palette of browns, greys, and ochres -- the better to dissect form without the distraction of color. Synthetic Cubism (1912-1919) reintroduced bolder hues alongside collaged materials: newspaper, wallpaper, sand. This palette bridges both phases.</p>
+            </div>
+        </section>
+
+        <!-- ============================================
+             II. TYPOGRAPHY
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-number">II</span>
+                <h2>Typography</h2>
+                <p class="lead">Three typefaces in dialogue: Archivo Black for angular display, Space Grotesk for geometric headings, Source Serif 4 for body text that echoes newspaper columns in a Braque collage.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--terracotta); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--olive); clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--ochre); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-row">
+                    <div class="type-meta">
+                        <span class="type-name">Display</span>
+                        <span class="type-specs">Archivo Black / 96px / uppercase</span>
+                    </div>
+                    <div class="type-sample" style="font-family: var(--font-display); font-size: 4.5rem; line-height: 1; text-transform: uppercase;">Aa</div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <span class="type-name">Heading 1</span>
+                        <span class="type-specs">Archivo Black / 48px / uppercase</span>
+                    </div>
+                    <div class="type-sample" style="font-family: var(--font-display); font-size: 3rem; line-height: 1.1; text-transform: uppercase;">Les Demoiselles</div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <span class="type-name">Heading 2</span>
+                        <span class="type-specs">Space Grotesk / 36px / 700</span>
+                    </div>
+                    <div class="type-sample" style="font-family: var(--font-heading); font-size: 2.25rem; font-weight: 700; line-height: 1.1; text-transform: uppercase;">Multiple Viewpoints</div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <span class="type-name">Heading 3</span>
+                        <span class="type-specs">Space Grotesk / 22px / 600</span>
+                    </div>
+                    <div class="type-sample" style="font-family: var(--font-heading); font-size: 1.35rem; font-weight: 600; text-transform: uppercase;">Faceted Surfaces</div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <span class="type-name">Body</span>
+                        <span class="type-specs">Source Serif 4 / 16px / 400</span>
+                    </div>
+                    <div class="type-sample" style="font-family: var(--font-body); font-size: 1rem; white-space: normal;">The object is not to reproduce recognizable aspects of nature but to construct an experience of nature that is independent of the individual instance. In Cubism, truth is not optical but conceptual.</div>
+                </div>
+
+                <div class="type-row">
+                    <div class="type-meta">
+                        <span class="type-name">Caption</span>
+                        <span class="type-specs">Space Grotesk / 11px / 700 / uppercase</span>
+                    </div>
+                    <div class="type-sample label-text">Labels, tags, and collage fragments</div>
+                </div>
+            </div>
+
+            <div class="type-collage-box">
+                <p style="font-family: var(--font-display); font-size: 1.8rem; text-transform: uppercase; margin-bottom: var(--space-sm); color: var(--ochre);">JOURNAL</p>
+                <p style="color: var(--newspaper-dark); margin-bottom: 0; font-size: 0.95rem;">In Synthetic Cubism, Picasso and Braque pasted fragments of newspaper directly onto their canvases. Typography became material -- no longer merely communicating words, but existing as texture, plane, and collage element. The letterforms themselves became objects to be seen from multiple angles.</p>
+            </div>
+        </section>
+
+        <!-- ============================================
+             III. SPACING
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-number">III</span>
+                <h2>Spacing</h2>
+                <p class="lead">A geometric progression from 4px to 128px. Like the faceted planes of a Juan Gris still life, each interval creates depth through measured relationships.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--wine); clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--ochre); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--slate-blue); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xs</span>
+                    <div class="spacing-bar" style="width: 16px; background: var(--ochre);"></div>
+                    <span class="spacing-value">4px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-sm</span>
+                    <div class="spacing-bar" style="width: 32px; background: var(--slate-blue);"></div>
+                    <span class="spacing-value">8px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-md</span>
+                    <div class="spacing-bar" style="width: 64px; background: var(--terracotta);"></div>
+                    <span class="spacing-value">16px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-lg</span>
+                    <div class="spacing-bar" style="width: 128px; background: var(--raw-umber);"></div>
+                    <span class="spacing-value">32px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xl</span>
+                    <div class="spacing-bar" style="width: 256px; background: var(--olive);"></div>
+                    <span class="spacing-value">64px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-2xl</span>
+                    <div class="spacing-bar" style="width: 320px; background: var(--wine);"></div>
+                    <span class="spacing-value">96px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-3xl</span>
+                    <div class="spacing-bar" style="width: 400px; background: var(--charcoal);"></div>
+                    <span class="spacing-value">128px</span>
+                </div>
+            </div>
+
+            <div class="spacing-geometric">
+                <div class="spacing-block"></div>
+                <div class="spacing-block"></div>
+                <div class="spacing-block"></div>
+                <div class="spacing-block"></div>
+                <div class="spacing-block"></div>
+                <div class="spacing-block"></div>
+                <div class="spacing-block"></div>
+            </div>
+            <p class="small-text mt-md" style="color: var(--text-muted);">Geometric progression visualized as faceted planes, each step doubling the previous -- a Cubist rhythm in space.</p>
+        </section>
+
+        <!-- ============================================
+             IV. BUTTONS
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-number">IV</span>
+                <h2>Buttons</h2>
+                <p class="lead">Faceted and angular, as if carved from intersecting planes. Hover effects shift perspective, echoing the Cubist principle that no single viewpoint reveals the whole truth.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--terracotta); clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--slate-blue); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--wine); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <h4 class="mt-lg">Standard Actions</h4>
+            <div class="button-row">
+                <button class="btn">Default</button>
+                <button class="btn btn-primary">Primary</button>
+                <button class="btn btn-ochre">Ochre</button>
+                <button class="btn btn-slate">Slate</button>
+                <button class="btn btn-terracotta">Terracotta</button>
+                <button class="btn btn-wine">Wine</button>
+            </div>
+
+            <h4>Outlined</h4>
+            <div class="button-row">
+                <button class="btn btn-outline">Outlined</button>
+                <button class="btn btn-outline" disabled style="opacity: 0.4; cursor: not-allowed;">Disabled</button>
+            </div>
+
+            <h4>Sizes</h4>
+            <div class="button-row">
+                <button class="btn btn-sm btn-primary">Small</button>
+                <button class="btn btn-primary">Medium</button>
+                <button class="btn btn-lg btn-primary">Large</button>
+            </div>
+
+            <h4>Faceted Variants</h4>
+            <div class="button-row">
+                <button class="btn btn-faceted btn-ochre">Faceted</button>
+                <button class="btn btn-shard btn-slate">Shard</button>
+                <button class="btn btn-faceted btn-terracotta">Faceted</button>
+                <button class="btn btn-shard btn-wine">Shard</button>
+            </div>
+
+            <blockquote>
+                "I do not seek, I find. The object is to show what I have found, not what I am looking for."
+                <cite>-- Pablo Picasso</cite>
+            </blockquote>
+        </section>
+
+        <!-- ============================================
+             V. FORMS
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-number">V</span>
+                <h2>Forms</h2>
+                <p class="lead">Inputs offset and slightly rotated, as if fragments of a collage laid upon the canvas. The form itself becomes a composition of intersecting planes, recalling the papiers colles of Braque and Gris.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--olive); clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--ochre); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--terracotta); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Artist Name</label>
+                        <input type="text" class="form-input" placeholder="Pablo Picasso">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Atelier</label>
+                        <input type="text" class="form-input" placeholder="Le Bateau-Lavoir, Paris">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Period</label>
+                        <div class="select-wrap">
+                            <select class="form-input">
+                                <option>Select a period</option>
+                                <option>Proto-Cubism (1907-1909)</option>
+                                <option>Analytical Cubism (1909-1912)</option>
+                                <option>Synthetic Cubism (1912-1919)</option>
+                                <option>Crystal Cubism (1915-1920)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="form-group">
+                        <label class="form-label">Year</label>
+                        <input type="number" class="form-input" placeholder="1912">
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="form-group">
+                        <label class="form-label">Artist Statement</label>
+                        <textarea class="form-input" placeholder="Describe how you deconstruct the visible world into geometric planes..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid mt-lg">
+                <div class="col-6">
+                    <h4>Checkboxes</h4>
+                    <div class="check-group">
+                        <label class="check-label">
+                            <input type="checkbox" checked>
+                            <span class="check-box"></span>
+                            Multiple viewpoints
+                        </label>
+                        <label class="check-label">
+                            <input type="checkbox">
+                            <span class="check-box"></span>
+                            Fragmented planes
+                        </label>
+                        <label class="check-label">
+                            <input type="checkbox">
+                            <span class="check-box"></span>
+                            Papier colle elements
+                        </label>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <h4>Radio Buttons</h4>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="movement" checked>
+                            <span class="radio-dot"></span>
+                            Analytical Cubism
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="movement">
+                            <span class="radio-dot"></span>
+                            Synthetic Cubism
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="movement">
+                            <span class="radio-dot"></span>
+                            Crystal Cubism
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             VI. CARDS
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-number">VI</span>
+                <h2>Cards</h2>
+                <p class="lead">Multi-plane overlapping panels, each card a composition of layered surfaces. Like a Cubist still life, the viewer perceives depth not through perspective but through the overlap and offset of planes.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--raw-umber); clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--wine); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--olive); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <div class="grid">
+                <div class="col-4">
+                    <div class="card">
+                        <h3>Picasso</h3>
+                        <p>Les Demoiselles d'Avignon shattered classical perspective. Five figures rendered from simultaneous viewpoints -- a revolution on canvas.</p>
+                        <div class="card-footer">
+                            <span class="badge badge-ochre">1907</span>
+                            <button class="btn btn-sm">View</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-collage">
+                        <h3>Braque</h3>
+                        <p>Houses at l'Estaque reduced architecture to geometric facets. Cezanne's lesson taken to its ultimate conclusion -- nature as cylinder, sphere, cone.</p>
+                        <div class="card-footer">
+                            <span class="badge badge-slate">1908</span>
+                            <button class="btn btn-sm">View</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-layered">
+                        <h3>Juan Gris</h3>
+                        <p>The most methodical Cubist. Gris began with abstract geometric structures and derived recognizable forms from them -- Cubism in reverse.</p>
+                        <div class="card-footer">
+                            <span class="badge badge-terra">1912</span>
+                            <button class="btn btn-sm btn-ochre">View</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid mt-lg">
+                <div class="col-6">
+                    <div class="card card-fragment">
+                        <h3>Fernand Leger</h3>
+                        <p>Leger's "tubism" translated Cubist ideas through cylindrical forms. His figures became machines -- robust, industrial, built from interlocking volumes. Where Picasso fragmented, Leger solidified.</p>
+                        <div class="card-footer">
+                            <span class="badge badge-olive">Tubism</span>
+                            <span class="badge badge-outline badge-terra">1911-1924</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card">
+                        <h3>Robert Delaunay</h3>
+                        <p>Orphic Cubism brought color back to the center. Delaunay's Simultaneous Windows series proved that pure chromatic contrasts could create form without line -- Cubism set free from monochrome.</p>
+                        <div class="card-footer">
+                            <span class="badge badge-wine">Orphism</span>
+                            <span class="badge badge-outline badge-slate">1912-1914</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <blockquote class="mt-lg">
+                "The world is not what I see but what I know. I paint objects as I think them, not as I see them."
+                <cite>-- Pablo Picasso</cite>
+            </blockquote>
+        </section>
+
+        <!-- ============================================
+             VII. ALERTS & BADGES
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <span class="section-number">VII</span>
+                <h2>Alerts &amp; Badges</h2>
+                <p class="lead">Geometric fragments communicating status and category. Each alert is a shard of information, angular and direct. Badges mark and classify like the stenciled letters Braque painted onto his collages.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--ochre); clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--terracotta); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--wine); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <h4>Alerts</h4>
+            <div class="alert alert-info">
+                <strong>Simultaneity:</strong> Multiple perspectives are presented at once -- rotate your viewpoint, do not abandon it.
+            </div>
+            <div class="alert alert-success">
+                <strong>Composition:</strong> The geometric planes have been successfully interlocked. Structural integrity achieved.
+            </div>
+            <div class="alert alert-warning">
+                <strong>Fragmentation:</strong> Caution -- the subject has been deconstructed beyond recognition. Reassemble with care.
+            </div>
+            <div class="alert alert-danger">
+                <strong>Destruction:</strong> The classical perspective has been irreversibly shattered. There is no going back.
+            </div>
+
+            <div class="divider"></div>
+
+            <h4>Filled Badges</h4>
+            <div class="badge-row">
+                <span class="badge">Default</span>
+                <span class="badge badge-ochre">Ochre</span>
+                <span class="badge badge-slate">Slate</span>
+                <span class="badge badge-terra">Terracotta</span>
+                <span class="badge badge-wine">Wine</span>
+                <span class="badge badge-olive">Olive</span>
+            </div>
+
+            <h4>Outlined Badges</h4>
+            <div class="badge-row">
+                <span class="badge badge-outline badge-ochre">Analytical</span>
+                <span class="badge badge-outline badge-slate">Synthetic</span>
+                <span class="badge badge-outline badge-terra">Crystal</span>
+            </div>
+
+            <h4>Shard Badges</h4>
+            <div class="badge-row">
+                <span class="badge badge-shard badge-ochre">Picasso</span>
+                <span class="badge badge-shard badge-slate">Braque</span>
+                <span class="badge badge-shard badge-terra">Gris</span>
+                <span class="badge badge-shard badge-wine">Leger</span>
+                <span class="badge badge-shard badge-olive">Delaunay</span>
+            </div>
+        </section>
+
+        <!-- ============================================
+             VIII. DESIGN PRINCIPLES
+             ============================================ -->
+        <section class="section" style="border-bottom: none;">
+            <div class="section-header">
+                <span class="section-number">VIII</span>
+                <h2>Design Principles</h2>
+                <p class="lead">The philosophical foundations of Cubist design: deconstruction, simultaneity, the rejection of a single fixed viewpoint. These principles, born in the studios of Montmartre, remain radical over a century later.</p>
+            </div>
+            <div class="section-deco">
+                <div class="deco-shard" style="background: var(--slate-blue); clip-path: polygon(10% 0%, 100% 15%, 85% 100%, 0% 90%);"></div>
+                <div class="deco-shard" style="background: var(--ochre); clip-path: polygon(0% 5%, 90% 0%, 100% 95%, 10% 100%);"></div>
+                <div class="deco-shard" style="background: var(--raw-umber); clip-path: polygon(50% 0%, 100% 40%, 80% 100%, 0% 70%);"></div>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="principle">
+                        <div class="principle-shape shard-ochre"></div>
+                        <h3>Multiple Perspectives</h3>
+                        <p>Reject the tyranny of a single viewpoint. Show an object from above, below, and beside simultaneously. In design, this means presenting information through multiple lenses -- never assume one angle tells the whole story.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="principle">
+                        <div class="principle-shape shard-slate"></div>
+                        <h3>Deconstruction</h3>
+                        <p>Break the whole into geometric fragments to understand how the parts relate. Deconstruct interfaces into their essential planes, then rebuild them with intention. As Picasso said: "Every act of creation is first an act of destruction."</p>
+                    </div>
+                </div>
+                <div class="col-6 mt-lg">
+                    <div class="principle">
+                        <div class="principle-shape shard-terra"></div>
+                        <h3>Simultaneity</h3>
+                        <p>Present multiple states, views, or moments at once. Cubism collapsed time and space onto a flat plane. In UI, this translates to layered information, where context and detail coexist without hiding one behind the other.</p>
+                    </div>
+                </div>
+                <div class="col-6 mt-lg">
+                    <div class="principle">
+                        <div class="principle-shape shard-wine"></div>
+                        <h3>Flatness with Depth</h3>
+                        <p>Cubism abolished Renaissance perspective but created a new kind of depth through overlapping planes and shifting angles. Design can achieve the same: layers and offsets suggest dimensionality without illusionistic shadow or gradient.</p>
+                    </div>
+                </div>
+                <div class="col-6 mt-lg">
+                    <div class="principle">
+                        <div class="principle-shape shard-olive"></div>
+                        <h3>Material Truth</h3>
+                        <p>Synthetic Cubism introduced real materials -- newspaper, wallpaper, sand -- into painting. Embrace the materials of your medium. A screen is flat; do not pretend otherwise. Let texture come from honest use of type, color, and geometry.</p>
+                    </div>
+                </div>
+                <div class="col-6 mt-lg">
+                    <div class="principle">
+                        <div class="principle-shape shard-umber"></div>
+                        <h3>Geometric Essence</h3>
+                        <p>Cezanne advised treating nature as "the cylinder, the sphere, the cone." Cubism took this literally, reducing the visible world to angular facets. In design, strip away the decorative until only the geometric skeleton remains.</p>
+                    </div>
+                </div>
+            </div>
+
+            <blockquote class="mt-xl">
+                "The goal I proposed myself in making Cubism? To paint and nothing more. And to paint seeking a new expression, divested of useless realism, with a method linked only to my thought."
+                <cite>-- Juan Gris</cite>
+            </blockquote>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <p class="footer-logo">Cubism</p>
+                    <p style="opacity: 0.7; font-family: var(--font-heading); font-size: 0.85rem;">Design System</p>
+                </div>
+                <div class="footer-right">
+                    <p>Montmartre. Paris. The world.</p>
+                    <p style="opacity: 0.5; font-size: 0.8rem;">1907 -- 1925</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
