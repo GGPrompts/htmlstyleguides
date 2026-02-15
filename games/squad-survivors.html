@@ -1019,11 +1019,11 @@ canvas.addEventListener('touchend', e => {
 // UNIT TYPES
 // ============================================================
 const UNIT_TYPES = {
-  knight:       { name: 'Knight',       hp: 150, range: 40,  attackCD: 1.0,  damage: 18, speed: 140, color: '#4488cc', role: 'Tank',    projType: 'melee',    desc: 'Tanky frontline fighter' },
+  knight:       { name: 'Knight',       hp: 150, range: 60,  attackCD: 0.9,  damage: 25, speed: 140, color: '#4488cc', role: 'Tank',    projType: 'melee',    desc: 'Tanky frontline fighter' },
   archer:       { name: 'Archer',       hp: 60,  range: 280, attackCD: 0.7,  damage: 22, speed: 130, color: '#44aa44', role: 'DPS',     projType: 'arrow',    desc: 'Long-range glass cannon' },
   mage:         { name: 'Mage',         hp: 80,  range: 200, attackCD: 1.5,  damage: 30, speed: 120, color: '#aa44cc', role: 'AoE',     projType: 'fireball', desc: 'Splash damage dealer' },
-  shieldbearer: { name: 'Shieldbearer', hp: 200, range: 40,  attackCD: 1.4,  damage: 10, speed: 110, color: '#cc8844', role: 'Support', projType: 'melee',    desc: 'Damage reduction aura' },
-  berserker:    { name: 'Berserker',    hp: 70,  range: 40,  attackCD: 0.4,  damage: 15, speed: 160, color: '#cc4444', role: 'DPS',     projType: 'melee',    desc: 'Fast attacks, fragile' },
+  shieldbearer: { name: 'Shieldbearer', hp: 200, range: 60,  attackCD: 1.4,  damage: 12, speed: 110, color: '#cc8844', role: 'Support', projType: 'melee',    desc: 'Damage reduction aura' },
+  berserker:    { name: 'Berserker',    hp: 70,  range: 60,  attackCD: 0.35, damage: 20, speed: 160, color: '#cc4444', role: 'DPS',     projType: 'melee',    desc: 'Fast attacks, fragile' },
   scout:        { name: 'Scout',        hp: 50,  range: 160, attackCD: 0.5,  damage: 8,  speed: 170, color: '#44ccaa', role: 'Utility', projType: 'knife',    desc: 'Boosts heal orb drops' },
 };
 
@@ -1031,8 +1031,8 @@ const UNIT_TYPES = {
 // ENEMY TYPES
 // ============================================================
 const ENEMY_TYPES = {
-  slime:       { name: 'Slime',       hp: 30,  speed: 50,  size: 12, damage: 5,  xp: 1, color: '#55cc55', spawnAfter: 0 },
-  skeleton:    { name: 'Skeleton',    hp: 50,  speed: 65,  size: 14, damage: 8,  xp: 2, color: '#ccccaa', spawnAfter: 30 },
+  slime:       { name: 'Slime',       hp: 25,  speed: 50,  size: 12, damage: 4,  xp: 1, color: '#55cc55', spawnAfter: 0 },
+  skeleton:    { name: 'Skeleton',    hp: 45,  speed: 65,  size: 14, damage: 6,  xp: 2, color: '#ccccaa', spawnAfter: 30 },
   bat:         { name: 'Bat',         hp: 20,  speed: 120, size: 10, damage: 4,  xp: 1, color: '#8866aa', spawnAfter: 45 },
   orc:         { name: 'Orc',         hp: 120, speed: 35,  size: 18, damage: 18, xp: 4, color: '#558833', spawnAfter: 90 },
   necromancer: { name: 'Necromancer', hp: 60,  speed: 45,  size: 14, damage: 12, xp: 3, color: '#663388', spawnAfter: 120, ranged: true, shootCD: 2.5, projSpeed: 200 },
@@ -1392,8 +1392,12 @@ function killEnemy(e) {
  */
 function performMeleeAttack(unit) {
   const type = UNIT_TYPES[unit.type];
-  const range = 50;
-  const halfArc = Math.PI / 4; // 45 degrees each side = 90 degree arc
+  const range = 65;
+  const halfArc = Math.PI / 3; // 60 degrees each side = 120 degree arc (wider cleave)
+
+  // Lunge toward target: briefly advance 12px toward facing direction
+  unit.x += Math.cos(unit.angle) * 12;
+  unit.y += Math.sin(unit.angle) * 12;
 
   // Query enemies near the unit
   const nearby = enemyHash.query(unit.x, unit.y, range);
