@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ladder — A Competitive RTS History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Teko:wght@400;500;600;700&family=Black+Ops+One&family=Saira+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           RTS HUD — Story Build: The Ladder
+           Competitive RTS History (1992-2020+)
+           ============================================ */
+
+        :root {
+            /* METAL PALETTE */
+            --gunmetal-dark: #1a1c1e;
+            --gunmetal-mid: #2a2d31;
+            --gunmetal-light: #3a3f45;
+            --steel-highlight: #4a5159;
+            --steel-bright: #5a636d;
+
+            /* PANEL BACKGROUNDS */
+            --panel-bg: linear-gradient(180deg, #2a2d31 0%, #1a1c1e 100%);
+            --panel-recessed: linear-gradient(180deg, #101214 0%, #1a1c1e 50%, #0a0b0c 100%);
+            --panel-raised: linear-gradient(180deg, #3a3f45 0%, #2a2d31 50%, #1a1c1e 100%);
+
+            /* BLIZZARD ORANGE */
+            --amber-glow: #ff8c00;
+            --amber-bright: #ffa500;
+            --amber-light: #ffb830;
+            --amber-dark: #cc6600;
+            --amber-deep: #995200;
+
+            /* TEAL/CYAN SECONDARY */
+            --teal-glow: #00b4b4;
+            --teal-bright: #00d4d4;
+            --teal-light: #40e0e0;
+            --teal-dark: #008080;
+
+            /* FUNCTIONAL COLORS */
+            --health-green: #00cc44;
+            --health-green-dark: #008830;
+            --mana-blue: #3366ff;
+            --mana-blue-dark: #2244aa;
+            --damage-red: #cc2222;
+            --damage-red-dark: #881818;
+            --resource-gold: #ffd700;
+            --resource-supply: #aabbcc;
+
+            /* TEXT COLORS */
+            --text-primary: #d0d4d8;
+            --text-bright: #e8ecf0;
+            --text-muted: #808890;
+            --text-amber: #ffb830;
+            --text-teal: #40e0e0;
+
+            /* BORDERS & FRAMES */
+            --border-dark: #0a0b0c;
+            --border-light: #4a5159;
+            --border-highlight: #5a636d;
+
+            /* SHADOWS & GLOWS */
+            --shadow-deep: 0 4px 12px rgba(0, 0, 0, 0.8);
+            --shadow-inset: inset 0 2px 8px rgba(0, 0, 0, 0.6);
+            --glow-amber: 0 0 10px rgba(255, 140, 0, 0.6), 0 0 20px rgba(255, 140, 0, 0.3);
+            --glow-amber-strong: 0 0 15px rgba(255, 140, 0, 0.8), 0 0 30px rgba(255, 140, 0, 0.4);
+            --glow-teal: 0 0 10px rgba(0, 180, 180, 0.6), 0 0 20px rgba(0, 180, 180, 0.3);
+
+            /* TYPOGRAPHY */
+            --font-display: 'Black Ops One', cursive;
+            --font-heading: 'Teko', sans-serif;
+            --font-body: 'Saira Condensed', sans-serif;
+            --font-mono: 'Share Tech Mono', monospace;
+
+            /* SPACING */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+
+            /* TRANSITIONS */
+            --transition-fast: 0.15s ease;
+        }
+
+        /* RESET */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            background: var(--gunmetal-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* BACKGROUND TEXTURE */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(ellipse at 30% 20%, rgba(255, 140, 0, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 80%, rgba(0, 180, 180, 0.02) 0%, transparent 50%),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.1) 2px,
+                    rgba(0, 0, 0, 0.1) 4px
+                );
+        }
+
+        /* KEYFRAMES */
+        @keyframes sceneFadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes choicesFadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes factSlideIn {
+            from { opacity: 0; transform: translateX(-12px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes amberFlash {
+            0% { opacity: 0; }
+            15% { opacity: 0.6; background: rgba(255, 140, 0, 0.15); }
+            100% { opacity: 0; }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px currentColor; }
+            50% { box-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+        .game-container {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ============================================
+           TITLE SCREEN
+           ============================================ */
+        .title-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 85vh;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 0;
+            left: 0;
+            text-decoration: none;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            transition: color var(--transition-fast);
+        }
+
+        .back-link:hover { color: var(--amber-glow); text-shadow: var(--glow-amber); }
+
+        .title-tag {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--amber-glow);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            text-shadow: var(--glow-amber);
+            margin-bottom: var(--space-4);
+        }
+
+        .title-screen h1 {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            letter-spacing: 0.08em;
+            line-height: 1;
+            color: var(--text-bright);
+            text-shadow:
+                0 2px 0 var(--border-dark),
+                0 4px 8px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(255, 140, 0, 0.2);
+            margin-bottom: var(--space-5);
+        }
+
+        .title-tagline {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-7);
+            max-width: 500px;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           BATTLE.NET BUTTONS
+           ============================================ */
+        .btn {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: var(--space-3) var(--space-5);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+        }
+
+        .btn-primary {
+            color: var(--text-bright);
+            background: linear-gradient(180deg,
+                var(--gunmetal-light) 0%,
+                var(--gunmetal-mid) 40%,
+                var(--gunmetal-dark) 100%
+            );
+            border: 3px solid var(--border-dark);
+            box-shadow:
+                inset 0 1px 0 var(--steel-bright),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+                inset 1px 0 0 var(--border-light),
+                inset -1px 0 0 rgba(0, 0, 0, 0.3),
+                0 4px 0 var(--border-dark),
+                0 6px 12px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(180deg,
+                var(--steel-highlight) 0%,
+                var(--gunmetal-light) 40%,
+                var(--gunmetal-mid) 100%
+            );
+            border-color: var(--amber-dark);
+            box-shadow:
+                inset 0 1px 0 var(--steel-bright),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+                0 4px 0 var(--border-dark),
+                0 6px 12px rgba(0, 0, 0, 0.5),
+                0 0 20px rgba(255, 140, 0, 0.3);
+        }
+
+        .btn-primary:active {
+            background: linear-gradient(180deg,
+                var(--gunmetal-dark) 0%,
+                var(--gunmetal-mid) 60%,
+                var(--gunmetal-light) 100%
+            );
+            box-shadow:
+                inset 0 2px 4px rgba(0, 0, 0, 0.8),
+                inset 0 -1px 0 var(--border-highlight),
+                0 1px 0 var(--border-dark);
+            transform: translateY(3px);
+        }
+
+        .btn-amber {
+            color: var(--gunmetal-dark);
+            background: linear-gradient(180deg,
+                var(--amber-light) 0%,
+                var(--amber-glow) 40%,
+                var(--amber-dark) 100%
+            );
+            border: 3px solid var(--amber-deep);
+            box-shadow:
+                inset 0 1px 0 var(--amber-bright),
+                inset 0 -2px 0 var(--amber-deep),
+                0 4px 0 #663300,
+                0 6px 12px rgba(0, 0, 0, 0.5),
+                var(--glow-amber);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-amber:hover {
+            box-shadow:
+                inset 0 1px 0 #fff,
+                inset 0 -2px 0 var(--amber-deep),
+                0 4px 0 #663300,
+                0 6px 12px rgba(0, 0, 0, 0.5),
+                var(--glow-amber-strong);
+        }
+
+        .btn-amber:active {
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4), 0 1px 0 #663300;
+            transform: translateY(3px);
+        }
+
+        .btn-sm {
+            font-size: 0.85rem;
+            padding: var(--space-2) var(--space-4);
+        }
+
+        .btn-lg {
+            font-size: 1.2rem;
+            padding: var(--space-4) var(--space-7);
+        }
+
+        .btn-ghost {
+            color: var(--text-muted);
+            background: transparent;
+            border: 2px solid var(--gunmetal-light);
+            box-shadow: none;
+        }
+        .btn-ghost:hover { border-color: var(--amber-glow); color: var(--amber-glow); box-shadow: var(--glow-amber); }
+
+        /* ============================================
+           SCENE WRAPPER
+           ============================================ */
+        .scene-wrapper {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding-top: 1rem;
+        }
+
+        .scene-wrapper.active { display: flex; }
+
+        .scene-content { animation: sceneFadeIn 0.5s ease-out; }
+
+        /* ============================================
+           RESOURCE BAR (HUD Header)
+           ============================================ */
+        .resource-bar {
+            display: flex;
+            gap: var(--space-4);
+            padding: var(--space-3) var(--space-4);
+            background: var(--panel-bg);
+            border: 3px solid var(--border-dark);
+            box-shadow: var(--shadow-deep);
+            margin-bottom: var(--space-5);
+            flex-wrap: wrap;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            background: var(--panel-recessed);
+            border: 2px solid var(--border-dark);
+            box-shadow: var(--shadow-inset);
+            flex: 1;
+            min-width: 0;
+        }
+
+        .resource-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .resource-icon.gold { color: var(--resource-gold); text-shadow: 0 0 8px var(--resource-gold); }
+        .resource-icon.teal { color: var(--teal-bright); text-shadow: 0 0 8px var(--teal-bright); }
+        .resource-icon.supply { color: var(--resource-supply); }
+
+        .resource-value {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            white-space: nowrap;
+        }
+
+        .resource-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* ============================================
+           SCENE NARRATION
+           ============================================ */
+        .scene-narration { margin-bottom: var(--space-5); }
+
+        .scene-narration p {
+            margin-bottom: var(--space-4);
+            max-width: 65ch;
+            line-height: 1.7;
+            font-size: 1.05rem;
+        }
+
+        .scene-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            letter-spacing: 0.06em;
+            line-height: 1.1;
+            margin-bottom: var(--space-5);
+            color: var(--text-bright);
+            text-shadow: 0 2px 0 var(--border-dark), 0 0 20px rgba(255, 140, 0, 0.15);
+        }
+
+        .scene-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: var(--space-5);
+            color: var(--text-muted);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .scene-ending {
+            text-align: center;
+            padding: var(--space-7) var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+
+        .scene-ending p {
+            margin: 0 auto var(--space-4);
+            max-width: 55ch;
+            line-height: 1.8;
+        }
+
+        /* ============================================
+           METAL FRAME CARDS
+           ============================================ */
+        .card {
+            background: var(--panel-bg);
+            border: 3px solid var(--border-dark);
+            box-shadow: var(--shadow-deep);
+            margin-bottom: var(--space-5);
+        }
+
+        .card-header {
+            padding: var(--space-3) var(--space-4);
+            background: var(--panel-raised);
+            border-bottom: 2px solid var(--border-dark);
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card-body {
+            padding: var(--space-4);
+        }
+
+        .card-body p {
+            margin-bottom: var(--space-3);
+            max-width: 65ch;
+            line-height: 1.6;
+        }
+
+        .card-body p:last-child { margin-bottom: 0; }
+
+        /* ============================================
+           PORTRAIT PANEL (Player Profiles)
+           ============================================ */
+        .portrait-panel {
+            display: flex;
+            gap: var(--space-4);
+            padding: var(--space-4);
+            background: var(--panel-bg);
+            border: 3px solid var(--border-dark);
+            box-shadow: var(--shadow-deep);
+            margin-bottom: var(--space-4);
+        }
+
+        .portrait-frame {
+            width: 72px;
+            height: 72px;
+            background: var(--panel-raised);
+            border: 3px solid var(--border-dark);
+            padding: 4px;
+            flex-shrink: 0;
+            box-shadow:
+                inset 0 1px 0 var(--border-highlight),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        .portrait-inner {
+            width: 100%;
+            height: 100%;
+            background: var(--panel-recessed);
+            border: 2px solid var(--border-dark);
+            box-shadow: var(--shadow-inset);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+        .portrait-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: var(--space-1);
+            min-width: 0;
+            flex: 1;
+        }
+
+        .portrait-name {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-bright);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .portrait-type {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--teal-bright);
+            text-transform: uppercase;
+        }
+
+        .portrait-bars {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-1);
+            margin-top: var(--space-1);
+        }
+
+        /* STAT BARS */
+        .stat-bar {
+            height: 14px;
+            background: var(--panel-recessed);
+            border: 2px solid var(--border-dark);
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-inset);
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            position: relative;
+        }
+
+        .stat-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+        }
+
+        .stat-bar.health .stat-bar-fill {
+            background: linear-gradient(180deg, var(--health-green) 0%, var(--health-green-dark) 100%);
+        }
+
+        .stat-bar.mana .stat-bar-fill {
+            background: linear-gradient(180deg, var(--mana-blue) 0%, var(--mana-blue-dark) 100%);
+        }
+
+        .stat-bar.amber .stat-bar-fill {
+            background: linear-gradient(180deg, var(--amber-light) 0%, var(--amber-dark) 100%);
+        }
+
+        .stat-bar-text {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--text-bright);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        /* ============================================
+           BADGES
+           ============================================ */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            padding: var(--space-1) var(--space-2);
+            background: var(--panel-recessed);
+            border: 1px solid var(--border-dark);
+            margin-right: var(--space-2);
+            margin-bottom: var(--space-2);
+        }
+
+        .badge.amber { color: var(--amber-glow); border-color: var(--amber-dark); box-shadow: 0 0 6px rgba(255, 140, 0, 0.3); }
+        .badge.teal { color: var(--teal-bright); border-color: var(--teal-dark); box-shadow: 0 0 6px rgba(0, 180, 180, 0.3); }
+        .badge.health { color: var(--health-green); border-color: var(--health-green-dark); }
+        .badge.danger { color: var(--damage-red); border-color: var(--damage-red-dark); box-shadow: 0 0 6px rgba(204, 34, 34, 0.3); }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-2);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-3);
+        }
+
+        /* ============================================
+           CHAT PANEL (Battle Reports)
+           ============================================ */
+        .chat-panel {
+            background: var(--panel-bg);
+            border: 3px solid var(--border-dark);
+            box-shadow: var(--shadow-deep);
+            margin-bottom: var(--space-5);
+        }
+
+        .chat-header {
+            padding: var(--space-2) var(--space-3);
+            background: var(--panel-raised);
+            border-bottom: 2px solid var(--border-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .chat-status {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--health-green);
+        }
+
+        .chat-messages {
+            padding: var(--space-3);
+            background: var(--panel-recessed);
+            box-shadow: var(--shadow-inset);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            padding: var(--space-1) 0;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .chat-timestamp { color: var(--text-muted); margin-right: var(--space-2); }
+        .chat-username { color: var(--teal-bright); font-weight: 600; }
+        .chat-username.system { color: var(--amber-glow); }
+        .chat-text { color: var(--text-primary); }
+
+        /* ============================================
+           PROGRESS BAR
+           ============================================ */
+        .progress-bar {
+            position: relative;
+            height: 20px;
+            background: var(--panel-recessed);
+            border: 2px solid var(--border-dark);
+            box-shadow: var(--shadow-inset);
+            overflow: hidden;
+            margin-bottom: var(--space-3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            position: relative;
+            transition: width 0.5s ease;
+        }
+
+        .progress-fill.amber {
+            background: linear-gradient(180deg, var(--amber-light) 0%, var(--amber-glow) 50%, var(--amber-dark) 100%);
+            box-shadow: 0 0 10px rgba(255, 140, 0, 0.5);
+        }
+
+        .progress-label {
+            position: absolute;
+            right: var(--space-3);
+            top: 50%;
+            transform: translateY(-50%);
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-bright);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        .progress-title {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-1);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* ============================================
+           COMMAND GRID CHOICES
+           ============================================ */
+        .choices {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+            margin-top: var(--space-6);
+            margin-bottom: var(--space-5);
+            animation: choicesFadeIn 0.5s ease-out 0.3s both;
+        }
+
+        .choice-btn {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            padding: var(--space-3) var(--space-5);
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-bright);
+            background: linear-gradient(180deg,
+                var(--gunmetal-light) 0%,
+                var(--gunmetal-mid) 40%,
+                var(--gunmetal-dark) 100%
+            );
+            border: 3px solid var(--border-dark);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            box-shadow:
+                inset 0 1px 0 var(--steel-bright),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+                0 3px 0 var(--border-dark),
+                0 4px 8px rgba(0, 0, 0, 0.4);
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            text-align: left;
+        }
+
+        .choice-btn:hover {
+            background: linear-gradient(180deg,
+                var(--steel-highlight) 0%,
+                var(--gunmetal-light) 40%,
+                var(--gunmetal-mid) 100%
+            );
+            border-color: var(--amber-dark);
+            box-shadow:
+                inset 0 1px 0 var(--steel-bright),
+                inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+                0 3px 0 var(--border-dark),
+                0 4px 8px rgba(0, 0, 0, 0.4),
+                0 0 15px rgba(255, 140, 0, 0.3);
+        }
+
+        .choice-btn:active {
+            background: linear-gradient(180deg,
+                var(--gunmetal-dark) 0%,
+                var(--gunmetal-mid) 60%,
+                var(--gunmetal-light) 100%
+            );
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6);
+            transform: translateY(2px);
+        }
+
+        .choice-key {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--panel-recessed);
+            border: 2px solid var(--amber-dark);
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: var(--amber-glow);
+            flex-shrink: 0;
+            text-shadow: var(--glow-amber);
+        }
+
+        /* ============================================
+           METAL DIVIDER
+           ============================================ */
+        .divider {
+            height: 3px;
+            margin: var(--space-6) 0;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--amber-dark) 20%,
+                var(--amber-glow) 50%,
+                var(--amber-dark) 80%,
+                transparent 100%
+            );
+            box-shadow: 0 0 8px rgba(255, 140, 0, 0.3);
+        }
+
+        /* ============================================
+           GAME CONTROLS
+           ============================================ */
+        .game-controls {
+            margin-top: auto;
+            padding-top: var(--space-6);
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .game-controls .btn-sm {
+            opacity: 0.5;
+            transition: opacity var(--transition-fast), all 0.15s ease;
+        }
+
+        .game-controls .btn-sm:hover { opacity: 1; }
+
+        /* ============================================
+           INTEL TRACKER (Fact/Clue Sidebar)
+           ============================================ */
+        .intel-tracker {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 100;
+            display: none;
+        }
+
+        .intel-toggle {
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            padding: var(--space-2) var(--space-3);
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: 3px solid var(--border-dark);
+            background: linear-gradient(180deg, var(--gunmetal-light) 0%, var(--gunmetal-dark) 100%);
+            color: var(--amber-glow);
+            cursor: pointer;
+            box-shadow: var(--shadow-deep);
+            transition: all 0.15s ease;
+        }
+
+        .intel-toggle:hover {
+            border-color: var(--amber-dark);
+            box-shadow: var(--shadow-deep), 0 0 10px rgba(255, 140, 0, 0.3);
+        }
+
+        .intel-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 4px;
+            background: var(--amber-glow);
+            color: var(--gunmetal-dark);
+            border: 2px solid var(--amber-deep);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .intel-panel {
+            display: none;
+            background: var(--panel-bg);
+            border: 3px solid var(--border-dark);
+            box-shadow: var(--shadow-deep);
+            margin-top: var(--space-2);
+            max-width: 320px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .intel-panel.open { display: block; }
+
+        .intel-panel h4 {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: var(--space-3) var(--space-4);
+            background: var(--panel-raised);
+            border-bottom: 2px solid var(--border-dark);
+            color: var(--amber-glow);
+            margin-bottom: 0;
+        }
+
+        .intel-list { padding: var(--space-3); }
+
+        .intel-item {
+            padding: var(--space-3);
+            border-bottom: 1px solid var(--gunmetal-light);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            color: var(--text-muted);
+            animation: factSlideIn 0.3s ease-out;
+        }
+
+        .intel-item:last-child { border-bottom: none; }
+
+        .no-intel {
+            padding: var(--space-4);
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        /* ============================================
+           TRANSITION OVERLAY
+           ============================================ */
+        .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        .transition-overlay.active {
+            animation: amberFlash 0.6s ease-in-out;
+        }
+
+        /* ============================================
+           SCROLLBAR
+           ============================================ */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--gunmetal-dark); }
+        ::-webkit-scrollbar-thumb { background: var(--gunmetal-light); border: 1px solid var(--border-dark); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--amber-dark); }
+        ::selection { background: var(--amber-glow); color: var(--gunmetal-dark); }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .game-container { padding: 1rem; }
+            .title-screen h1 { font-size: clamp(2.2rem, 10vw, 4rem); }
+            .intel-tracker { right: 0.5rem; top: 0.5rem; }
+            .intel-panel { max-width: 260px; }
+            .choice-btn { font-size: 0.85rem; padding: var(--space-3) var(--space-4); }
+            .scene-title { font-size: clamp(1.5rem, 5vw, 2.2rem); }
+            .resource-bar { gap: var(--space-2); padding: var(--space-2) var(--space-3); }
+            .resource-item { padding: var(--space-1) var(--space-2); }
+            .portrait-panel { flex-wrap: wrap; }
+            .portrait-frame { width: 56px; height: 56px; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Transition Overlay -->
+    <div class="transition-overlay" id="transition"></div>
+
+    <!-- Intel Tracker -->
+    <div class="intel-tracker" id="intelTracker">
+        <button class="intel-toggle" id="intelToggle">
+            Intel <span class="intel-count" id="intelCount">0</span>
+        </button>
+        <div class="intel-panel" id="intelPanel">
+            <h4>Field Intel</h4>
+            <div class="intel-list" id="intelList">
+                <p class="no-intel">No intel gathered yet...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <!-- Title Screen -->
+        <div class="title-screen" id="titleScreen">
+            <a href="../index.html" class="back-link">&larr; STORIES</a>
+            <div class="title-tag">// War Correspondent Report</div>
+            <h1>THE LADDER</h1>
+            <p class="title-tagline">The rise, peak, and transformation of competitive RTS gaming. From Dune II to the death of StarCraft II &mdash; you are the correspondent. Document everything.</p>
+            <button class="btn btn-lg btn-amber" id="startBtn">FIND MATCH</button>
+        </div>
+
+        <!-- Scene Wrapper -->
+        <div class="scene-wrapper" id="sceneWrapper">
+            <div class="resource-bar" id="resourceBar">
+                <div class="resource-item">
+                    <span class="resource-icon gold">&#9670;</span>
+                    <div>
+                        <div class="resource-value" id="resYear">----</div>
+                        <div class="resource-label">Year</div>
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon teal">&#9632;</span>
+                    <div>
+                        <div class="resource-value" id="resEra">---</div>
+                        <div class="resource-label">Era</div>
+                    </div>
+                </div>
+                <div class="resource-item">
+                    <span class="resource-icon supply">&#9650;</span>
+                    <div>
+                        <div class="resource-value" id="resScenes">0/13</div>
+                        <div class="resource-label">Scenes</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sceneContent"></div>
+
+            <div class="game-controls">
+                <button class="btn btn-sm btn-ghost" id="restartBtn">Disconnect</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ================================================================
+    //  THE LADDER — Competitive RTS History
+    // ================================================================
+
+    const STORY = {
+
+        // ---- SCENE 1: INTRO ----
+        intro: {
+            year: '1992-2020',
+            era: 'BRIEFING',
+            content: `
+                <h2 class="scene-title" style="color: var(--amber-glow); text-shadow: 0 0 30px rgba(255, 140, 0, 0.3), 0 2px 0 var(--border-dark);">THE LADDER</h2>
+                <div class="scene-narration">
+                    <p>You've been assigned to document the most intense form of 1v1 competition in gaming history: the competitive real-time strategy scene.</p>
+                    <p>From the first base built in the Arrakis sand to the final GG typed in a Korean broadcast studio, this is the story of a genre that demanded perfection &mdash; and what happened when the world decided perfection was too hard.</p>
+                </div>
+
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <span class="chat-title">Dispatch</span>
+                        <span class="chat-status">&#9679; LIVE</span>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="chat-message"><span class="chat-timestamp">[00:01]</span> <span class="chat-username system">EDITOR:</span> <span class="chat-text">Your assignment: cover the rise and fall of competitive RTS.</span></div>
+                        <div class="chat-message"><span class="chat-timestamp">[00:02]</span> <span class="chat-username system">EDITOR:</span> <span class="chat-text">Start at the beginning. 1992. The desert planet.</span></div>
+                        <div class="chat-message"><span class="chat-timestamp">[00:03]</span> <span class="chat-username">YOU:</span> <span class="chat-text">Copy. Beginning field report.</span></div>
+                    </div>
+                </div>
+            `,
+            fact: 'The real-time strategy genre spans from 1992 to the present, with competitive play peaking in South Korea between 2000-2012.',
+            choices: [
+                { text: 'Begin the report', next: 'genesis' }
+            ]
+        },
+
+        // ---- SCENE 2: GENESIS (1992-1997) ----
+        genesis: {
+            year: '1992-1997',
+            era: 'GENESIS',
+            content: `
+                <h2 class="scene-title">GENESIS</h2>
+                <div class="scene-subtitle">The Genre Is Born</div>
+
+                <div class="scene-narration">
+                    <p>December 1992. Westwood Studios releases <strong>Dune II: The Building of a Dynasty</strong> for MS-DOS. It isn't the first real-time strategy game &mdash; but it's the one that establishes the template. Base building. Resource harvesting. Fog of war. Unit production queues. Every RTS that follows will carry this DNA.</p>
+                    <p>Then the floodgates open.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Timeline</span></div>
+                    <div class="card-body">
+                        <p><span class="badge amber">1992</span> <strong>Dune II</strong> &mdash; Westwood invents the modern RTS template on Arrakis</p>
+                        <p><span class="badge amber">1995</span> <strong>Command & Conquer</strong> &mdash; Westwood brings RTS to the masses. 3 million copies sold.</p>
+                        <p><span class="badge amber">1995</span> <strong>Warcraft II</strong> &mdash; Blizzard enters the war. Multiplayer over Battle.net follows.</p>
+                        <p><span class="badge amber">1997</span> <strong>Total Annihilation</strong> &mdash; Cavedog pushes 3D terrain, 150+ unit types, physics-based projectiles</p>
+                        <p><span class="badge amber">1997</span> <strong>Age of Empires</strong> &mdash; Ensemble Studios adds history. Civilizations spanning millennia.</p>
+                    </div>
+                </div>
+
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <span class="chat-title">Field Notes</span>
+                        <span class="chat-status">&#9679; REC</span>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="chat-message"><span class="chat-timestamp">[NOTE]</span> <span class="chat-username system">CORRESPONDENT:</span> <span class="chat-text">Five years. Five foundational games. The genre went from nothing to the most popular PC gaming format. But none of them had what was coming next.</span></div>
+                    </div>
+                </div>
+            `,
+            fact: 'Dune II (Dec 1992) established base building, resource harvesting, and fog of war — the DNA of every RTS that followed.',
+            choices: [
+                { text: 'Continue to 1998', next: 'starcraft_arrives' }
+            ]
+        },
+
+        // ---- SCENE 3: STARCRAFT ARRIVES (1998) ----
+        starcraft_arrives: {
+            year: '1998',
+            era: 'THE GAME',
+            content: `
+                <h2 class="scene-title">STARCRAFT</h2>
+                <div class="scene-subtitle">March 31, 1998 &mdash; Everything Changes</div>
+
+                <div class="scene-narration">
+                    <p>Blizzard Entertainment releases StarCraft. Three asymmetric races &mdash; Terran, Protoss, Zerg &mdash; each with entirely different units, buildings, and strategies. Not mirror matchups. Not slight variations. Three fundamentally different ways to play.</p>
+                    <p>It ships with Battle.net, Blizzard's free online matchmaking service. For the first time, anyone with a modem can find an opponent in seconds.</p>
+                    <p>It sells <strong>11 million copies</strong> worldwide. Best-selling PC game of 1998.</p>
+                </div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner">&#9813;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">StarCraft: Brood War</div>
+                        <div class="portrait-type">Blizzard Entertainment &bull; 1998</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 95%;"></div><span class="stat-bar-text">BALANCE: 95%</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 100%;"></div><span class="stat-bar-text">SKILL CEILING: MAX</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="scene-narration">
+                    <p>The game's genius is its imperfection. Workers can only carry 8 minerals at a time. Units path-find badly through choke points. Dragoons get stuck on ramps. These "flaws" create depth &mdash; the difference between a good player and a great one is how they manage chaos.</p>
+                    <p>But the game doesn't just succeed in the West. It travels across the Pacific to a country that is about to build something no one has ever seen before.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Decision Point</span></div>
+                    <div class="card-body">
+                        <p>The story splits here. StarCraft's competitive legacy unfolds on two fronts &mdash; one in Seoul, one everywhere else.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'StarCraft sold 11 million copies worldwide and was the best-selling PC game of 1998.',
+            choices: [
+                { text: 'Follow the game to Korea', next: 'korea_explodes' },
+                { text: 'Stay with the Western scene', next: 'western_rts' }
+            ]
+        },
+
+        // ---- SCENE 4: KOREA EXPLODES (1999-2003) ----
+        korea_explodes: {
+            year: '1999-2003',
+            era: 'KOREA',
+            content: `
+                <h2 class="scene-title">PC BANG NATION</h2>
+                <div class="scene-subtitle">South Korea Builds Esports From Nothing</div>
+
+                <div class="scene-narration">
+                    <p>The Asian financial crisis of 1997 devastates South Korea's economy. The government responds with a radical bet: invest massively in broadband infrastructure. By 1999, South Korea has the fastest internet in the world.</p>
+                    <p>PC bangs &mdash; internet gaming cafes &mdash; explode. In 1997, there are roughly <strong>100</strong>. By 1999, there are over <strong>13,000</strong>. Young Koreans, many unemployed, flood into them. They play StarCraft. They play it obsessively. And they get very, very good.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">The Infrastructure</span></div>
+                    <div class="card-body">
+                        <p><span class="badge amber">Feb 2000</span> <strong>KeSPA</strong> (Korea e-Sports Association) founded &mdash; government-backed esports governing body</p>
+                        <p><span class="badge amber">2000</span> <strong>OnGameNet (OGN)</strong> launches &mdash; a cable TV channel dedicated entirely to competitive gaming</p>
+                        <p><span class="badge amber">2000</span> <strong>MBC Game</strong> follows &mdash; two competing esports TV channels in a country of 47 million</p>
+                        <p><span class="badge amber">2002</span> <strong>Corporate teams</strong> form &mdash; SK Telecom T1, KTF MagicNs, Samsung KHAN, funded by telecoms and chaebols</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner">&#9812;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">BoxeR</div>
+                        <div class="portrait-type">Lim Yo-Hwan &bull; Terran &bull; "The Emperor"</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 78%;"></div><span class="stat-bar-text">WIN RATE: 78%</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 90%;"></div><span class="stat-bar-text">APM: 300+</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene-narration">
+                    <p><strong>Lim Yo-Hwan</strong>, known as <strong>BoxeR</strong>, becomes the first StarCraft superstar. "The Emperor" plays Terran with a revolutionary aggressive style &mdash; inventing tactics that would be studied for a decade. His fan club exceeds <strong>600,000 members</strong>. He appears in TV dramas. He is, by any measure, a professional athlete &mdash; in a country that has just invented the sport.</p>
+                </div>
+            `,
+            fact: 'South Korea had roughly 100 PC bangs in 1997; by 1999 there were over 13,000. BoxeR\'s fan club exceeded 600,000 members.',
+            choices: [
+                { text: 'Continue to the Golden Age', next: 'golden_age' }
+            ]
+        },
+
+        // ---- SCENE 5: WESTERN RTS (2002-2006) ----
+        western_rts: {
+            year: '2002-2006',
+            era: 'THE WEST',
+            content: `
+                <h2 class="scene-title">THE WESTERN FRONT</h2>
+                <div class="scene-subtitle">Warcraft III, WCG, and the Global Circuit</div>
+
+                <div class="scene-narration">
+                    <p>While Korea builds an esports industry around StarCraft, the Western scene coalesces around a different game: <strong>Warcraft III: Reign of Chaos</strong> (July 2002) and its expansion <strong>The Frozen Throne</strong> (July 2003).</p>
+                    <p>WC3 adds hero units with RPG-style leveling, creep camps on the map, and smaller army sizes. It's more accessible than Brood War &mdash; and it attracts a truly international competitive scene.</p>
+                </div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner">&#9823;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">Grubby</div>
+                        <div class="portrait-type">Manuel Schenkhuizen &bull; Orc &bull; Netherlands</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 82%;"></div><span class="stat-bar-text">LAN WINS: 38+</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 85%;"></div><span class="stat-bar-text">WCG 2004 CHAMPION</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner">&#9816;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">Moon</div>
+                        <div class="portrait-type">Jang Jae-Ho &bull; Night Elf &bull; South Korea</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 88%;"></div><span class="stat-bar-text">"The Fifth Race"</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 92%;"></div><span class="stat-bar-text">APM: 400+</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">The World Cyber Games</span></div>
+                    <div class="card-body">
+                        <p>The <strong>World Cyber Games</strong>, founded in 2000 with Samsung backing, was modeled after the Olympic Games &mdash; with opening ceremonies, national anthems, and medal counts. At its peak it drew competitors from 70+ countries.</p>
+                        <p><span class="badge teal">WC3</span> <span class="badge amber">2005</span> <strong>Sky</strong> (Li Xiaofeng, Human, China) wins WCG &mdash; then wins again in <span class="badge amber">2006</span>. Back-to-back gold.</p>
+                        <p>Meanwhile, <strong>Age of Empires II</strong> quietly builds its own competitive scene &mdash; one that will, improbably, outlast almost everything else.</p>
+                    </div>
+                </div>
+            `,
+            fact: 'The World Cyber Games, founded in 2000 with Samsung backing, was modeled after the Olympic Games — with opening ceremonies, national anthems, and medal counts.',
+            choices: [
+                { text: 'Continue to the Golden Age', next: 'golden_age' }
+            ]
+        },
+
+        // ---- SCENE 6: GOLDEN AGE (2005-2008) ----
+        golden_age: {
+            year: '2005-2008',
+            era: 'GOLDEN AGE',
+            content: `
+                <h2 class="scene-title" style="color: var(--resource-gold); text-shadow: 0 0 25px rgba(255, 215, 0, 0.3), 0 2px 0 var(--border-dark);">THE GOLDEN AGE</h2>
+                <div class="scene-subtitle">Peak Brood War &mdash; Flash vs Jaedong</div>
+
+                <div class="scene-narration">
+                    <p>This is the summit. StarCraft: Brood War in Korea reaches a level of competition, viewership, and cultural significance that competitive gaming has never seen before &mdash; and may never see again.</p>
+                </div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner" style="color: var(--resource-gold);">&#9733;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">Flash</div>
+                        <div class="portrait-type">Lee Young-Ho &bull; Terran &bull; "God"</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 70%;"></div><span class="stat-bar-text">WIN RATE: 70%</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 100%;"></div><span class="stat-bar-text">$580K BW EARNINGS</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner" style="color: var(--damage-red);">&#9733;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">Jaedong</div>
+                        <div class="portrait-type">Lee Jae-Dong &bull; Zerg &bull; "The Tyrant"</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 67%;"></div><span class="stat-bar-text">WIN RATE: 67%</span></div>
+                            <div class="stat-bar amber"><div class="stat-bar-fill" style="width: 95%;"></div><span class="stat-bar-text">APM: 400+</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene-narration">
+                    <p>"The Two Lees" &mdash; Flash and Jaedong &mdash; define the era. Their rivalry is Federer-Nadal on a keyboard. Flash, the Terran machine with an inhuman 70% career win rate. Jaedong, the Zerg artist who makes swarm micro look like choreography.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Gwangalli Beach &mdash; 2005</span></div>
+                    <div class="card-body">
+                        <p>Over <strong>120,000 fans</strong> pack Gwangalli Beach in Busan for the 2005 SKY Proleague finals between SK Telecom T1 and KTF MagicNs. One hundred and twenty thousand people, watching StarCraft on a giant screen over the ocean.</p>
+                        <p>The Korean Air Force has its own professional StarCraft team &mdash; ACE. Military service is mandatory, but if you're good enough at StarCraft, you serve your country by playing it.</p>
+                    </div>
+                </div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner" style="color: var(--teal-bright);">&#9818;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">sAviOr</div>
+                        <div class="portrait-type">Ma Jae-Yoon &bull; Zerg &bull; "The Maestro"</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 65%;"></div><span class="stat-bar-text">REVOLUTIONIZED ZERG</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 80%;"></div><span class="stat-bar-text">MSL CHAMPION x3</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene-narration">
+                    <p><strong>sAviOr</strong> single-handedly changes how Zerg is played. Before him, Zerg won only <strong>11% of Starleague titles</strong>. He pioneers new macro strategies that make Zerg viable at the highest level. They call him "The Maestro."</p>
+                    <p>But behind the glory, something dark is brewing.</p>
+                </div>
+            `,
+            fact: 'Over 120,000 fans packed Gwangalli Beach in Busan for the 2005 Proleague finals between SK Telecom T1 and KTF MagicNs.',
+            choices: [
+                { text: 'Investigate the match-fixing scandal', next: 'match_fixing' },
+                { text: 'Skip ahead to StarCraft II', next: 'sc2_era' }
+            ]
+        },
+
+        // ---- SCENE 7: MATCH-FIXING ----
+        match_fixing: {
+            year: '2010 / 2016',
+            era: 'SCANDAL',
+            content: `
+                <h2 class="scene-title" style="color: var(--damage-red); text-shadow: 0 0 20px rgba(204, 34, 34, 0.3);">THE FIX</h2>
+                <div class="scene-subtitle">Two Scandals That Bookend an Era</div>
+
+                <div class="scene-narration">
+                    <p>The first blow lands in <strong>April 2010</strong>.</p>
+                </div>
+
+                <div class="card" style="border-color: var(--damage-red);">
+                    <div class="card-header" style="border-bottom-color: var(--damage-red);"><span class="card-title" style="color: var(--damage-red);">sAviOr &mdash; The Fall of the Maestro</span></div>
+                    <div class="card-body">
+                        <p><span class="badge danger">2010</span> South Korean police reveal that <strong>Ma Jae-Yoon</strong> &mdash; sAviOr, the man who revolutionized Zerg play &mdash; is the <strong>ringleader</strong> of a match-fixing ring. Twelve or more professional matches were thrown for gambling profits.</p>
+                        <p>The man who made Zerg viable was also the man who sold the integrity of the game. Lifetime ban from competitive play. Criminal charges. The Brood War scene is shaken to its core.</p>
+                        <p>Before sAviOr, Zerg had won only <strong>11% of Starleague titles</strong>. He proved the race could dominate. Then he proved that even gods can be bought.</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="card" style="border-color: var(--damage-red);">
+                    <div class="card-header" style="border-bottom-color: var(--damage-red);"><span class="card-title" style="color: var(--damage-red);">Life &mdash; The Prodigy's Fall</span></div>
+                    <div class="card-body">
+                        <p><span class="badge danger">2016</span> Six years later, lightning strikes again. <strong>Lee Seung-Hyun</strong> &mdash; known as <strong>Life</strong> &mdash; is arrested for match-fixing in StarCraft II. He had won his first GSL at <strong>age 15</strong>, the youngest champion in history. He was considered a generational talent.</p>
+                        <p>He fixed matches for approximately <strong>$62,000</strong>. The sentence: 18 months in prison, suspended. Lifetime ban. Career destroyed.</p>
+                        <p>Two scandals, two disgraced Zerg players, bookending the most glorious decade of competitive StarCraft.</p>
+                    </div>
+                </div>
+
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <span class="chat-title">Field Notes</span>
+                        <span class="chat-status" style="color: var(--damage-red);">&#9679; CLASSIFIED</span>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="chat-message"><span class="chat-timestamp">[NOTE]</span> <span class="chat-username system">CORRESPONDENT:</span> <span class="chat-text">The match-fixing scandals didn't kill competitive StarCraft. But they cracked something. Trust. The belief that what you were watching was real. In a sport built entirely on integrity &mdash; no referees, no teammates, just two players and a map &mdash; that crack was fatal.</span></div>
+                    </div>
+                </div>
+            `,
+            fact: 'sAviOr, who single-handedly revolutionized Zerg play (Zerg won only 11% of Starleague titles before him), was banned for life in 2010 for match-fixing.',
+            choices: [
+                { text: 'Continue to StarCraft II', next: 'sc2_era' }
+            ]
+        },
+
+        // ---- SCENE 8: SC2 ERA (2010-2018) ----
+        sc2_era: {
+            year: '2010-2018',
+            era: 'STARCRAFT II',
+            content: `
+                <h2 class="scene-title">STARCRAFT II</h2>
+                <div class="scene-subtitle">Wings of Liberty &bull; Heart of the Swarm &bull; Legacy of the Void</div>
+
+                <div class="scene-narration">
+                    <p><strong>July 27, 2010.</strong> Blizzard releases StarCraft II: Wings of Liberty. The sequel to the most competitive game ever made. Modern graphics. Improved UI. Automated matchmaking with a proper ladder system. The 3D engine is slick, the production values massive.</p>
+                    <p>The <strong>Global StarCraft II League (GSL)</strong> launches in Korea, run by GOM TV. Prize pools grow. The Western scene, powered by Twitch streaming, explodes.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">The Expansions</span></div>
+                    <div class="card-body">
+                        <p><span class="badge teal">SC2</span> <span class="badge amber">Jul 2010</span> <strong>Wings of Liberty</strong> &mdash; 4-gate all-in dominates early meta</p>
+                        <p><span class="badge teal">SC2</span> <span class="badge amber">Mar 2013</span> <strong>Heart of the Swarm</strong> &mdash; Brood Lord/Infestor nightmare. Swarm Host grind games lasting 90+ minutes.</p>
+                        <p><span class="badge teal">SC2</span> <span class="badge amber">Nov 2015</span> <strong>Legacy of the Void</strong> &mdash; Starts with 12 workers. Faster pace. The best version of SC2.</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner" style="color: var(--amber-glow);">&#9734;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">Mvp</div>
+                        <div class="portrait-type">Jung Jong-Hyun &bull; Terran &bull; "The King of Wings"</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 80%;"></div><span class="stat-bar-text">GSL WINS: 4</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 70%;"></div><span class="stat-bar-text">WoL ERA DOMINANT</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="portrait-panel">
+                    <div class="portrait-frame">
+                        <div class="portrait-inner" style="color: var(--teal-bright);">&#9734;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">Maru</div>
+                        <div class="portrait-type">Cho Seong-Ju &bull; Terran &bull; "The All-Time Record"</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 90%;"></div><span class="stat-bar-text">GSL WINS: 5</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 95%;"></div><span class="stat-bar-text">3 CONSECUTIVE IN 2018</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scene-narration">
+                    <p>Total SC2 competitive prize money: over <strong>$38.5 million</strong>. But the scene is changing. Korean dominance is so complete that Western tournaments start implementing region locks. The gap between Korean pros and everyone else feels insurmountable.</p>
+                    <p>Until one player from Finland decides otherwise.</p>
+                </div>
+            `,
+            fact: 'StarCraft II generated over $38.5 million in competitive prize money across its lifetime.',
+            choices: [
+                { text: 'Continue to Serral', next: 'serral' }
+            ]
+        },
+
+        // ---- SCENE 9: SERRAL (2018) ----
+        serral: {
+            year: '2018',
+            era: 'THE FOREIGNER',
+            content: `
+                <h2 class="scene-title" style="color: var(--teal-bright); text-shadow: 0 0 25px rgba(0, 212, 212, 0.3), 0 2px 0 var(--border-dark);">SERRAL</h2>
+                <div class="scene-subtitle">BlizzCon 2018 &mdash; The Impossible Happens</div>
+
+                <div class="scene-narration">
+                    <p>For <strong>twenty years</strong>, no non-Korean player has won a global StarCraft championship. The gap has been treated as a law of nature. Koreans train in team houses 14 hours a day. They have infrastructure, coaching, culture. The West has passion and excuses.</p>
+                    <p>Then Joona Sotala &mdash; <strong>Serral</strong> &mdash; a quiet 20-year-old from Joensuu, Finland, population 77,000, decides he's going to win everything.</p>
+                </div>
+
+                <div class="portrait-panel" style="border-color: var(--teal-dark);">
+                    <div class="portrait-frame" style="border-color: var(--teal-dark);">
+                        <div class="portrait-inner" style="color: var(--teal-bright);">&#9733;</div>
+                    </div>
+                    <div class="portrait-info">
+                        <div class="portrait-name">Serral</div>
+                        <div class="portrait-type">Joona Sotala &bull; Zerg &bull; Finland</div>
+                        <div class="portrait-bars">
+                            <div class="stat-bar health"><div class="stat-bar-fill" style="width: 92%;"></div><span class="stat-bar-text">2018 WIN RATE: 92%</span></div>
+                            <div class="stat-bar mana"><div class="stat-bar-fill" style="width: 100%;"></div><span class="stat-bar-text">WCS GRAND SLAM</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">BlizzCon Finals &mdash; November 3, 2018</span></div>
+                    <div class="card-body">
+                        <p>Serral defeats <strong>Stats</strong> (Kim Dae-Yeob) <strong>4-2</strong> in the BlizzCon Global Finals. He becomes the <strong>first non-Korean to win a global StarCraft championship</strong>. He achieves the first-ever <strong>WCS Grand Slam</strong> &mdash; winning every major WCS event in a single year.</p>
+                        <p>The crowd in Anaheim erupts. Twenty years of Korean dominance, broken by a kid from Finland who trained alone in his bedroom.</p>
+                    </div>
+                </div>
+
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <span class="chat-title">Battle Report</span>
+                        <span class="chat-status">&#9679; LIVE</span>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="chat-message"><span class="chat-timestamp">[GG]</span> <span class="chat-username">Stats:</span> <span class="chat-text">gg</span></div>
+                        <div class="chat-message"><span class="chat-timestamp">[CHAT]</span> <span class="chat-username system">TASTELESS:</span> <span class="chat-text">He's done it! Serral has done it!</span></div>
+                        <div class="chat-message"><span class="chat-timestamp">[CHAT]</span> <span class="chat-username system">ARTOSIS:</span> <span class="chat-text">The Year of Serral.</span></div>
+                    </div>
+                </div>
+            `,
+            fact: 'Serral defeated Stats 4-2 at BlizzCon 2018, becoming the first non-Korean to win a global StarCraft championship.',
+            choices: [
+                { text: 'Continue to the decline', next: 'the_decline' }
+            ]
+        },
+
+        // ---- SCENE 10: THE DECLINE (2009-2020) ----
+        the_decline: {
+            year: '2009-2020',
+            era: 'DECLINE',
+            content: `
+                <h2 class="scene-title" style="color: var(--text-muted);">THE DECLINE</h2>
+                <div class="scene-subtitle">How MOBAs Ate the RTS Audience</div>
+
+                <div class="scene-narration">
+                    <p>The irony is perfect. The genre that kills competitive RTS is born inside an RTS.</p>
+                    <p><strong>Aeon of Strife</strong> &mdash; a StarCraft custom map. <strong>Defense of the Ancients (DotA)</strong> &mdash; a Warcraft III custom map. The players who couldn't handle full RTS complexity found a simpler format: control one hero instead of an entire army. Share responsibility with four teammates instead of bearing it alone.</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">The MOBA Timeline</span></div>
+                    <div class="card-body">
+                        <p><span class="badge teal">WC3</span> <span class="badge amber">2003</span> <strong>DotA Allstars</strong> &mdash; IceFrog takes over development of the Warcraft III mod</p>
+                        <p><span class="badge danger">Oct 2009</span> <strong>League of Legends</strong> launches &mdash; free-to-play, low PC requirements, accessible mechanics</p>
+                        <p><span class="badge danger">Jul 2013</span> <strong>Dota 2</strong> full release &mdash; Valve's standalone version with The International ($40M+ prize pools)</p>
+                        <p><span class="badge danger">2016</span> <strong>LoL hits 100M+ monthly players</strong> &mdash; more than the entire RTS genre combined, many times over</p>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="scene-narration">
+                    <p>The math is brutal. In an RTS, you lose because <em>you</em> weren't good enough. In a MOBA, you can blame your team. In a battle royale, you get 100 chances per match. The psychological barrier to RTS is the loneliest barrier in gaming: you, alone, against someone better.</p>
+                    <p>One by one, the dominoes fall. WCG shuts down in 2014. Korean Proleague ends in 2016. <strong>October 15, 2020: Blizzard announces the end of new content development for StarCraft II.</strong></p>
+                </div>
+
+                <div class="progress-title">RTS Audience Share (Approximate)</div>
+                <div class="progress-bar">
+                    <div class="progress-fill amber" style="width: 15%;"></div>
+                    <span class="progress-label">~15% of esports viewership</span>
+                </div>
+
+                <div class="chat-panel">
+                    <div class="chat-header">
+                        <span class="chat-title">Field Notes</span>
+                        <span class="chat-status" style="color: var(--text-muted);">&#9679; END</span>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="chat-message"><span class="chat-timestamp">[NOTE]</span> <span class="chat-username system">CORRESPONDENT:</span> <span class="chat-text">League of Legends descended directly from a Warcraft III custom map. The genre that killed RTS was born inside RTS. The parent devoured by its child.</span></div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><span class="card-title">Your Verdict</span></div>
+                    <div class="card-body">
+                        <p>Your report is nearly complete. One question remains: how do you end it?</p>
+                    </div>
+                </div>
+            `,
+            fact: 'League of Legends, which descended directly from a Warcraft III custom map, grew to 100+ million monthly players — dwarfing the entire RTS genre combined.',
+            choices: [
+                { text: 'The genre is dead. Accept it.', next: 'ending_dead' },
+                { text: 'Look for signs of life.', next: 'ending_alive' }
+            ]
+        },
+
+        // ---- SCENE 11: ENDING — DEAD ----
+        ending_dead: {
+            year: '---',
+            era: 'EULOGY',
+            content: `
+                <div class="scene-ending">
+                    <h2 class="scene-title" style="color: var(--text-muted); text-shadow: none;">GG</h2>
+
+                    <div class="divider"></div>
+
+                    <div class="scene-narration" style="text-align: center;">
+                        <p>The 1v1 duel was the purest form of competitive gaming. No teammates to carry you. No RNG to save you. No second chances. Just you, your opponent, and the map.</p>
+                        <p>That's why it was beautiful.</p>
+                        <p>That's why it died.</p>
+                        <p>MOBAs let you blame your team. Battle royales gave you a hundred chances per match. RTS demanded <em>perfection</em> from you alone &mdash; and perfection is a market of one.</p>
+                        <p>The ladder is empty now. The queue button still glows, but nobody clicks it. The Koreans moved to League. The Westerners moved to everything else. The pros retired, streamed for a while, then disappeared.</p>
+                        <p>Somewhere, on a server that hasn't been updated since 2020, a matchmaking request times out.</p>
+                        <p style="color: var(--amber-glow); font-family: var(--font-display); font-size: 1.2rem; margin-top: var(--space-6);">No opponent found.</p>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <p style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-top: var(--space-5);">End of field report. &mdash; The Correspondent</p>
+                </div>
+            `,
+            fact: 'The RTS genre\'s competitive decline coincided with the rise of MOBAs and battle royales, which offered shared responsibility and second chances that 1v1 RTS never could.',
+            choices: [
+                { text: 'Play Again', next: '_restart' },
+                { text: 'Back to Stories', next: '_exit' }
+            ]
+        },
+
+        // ---- SCENE 12: ENDING — ALIVE ----
+        ending_alive: {
+            year: '2020+',
+            era: 'STILL PLAYING',
+            content: `
+                <div class="scene-ending">
+                    <h2 class="scene-title" style="color: var(--health-green); text-shadow: 0 0 20px rgba(0, 204, 68, 0.3), 0 2px 0 var(--border-dark);">THE QUEUE BUTTON IS STILL THERE</h2>
+
+                    <div class="divider"></div>
+
+                    <div class="scene-narration" style="text-align: center;">
+                        <p>Look closer. The genre isn't dead. It's <em>niche</em>. And niche is not the same thing.</p>
+                        <p><strong>Age of Empires II: Definitive Edition</strong> is thriving. A game released in 1999, remastered in 2019, with a competitive scene that keeps growing. <strong>Hidden Cup 3</strong> (2020) drew <strong>51,649 peak concurrent viewers</strong> &mdash; for a 20-year-old game where nobody knows who's playing until the finals.</p>
+                        <p><strong>StarCraft: Brood War</strong> is still played competitively in Korea. ASL (Afreeca StarCraft League) runs regular seasons. Flash and Rain still compete. The game is 25 years old and the meta is still evolving.</p>
+                        <p><strong>Stormgate</strong> stumbled at Early Access in 2024 &mdash; but new RTS titles keep coming. Developers keep trying. The audience is small but devoted.</p>
+                        <p>The ladder never truly closes.</p>
+                        <p>The queue button is always there.</p>
+                        <p style="color: var(--health-green); font-family: var(--font-display); font-size: 1.2rem; margin-top: var(--space-6);">Opponent found. Loading...</p>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <p style="font-family: var(--font-mono); color: var(--text-muted); font-size: 0.85rem; text-align: center; margin-top: var(--space-5);">End of field report. GG. &mdash; The Correspondent</p>
+                </div>
+            `,
+            fact: 'Hidden Cup 3 (2020) drew 51,649 peak concurrent viewers for Age of Empires II — a game released in 1999.',
+            choices: [
+                { text: 'Play Again', next: '_restart' },
+                { text: 'Back to Stories', next: '_exit' }
+            ]
+        }
+    };
+
+    // ================================================================
+    //  ENGINE
+    // ================================================================
+
+    const engine = {
+        currentScene: null,
+        history: [],
+        facts: [],
+        intelOpen: false,
+        scenesVisited: 0,
+
+        init() {
+            document.getElementById('startBtn').addEventListener('click', () => this.start());
+            document.getElementById('restartBtn').addEventListener('click', () => this.restart());
+            document.getElementById('intelToggle').addEventListener('click', () => this.toggleIntel());
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key >= '1' && e.key <= '9') {
+                    const idx = parseInt(e.key) - 1;
+                    const btns = document.querySelectorAll('.choice-btn');
+                    if (btns[idx]) btns[idx].click();
+                }
+            });
+        },
+
+        start() {
+            document.getElementById('titleScreen').style.display = 'none';
+            document.getElementById('sceneWrapper').classList.add('active');
+            document.getElementById('intelTracker').style.display = 'block';
+            this.goTo('intro');
+        },
+
+        restart() {
+            this.currentScene = null;
+            this.history = [];
+            this.facts = [];
+            this.intelOpen = false;
+            this.scenesVisited = 0;
+            document.getElementById('intelPanel').classList.remove('open');
+            document.getElementById('sceneWrapper').classList.remove('active');
+            document.getElementById('titleScreen').style.display = 'flex';
+            document.getElementById('intelTracker').style.display = 'none';
+            this.updateIntelUI();
+            window.scrollTo(0, 0);
+        },
+
+        goTo(sceneId) {
+            if (sceneId === '_exit') {
+                window.location.href = '../index.html';
+                return;
+            }
+            if (sceneId === '_restart') {
+                this.restart();
+                return;
+            }
+
+            const scene = STORY[sceneId];
+            if (!scene) return;
+
+            if (this.currentScene) {
+                const overlay = document.getElementById('transition');
+                overlay.classList.add('active');
+                setTimeout(() => {
+                    this.renderScene(sceneId, scene);
+                    window.scrollTo({ top: 0, behavior: 'auto' });
+                }, 250);
+                setTimeout(() => overlay.classList.remove('active'), 600);
+            } else {
+                this.renderScene(sceneId, scene);
+            }
+
+            if (this.currentScene) {
+                this.history.push(this.currentScene);
+            }
+            this.currentScene = sceneId;
+        },
+
+        renderScene(sceneId, scene) {
+            this.scenesVisited++;
+
+            // Update resource bar
+            document.getElementById('resYear').textContent = scene.year || '----';
+            document.getElementById('resEra').textContent = scene.era || '---';
+            document.getElementById('resScenes').textContent = this.scenesVisited + '/13';
+
+            // Build scene HTML
+            const container = document.getElementById('sceneContent');
+            const controls = document.querySelector('.game-controls');
+            if (controls) controls.style.display = sceneId.startsWith('ending') ? 'none' : '';
+
+            let html = '<div class="scene-content">';
+            html += scene.content;
+
+            // Collect fact
+            if (scene.fact && !this.facts.includes(scene.fact)) {
+                this.facts.push(scene.fact);
+            }
+
+            // Choices
+            if (scene.choices && scene.choices.length > 0) {
+                html += '<div class="choices">';
+                scene.choices.forEach((choice, i) => {
+                    html += `<button class="choice-btn" onclick="engine.goTo('${choice.next}')">`;
+                    html += `<span class="choice-key">${i + 1}</span>`;
+                    html += choice.text;
+                    html += '</button>';
+                });
+                html += '</div>';
+            }
+
+            html += '</div>';
+            container.innerHTML = html;
+            this.updateIntelUI();
+        },
+
+        updateIntelUI() {
+            const count = this.facts.length;
+            document.getElementById('intelCount').textContent = count;
+            const list = document.getElementById('intelList');
+            if (count === 0) {
+                list.innerHTML = '<p class="no-intel">No intel gathered yet...</p>';
+            } else {
+                list.innerHTML = this.facts.map(f => '<div class="intel-item">' + f + '</div>').join('');
+            }
+        },
+
+        toggleIntel() {
+            this.intelOpen = !this.intelOpen;
+            document.getElementById('intelPanel').classList.toggle('open', this.intelOpen);
+        }
+    };
+
+    engine.init();
+    </script>
+</body>
+</html>
