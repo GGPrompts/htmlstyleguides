@@ -1164,11 +1164,25 @@
             else if (state === STATE.PLAYING) shoot();
         }, () => {});
 
-        // Tap to start on title/gameover
+        // Tap to start on title/gameover (canvas + overlays for mobile)
         canvas.addEventListener('pointerdown', (e) => {
             if (state === STATE.TITLE) { ensureAudio(); startGame(); }
             else if (state === STATE.GAMEOVER) startGame();
             else if (state === STATE.LEVEL_COMPLETE) nextLevel();
+        });
+
+        document.getElementById('title-screen').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            ensureAudio();
+            startGame();
+        });
+        document.getElementById('gameover-screen').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            startGame();
+        });
+        document.getElementById('level-screen').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            nextLevel();
         });
 
         function shoot() {
