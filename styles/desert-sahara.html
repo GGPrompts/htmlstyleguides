@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desert Sahara — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Cinzel:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* ========================================
+               DESERT / SAHARA COLOR PALETTE
+               ======================================== */
+
+            /* Sand & Dune Tones */
+            --sand-light: #F5E6C8;
+            --sand: #E8D5A3;
+            --sand-dark: #D4BC82;
+            --dune-gold: #C9A84C;
+            --dune-shadow: #A68B3C;
+
+            /* Terracotta & Burnt Sienna */
+            --terracotta: #C2703E;
+            --terracotta-light: #D4885A;
+            --burnt-sienna: #A0522D;
+            --clay: #8B4513;
+
+            /* Oasis Blues */
+            --oasis-blue: #3A7CA5;
+            --oasis-light: #5B9EC4;
+            --oasis-pale: #A8D4E6;
+
+            /* Deep Shadow & Night */
+            --shadow-blue: #1B2838;
+            --night-sky: #0F1B2A;
+            --deep-indigo: #2A3550;
+
+            /* Warm Neutrals */
+            --cream: #FDF6E3;
+            --ivory: #FAF0D7;
+            --parchment: #F0E4C8;
+            --dust: #BFA97A;
+            --stone: #8C7A5C;
+
+            /* Golden Hour */
+            --golden-hour: #E8A317;
+            --amber: #D4901E;
+            --sunset-orange: #D46A2E;
+
+            /* Semantic Colors */
+            --bg-primary: var(--cream);
+            --bg-secondary: var(--ivory);
+            --bg-accent: var(--sand-light);
+            --text-primary: var(--shadow-blue);
+            --text-secondary: #4A3F2F;
+            --text-muted: #7A6F5F;
+            --accent-primary: var(--terracotta);
+            --accent-secondary: var(--dune-gold);
+            --accent-tertiary: var(--oasis-blue);
+
+            /* Typography */
+            --font-display: 'Cinzel', serif;
+            --font-heading: 'Cormorant Garamond', serif;
+            --font-body: 'Source Sans 3', sans-serif;
+
+            /* Spacing Scale (base 4px) */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --space-4xl: 96px;
+
+            /* Shadows & Effects */
+            --shadow-soft: 0 4px 20px rgba(27, 40, 56, 0.08);
+            --shadow-medium: 0 8px 32px rgba(27, 40, 56, 0.12);
+            --shadow-warm: 0 6px 24px rgba(194, 112, 62, 0.15);
+            --shadow-inset: inset 0 2px 6px rgba(27, 40, 56, 0.06);
+            --shadow-dune: 0 2px 12px rgba(201, 168, 76, 0.2);
+
+            /* Borders */
+            --border-sand: 1px solid var(--sand-dark);
+            --border-terracotta: 2px solid var(--terracotta);
+            --border-light: 1px solid rgba(212, 188, 130, 0.5);
+
+            /* Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --radius-pill: 999px;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           SAND DUNE BACKGROUND PATTERN
+           ============================================ */
+        .dune-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.35;
+            background:
+                radial-gradient(ellipse 120% 40% at 20% 90%, var(--sand) 0%, transparent 70%),
+                radial-gradient(ellipse 100% 30% at 80% 95%, var(--sand-dark) 0%, transparent 60%),
+                radial-gradient(ellipse 150% 50% at 50% 100%, var(--parchment) 0%, transparent 80%);
+        }
+
+        /* Heat haze shimmer effect */
+        .heat-haze {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            pointer-events: none;
+            z-index: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(232, 163, 23, 0.03) 0%,
+                rgba(212, 144, 30, 0.02) 40%,
+                transparent 100%
+            );
+            animation: haze-shimmer 8s ease-in-out infinite;
+        }
+
+        @keyframes haze-shimmer {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-3xl) var(--space-xl);
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        header {
+            text-align: center;
+            padding: var(--space-4xl) var(--space-xl) var(--space-3xl);
+            margin-bottom: var(--space-3xl);
+            position: relative;
+        }
+
+        /* Sun ornament */
+        .header-sun {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto var(--space-xl);
+            position: relative;
+        }
+
+        .header-sun svg {
+            width: 100%;
+            height: 100%;
+            animation: sun-pulse 6s ease-in-out infinite;
+        }
+
+        @keyframes sun-pulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--terracotta);
+            margin-bottom: var(--space-md);
+            position: relative;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: clamp(1.125rem, 3vw, 1.5rem);
+            font-weight: 400;
+            font-style: italic;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Decorative dune line */
+        .header-dune-line {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: var(--space-xl);
+            gap: var(--space-md);
+        }
+
+        .header-dune-line::before,
+        .header-dune-line::after {
+            content: '';
+            width: 80px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--dune-gold), transparent);
+        }
+
+        .header-dune-line .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--terracotta);
+            border-radius: 50%;
+        }
+
+        .header-dune-line .dot-lg {
+            width: 10px;
+            height: 10px;
+            background: var(--dune-gold);
+            border-radius: 50%;
+        }
+
+        /* ============================================
+           SECTION STYLING
+           ============================================ */
+        section {
+            margin-bottom: var(--space-4xl);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 400;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--dust);
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--terracotta);
+            margin-bottom: var(--space-md);
+        }
+
+        .section-desc {
+            font-family: var(--font-heading);
+            font-size: 1.125rem;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 550px;
+            margin: 0 auto;
+        }
+
+        /* Section divider: dune wave */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sand-dark), transparent);
+        }
+
+        .section-divider svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* ============================================
+           PANEL / FRAME
+           ============================================ */
+        .panel {
+            background: var(--bg-secondary);
+            border: 1px solid var(--sand-dark);
+            border-radius: var(--radius-md);
+            padding: var(--space-2xl);
+            position: relative;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--terracotta), var(--dune-gold), var(--oasis-blue), var(--dune-gold), var(--terracotta));
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+        }
+
+        /* ============================================
+           01. COLOR PALETTE
+           ============================================ */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .color-swatch {
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-4px);
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 100px;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            position: relative;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .color-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 30%;
+            background: linear-gradient(0deg, rgba(0,0,0,0.08), transparent);
+            border-radius: 0;
+        }
+
+        .color-info {
+            background: white;
+            padding: var(--space-md) var(--space-sm);
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            border: 1px solid var(--sand);
+            border-top: none;
+        }
+
+        .color-name {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .color-value {
+            font-family: monospace;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+
+        .color-group-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--stone);
+            margin-bottom: var(--space-md);
+            margin-top: var(--space-xl);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid var(--sand);
+        }
+
+        .color-group-label:first-child {
+            margin-top: 0;
+        }
+
+        /* ============================================
+           02. TYPOGRAPHY
+           ============================================ */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .type-specimen {
+            padding: var(--space-xl);
+            border-bottom: 1px solid var(--sand);
+            position: relative;
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+        }
+
+        .type-label {
+            font-family: var(--font-body);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--oasis-blue);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .type-label::before {
+            content: '';
+            width: 20px;
+            height: 2px;
+            background: var(--oasis-blue);
+        }
+
+        .type-meta {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 8vw, 4.5rem);
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--terracotta);
+            line-height: 1.1;
+        }
+
+        .type-h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 500;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .type-h2 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .type-h3 {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+            font-style: italic;
+            color: var(--dune-gold);
+            line-height: 1.4;
+        }
+
+        .type-body-sample {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            max-width: 65ch;
+        }
+
+        .type-caption {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+            line-height: 1.6;
+            font-style: italic;
+        }
+
+        /* ============================================
+           03. SPACING
+           ============================================ */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .spacing-label {
+            width: 100px;
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .spacing-name {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .spacing-value {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .spacing-bar {
+            height: 28px;
+            border-radius: var(--radius-sm);
+            position: relative;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .spacing-bar:hover {
+            filter: brightness(1.05);
+            box-shadow: var(--shadow-dune);
+        }
+
+        .spacing-bar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(90deg, var(--dune-gold), var(--terracotta-light));
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Wind-blown sand texture */
+        .spacing-bar-inner::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                110deg,
+                transparent,
+                transparent 4px,
+                rgba(255,255,255,0.1) 4px,
+                rgba(255,255,255,0.1) 5px
+            );
+        }
+
+        /* ============================================
+           04. BUTTONS
+           ============================================ */
+        .button-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .button-row-label {
+            font-family: var(--font-display);
+            font-size: 0.6875rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--stone);
+            margin-bottom: var(--space-md);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .btn {
+            font-family: var(--font-display);
+            font-size: 0.8125rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: var(--space-md) var(--space-xl);
+            border: 2px solid var(--terracotta);
+            background: transparent;
+            color: var(--terracotta);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0;
+            background: var(--terracotta);
+            transition: height 0.35s ease;
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--cream);
+        }
+
+        .btn:hover::before {
+            height: 100%;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Primary - filled */
+        .btn-primary {
+            background: var(--terracotta);
+            color: var(--cream);
+        }
+
+        .btn-primary::before {
+            background: var(--burnt-sienna);
+        }
+
+        .btn-primary:hover {
+            border-color: var(--burnt-sienna);
+            color: var(--cream);
+        }
+
+        /* Secondary - outline */
+        .btn-secondary {
+            border-color: var(--dune-gold);
+            color: var(--dune-gold);
+        }
+
+        .btn-secondary::before {
+            background: var(--dune-gold);
+        }
+
+        .btn-secondary:hover {
+            color: var(--shadow-blue);
+            border-color: var(--dune-gold);
+        }
+
+        /* Oasis */
+        .btn-oasis {
+            border-color: var(--oasis-blue);
+            color: var(--oasis-blue);
+        }
+
+        .btn-oasis::before {
+            background: var(--oasis-blue);
+        }
+
+        .btn-oasis:hover {
+            color: white;
+            border-color: var(--oasis-blue);
+        }
+
+        /* Ghost / subtle */
+        .btn-ghost {
+            border-color: var(--sand-dark);
+            color: var(--text-muted);
+        }
+
+        .btn-ghost::before {
+            background: var(--sand);
+        }
+
+        .btn-ghost:hover {
+            color: var(--text-primary);
+            border-color: var(--sand-dark);
+        }
+
+        /* Disabled */
+        .btn-disabled {
+            border-color: var(--sand);
+            color: var(--sand-dark);
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        /* Sizes */
+        .btn-sm {
+            font-size: 0.6875rem;
+            padding: var(--space-sm) var(--space-md);
+            letter-spacing: 0.12em;
+        }
+
+        .btn-lg {
+            font-size: 0.9375rem;
+            padding: var(--space-lg) var(--space-2xl);
+        }
+
+        /* Pill shape */
+        .btn-pill {
+            border-radius: var(--radius-pill);
+        }
+
+        /* ============================================
+           05. FORM ELEMENTS
+           ============================================ */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-xl);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        label.form-label {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 0.6875rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--stone);
+            margin-bottom: var(--space-sm);
+        }
+
+        .form-hint {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: var(--space-xs);
+            font-style: italic;
+        }
+
+        .input {
+            width: 100%;
+            padding: var(--space-md) var(--space-md);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            background: white;
+            border: 1px solid var(--sand-dark);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-inset);
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--terracotta);
+            box-shadow: 0 0 0 3px rgba(194, 112, 62, 0.15), var(--shadow-inset);
+        }
+
+        .input::placeholder {
+            color: var(--dust);
+            font-style: italic;
+        }
+
+        textarea.input {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        /* Select */
+        .select-wrap {
+            position: relative;
+        }
+
+        .select-wrap::after {
+            content: '';
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid var(--terracotta);
+            border-bottom: 2px solid var(--terracotta);
+            transform: translateY(-60%) rotate(45deg);
+            pointer-events: none;
+        }
+
+        select.input {
+            appearance: none;
+            cursor: pointer;
+            padding-right: var(--space-2xl);
+        }
+
+        /* Checkbox */
+        .checkbox-group,
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .check-item,
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+            padding: var(--space-xs) 0;
+        }
+
+        .check-item input[type="checkbox"],
+        .radio-item input[type="radio"] {
+            display: none;
+        }
+
+        .check-mark {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            border: 2px solid var(--sand-dark);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            background: white;
+        }
+
+        .check-item input:checked + .check-mark {
+            background: var(--terracotta);
+            border-color: var(--terracotta);
+        }
+
+        .check-item input:checked + .check-mark::after {
+            content: '';
+            width: 6px;
+            height: 10px;
+            border: 2px solid white;
+            border-top: none;
+            border-left: none;
+            transform: rotate(45deg) translateY(-1px);
+        }
+
+        .radio-mark {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            border: 2px solid var(--sand-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.25s ease;
+            background: white;
+        }
+
+        .radio-item input:checked + .radio-mark {
+            border-color: var(--terracotta);
+        }
+
+        .radio-item input:checked + .radio-mark::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            background: var(--terracotta);
+            border-radius: 50%;
+        }
+
+        .check-text,
+        .radio-text {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           06. CARDS / PANELS
+           ============================================ */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-xl);
+        }
+
+        .card {
+            background: white;
+            border: 1px solid var(--sand);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: all 0.35s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-medium);
+            border-color: var(--sand-dark);
+        }
+
+        .card-image {
+            height: 180px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(0deg, white, transparent);
+        }
+
+        /* Desert landscape scenes via CSS gradients */
+        .card-scene-dunes {
+            background:
+                radial-gradient(ellipse 60% 25% at 30% 85%, var(--sand-dark) 0%, transparent 100%),
+                radial-gradient(ellipse 80% 30% at 70% 90%, var(--sand) 0%, transparent 100%),
+                radial-gradient(ellipse 100% 20% at 50% 95%, var(--dune-gold) 0%, transparent 100%),
+                linear-gradient(180deg, var(--oasis-pale) 0%, var(--sand-light) 60%, var(--sand) 100%);
+        }
+
+        .card-scene-oasis {
+            background:
+                radial-gradient(ellipse 40% 20% at 50% 80%, var(--oasis-blue) 0%, transparent 80%),
+                radial-gradient(ellipse 70% 25% at 40% 90%, var(--sand-dark) 0%, transparent 100%),
+                radial-gradient(ellipse 90% 30% at 60% 95%, var(--sand) 0%, transparent 100%),
+                linear-gradient(180deg, #E8C87A 0%, var(--sand-light) 50%, var(--sand) 100%);
+        }
+
+        .card-scene-sunset {
+            background:
+                radial-gradient(circle at 50% 30%, var(--golden-hour) 0%, transparent 40%),
+                radial-gradient(ellipse 80% 25% at 50% 90%, var(--sand-dark) 0%, transparent 100%),
+                linear-gradient(180deg, var(--sunset-orange) 0%, var(--amber) 30%, var(--sand-light) 70%, var(--sand) 100%);
+        }
+
+        .card-body {
+            padding: var(--space-lg);
+        }
+
+        .card-tag {
+            font-family: var(--font-body);
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--oasis-blue);
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+            line-height: 1.3;
+        }
+
+        .card-text {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        .card-footer {
+            padding: var(--space-md) var(--space-lg);
+            border-top: 1px solid var(--sand);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-footer-link {
+            font-family: var(--font-display);
+            font-size: 0.6875rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--terracotta);
+            transition: color 0.3s ease;
+        }
+
+        .card-footer-link:hover {
+            color: var(--burnt-sienna);
+        }
+
+        .card-footer-meta {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--dust);
+        }
+
+        /* Horizontal card */
+        .card-horizontal {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+        }
+
+        .card-horizontal .card-image {
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .card-horizontal .card-image::after {
+            background: linear-gradient(90deg, transparent 60%, white);
+            height: 100%;
+            width: 40%;
+            right: 0;
+            left: auto;
+        }
+
+        /* ============================================
+           07. ALERTS / NOTIFICATIONS
+           ============================================ */
+        .alert {
+            padding: var(--space-lg) var(--space-xl);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+        }
+
+        .alert-icon {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            margin-top: 2px;
+        }
+
+        .alert-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-xs);
+        }
+
+        .alert-text {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        /* Info */
+        .alert-info {
+            background: rgba(58, 124, 165, 0.08);
+            border: 1px solid rgba(58, 124, 165, 0.2);
+        }
+
+        .alert-info::before {
+            background: var(--oasis-blue);
+        }
+
+        .alert-info .alert-icon svg {
+            fill: var(--oasis-blue);
+        }
+
+        .alert-info .alert-title {
+            color: var(--oasis-blue);
+        }
+
+        .alert-info .alert-text {
+            color: var(--deep-indigo);
+        }
+
+        /* Success */
+        .alert-success {
+            background: rgba(76, 133, 76, 0.08);
+            border: 1px solid rgba(76, 133, 76, 0.2);
+        }
+
+        .alert-success::before {
+            background: #4C854C;
+        }
+
+        .alert-success .alert-icon svg {
+            fill: #4C854C;
+        }
+
+        .alert-success .alert-title {
+            color: #3D6B3D;
+        }
+
+        .alert-success .alert-text {
+            color: #2D4F2D;
+        }
+
+        /* Warning */
+        .alert-warning {
+            background: rgba(212, 144, 30, 0.1);
+            border: 1px solid rgba(212, 144, 30, 0.25);
+        }
+
+        .alert-warning::before {
+            background: var(--amber);
+        }
+
+        .alert-warning .alert-icon svg {
+            fill: var(--amber);
+        }
+
+        .alert-warning .alert-title {
+            color: var(--dune-shadow);
+        }
+
+        .alert-warning .alert-text {
+            color: #5C4A1E;
+        }
+
+        /* Error */
+        .alert-error {
+            background: rgba(178, 60, 50, 0.08);
+            border: 1px solid rgba(178, 60, 50, 0.2);
+        }
+
+        .alert-error::before {
+            background: #B23C32;
+        }
+
+        .alert-error .alert-icon svg {
+            fill: #B23C32;
+        }
+
+        .alert-error .alert-title {
+            color: #8B2E26;
+        }
+
+        .alert-error .alert-text {
+            color: #5C1F1A;
+        }
+
+        /* ============================================
+           DECORATIVE DIVIDERS
+           ============================================ */
+        .divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+            margin: var(--space-3xl) 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sand-dark), transparent);
+        }
+
+        .divider-ornament {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .divider-ornament .diamond {
+            width: 8px;
+            height: 8px;
+            background: var(--dune-gold);
+            transform: rotate(45deg);
+        }
+
+        .divider-ornament .diamond-sm {
+            width: 5px;
+            height: 5px;
+            background: var(--terracotta);
+            transform: rotate(45deg);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        footer {
+            text-align: center;
+            padding: var(--space-4xl) var(--space-xl) var(--space-3xl);
+            position: relative;
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(300px, 60%);
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--sand-dark), transparent);
+        }
+
+        .footer-sun {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto var(--space-xl);
+        }
+
+        .footer-sun svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--terracotta);
+            margin-bottom: var(--space-md);
+        }
+
+        .footer-text {
+            font-family: var(--font-heading);
+            font-size: 1.0625rem;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 450px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .footer-meta {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--dust);
+            margin-top: var(--space-xl);
+            letter-spacing: 0.1em;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-xl) var(--space-md);
+            }
+
+            header {
+                padding: var(--space-2xl) var(--space-md);
+            }
+
+            .header-sun {
+                width: 80px;
+                height: 80px;
+            }
+
+            header h1 {
+                letter-spacing: 0.1em;
+            }
+
+            .panel {
+                padding: var(--space-lg);
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: var(--space-md);
+            }
+
+            .color-preview {
+                height: 70px;
+            }
+
+            .spacing-item {
+                gap: var(--space-md);
+            }
+
+            .spacing-label {
+                width: 70px;
+            }
+
+            .button-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+                justify-content: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-horizontal {
+                grid-template-columns: 1fr;
+            }
+
+            .card-horizontal .card-image {
+                min-height: 160px;
+            }
+
+            .card-horizontal .card-image::after {
+                background: linear-gradient(0deg, white, transparent);
+                height: 40%;
+                width: 100%;
+                left: 0;
+            }
+
+            .type-display {
+                letter-spacing: 0.03em;
+            }
+
+            .alert {
+                padding: var(--space-md);
+            }
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .text-terracotta { color: var(--terracotta); }
+        .text-gold { color: var(--dune-gold); }
+        .text-oasis { color: var(--oasis-blue); }
+        .text-muted { color: var(--text-muted); }
+        .text-center { text-align: center; }
+        .mt-lg { margin-top: var(--space-lg); }
+        .mt-xl { margin-top: var(--space-xl); }
+        .mb-lg { margin-bottom: var(--space-lg); }
+        .mb-xl { margin-bottom: var(--space-xl); }
+    </style>
+</head>
+<body>
+    <!-- Background layers -->
+    <div class="dune-bg"></div>
+    <div class="heat-haze"></div>
+
+    <div class="container">
+        <!-- ============================================
+             HEADER
+             ============================================ -->
+        <header>
+            <div class="header-sun">
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Outer rays -->
+                    <g opacity="0.3">
+                        <line x1="60" y1="5" x2="60" y2="20" stroke="#C2703E" stroke-width="2"/>
+                        <line x1="60" y1="100" x2="60" y2="115" stroke="#C2703E" stroke-width="2"/>
+                        <line x1="5" y1="60" x2="20" y2="60" stroke="#C2703E" stroke-width="2"/>
+                        <line x1="100" y1="60" x2="115" y2="60" stroke="#C2703E" stroke-width="2"/>
+                        <line x1="21" y1="21" x2="31" y2="31" stroke="#C2703E" stroke-width="1.5"/>
+                        <line x1="89" y1="89" x2="99" y2="99" stroke="#C2703E" stroke-width="1.5"/>
+                        <line x1="99" y1="21" x2="89" y2="31" stroke="#C2703E" stroke-width="1.5"/>
+                        <line x1="21" y1="99" x2="31" y2="89" stroke="#C2703E" stroke-width="1.5"/>
+                    </g>
+                    <!-- Middle ring -->
+                    <circle cx="60" cy="60" r="35" fill="none" stroke="#C9A84C" stroke-width="1" opacity="0.4"/>
+                    <!-- Inner sun -->
+                    <circle cx="60" cy="60" r="22" fill="#E8A317" opacity="0.6"/>
+                    <circle cx="60" cy="60" r="15" fill="#C9A84C" opacity="0.8"/>
+                    <circle cx="60" cy="60" r="8" fill="#C2703E"/>
+                </svg>
+            </div>
+            <h1>Desert Sahara</h1>
+            <p class="header-subtitle">A design language born from endless golden horizons, where sand meets sky and silence speaks in warm amber tones</p>
+            <div class="header-dune-line">
+                <span class="dot"></span>
+                <span class="dot-lg"></span>
+                <span class="dot"></span>
+            </div>
+        </header>
+
+        <!-- ============================================
+             01. COLOR PALETTE
+             ============================================ -->
+        <section id="colors">
+            <div class="section-header">
+                <p class="section-number">Section 01</p>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-desc">Drawn from the Saharan landscape at every hour -- dawn's soft cream, noon's blazing gold, dusk's burnt sienna, and the deep indigo of desert night</p>
+                <div class="section-divider">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8" fill="#C9A84C" opacity="0.6"/>
+                        <circle cx="12" cy="12" r="4" fill="#C2703E"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="panel">
+                <p class="color-group-label">Sand & Dune Tones</p>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #F5E6C8;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Sand Light</p>
+                            <p class="color-value">#F5E6C8</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #E8D5A3;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Sand</p>
+                            <p class="color-value">#E8D5A3</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #D4BC82;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Sand Dark</p>
+                            <p class="color-value">#D4BC82</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #C9A84C;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Dune Gold</p>
+                            <p class="color-value">#C9A84C</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="color-group-label">Terracotta & Earth</p>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #D4885A;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Terracotta Light</p>
+                            <p class="color-value">#D4885A</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #C2703E;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Terracotta</p>
+                            <p class="color-value">#C2703E</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #A0522D;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Burnt Sienna</p>
+                            <p class="color-value">#A0522D</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #8B4513;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Clay</p>
+                            <p class="color-value">#8B4513</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="color-group-label">Oasis Blues</p>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #A8D4E6;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Oasis Pale</p>
+                            <p class="color-value">#A8D4E6</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #5B9EC4;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Oasis Light</p>
+                            <p class="color-value">#5B9EC4</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #3A7CA5;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Oasis Blue</p>
+                            <p class="color-value">#3A7CA5</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="color-group-label">Golden Hour & Sunset</p>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #E8A317;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Golden Hour</p>
+                            <p class="color-value">#E8A317</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #D4901E;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Amber</p>
+                            <p class="color-value">#D4901E</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #D46A2E;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Sunset Orange</p>
+                            <p class="color-value">#D46A2E</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="color-group-label">Shadow & Night</p>
+                <div class="color-grid">
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #2A3550;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Deep Indigo</p>
+                            <p class="color-value">#2A3550</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #1B2838;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Shadow Blue</p>
+                            <p class="color-value">#1B2838</p>
+                        </div>
+                    </div>
+                    <div class="color-swatch">
+                        <div class="color-preview" style="background: #0F1B2A;"></div>
+                        <div class="color-info">
+                            <p class="color-name">Night Sky</p>
+                            <p class="color-value">#0F1B2A</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-ornament">
+                <span class="diamond-sm"></span>
+                <span class="diamond"></span>
+                <span class="diamond-sm"></span>
+            </div>
+        </div>
+
+        <!-- ============================================
+             02. TYPOGRAPHY
+             ============================================ -->
+        <section id="typography">
+            <div class="section-header">
+                <p class="section-number">Section 02</p>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-desc">Elegant serifs for display and headings evoke carved inscriptions in sandstone, while clean sans-serif body text ensures readability in the shimmering heat</p>
+                <div class="section-divider">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8" fill="#C9A84C" opacity="0.6"/>
+                        <circle cx="12" cy="12" r="4" fill="#C2703E"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <p class="type-label">Display -- Cinzel 600</p>
+                    <p class="type-display">Saharan Winds</p>
+                    <p class="type-meta">clamp(3rem, 8vw, 4.5rem) / 1.1 line-height / 0.08em tracking</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Heading 1 -- Cinzel 500</p>
+                    <p class="type-h1">Endless Golden Horizons</p>
+                    <p class="type-meta">clamp(2rem, 5vw, 3rem) / 1.2 line-height / 0.12em tracking / uppercase</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Heading 2 -- Cormorant Garamond 500</p>
+                    <p class="type-h2">Where the Dunes Meet the Sky</p>
+                    <p class="type-meta">clamp(1.5rem, 4vw, 2.25rem) / 1.3 line-height</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Heading 3 -- Cormorant Garamond 600 Italic</p>
+                    <p class="type-h3">Whispers of the Erg Chebbi</p>
+                    <p class="type-meta">1.5rem / 1.4 line-height / italic</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Body -- Source Sans 3, 400</p>
+                    <p class="type-body-sample">The Sahara stretches across eleven countries and nearly nine million square kilometers. It is the largest hot desert on Earth, a place where temperatures can soar past fifty degrees Celsius and rain may not fall for years at a time. Yet it is far from empty. Beneath its surface lie ancient aquifers, and within its vast expanse are rocky plateaus, gravel plains, sand seas called ergs, and oases where date palms cluster around springs of clear water.</p>
+                    <p class="type-meta">1rem / 1.8 line-height / 65ch max-width</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Caption -- Source Sans 3, 300 Italic</p>
+                    <p class="type-caption">The shifting sands of the Grand Erg Oriental reveal new dune formations each morning, sculpted by the sirocco winds that sweep northward from the deep desert.</p>
+                    <p class="type-meta">0.8125rem / 1.6 line-height / italic / 300 weight</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-ornament">
+                <span class="diamond-sm"></span>
+                <span class="diamond"></span>
+                <span class="diamond-sm"></span>
+            </div>
+        </div>
+
+        <!-- ============================================
+             03. SPACING
+             ============================================ -->
+        <section id="spacing">
+            <div class="section-header">
+                <p class="section-number">Section 03</p>
+                <h2 class="section-title">Spacing Scale</h2>
+                <p class="section-desc">A 4px base unit scales geometrically, creating rhythm like the repeating ridges of windswept dunes</p>
+                <div class="section-divider">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8" fill="#C9A84C" opacity="0.6"/>
+                        <circle cx="12" cy="12" r="4" fill="#C2703E"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="spacing-demo">
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">XS</p>
+                            <p class="spacing-value">4px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 32px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">SM</p>
+                            <p class="spacing-value">8px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 56px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">MD</p>
+                            <p class="spacing-value">16px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 100px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">LG</p>
+                            <p class="spacing-value">24px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 160px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">XL</p>
+                            <p class="spacing-value">32px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 220px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">2XL</p>
+                            <p class="spacing-value">48px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 300px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">3XL</p>
+                            <p class="spacing-value">64px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 380px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                    <div class="spacing-item">
+                        <div class="spacing-label">
+                            <p class="spacing-name">4XL</p>
+                            <p class="spacing-value">96px</p>
+                        </div>
+                        <div class="spacing-bar" style="width: 480px;">
+                            <div class="spacing-bar-inner"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-ornament">
+                <span class="diamond-sm"></span>
+                <span class="diamond"></span>
+                <span class="diamond-sm"></span>
+            </div>
+        </div>
+
+        <!-- ============================================
+             04. BUTTONS
+             ============================================ -->
+        <section id="buttons">
+            <div class="section-header">
+                <p class="section-number">Section 04</p>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-desc">Interactive elements that rise from the sand, inviting touch with warm terracotta surfaces and golden accents</p>
+                <div class="section-divider">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8" fill="#C9A84C" opacity="0.6"/>
+                        <circle cx="12" cy="12" r="4" fill="#C2703E"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="button-showcase">
+                    <!-- Primary variants -->
+                    <div>
+                        <p class="button-row-label">Primary Actions</p>
+                        <div class="button-row">
+                            <button class="btn btn-primary">Explore Dunes</button>
+                            <button class="btn btn-primary btn-pill">Book Journey</button>
+                            <button class="btn btn-primary btn-disabled" disabled>Unavailable</button>
+                        </div>
+                    </div>
+
+                    <!-- Secondary variants -->
+                    <div>
+                        <p class="button-row-label">Secondary Actions</p>
+                        <div class="button-row">
+                            <button class="btn">Terracotta Outline</button>
+                            <button class="btn btn-secondary">Golden Outline</button>
+                            <button class="btn btn-oasis">Oasis Outline</button>
+                        </div>
+                    </div>
+
+                    <!-- Ghost & subtle -->
+                    <div>
+                        <p class="button-row-label">Ghost & Disabled</p>
+                        <div class="button-row">
+                            <button class="btn btn-ghost">Ghost Button</button>
+                            <button class="btn btn-disabled" disabled>Disabled</button>
+                        </div>
+                    </div>
+
+                    <!-- Sizes -->
+                    <div>
+                        <p class="button-row-label">Sizes</p>
+                        <div class="button-row">
+                            <button class="btn btn-primary btn-sm">Small</button>
+                            <button class="btn btn-primary">Default</button>
+                            <button class="btn btn-primary btn-lg">Large</button>
+                        </div>
+                    </div>
+
+                    <!-- Pill shapes -->
+                    <div>
+                        <p class="button-row-label">Pill Shape</p>
+                        <div class="button-row">
+                            <button class="btn btn-pill">Terracotta Pill</button>
+                            <button class="btn btn-secondary btn-pill">Golden Pill</button>
+                            <button class="btn btn-oasis btn-pill">Oasis Pill</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-ornament">
+                <span class="diamond-sm"></span>
+                <span class="diamond"></span>
+                <span class="diamond-sm"></span>
+            </div>
+        </div>
+
+        <!-- ============================================
+             05. FORM ELEMENTS
+             ============================================ -->
+        <section id="forms">
+            <div class="section-header">
+                <p class="section-number">Section 05</p>
+                <h2 class="section-title">Form Elements</h2>
+                <p class="section-desc">Clean, sunlit inputs where sand-toned borders yield to warm terracotta on focus, like footprints appearing in dune sand</p>
+                <div class="section-divider">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8" fill="#C9A84C" opacity="0.6"/>
+                        <circle cx="12" cy="12" r="4" fill="#C2703E"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="name">Traveler Name</label>
+                        <input type="text" id="name" class="input" placeholder="Enter your name...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="email">Contact</label>
+                        <input type="email" id="email" class="input" placeholder="caravan@sahara.com">
+                        <p class="form-hint">We will coordinate your desert crossing schedule</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="region">Desert Region</label>
+                        <div class="select-wrap">
+                            <select id="region" class="input">
+                                <option>Grand Erg Oriental</option>
+                                <option>Grand Erg Occidental</option>
+                                <option>Tenere Desert</option>
+                                <option>Erg Chebbi</option>
+                                <option>Ubari Sand Sea</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="duration">Journey Duration</label>
+                        <div class="select-wrap">
+                            <select id="duration" class="input">
+                                <option>3 days</option>
+                                <option>1 week</option>
+                                <option>2 weeks</option>
+                                <option>1 month</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Travel Interests</label>
+                        <div class="checkbox-group">
+                            <label class="check-item">
+                                <input type="checkbox" checked>
+                                <span class="check-mark"></span>
+                                <span class="check-text">Sand dune trekking</span>
+                            </label>
+                            <label class="check-item">
+                                <input type="checkbox" checked>
+                                <span class="check-mark"></span>
+                                <span class="check-text">Oasis camping</span>
+                            </label>
+                            <label class="check-item">
+                                <input type="checkbox">
+                                <span class="check-mark"></span>
+                                <span class="check-text">Star gazing</span>
+                            </label>
+                            <label class="check-item">
+                                <input type="checkbox">
+                                <span class="check-mark"></span>
+                                <span class="check-text">Camel caravan</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Experience Level</label>
+                        <div class="radio-group">
+                            <label class="radio-item">
+                                <input type="radio" name="experience" checked>
+                                <span class="radio-mark"></span>
+                                <span class="radio-text">First desert journey</span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="experience">
+                                <span class="radio-mark"></span>
+                                <span class="radio-text">Some desert experience</span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="experience">
+                                <span class="radio-mark"></span>
+                                <span class="radio-text">Seasoned desert traveler</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="notes">Additional Notes</label>
+                    <textarea id="notes" class="input" placeholder="Tell us about your ideal desert experience..."></textarea>
+                </div>
+
+                <div class="button-row mt-lg">
+                    <button class="btn btn-primary btn-lg">Submit Expedition Request</button>
+                    <button class="btn btn-ghost">Save Draft</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-ornament">
+                <span class="diamond-sm"></span>
+                <span class="diamond"></span>
+                <span class="diamond-sm"></span>
+            </div>
+        </div>
+
+        <!-- ============================================
+             06. CARDS / PANELS
+             ============================================ -->
+        <section id="cards">
+            <div class="section-header">
+                <p class="section-number">Section 06</p>
+                <h2 class="section-title">Cards & Panels</h2>
+                <p class="section-desc">Content containers like shelters in the desert -- clear boundaries against the vast expanse, each holding its own story</p>
+                <div class="section-divider">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8" fill="#C9A84C" opacity="0.6"/>
+                        <circle cx="12" cy="12" r="4" fill="#C2703E"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-image card-scene-dunes"></div>
+                    <div class="card-body">
+                        <p class="card-tag">Landscape</p>
+                        <h3 class="card-title">The Erg Chebbi Dunes</h3>
+                        <p class="card-text">Rising over 150 meters from the flat hamada, these magnificent sand dunes near Merzouga shift color from gold to deep orange as the sun crosses the sky.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="card-footer-link">Read More</a>
+                        <span class="card-footer-meta">Southeast Morocco</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image card-scene-oasis"></div>
+                    <div class="card-body">
+                        <p class="card-tag">Oasis</p>
+                        <h3 class="card-title">Siwa Oasis</h3>
+                        <p class="card-text">An ancient settlement cradled by the Western Desert, where freshwater springs sustain date palms and olive groves amid the endless sand seas of the Great Sand Sea.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="card-footer-link">Read More</a>
+                        <span class="card-footer-meta">Western Egypt</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-image card-scene-sunset"></div>
+                    <div class="card-body">
+                        <p class="card-tag">Culture</p>
+                        <h3 class="card-title">Tuareg Caravans</h3>
+                        <p class="card-text">The Blue People of the desert have crossed the Sahara for centuries, navigating by stars and sand patterns along ancient trade routes connecting oasis towns.</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="#" class="card-footer-link">Read More</a>
+                        <span class="card-footer-meta">Trans-Saharan</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horizontal card -->
+            <div class="card-grid mt-xl">
+                <div class="card card-horizontal">
+                    <div class="card-image card-scene-dunes"></div>
+                    <div>
+                        <div class="card-body">
+                            <p class="card-tag">Featured Expedition</p>
+                            <h3 class="card-title">The Tanezrouft: Land of Thirst</h3>
+                            <p class="card-text">Known as the "Land of Terror," the Tanezrouft basin is one of the most desolate regions of the Sahara. Stretching across southern Algeria, it offers an unbroken panorama of flat, featureless reg where mirages dance on the horizon and the silence is absolute. For the prepared traveler, it reveals a stark beauty unlike anywhere else on Earth.</p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="#" class="card-footer-link">Plan Your Crossing</a>
+                            <span class="card-footer-meta">Advanced / 14 Days</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Divider -->
+        <div class="divider">
+            <div class="divider-ornament">
+                <span class="diamond-sm"></span>
+                <span class="diamond"></span>
+                <span class="diamond-sm"></span>
+            </div>
+        </div>
+
+        <!-- ============================================
+             07. ALERTS / NOTIFICATIONS
+             ============================================ -->
+        <section id="alerts">
+            <div class="section-header">
+                <p class="section-number">Section 07</p>
+                <h2 class="section-title">Alerts & Notifications</h2>
+                <p class="section-desc">Messages that carry across the desert -- clear, vital, unmistakable against the warm sand tones</p>
+                <div class="section-divider">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="8" fill="#C9A84C" opacity="0.6"/>
+                        <circle cx="12" cy="12" r="4" fill="#C2703E"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="11" y1="10" x2="11" y2="16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="11" cy="7" r="1.2" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Desert Information</p>
+                    <p class="alert-text">The Sahara covers approximately 9.2 million square kilometers, making it roughly the size of the United States. Temperatures can exceed 50 degrees Celsius during the day and drop below freezing at night.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M7 11 L10 14 L15 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Oasis Located</p>
+                    <p class="alert-text">Fresh water source confirmed 12 kilometers northeast. The caravan route is clear, and camp preparations are underway beneath the date palms.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 2 L21 19 H1 Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                        <line x1="11" y1="9" x2="11" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="11" cy="16.5" r="1" fill="currentColor"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Sandstorm Warning</p>
+                    <p class="alert-text">A sirocco wind system is approaching from the south. Secure all equipment and seek shelter. Visibility will be reduced to near zero for the next several hours.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-error">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 22 22" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="11" cy="11" r="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                        <line x1="8" y1="8" x2="14" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <line x1="14" y1="8" x2="8" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Critical: Water Supply</p>
+                    <p class="alert-text">Water reserves have fallen below the minimum threshold for this route. The expedition cannot continue until resupply is confirmed. Immediate action required.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             FOOTER
+             ============================================ -->
+        <footer>
+            <div class="footer-sun">
+                <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Setting sun -->
+                    <line x1="0" y1="45" x2="60" y2="45" stroke="#D4BC82" stroke-width="1"/>
+                    <circle cx="30" cy="45" r="18" fill="#E8A317" opacity="0.3"/>
+                    <circle cx="30" cy="45" r="12" fill="#C9A84C" opacity="0.5"/>
+                    <circle cx="30" cy="45" r="6" fill="#C2703E" opacity="0.7"/>
+                    <!-- Dune silhouette -->
+                    <path d="M0 50 Q15 42 30 48 Q45 54 60 46 L60 60 L0 60 Z" fill="#D4BC82" opacity="0.4"/>
+                </svg>
+            </div>
+            <h2 class="footer-title">Desert Sahara</h2>
+            <p class="footer-text">A design system inspired by the endless warmth, vast silence, and ancient beauty of the world's greatest desert</p>
+            <p class="footer-meta">HTML Style Guide -- Sand, Terracotta & Oasis Blue</p>
+        </footer>
+    </div>
+</body>
+</html>

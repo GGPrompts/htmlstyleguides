@@ -1,0 +1,1975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Borealis — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           AURORA BOREALIS DESIGN SYSTEM
+           Curtains of light across arctic skies — ethereal, luminous, vast
+           The Northern Lights rendered as a visual language
+        ================================================================ */
+
+        /* --- DESIGN TOKENS / CSS VARIABLES --- */
+        :root {
+            /* AURORA PALETTE — Core */
+            --arctic-night: #0a0a2e;
+            --deep-polar: #060620;
+            --midnight-blue: #0d0d3b;
+            --aurora-green: #00ff87;
+            --aurora-green-dim: #00cc6a;
+            --aurora-purple: #7b2ff7;
+            --aurora-purple-dim: #5a1fbf;
+            --aurora-pink: #ff006e;
+            --aurora-pink-dim: #cc0058;
+            --aurora-cyan: #00e5ff;
+            --aurora-teal: #00bfa5;
+            --aurora-blue: #4a6cf7;
+            --aurora-yellow: #c8ff00;
+            --snow-white: #eef2ff;
+            --ice-white: #d4dfff;
+            --frost-silver: #8e99c2;
+
+            /* GLOW COLORS */
+            --glow-green: rgba(0, 255, 135, 0.5);
+            --glow-purple: rgba(123, 47, 247, 0.5);
+            --glow-pink: rgba(255, 0, 110, 0.5);
+            --glow-cyan: rgba(0, 229, 255, 0.4);
+
+            /* SURFACE COLORS */
+            --bg-sky: var(--arctic-night);
+            --bg-deep: var(--deep-polar);
+            --bg-card: rgba(13, 13, 59, 0.6);
+            --bg-card-hover: rgba(20, 20, 80, 0.8);
+            --bg-input: rgba(10, 10, 46, 0.8);
+
+            /* TEXT COLORS */
+            --text-primary: rgba(238, 242, 255, 0.95);
+            --text-secondary: rgba(212, 223, 255, 0.75);
+            --text-muted: rgba(142, 153, 194, 0.6);
+
+            /* BORDERS */
+            --border-subtle: rgba(123, 47, 247, 0.15);
+            --border-glow: rgba(0, 255, 135, 0.3);
+            --border-active: var(--aurora-green);
+
+            /* GRADIENTS */
+            --gradient-aurora: linear-gradient(135deg,
+                var(--aurora-green) 0%,
+                var(--aurora-cyan) 30%,
+                var(--aurora-purple) 60%,
+                var(--aurora-pink) 100%);
+            --gradient-curtain: linear-gradient(180deg,
+                var(--aurora-green) 0%,
+                var(--aurora-purple) 40%,
+                var(--aurora-pink) 70%,
+                transparent 100%);
+            --gradient-sky: linear-gradient(180deg,
+                var(--deep-polar) 0%,
+                var(--arctic-night) 40%,
+                var(--midnight-blue) 100%);
+            --gradient-frost: linear-gradient(135deg,
+                rgba(0, 255, 135, 0.1) 0%,
+                rgba(123, 47, 247, 0.1) 50%,
+                rgba(255, 0, 110, 0.1) 100%);
+
+            /* TYPOGRAPHY */
+            --font-display: 'Syne', sans-serif;
+            --font-body: 'Space Grotesk', sans-serif;
+
+            /* SPACING SCALE (4px base) */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 32px;
+            --space-xl: 64px;
+            --space-2xs: 2px;
+            --space-3: 12px;
+            --space-5: 24px;
+            --space-7: 48px;
+            --space-9: 96px;
+            --space-10: 128px;
+
+            /* SHADOWS & GLOWS */
+            --shadow-green: 0 0 20px var(--glow-green), 0 0 40px var(--glow-green);
+            --shadow-purple: 0 0 20px var(--glow-purple), 0 0 40px var(--glow-purple);
+            --shadow-pink: 0 0 20px var(--glow-pink), 0 0 40px var(--glow-pink);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+
+            /* TRANSITIONS */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s ease;
+            --transition-slow: 0.6s ease;
+            --transition-aurora: 2s ease-in-out;
+
+            /* BORDER RADIUS */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            --radius-full: 9999px;
+        }
+
+        /* --- KEYFRAME ANIMATIONS --- */
+
+        /* Aurora curtain sway — the signature effect */
+        @keyframes curtain-sway {
+            0%, 100% {
+                transform: skewX(-2deg) translateX(0);
+                opacity: 0.5;
+            }
+            25% {
+                transform: skewX(3deg) translateX(20px);
+                opacity: 0.7;
+            }
+            50% {
+                transform: skewX(-1deg) translateX(-15px);
+                opacity: 0.4;
+            }
+            75% {
+                transform: skewX(2deg) translateX(10px);
+                opacity: 0.6;
+            }
+        }
+
+        /* Vertical aurora shimmer */
+        @keyframes aurora-shimmer {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        /* Gentle hue rotation for aurora bands */
+        @keyframes hue-drift {
+            0%, 100% { filter: hue-rotate(0deg) brightness(1); }
+            33% { filter: hue-rotate(15deg) brightness(1.1); }
+            66% { filter: hue-rotate(-10deg) brightness(0.9); }
+        }
+
+        /* Starfield twinkle */
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        @keyframes twinkle-bright {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* Ethereal pulse for interactive elements */
+        @keyframes ethereal-pulse {
+            0%, 100% {
+                box-shadow: 0 0 15px var(--glow-green);
+            }
+            50% {
+                box-shadow: 0 0 30px var(--glow-green), 0 0 50px var(--glow-purple);
+            }
+        }
+
+        /* Text gradient animation */
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Frost sparkle */
+        @keyframes frost-sparkle {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+
+        /* Float upward like aurora bands */
+        @keyframes float-up {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* --- BASE RESET & GLOBAL STYLES --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-sky);
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: 0.01em;
+        }
+
+        /* --- SKY BACKGROUND --- */
+        .sky-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-sky);
+            z-index: -4;
+        }
+
+        /* --- AURORA CURTAIN LAYERS --- */
+        .aurora-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -3;
+            overflow: hidden;
+        }
+
+        .aurora-band {
+            position: absolute;
+            width: 120%;
+            left: -10%;
+            filter: blur(40px);
+            opacity: 0.4;
+            animation: curtain-sway 12s ease-in-out infinite;
+        }
+
+        .aurora-band--green {
+            top: -5%;
+            height: 40%;
+            background: linear-gradient(180deg,
+                rgba(0, 255, 135, 0.4) 0%,
+                rgba(0, 229, 255, 0.2) 50%,
+                transparent 100%);
+            animation-duration: 14s;
+            animation-delay: 0s;
+        }
+
+        .aurora-band--purple {
+            top: 5%;
+            height: 35%;
+            background: linear-gradient(180deg,
+                rgba(123, 47, 247, 0.3) 0%,
+                rgba(0, 255, 135, 0.15) 50%,
+                transparent 100%);
+            animation-duration: 18s;
+            animation-delay: -4s;
+        }
+
+        .aurora-band--pink {
+            top: 0%;
+            height: 30%;
+            background: linear-gradient(180deg,
+                rgba(255, 0, 110, 0.2) 0%,
+                rgba(123, 47, 247, 0.15) 40%,
+                transparent 100%);
+            animation-duration: 16s;
+            animation-delay: -8s;
+        }
+
+        /* Vertical aurora streaks */
+        .aurora-streak {
+            position: absolute;
+            width: 3px;
+            background: linear-gradient(180deg, var(--aurora-green), transparent);
+            filter: blur(2px);
+            opacity: 0.2;
+            animation: curtain-sway 10s ease-in-out infinite;
+        }
+
+        .aurora-streak:nth-child(4) { left: 15%; height: 45%; top: 0; animation-delay: 0s; }
+        .aurora-streak:nth-child(5) { left: 25%; height: 50%; top: 0; animation-delay: -2s; background: linear-gradient(180deg, var(--aurora-purple), transparent); }
+        .aurora-streak:nth-child(6) { left: 40%; height: 40%; top: 0; animation-delay: -5s; }
+        .aurora-streak:nth-child(7) { left: 55%; height: 55%; top: 0; animation-delay: -3s; background: linear-gradient(180deg, var(--aurora-pink), transparent); }
+        .aurora-streak:nth-child(8) { left: 70%; height: 42%; top: 0; animation-delay: -7s; }
+        .aurora-streak:nth-child(9) { left: 85%; height: 48%; top: 0; animation-delay: -1s; background: linear-gradient(180deg, var(--aurora-cyan), transparent); }
+
+        /* --- STARFIELD --- */
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        .star {
+            position: absolute;
+            background: var(--snow-white);
+            border-radius: 50%;
+        }
+
+        .star--tiny {
+            width: 1px;
+            height: 1px;
+            animation: twinkle 5s ease-in-out infinite;
+        }
+
+        .star--small {
+            width: 2px;
+            height: 2px;
+            box-shadow: 0 0 3px rgba(238, 242, 255, 0.6);
+            animation: twinkle 3.5s ease-in-out infinite;
+        }
+
+        .star--bright {
+            width: 3px;
+            height: 3px;
+            box-shadow: 0 0 6px rgba(238, 242, 255, 0.8), 0 0 12px rgba(238, 242, 255, 0.3);
+            animation: twinkle-bright 4s ease-in-out infinite;
+        }
+
+        /* --- HORIZON GLOW (snowy mountain silhouette feel) --- */
+        .horizon-glow {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(180deg,
+                transparent 0%,
+                rgba(10, 10, 46, 0.6) 50%,
+                rgba(6, 6, 32, 0.9) 100%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- HEADER / HERO --- */
+        .header {
+            text-align: center;
+            padding: var(--space-10) 0 var(--space-9);
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle,
+                var(--glow-green) 0%,
+                rgba(123, 47, 247, 0.2) 40%,
+                transparent 70%);
+            filter: blur(80px);
+            opacity: 0.3;
+            pointer-events: none;
+            animation: hue-drift 12s ease-in-out infinite;
+        }
+
+        .header-eyebrow {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            color: var(--aurora-green);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+        }
+
+        .header-eyebrow::before,
+        .header-eyebrow::after {
+            content: '';
+            width: 50px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--aurora-green));
+        }
+
+        .header-eyebrow::after {
+            background: linear-gradient(90deg, var(--aurora-green), transparent);
+        }
+
+        .header-title {
+            font-family: var(--font-display);
+            font-size: clamp(2.8rem, 9vw, 5.5rem);
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            line-height: 1.1;
+            margin-bottom: var(--space-5);
+            background: linear-gradient(135deg,
+                var(--aurora-green) 0%,
+                var(--aurora-cyan) 25%,
+                var(--aurora-purple) 50%,
+                var(--aurora-pink) 75%,
+                var(--aurora-green) 100%);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-flow 8s ease-in-out infinite;
+        }
+
+        .header-subtitle {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            max-width: 540px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* --- SECTION STYLES --- */
+        .section {
+            padding: var(--space-9) 0;
+            position: relative;
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-7);
+            text-align: center;
+        }
+
+        .section-number {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--aurora-green);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+        }
+
+        .section-description {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* --- 01. COLOR PALETTE --- */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .color-swatch {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all var(--transition-base);
+            backdrop-filter: blur(10px);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-6px);
+            border-color: var(--border-glow);
+            box-shadow: var(--shadow-card), 0 0 20px rgba(0, 255, 135, 0.15);
+        }
+
+        .color-preview {
+            height: 110px;
+            position: relative;
+        }
+
+        .color-preview--gradient {
+            background-size: 200% 200%;
+            animation: aurora-shimmer 6s ease-in-out infinite;
+        }
+
+        .color-info {
+            padding: var(--space-3) var(--space-md);
+            background: rgba(6, 6, 32, 0.8);
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: var(--space-2xs);
+        }
+
+        .color-value {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        /* --- 02. TYPOGRAPHY --- */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-5);
+        }
+
+        .type-specimen {
+            padding: var(--space-lg);
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            backdrop-filter: blur(10px);
+            transition: all var(--transition-base);
+        }
+
+        .type-specimen:hover {
+            border-color: var(--border-glow);
+            background: var(--bg-card-hover);
+        }
+
+        .type-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .type-sample {
+            margin-bottom: var(--space-sm);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            line-height: 1.1;
+            background: var(--gradient-aurora);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-flow 6s ease-in-out infinite;
+        }
+
+        .type-heading {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .type-subheading {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .type-body-large {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            font-weight: 300;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .type-caption {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .type-overline {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--aurora-green);
+        }
+
+        /* --- 03. SPACING --- */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-5);
+        }
+
+        .spacing-label {
+            width: 100px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-family: var(--font-body);
+            flex-shrink: 0;
+        }
+
+        .spacing-bar {
+            height: 28px;
+            background: var(--gradient-aurora);
+            background-size: 200% 200%;
+            border-radius: var(--radius-full);
+            position: relative;
+            overflow: hidden;
+            animation: aurora-shimmer 4s ease-in-out infinite;
+        }
+
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: frost-sparkle 3s ease-in-out infinite;
+        }
+
+        .spacing-value {
+            font-size: 0.75rem;
+            color: var(--aurora-green);
+            min-width: 45px;
+            font-weight: 500;
+        }
+
+        /* --- 04. BUTTONS --- */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-lg);
+        }
+
+        .button-group-label {
+            width: 100%;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-xs);
+        }
+
+        .btn {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            padding: var(--space-3) var(--space-lg);
+            border: 1px solid transparent;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        /* Primary: aurora gradient fill */
+        .btn-primary {
+            background: var(--gradient-aurora);
+            background-size: 200% 200%;
+            color: var(--deep-polar);
+            font-weight: 600;
+            box-shadow: 0 4px 20px var(--glow-green);
+            animation: aurora-shimmer 4s ease-in-out infinite;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px var(--glow-green), 0 0 40px var(--glow-purple);
+        }
+
+        /* Secondary: outlined with aurora border */
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--aurora-green);
+            color: var(--aurora-green);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(0, 255, 135, 0.08);
+            box-shadow: 0 0 20px var(--glow-green);
+            transform: translateY(-2px);
+        }
+
+        /* Ghost: subtle glass */
+        .btn-ghost {
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+        }
+
+        .btn-ghost:hover {
+            border-color: var(--aurora-purple);
+            background: var(--bg-card-hover);
+            box-shadow: 0 0 15px var(--glow-purple);
+        }
+
+        /* Ethereal: pulsing aurora */
+        .btn-ethereal {
+            background: transparent;
+            border: 1px solid var(--aurora-pink);
+            color: var(--aurora-pink);
+            animation: ethereal-pulse 4s ease-in-out infinite;
+        }
+
+        .btn-ethereal:hover {
+            background: rgba(255, 0, 110, 0.08);
+            box-shadow: var(--shadow-pink);
+        }
+
+        /* Sizes */
+        .btn-sm {
+            padding: var(--space-sm) var(--space-md);
+            font-size: 0.75rem;
+        }
+
+        .btn-lg {
+            padding: var(--space-md) var(--space-xl);
+            font-size: 1rem;
+        }
+
+        /* Disabled state */
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none !important;
+            animation: none;
+            box-shadow: none;
+        }
+
+        .btn:disabled::before {
+            display: none;
+        }
+
+        /* --- 05. FORMS --- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-sm);
+        }
+
+        .input-label .required {
+            color: var(--aurora-pink);
+            margin-left: var(--space-xs);
+        }
+
+        .input-field {
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            padding: var(--space-md);
+            background: var(--bg-input);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            transition: all var(--transition-base);
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--aurora-green);
+            box-shadow: 0 0 0 3px rgba(0, 255, 135, 0.1), 0 0 20px var(--glow-green);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-field.error {
+            border-color: var(--aurora-pink);
+        }
+
+        .input-field.error:focus {
+            box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1), 0 0 20px var(--glow-pink);
+        }
+
+        textarea.input-field {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .input-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: var(--space-sm);
+        }
+
+        .input-error {
+            font-size: 0.75rem;
+            color: var(--aurora-pink);
+            margin-top: var(--space-sm);
+        }
+
+        /* Select */
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--aurora-green);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        select.input-field {
+            appearance: none;
+            cursor: pointer;
+            padding-right: var(--space-xl);
+        }
+
+        /* Custom Checkbox */
+        .checkbox-group,
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .checkbox-label,
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            cursor: pointer;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            transition: color var(--transition-fast);
+        }
+
+        .checkbox-label:hover,
+        .radio-label:hover {
+            color: var(--text-primary);
+        }
+
+        .checkbox-input,
+        .radio-input {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-subtle);
+            background: var(--bg-input);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .checkbox-input {
+            border-radius: var(--radius-sm);
+        }
+
+        .radio-input {
+            border-radius: 50%;
+        }
+
+        .checkbox-input:checked {
+            background: var(--aurora-green);
+            border-color: var(--aurora-green);
+            box-shadow: 0 0 10px var(--glow-green);
+        }
+
+        .checkbox-input:checked::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 2px;
+            width: 6px;
+            height: 10px;
+            border: solid var(--deep-polar);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .radio-input:checked {
+            border-color: var(--aurora-purple);
+            box-shadow: 0 0 10px var(--glow-purple);
+        }
+
+        .radio-input:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 4px;
+            width: 8px;
+            height: 8px;
+            background: var(--aurora-purple);
+            border-radius: 50%;
+        }
+
+        .checkbox-input:focus,
+        .radio-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 255, 135, 0.15);
+        }
+
+        /* --- 06. CARDS / PANELS --- */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: var(--space-7);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+        }
+
+        /* Aurora top-edge glow on cards */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-aurora);
+            background-size: 200% 200%;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+            animation: aurora-shimmer 4s ease-in-out infinite;
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            border-color: var(--border-glow);
+            background: var(--bg-card-hover);
+            box-shadow: var(--shadow-card), 0 0 30px rgba(0, 255, 135, 0.08);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            background: var(--gradient-aurora);
+            background-size: 200% 200%;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: var(--space-5);
+            box-shadow: 0 4px 15px var(--glow-green);
+            animation: float-up 5s ease-in-out infinite, aurora-shimmer 4s ease-in-out infinite;
+            color: var(--deep-polar);
+            font-weight: 700;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: var(--space-3);
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.8;
+            margin-bottom: var(--space-5);
+        }
+
+        .card-footer {
+            display: flex;
+            gap: var(--space-3);
+            padding-top: var(--space-5);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* Card variant: Featured */
+        .card-featured {
+            border-color: rgba(0, 255, 135, 0.3);
+            background: linear-gradient(135deg,
+                rgba(0, 255, 135, 0.06),
+                rgba(123, 47, 247, 0.04));
+        }
+
+        .card-featured::before {
+            opacity: 1;
+        }
+
+        /* Card variant: Northern */
+        .card-northern {
+            position: relative;
+        }
+
+        .card-northern::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100%;
+            background: linear-gradient(180deg,
+                rgba(0, 255, 135, 0.06) 0%,
+                rgba(123, 47, 247, 0.04) 50%,
+                transparent 100%);
+            pointer-events: none;
+        }
+
+        /* --- 07. ALERTS / NOTIFICATIONS --- */
+        .alert {
+            padding: var(--space-5);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-md);
+            display: flex;
+            gap: var(--space-md);
+            align-items: flex-start;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-subtle);
+            transition: all var(--transition-base);
+        }
+
+        .alert:hover {
+            background: var(--bg-card-hover);
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        .alert-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .alert-info {
+            border-left: 3px solid var(--aurora-cyan);
+        }
+
+        .alert-info .alert-icon {
+            color: var(--aurora-cyan);
+            background: rgba(0, 229, 255, 0.1);
+        }
+
+        .alert-info .alert-title {
+            color: var(--aurora-cyan);
+        }
+
+        .alert-success {
+            border-left: 3px solid var(--aurora-green);
+        }
+
+        .alert-success .alert-icon {
+            color: var(--aurora-green);
+            background: rgba(0, 255, 135, 0.1);
+        }
+
+        .alert-success .alert-title {
+            color: var(--aurora-green);
+        }
+
+        .alert-warning {
+            border-left: 3px solid var(--aurora-yellow);
+        }
+
+        .alert-warning .alert-icon {
+            color: var(--aurora-yellow);
+            background: rgba(200, 255, 0, 0.1);
+        }
+
+        .alert-warning .alert-title {
+            color: var(--aurora-yellow);
+        }
+
+        .alert-error {
+            border-left: 3px solid var(--aurora-pink);
+        }
+
+        .alert-error .alert-icon {
+            color: var(--aurora-pink);
+            background: rgba(255, 0, 110, 0.1);
+        }
+
+        .alert-error .alert-title {
+            color: var(--aurora-pink);
+        }
+
+        /* --- AURORA DIVIDER --- */
+        .aurora-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+            margin: var(--space-xl) 0;
+            position: relative;
+        }
+
+        .aurora-divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-subtle), transparent);
+        }
+
+        .aurora-divider-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--aurora-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--glow-green);
+            animation: twinkle-bright 3s ease-in-out infinite;
+        }
+
+        .aurora-divider-dot:nth-child(3) {
+            background: var(--aurora-purple);
+            box-shadow: 0 0 10px var(--glow-purple);
+            animation-delay: 0.5s;
+        }
+
+        .aurora-divider-dot:nth-child(5) {
+            background: var(--aurora-pink);
+            box-shadow: 0 0 10px var(--glow-pink);
+            animation-delay: 1s;
+        }
+
+        /* --- DESIGN PRINCIPLES --- */
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .principle {
+            padding: var(--space-lg);
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        .principle::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: var(--space-lg);
+            bottom: var(--space-lg);
+            width: 2px;
+            border-radius: 2px;
+        }
+
+        .principle:nth-child(1)::before { background: var(--aurora-green); box-shadow: 0 0 8px var(--glow-green); }
+        .principle:nth-child(2)::before { background: var(--aurora-purple); box-shadow: 0 0 8px var(--glow-purple); }
+        .principle:nth-child(3)::before { background: var(--aurora-pink); box-shadow: 0 0 8px var(--glow-pink); }
+        .principle:nth-child(4)::before { background: var(--aurora-cyan); box-shadow: 0 0 8px var(--glow-cyan); }
+
+        .principle:hover {
+            transform: translateX(6px);
+            border-color: var(--border-glow);
+        }
+
+        .principle-number {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: var(--space-3);
+            opacity: 0.3;
+        }
+
+        .principle:nth-child(1) .principle-number { color: var(--aurora-green); }
+        .principle:nth-child(2) .principle-number { color: var(--aurora-purple); }
+        .principle:nth-child(3) .principle-number { color: var(--aurora-pink); }
+        .principle:nth-child(4) .principle-number { color: var(--aurora-cyan); }
+
+        .principle-title {
+            font-family: var(--font-display);
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: var(--space-3);
+        }
+
+        .principle-text {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+
+        /* --- FOOTER --- */
+        .footer {
+            text-align: center;
+            padding: var(--space-9) 0 var(--space-7);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--aurora-green), var(--aurora-purple), var(--aurora-pink), transparent);
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--space-3);
+            background: var(--gradient-aurora);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradient-flow 6s ease-in-out infinite;
+        }
+
+        .footer-text {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        .footer-lights {
+            margin-top: var(--space-5);
+            display: flex;
+            justify-content: center;
+            gap: var(--space-md);
+        }
+
+        .footer-light {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        .footer-light:nth-child(1) { background: var(--aurora-green); box-shadow: 0 0 6px var(--glow-green); }
+        .footer-light:nth-child(2) { background: var(--aurora-cyan); animation-delay: 0.4s; box-shadow: 0 0 6px var(--glow-cyan); }
+        .footer-light:nth-child(3) { background: var(--aurora-purple); animation-delay: 0.8s; box-shadow: 0 0 6px var(--glow-purple); }
+        .footer-light:nth-child(4) { background: var(--aurora-pink); animation-delay: 1.2s; box-shadow: 0 0 6px var(--glow-pink); }
+        .footer-light:nth-child(5) { background: var(--aurora-green); animation-delay: 1.6s; box-shadow: 0 0 6px var(--glow-green); }
+
+        /* --- UTILITY CLASSES --- */
+        .text-green { color: var(--aurora-green); }
+        .text-purple { color: var(--aurora-purple); }
+        .text-pink { color: var(--aurora-pink); }
+        .text-cyan { color: var(--aurora-cyan); }
+        .mt-4 { margin-top: var(--space-md); }
+        .mt-6 { margin-top: var(--space-lg); }
+        .mb-4 { margin-bottom: var(--space-md); }
+        .mb-6 { margin-bottom: var(--space-lg); }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-md);
+            }
+
+            .header {
+                padding: var(--space-xl) 0 var(--space-7);
+            }
+
+            .header-title {
+                font-size: 2.5rem;
+            }
+
+            .section {
+                padding: var(--space-7) 0;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                gap: var(--space-3);
+            }
+
+            .color-preview {
+                height: 80px;
+            }
+
+            .type-display {
+                font-size: 2.2rem;
+            }
+
+            .type-heading {
+                font-size: 1.6rem;
+            }
+
+            .spacing-row {
+                gap: var(--space-3);
+            }
+
+            .spacing-label {
+                width: 70px;
+                font-size: 0.75rem;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group--full {
+                grid-column: auto;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .principles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .aurora-band {
+                filter: blur(60px);
+                opacity: 0.25;
+            }
+
+            .aurora-streak {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sky Background -->
+    <div class="sky-bg"></div>
+
+    <!-- Aurora Curtain Layers -->
+    <div class="aurora-layer">
+        <div class="aurora-band aurora-band--green"></div>
+        <div class="aurora-band aurora-band--purple"></div>
+        <div class="aurora-band aurora-band--pink"></div>
+        <div class="aurora-streak"></div>
+        <div class="aurora-streak"></div>
+        <div class="aurora-streak"></div>
+        <div class="aurora-streak"></div>
+        <div class="aurora-streak"></div>
+        <div class="aurora-streak"></div>
+    </div>
+
+    <!-- Star Field -->
+    <div class="starfield" id="starfield"></div>
+
+    <!-- Horizon Glow -->
+    <div class="horizon-glow"></div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header">
+            <p class="header-eyebrow">Style Guide</p>
+            <h1 class="header-title">Aurora Borealis</h1>
+            <p class="header-subtitle">
+                A design system inspired by the Northern Lights — ethereal curtains of luminous color
+                dancing across the dark arctic sky, casting an otherworldly glow over frozen landscapes.
+            </p>
+        </header>
+
+        <!-- 01. COLOR PALETTE -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">01 / Color Palette</p>
+                <h2 class="section-title">Arctic Spectrum</h2>
+                <p class="section-description">Colors drawn from the phenomena of charged particles colliding with atmospheric gases — greens from oxygen, purples and pinks from nitrogen, all against the deep polar night.</p>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #0a0a2e;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Arctic Night</div>
+                        <div class="color-value">#0A0A2E</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #060620;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Deep Polar</div>
+                        <div class="color-value">#060620</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #00ff87;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Aurora Green</div>
+                        <div class="color-value">#00FF87</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #7b2ff7;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Aurora Purple</div>
+                        <div class="color-value">#7B2FF7</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #ff006e;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Aurora Pink</div>
+                        <div class="color-value">#FF006E</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #00e5ff;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Aurora Cyan</div>
+                        <div class="color-value">#00E5FF</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #eef2ff;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Snow White</div>
+                        <div class="color-value">#EEF2FF</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: #8e99c2;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Frost Silver</div>
+                        <div class="color-value">#8E99C2</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview color-preview--gradient" style="background: linear-gradient(135deg, #00ff87, #00e5ff, #7b2ff7, #ff006e); background-size: 200% 200%;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Aurora Gradient</div>
+                        <div class="color-value">Full Spectrum</div>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview color-preview--gradient" style="background: linear-gradient(180deg, #00ff87 0%, #7b2ff7 40%, #ff006e 70%, transparent 100%); background-size: 200% 200%;"></div>
+                    <div class="color-info">
+                        <div class="color-name">Curtain Gradient</div>
+                        <div class="color-value">Vertical Fade</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02. TYPOGRAPHY -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">02 / Typography</p>
+                <h2 class="section-title">Polar Typefaces</h2>
+                <p class="section-description">Syne delivers bold, geometric display text with character. Space Grotesk provides clean, technical body copy suited to the cold precision of arctic conditions.</p>
+            </div>
+
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <div class="type-label">Display / Syne Extra Bold / 56px</div>
+                    <div class="type-sample type-display">Northern Lights</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Heading / Syne Bold / 36px</div>
+                    <div class="type-sample type-heading">Polar Phenomena</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Subheading / Syne Semi-Bold / 24px</div>
+                    <div class="type-sample type-subheading">Across the Arctic Sky</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Body Large / Space Grotesk Light / 18px</div>
+                    <div class="type-sample type-body-large">The aurora borealis occurs when solar wind particles interact with Earth's magnetosphere, exciting atmospheric gases that emit photons of visible light in sweeping curtains across the polar sky.</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Body / Space Grotesk Regular / 16px</div>
+                    <div class="type-sample type-body">Standing beneath the aurora, you witness one of nature's most extraordinary displays. Green bands arc overhead, threaded with purple and pink, pulsing and shifting as if alive. The silence of the frozen landscape amplifies the visual spectacle above.</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Caption / Space Grotesk Regular / 14px</div>
+                    <div class="type-sample type-caption">Metadata, coordinates, timestamps, and secondary information rendered in frost-silver tones.</div>
+                </div>
+                <div class="type-specimen">
+                    <div class="type-label">Overline / Space Grotesk Semi-Bold / 11px</div>
+                    <div class="type-sample type-overline">KP Index: 7 / Latitude 69.6N / Visibility: Excellent</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03. SPACING -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">03 / Spacing</p>
+                <h2 class="section-title">Arctic Scale</h2>
+                <p class="section-description">A 4px base unit creates measured rhythm across the interface, like the precise distances between bands of aurora light in the sky.</p>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xs</span>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">4px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-sm</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">8px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-md</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">16px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-lg</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                    <span class="spacing-value">32px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xl</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                    <span class="spacing-value">64px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-5</span>
+                    <div class="spacing-bar" style="width: 96px;"></div>
+                    <span class="spacing-value">24px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-7</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                    <span class="spacing-value">48px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-9</span>
+                    <div class="spacing-bar" style="width: 384px;"></div>
+                    <span class="spacing-value">96px</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04. BUTTONS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">04 / Buttons</p>
+                <h2 class="section-title">Luminous Actions</h2>
+                <p class="section-description">Interactive elements that glow with aurora energy. Each button variant draws from a different band of the Northern Lights spectrum.</p>
+            </div>
+
+            <p class="button-group-label">Variants</p>
+            <div class="button-group">
+                <button class="btn btn-primary">Primary Action</button>
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-ghost">Ghost Button</button>
+                <button class="btn btn-ethereal">Ethereal</button>
+            </div>
+
+            <p class="button-group-label">Sizes</p>
+            <div class="button-group">
+                <button class="btn btn-primary btn-sm">Small</button>
+                <button class="btn btn-primary">Default</button>
+                <button class="btn btn-primary btn-lg">Large</button>
+            </div>
+
+            <p class="button-group-label">States</p>
+            <div class="button-group">
+                <button class="btn btn-primary">Enabled</button>
+                <button class="btn btn-primary" disabled>Disabled</button>
+                <button class="btn btn-secondary">Enabled</button>
+                <button class="btn btn-secondary" disabled>Disabled</button>
+            </div>
+        </section>
+
+        <!-- 05. FORMS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">05 / Forms</p>
+                <h2 class="section-title">Data Collection</h2>
+                <p class="section-description">Input fields with aurora glow on focus, like instruments gathering data from geomagnetic storms across the polar regions.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="input-group">
+                    <label class="input-label">Observer Name<span class="required">*</span></label>
+                    <input type="text" class="input-field" placeholder="Enter your name...">
+                    <div class="input-hint">Name for the observation log</div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Station Coordinates</label>
+                    <input type="text" class="input-field" value="69.6496 N, 18.9560 E">
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Observation Region</label>
+                    <div class="select-wrapper">
+                        <select class="input-field">
+                            <option>Select a region...</option>
+                            <option>Tromso, Norway</option>
+                            <option>Fairbanks, Alaska</option>
+                            <option>Abisko, Sweden</option>
+                            <option>Yellowknife, Canada</option>
+                            <option>Rovaniemi, Finland</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Error State</label>
+                    <input type="text" class="input-field error" value="Invalid KP index">
+                    <div class="input-error">KP index must be between 0 and 9</div>
+                </div>
+
+                <div class="input-group input-group--full" style="grid-column: 1 / -1;">
+                    <label class="input-label">Observation Notes</label>
+                    <textarea class="input-field" placeholder="Describe the aurora activity, colors observed, duration, and intensity..."></textarea>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Aurora Colors Observed</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input" checked>
+                            <span>Green (557.7nm oxygen)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input" checked>
+                            <span>Purple (391.4nm nitrogen)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input">
+                            <span>Pink (630.0nm oxygen)</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="checkbox-input">
+                            <span>Blue (427.8nm nitrogen)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Aurora Type</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="aurora-type" class="radio-input" checked>
+                            <span>Diffuse arc</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="aurora-type" class="radio-input">
+                            <span>Discrete arc</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="aurora-type" class="radio-input">
+                            <span>Corona / Curtain</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="aurora-type" class="radio-input">
+                            <span>Pulsating patches</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06. CARDS / PANELS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">06 / Cards</p>
+                <h2 class="section-title">Polar Panels</h2>
+                <p class="section-description">Content containers that float against the dark sky like frosted glass windows, each topped with a faint aurora-edge glow.</p>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon">N</div>
+                    <h3 class="card-title">Solar Wind Monitor</h3>
+                    <p class="card-content">Track real-time solar wind data from the ACE satellite. Predict aurora visibility based on interplanetary magnetic field orientation and particle density.</p>
+                    <div class="card-footer">
+                        <button class="btn btn-primary btn-sm">Monitor</button>
+                        <button class="btn btn-ghost btn-sm">Learn More</button>
+                    </div>
+                </div>
+
+                <div class="card card-featured">
+                    <div class="card-icon">A</div>
+                    <h3 class="card-title">Aurora Forecast</h3>
+                    <p class="card-content">Tonight's forecast shows KP 6+ activity with clear skies expected over northern Scandinavia. Excellent viewing conditions predicted.</p>
+                    <div class="card-footer">
+                        <button class="btn btn-primary btn-sm">View Forecast</button>
+                    </div>
+                </div>
+
+                <div class="card card-northern">
+                    <div class="card-icon">M</div>
+                    <h3 class="card-title">Magnetometer Data</h3>
+                    <p class="card-content">Ground-based magnetometer readings from stations across the auroral oval. Detect substorm onset and track magnetic disturbances in real time.</p>
+                    <div class="card-footer">
+                        <button class="btn btn-secondary btn-sm">View Data</button>
+                        <button class="btn btn-ghost btn-sm">Archive</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 07. ALERTS / NOTIFICATIONS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">07 / Alerts</p>
+                <h2 class="section-title">Station Alerts</h2>
+                <p class="section-description">Notification messages from observation stations across the auroral zone, each severity level mapped to a band of the aurora spectrum.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">i</div>
+                <div class="alert-content">
+                    <div class="alert-title">Aurora Watch Active</div>
+                    <div class="alert-message">Moderate geomagnetic activity detected. KP index currently at 4. Northern latitudes may see faint green arcs on the northern horizon.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <div class="alert-icon">+</div>
+                <div class="alert-content">
+                    <div class="alert-title">Aurora Confirmed</div>
+                    <div class="alert-message">Strong aurora display confirmed across multiple stations. Vivid green and purple curtains visible to the naked eye. KP 7 storm in progress.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">!</div>
+                <div class="alert-content">
+                    <div class="alert-title">Geomagnetic Storm Warning</div>
+                    <div class="alert-message">G3-class geomagnetic storm expected in 6-12 hours following coronal mass ejection. Aurora may be visible at unusually low latitudes.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-error">
+                <div class="alert-icon">x</div>
+                <div class="alert-content">
+                    <div class="alert-title">Station Communication Lost</div>
+                    <div class="alert-message">Svalbard observation station has gone offline due to extreme electromagnetic interference. Attempting to re-establish uplink via backup frequency.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- AURORA DIVIDER -->
+        <div class="aurora-divider">
+            <div class="aurora-divider-line"></div>
+            <div class="aurora-divider-dot"></div>
+            <div class="aurora-divider-dot"></div>
+            <div class="aurora-divider-dot"></div>
+            <div class="aurora-divider-line"></div>
+        </div>
+
+        <!-- DESIGN PRINCIPLES -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Philosophy</p>
+                <h2 class="section-title">Design Principles</h2>
+                <p class="section-description">The guiding lights of the Aurora Borealis design language.</p>
+            </div>
+
+            <div class="principles-grid">
+                <div class="principle">
+                    <div class="principle-number">01</div>
+                    <h3 class="principle-title">Dark Canvas</h3>
+                    <p class="principle-text">The deep polar night sky provides infinite depth. Dark backgrounds ensure that aurora colors sing with maximum vibrancy and contrast, just as they do in nature.</p>
+                </div>
+
+                <div class="principle">
+                    <div class="principle-number">02</div>
+                    <h3 class="principle-title">Ethereal Glow</h3>
+                    <p class="principle-text">Every interactive element emits soft luminescence. Glows and shadows in aurora hues create an otherworldly atmosphere that invites exploration without overwhelming.</p>
+                </div>
+
+                <div class="principle">
+                    <div class="principle-number">03</div>
+                    <h3 class="principle-title">Curtain Motion</h3>
+                    <p class="principle-text">Animations are slow, sweeping, and organic. Like the Northern Lights themselves, movement should feel natural and mesmerizing, never abrupt or mechanical.</p>
+                </div>
+
+                <div class="principle">
+                    <div class="principle-number">04</div>
+                    <h3 class="principle-title">Frozen Precision</h3>
+                    <p class="principle-text">Beneath the flowing aurora, the arctic landscape is crisp and exact. Typography, spacing, and structure maintain sharp clarity against the ethereal backdrop.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <div class="footer-brand">Aurora Borealis</div>
+            <p class="footer-text">
+                A design system for those who chase the lights.<br>
+                Look north. Wait. Wonder.
+            </p>
+            <div class="footer-lights">
+                <div class="footer-light"></div>
+                <div class="footer-light"></div>
+                <div class="footer-light"></div>
+                <div class="footer-light"></div>
+                <div class="footer-light"></div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Generate star field
+        function createStarfield() {
+            const starfield = document.getElementById('starfield');
+            const starCount = 180;
+            const types = ['star--tiny', 'star--small', 'star--bright'];
+            const weights = [0.6, 0.3, 0.1];
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+
+                const rand = Math.random();
+                let cumulative = 0;
+                let selectedType = types[0];
+                for (let j = 0; j < weights.length; j++) {
+                    cumulative += weights[j];
+                    if (rand < cumulative) {
+                        selectedType = types[j];
+                        break;
+                    }
+                }
+
+                star.classList.add(selectedType);
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = (Math.random() * 6) + 's';
+                star.style.animationDuration = (Math.random() * 4 + 3) + 's';
+
+                starfield.appendChild(star);
+            }
+        }
+
+        createStarfield();
+
+        // Subtle parallax on scroll for aurora bands
+        window.addEventListener('scroll', function() {
+            const scrollY = window.scrollY;
+            const bands = document.querySelectorAll('.aurora-band');
+
+            bands.forEach(function(band, index) {
+                const speed = 0.03 + (index * 0.015);
+                band.style.transform = 'translateY(' + (scrollY * speed) + 'px) skewX(' + (Math.sin(scrollY * 0.002 + index) * 2) + 'deg)';
+            });
+        });
+    </script>
+</body>
+</html>

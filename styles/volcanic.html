@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volcanic — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Rajdhani:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           VOLCANIC DESIGN SYSTEM
+           Forged in fire, tempered by basalt
+           Where molten earth meets obsidian sky
+        ================================================================ */
+
+        /* --- DESIGN TOKENS / CSS VARIABLES --- */
+        :root {
+            /* MAGMA PALETTE - Colors of the earth's core */
+            --lava-red: #D4220A;
+            --lava-red-glow: rgba(212, 34, 10, 0.6);
+            --ember-orange: #E8650A;
+            --ember-orange-glow: rgba(232, 101, 10, 0.5);
+            --molten-gold: #F0A500;
+            --molten-gold-glow: rgba(240, 165, 0, 0.5);
+            --magma-core: #FF3D00;
+            --magma-core-glow: rgba(255, 61, 0, 0.6);
+            --ash-warm: #BFA58A;
+            --caldera-teal: #3A7D7B;
+
+            /* OBSIDIAN BACKGROUNDS - The cooled crust */
+            --bg-abyss: #0A0807;
+            --bg-obsidian: #0F0D0B;
+            --bg-basalt: #1A1614;
+            --bg-charcoal: #241F1C;
+            --bg-pumice: #2E2824;
+            --bg-tephra: #3A322D;
+
+            /* TEXT COLORS */
+            --text-primary: #E8DDD0;
+            --text-secondary: #B0A090;
+            --text-muted: #6B5E52;
+            --text-hot: var(--ember-orange);
+
+            /* BORDERS & ACCENTS */
+            --border-dim: rgba(212, 34, 10, 0.12);
+            --border-warm: rgba(232, 101, 10, 0.3);
+            --border-active: var(--lava-red);
+
+            /* GRADIENTS */
+            --gradient-lava: linear-gradient(135deg, var(--lava-red), var(--ember-orange), var(--molten-gold));
+            --gradient-magma: linear-gradient(180deg, var(--magma-core), var(--lava-red), var(--bg-abyss));
+            --gradient-ember: linear-gradient(90deg, var(--lava-red), var(--ember-orange));
+            --gradient-crust: linear-gradient(135deg, var(--bg-basalt), var(--bg-charcoal));
+            --gradient-heat: linear-gradient(0deg,
+                rgba(212, 34, 10, 0.0),
+                rgba(212, 34, 10, 0.03),
+                rgba(232, 101, 10, 0.05),
+                rgba(240, 165, 0, 0.02),
+                rgba(212, 34, 10, 0.0)
+            );
+
+            /* TYPOGRAPHY */
+            --font-display: 'Oswald', sans-serif;
+            --font-body: 'Rajdhani', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            /* SPACING SCALE (4px base) */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 32px;
+            --space-xl: 64px;
+            --space-2xs: 2px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* EFFECTS */
+            --glow-lava: 0 0 8px var(--lava-red-glow), 0 0 24px var(--lava-red-glow);
+            --glow-ember: 0 0 8px var(--ember-orange-glow), 0 0 20px var(--ember-orange-glow);
+            --glow-gold: 0 0 8px var(--molten-gold-glow), 0 0 20px var(--molten-gold-glow);
+            --shadow-volcanic: 0 8px 32px rgba(0, 0, 0, 0.6), 0 2px 8px rgba(212, 34, 10, 0.1);
+
+            /* TRANSITIONS */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s ease;
+            --transition-slow: 0.6s ease;
+
+            /* BORDER RADIUS */
+            --radius-sm: 2px;
+            --radius-md: 4px;
+            --radius-lg: 6px;
+        }
+
+        /* --- KEYFRAME ANIMATIONS --- */
+
+        /* Ember pulse - gentle breathing glow */
+        @keyframes ember-pulse {
+            0%, 100% {
+                box-shadow: 0 0 4px var(--lava-red-glow), 0 0 12px var(--lava-red-glow);
+            }
+            50% {
+                box-shadow: 0 0 8px var(--lava-red-glow), 0 0 28px var(--lava-red-glow), 0 0 48px rgba(212, 34, 10, 0.2);
+            }
+        }
+
+        /* Lava flow - slow gradient shift */
+        @keyframes lava-flow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Heat shimmer - subtle distortion */
+        @keyframes heat-shimmer {
+            0%, 100% { transform: translateY(0); opacity: 1; }
+            25% { transform: translateY(-1px); opacity: 0.97; }
+            50% { transform: translateY(0); opacity: 1; }
+            75% { transform: translateY(1px); opacity: 0.98; }
+        }
+
+        /* Magma crack glow */
+        @keyframes crack-glow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Rising ash */
+        @keyframes ash-rise {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Smoke drift */
+        @keyframes smoke-drift {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 0.15; }
+            100% { transform: translateY(-60px) translateX(20px) scale(1.5); opacity: 0; }
+        }
+
+        /* Loading magma scan */
+        @keyframes magma-scan {
+            0% { left: -40%; }
+            100% { left: 100%; }
+        }
+
+        /* --- BASE RESET & GLOBAL STYLES --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-abyss);
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: 0.3px;
+        }
+
+        /* --- ATMOSPHERIC OVERLAYS --- */
+
+        /* Cracked earth texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(ellipse at 30% 70%, rgba(212, 34, 10, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 30%, rgba(232, 101, 10, 0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 100%, rgba(255, 61, 0, 0.06) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Volcanic vignette */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(10, 8, 7, 0.5) 100%);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Ash particle container */
+        .ash-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 3;
+            overflow: hidden;
+        }
+
+        .ash-particle {
+            position: absolute;
+            bottom: -10px;
+            width: 3px;
+            height: 3px;
+            background: var(--ash-warm);
+            border-radius: 50%;
+            animation: ash-rise linear infinite;
+            opacity: 0;
+        }
+
+        /* Noise / grain texture */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.025;
+            pointer-events: none;
+            z-index: 4;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        /* --- LAYOUT --- */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-6);
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- HEADER / HERO --- */
+        .header {
+            padding: var(--space-9) 0 var(--space-8);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: linear-gradient(0deg, rgba(212, 34, 10, 0.06), transparent);
+            pointer-events: none;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--gradient-lava);
+            background-size: 200% 100%;
+            animation: lava-flow 6s ease infinite;
+        }
+
+        .header-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--ember-orange);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-bottom: var(--space-3);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .header-label::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--lava-red);
+            box-shadow: var(--glow-lava);
+            animation: ember-pulse 3s ease-in-out infinite;
+        }
+
+        .header-title {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 6rem);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            line-height: 0.95;
+            background: var(--gradient-lava);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: lava-flow 8s ease infinite;
+            margin-bottom: var(--space-4);
+        }
+
+        .header-subtitle {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            font-weight: 300;
+            color: var(--text-secondary);
+            letter-spacing: 1px;
+            max-width: 50ch;
+            line-height: 1.7;
+        }
+
+        .header-meta {
+            margin-top: var(--space-5);
+            display: flex;
+            gap: var(--space-5);
+            flex-wrap: wrap;
+        }
+
+        .header-meta-item {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header-meta-item span {
+            color: var(--ember-orange);
+        }
+
+        /* --- SECTION STYLES --- */
+        .section {
+            padding: var(--space-8) 0;
+            border-bottom: 1px solid var(--border-dim);
+            position: relative;
+        }
+
+        .section::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background: var(--gradient-ember);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-7);
+        }
+
+        .section-number {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--lava-red);
+            font-weight: 500;
+            margin-bottom: var(--space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .section-number::before {
+            content: '';
+            width: 24px;
+            height: 2px;
+            background: var(--lava-red);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--text-primary);
+            margin-bottom: var(--space-3);
+        }
+
+        .section-description {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            max-width: 60ch;
+            line-height: 1.7;
+        }
+
+        /* --- 01. COLOR PALETTE --- */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+            gap: var(--space-4);
+        }
+
+        .color-swatch {
+            background: var(--bg-charcoal);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: all var(--transition-base);
+            position: relative;
+        }
+
+        .color-swatch::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--swatch-color, var(--lava-red));
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-volcanic);
+            border-color: var(--border-warm);
+        }
+
+        .color-swatch:hover::after {
+            opacity: 1;
+        }
+
+        .color-preview {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .color-info {
+            padding: var(--space-3) var(--space-4);
+            background: var(--bg-basalt);
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2xs);
+        }
+
+        .color-value {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .color-category {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-4);
+            margin-top: var(--space-6);
+        }
+
+        .color-category:first-of-type {
+            margin-top: 0;
+        }
+
+        /* --- 02. TYPOGRAPHY --- */
+        .type-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .type-specimen {
+            padding: var(--space-5);
+            background: var(--bg-charcoal);
+            border-left: 3px solid var(--lava-red);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: var(--space-4);
+            flex-wrap: wrap;
+            transition: all var(--transition-base);
+        }
+
+        .type-specimen:hover {
+            border-left-color: var(--ember-orange);
+            background: var(--bg-pumice);
+        }
+
+        .type-sample {
+            flex: 1;
+            min-width: 200px;
+            overflow: hidden;
+        }
+
+        .type-meta {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .type-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .type-specs {
+            font-family: var(--font-mono);
+            font-size: 0.6rem;
+            color: var(--ember-orange);
+        }
+
+        .font-display { font-family: var(--font-display); }
+        .font-body { font-family: var(--font-body); }
+        .font-mono { font-family: var(--font-mono); }
+
+        .text-6xl { font-size: 4rem; line-height: 0.95; }
+        .text-5xl { font-size: 3rem; line-height: 1; }
+        .text-4xl { font-size: 2.25rem; line-height: 1.1; }
+        .text-3xl { font-size: 1.75rem; line-height: 1.2; }
+        .text-2xl { font-size: 1.5rem; line-height: 1.3; }
+        .text-xl { font-size: 1.25rem; line-height: 1.4; }
+        .text-lg { font-size: 1.1rem; line-height: 1.5; }
+        .text-base { font-size: 1rem; line-height: 1.6; }
+        .text-sm { font-size: 0.875rem; line-height: 1.5; }
+        .text-xs { font-size: 0.75rem; line-height: 1.4; }
+
+        .fw-700 { font-weight: 700; }
+        .fw-600 { font-weight: 600; }
+        .fw-500 { font-weight: 500; }
+        .fw-400 { font-weight: 400; }
+        .fw-300 { font-weight: 300; }
+
+        /* --- 03. SPACING SCALE --- */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+        }
+
+        .spacing-label {
+            width: 90px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .spacing-bar {
+            height: 20px;
+            background: var(--gradient-ember);
+            border-radius: var(--radius-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -40%;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: magma-scan 3s linear infinite;
+        }
+
+        .spacing-value {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--ember-orange);
+            width: 40px;
+            flex-shrink: 0;
+        }
+
+        /* --- 04. BUTTONS --- */
+        .button-group {
+            margin-bottom: var(--space-6);
+        }
+
+        .button-group-title {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-4);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-4);
+            align-items: center;
+        }
+
+        .btn {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: var(--space-3) var(--space-5);
+            background: transparent;
+            border: 2px solid var(--lava-red);
+            color: var(--lava-red);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-fast);
+            border-radius: var(--radius-sm);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--lava-red);
+            transition: left var(--transition-fast);
+            z-index: -1;
+        }
+
+        .btn:hover {
+            color: var(--bg-abyss);
+            box-shadow: var(--glow-lava);
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Primary - filled */
+        .btn-primary {
+            background: var(--lava-red);
+            color: #fff;
+            border-color: var(--lava-red);
+        }
+
+        .btn-primary::before {
+            background: var(--magma-core);
+        }
+
+        .btn-primary:hover {
+            color: #fff;
+            border-color: var(--magma-core);
+        }
+
+        /* Secondary - ember outline */
+        .btn-secondary {
+            border-color: var(--ember-orange);
+            color: var(--ember-orange);
+        }
+
+        .btn-secondary::before {
+            background: var(--ember-orange);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: var(--glow-ember);
+        }
+
+        /* Molten - gold accent */
+        .btn-molten {
+            border-color: var(--molten-gold);
+            color: var(--molten-gold);
+        }
+
+        .btn-molten::before {
+            background: var(--molten-gold);
+        }
+
+        .btn-molten:hover {
+            box-shadow: var(--glow-gold);
+            color: var(--bg-abyss);
+        }
+
+        /* Cooled - muted, teal tones */
+        .btn-cooled {
+            border-color: var(--caldera-teal);
+            color: var(--caldera-teal);
+        }
+
+        .btn-cooled::before {
+            background: var(--caldera-teal);
+        }
+
+        .btn-cooled:hover {
+            color: var(--bg-abyss);
+        }
+
+        /* Sizes */
+        .btn-sm {
+            font-size: 0.7rem;
+            padding: var(--space-2) var(--space-3);
+            letter-spacing: 1px;
+        }
+
+        .btn-lg {
+            font-size: 0.9rem;
+            padding: var(--space-4) var(--space-7);
+            letter-spacing: 3px;
+        }
+
+        /* Disabled */
+        .btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .btn:disabled:hover {
+            color: var(--lava-red);
+            box-shadow: none;
+        }
+
+        .btn:disabled:hover::before {
+            left: -100%;
+        }
+
+        .btn-primary:disabled:hover {
+            color: #fff;
+        }
+
+        /* --- 05. FORMS --- */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .input-group {
+            margin-bottom: var(--space-5);
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-2);
+        }
+
+        .input-label .required {
+            color: var(--lava-red);
+            margin-left: var(--space-xs);
+        }
+
+        .input-field {
+            width: 100%;
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            padding: var(--space-3) var(--space-4);
+            background: var(--bg-obsidian);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            transition: all var(--transition-fast);
+            outline: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--ember-orange);
+            box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.15), var(--glow-ember);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-field.error {
+            border-color: var(--lava-red);
+        }
+
+        .input-field.error:focus {
+            box-shadow: 0 0 0 3px rgba(212, 34, 10, 0.15), var(--glow-lava);
+        }
+
+        textarea.input-field {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .input-hint {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-top: var(--space-xs);
+            letter-spacing: 0.5px;
+        }
+
+        .input-error {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--lava-red);
+            margin-top: var(--space-xs);
+        }
+
+        /* Select wrapper */
+        .select-wrapper {
+            position: relative;
+        }
+
+        .select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: var(--space-4);
+            top: 50%;
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid var(--ember-orange);
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        select.input-field {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        /* Checkbox & Radio */
+        .check-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-3);
+        }
+
+        .check-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+
+        .check-label:hover {
+            color: var(--text-primary);
+        }
+
+        .check-label input[type="checkbox"],
+        .check-label input[type="radio"] {
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-warm);
+            background: var(--bg-obsidian);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+        }
+
+        .check-label input[type="checkbox"] {
+            border-radius: var(--radius-sm);
+        }
+
+        .check-label input[type="radio"] {
+            border-radius: 50%;
+        }
+
+        .check-label input[type="checkbox"]:checked {
+            background: var(--lava-red);
+            border-color: var(--lava-red);
+        }
+
+        .check-label input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1px;
+            width: 5px;
+            height: 9px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .check-label input[type="radio"]:checked {
+            border-color: var(--ember-orange);
+        }
+
+        .check-label input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 8px;
+            height: 8px;
+            background: var(--ember-orange);
+            border-radius: 50%;
+        }
+
+        .check-label input:focus {
+            box-shadow: 0 0 0 3px rgba(232, 101, 10, 0.2);
+        }
+
+        /* --- 06. CARDS --- */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .card {
+            background: var(--bg-charcoal);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            padding: var(--space-6);
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition-base);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-lava);
+            background-size: 200% 100%;
+            animation: lava-flow 6s ease infinite;
+        }
+
+        /* Cracked earth texture effect on cards */
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                linear-gradient(45deg, transparent 48%, rgba(212, 34, 10, 0.03) 49%, rgba(212, 34, 10, 0.03) 51%, transparent 52%),
+                linear-gradient(-30deg, transparent 48%, rgba(232, 101, 10, 0.02) 49%, rgba(232, 101, 10, 0.02) 51%, transparent 52%);
+            background-size: 60px 60px, 80px 80px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-warm);
+            box-shadow: var(--shadow-volcanic);
+        }
+
+        .card:hover::after {
+            opacity: 1;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-pumice);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: var(--space-4);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--space-3);
+            color: var(--text-primary);
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: var(--space-4);
+        }
+
+        .card-footer {
+            display: flex;
+            gap: var(--space-3);
+            padding-top: var(--space-4);
+            border-top: 1px solid var(--border-dim);
+        }
+
+        /* Card variants */
+        .card-magma {
+            border-color: rgba(255, 61, 0, 0.2);
+            background: linear-gradient(180deg, var(--bg-charcoal), rgba(255, 61, 0, 0.03));
+        }
+
+        .card-magma::before {
+            background: var(--magma-core);
+            box-shadow: 0 0 16px var(--magma-core-glow);
+        }
+
+        .card-obsidian {
+            background: var(--bg-obsidian);
+            border-color: rgba(176, 160, 144, 0.1);
+        }
+
+        .card-obsidian::before {
+            background: linear-gradient(90deg, var(--bg-tephra), var(--ash-warm), var(--bg-tephra));
+        }
+
+        /* --- 07. ALERTS / NOTIFICATIONS --- */
+        .alert {
+            padding: var(--space-4) var(--space-5);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            background: var(--bg-charcoal);
+            margin-bottom: var(--space-4);
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-4);
+            overflow: hidden;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+
+        .alert-icon {
+            font-size: 1.2rem;
+            line-height: 1;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--space-2xs);
+        }
+
+        .alert-message {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Alert variants */
+        .alert-info::before { background: var(--caldera-teal); }
+        .alert-info .alert-title { color: var(--caldera-teal); }
+        .alert-info .alert-icon { color: var(--caldera-teal); }
+
+        .alert-success::before { background: #5B8C3E; }
+        .alert-success .alert-title { color: #7AB556; }
+        .alert-success .alert-icon { color: #7AB556; }
+
+        .alert-warning::before {
+            background: var(--ember-orange);
+            box-shadow: 0 0 8px var(--ember-orange-glow);
+        }
+        .alert-warning .alert-title { color: var(--ember-orange); }
+        .alert-warning .alert-icon { color: var(--ember-orange); }
+
+        .alert-error::before {
+            background: var(--lava-red);
+            box-shadow: 0 0 8px var(--lava-red-glow);
+            animation: crack-glow 2s ease-in-out infinite;
+        }
+        .alert-error .alert-title { color: var(--lava-red); }
+        .alert-error .alert-icon { color: var(--lava-red); }
+
+        /* --- VOLCANIC DIVIDER --- */
+        .volcanic-divider {
+            display: flex;
+            align-items: center;
+            gap: var(--space-4);
+            margin: var(--space-7) 0;
+        }
+
+        .volcanic-divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-warm), transparent);
+        }
+
+        .volcanic-divider-icon {
+            width: 12px;
+            height: 12px;
+            background: var(--lava-red);
+            transform: rotate(45deg);
+            box-shadow: var(--glow-lava);
+            animation: ember-pulse 3s ease-in-out infinite;
+        }
+
+        /* --- DESIGN PRINCIPLES --- */
+        .principle-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .principle-item {
+            padding: var(--space-5);
+            background: var(--bg-charcoal);
+            border-left: 3px solid var(--lava-red);
+            border-radius: 0 var(--radius-md) var(--radius-md) 0;
+            transition: all var(--transition-base);
+        }
+
+        .principle-item:hover {
+            border-left-color: var(--ember-orange);
+            transform: translateX(6px);
+            background: var(--bg-pumice);
+        }
+
+        .principle-number {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--lava-red);
+            line-height: 1;
+            margin-bottom: var(--space-3);
+            opacity: 0.7;
+        }
+
+        .principle-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: var(--space-3);
+            color: var(--text-primary);
+        }
+
+        .principle-text {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+
+        /* --- LAVA FLOW SHOWCASE --- */
+        .lava-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: var(--space-5);
+            margin-top: var(--space-6);
+        }
+
+        .lava-demo {
+            padding: var(--space-5);
+            background: var(--bg-charcoal);
+            border: 1px solid var(--border-dim);
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+
+        .lava-preview {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-4);
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .lava-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .effect-lava-flow {
+            background: var(--gradient-lava);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: lava-flow 4s ease infinite;
+        }
+
+        .effect-ember-glow {
+            color: var(--ember-orange);
+            text-shadow: 0 0 10px var(--ember-orange-glow), 0 0 30px var(--ember-orange-glow);
+            animation: ember-pulse 2s ease-in-out infinite;
+        }
+
+        .effect-heat-shimmer {
+            color: var(--lava-red);
+            animation: heat-shimmer 2s ease infinite;
+        }
+
+        .effect-crack-glow {
+            color: var(--molten-gold);
+            text-shadow: 0 0 6px var(--molten-gold-glow), 0 0 20px var(--molten-gold-glow);
+            animation: crack-glow 2s ease-in-out infinite;
+        }
+
+        /* --- FOOTER --- */
+        .footer {
+            padding: var(--space-8) 0 var(--space-6);
+            text-align: center;
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            height: 2px;
+            background: var(--gradient-ember);
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            background: var(--gradient-lava);
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: lava-flow 8s ease infinite;
+            margin-bottom: var(--space-3);
+        }
+
+        .footer-text {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .footer-tagline {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: var(--space-4);
+            font-style: italic;
+        }
+
+        /* --- UTILITY CLASSES --- */
+        .text-center { text-align: center; }
+        .text-lava { color: var(--lava-red); }
+        .text-ember { color: var(--ember-orange); }
+        .text-gold { color: var(--molten-gold); }
+        .text-ash { color: var(--ash-warm); }
+        .text-teal { color: var(--caldera-teal); }
+        .text-muted { color: var(--text-muted); }
+        .mt-2 { margin-top: var(--space-2); }
+        .mt-4 { margin-top: var(--space-4); }
+        .mt-6 { margin-top: var(--space-6); }
+        .mb-4 { margin-bottom: var(--space-4); }
+        .mb-6 { margin-bottom: var(--space-6); }
+        .full-span { grid-column: 1 / -1; }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-4);
+            }
+
+            .header {
+                padding: var(--space-7) 0 var(--space-6);
+            }
+
+            .header-meta {
+                flex-direction: column;
+                gap: var(--space-2);
+            }
+
+            .section {
+                padding: var(--space-6) 0;
+            }
+
+            .section-title {
+                font-size: 1.6rem;
+            }
+
+            .button-row {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .type-specimen {
+                padding: var(--space-4);
+            }
+
+            .type-meta {
+                text-align: left;
+                width: 100%;
+            }
+
+            .text-6xl { font-size: 2.5rem; }
+            .text-5xl { font-size: 2rem; }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .spacing-bar {
+                max-width: 60%;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .lava-showcase {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .principle-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Ash particles -->
+    <div class="ash-container" id="ashContainer"></div>
+
+    <!-- Grain overlay -->
+    <div class="noise-overlay"></div>
+
+    <div class="container">
+        <!-- HEADER -->
+        <header class="header">
+            <p class="header-label">Design System v1.0</p>
+            <h1 class="header-title">Volcanic</h1>
+            <p class="header-subtitle">A design language forged in the earth's crucible. Deep obsidian surfaces meet rivers of molten color, where cracked basalt textures frame ember glows and cooling magma gradients.</p>
+            <div class="header-meta">
+                <span class="header-meta-item">Framework: <span>Igneous</span></span>
+                <span class="header-meta-item">Build: <span>2026.02</span></span>
+                <span class="header-meta-item">Temp: <span>1200 C</span></span>
+            </div>
+        </header>
+
+        <!-- 01. COLOR PALETTE -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">01</p>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-description">Drawn from the volcanic spectrum: the incandescent core of molten magma, the warm glow of cooling embers, the absolute darkness of obsidian, and the muted tones of volcanic ash.</p>
+            </div>
+
+            <p class="color-category">Magma Accents</p>
+            <div class="color-grid mb-4">
+                <div class="color-swatch" style="--swatch-color: var(--lava-red);">
+                    <div class="color-preview" style="background: var(--lava-red); color: #fff;">Lava</div>
+                    <div class="color-info">
+                        <div class="color-name">Lava Red</div>
+                        <div class="color-value">#D4220A</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--ember-orange);">
+                    <div class="color-preview" style="background: var(--ember-orange); color: #fff;">Ember</div>
+                    <div class="color-info">
+                        <div class="color-name">Ember Orange</div>
+                        <div class="color-value">#E8650A</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--molten-gold);">
+                    <div class="color-preview" style="background: var(--molten-gold); color: #0A0807;">Molten</div>
+                    <div class="color-info">
+                        <div class="color-name">Molten Gold</div>
+                        <div class="color-value">#F0A500</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--magma-core);">
+                    <div class="color-preview" style="background: var(--magma-core); color: #fff;">Core</div>
+                    <div class="color-info">
+                        <div class="color-name">Magma Core</div>
+                        <div class="color-value">#FF3D00</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--caldera-teal);">
+                    <div class="color-preview" style="background: var(--caldera-teal); color: #fff;">Caldera</div>
+                    <div class="color-info">
+                        <div class="color-name">Caldera Teal</div>
+                        <div class="color-value">#3A7D7B</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--ash-warm);">
+                    <div class="color-preview" style="background: var(--ash-warm); color: #0A0807;">Ash</div>
+                    <div class="color-info">
+                        <div class="color-name">Warm Ash</div>
+                        <div class="color-value">#BFA58A</div>
+                    </div>
+                </div>
+            </div>
+
+            <p class="color-category">Obsidian Surfaces</p>
+            <div class="color-grid">
+                <div class="color-swatch" style="--swatch-color: var(--lava-red);">
+                    <div class="color-preview" style="background: var(--bg-abyss); color: var(--text-muted); border: 1px solid var(--border-dim);">Abyss</div>
+                    <div class="color-info">
+                        <div class="color-name">Abyss</div>
+                        <div class="color-value">#0A0807</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--lava-red);">
+                    <div class="color-preview" style="background: var(--bg-obsidian); color: var(--text-muted); border: 1px solid var(--border-dim);">Obsidian</div>
+                    <div class="color-info">
+                        <div class="color-name">Obsidian</div>
+                        <div class="color-value">#0F0D0B</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--lava-red);">
+                    <div class="color-preview" style="background: var(--bg-basalt); color: var(--text-muted); border: 1px solid var(--border-dim);">Basalt</div>
+                    <div class="color-info">
+                        <div class="color-name">Basalt</div>
+                        <div class="color-value">#1A1614</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--lava-red);">
+                    <div class="color-preview" style="background: var(--bg-charcoal); color: var(--text-muted); border: 1px solid var(--border-dim);">Charcoal</div>
+                    <div class="color-info">
+                        <div class="color-name">Charcoal</div>
+                        <div class="color-value">#241F1C</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--lava-red);">
+                    <div class="color-preview" style="background: var(--bg-pumice); color: var(--text-muted); border: 1px solid var(--border-dim);">Pumice</div>
+                    <div class="color-info">
+                        <div class="color-name">Pumice</div>
+                        <div class="color-value">#2E2824</div>
+                    </div>
+                </div>
+                <div class="color-swatch" style="--swatch-color: var(--lava-red);">
+                    <div class="color-preview" style="background: var(--bg-tephra); color: var(--text-secondary); border: 1px solid var(--border-dim);">Tephra</div>
+                    <div class="color-info">
+                        <div class="color-name">Tephra</div>
+                        <div class="color-value">#3A322D</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02. TYPOGRAPHY -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">02</p>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-description">Three typefaces mirror the volcanic character. Oswald's bold, condensed letterforms evoke basalt columns. Rajdhani bridges strength with readability. JetBrains Mono anchors data in precision.</p>
+            </div>
+
+            <div class="type-scale">
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-display text-6xl fw-700 text-lava">ERUPTION</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">Oswald Bold</div>
+                        <div class="type-specs">64px / 700</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-display text-5xl fw-600">BASALT COLUMN</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">Oswald Semibold</div>
+                        <div class="type-specs">48px / 600</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-display text-4xl fw-500">Caldera Formation</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">Oswald Medium</div>
+                        <div class="type-specs">36px / 500</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-display text-2xl fw-400">Section Heading</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">Oswald Regular</div>
+                        <div class="type-specs">24px / 400</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-body text-xl fw-500">Magma chambers deep beneath the surface hold immense pressure, waiting for the moment of release.</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">Rajdhani Medium</div>
+                        <div class="type-specs">20px / 500</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-body text-base">Body text rendered in Rajdhani balances the angular display face with warmth and legibility. The letterforms carry enough geometric structure to feel at home alongside volcanic surfaces. The quick brown fox jumps over the lazy dog.</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">Rajdhani Regular</div>
+                        <div class="type-specs">16px / 400</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-body text-sm fw-300">Caption and secondary text uses a lighter weight to create hierarchy without competing with the bold display typography above.</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">Rajdhani Light</div>
+                        <div class="type-specs">14px / 300</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-mono text-sm text-ember">TEMP: 1200C | DEPTH: 4.2km | STATUS: ACTIVE</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">JetBrains Mono</div>
+                        <div class="type-specs">14px / 400</div>
+                    </div>
+                </div>
+
+                <div class="type-specimen">
+                    <div class="type-sample">
+                        <div class="font-mono text-xs text-muted">SENSOR_ID: VLC-7734 | LAT: -8.3405 | LON: 115.5077 | LAST_READING: 2026-02-14T09:30:00Z</div>
+                    </div>
+                    <div class="type-meta">
+                        <div class="type-label">JetBrains Mono Small</div>
+                        <div class="type-specs">12px / 400</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 03. SPACING -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">03</p>
+                <h2 class="section-title">Spacing Scale</h2>
+                <p class="section-description">A 4px base unit structures the layout like basalt columns -- consistent, geometric, and grounded. Increments provide rhythm from tight data displays to expansive hero sections.</p>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xs</span>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">4px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-sm</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">8px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-md</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">16px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-lg</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                    <span class="spacing-value">32px</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">--space-xl</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                    <span class="spacing-value">64px</span>
+                </div>
+            </div>
+
+            <p class="font-mono text-xs text-muted mt-6">Extended scale: 12px (--space-3), 24px (--space-5), 48px (--space-7), 96px (--space-9)</p>
+        </section>
+
+        <!-- 04. BUTTONS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">04</p>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-description">Interaction elements forged from the volcanic palette. Fill effects sweep like lava flows; glow states radiate ember heat. Disabled states cool to inert stone.</p>
+            </div>
+
+            <div class="button-group">
+                <p class="button-group-title">Variants</p>
+                <div class="button-row">
+                    <button class="btn">Default</button>
+                    <button class="btn btn-primary">Primary</button>
+                    <button class="btn btn-secondary">Secondary</button>
+                    <button class="btn btn-molten">Molten</button>
+                    <button class="btn btn-cooled">Cooled</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <p class="button-group-title">Sizes</p>
+                <div class="button-row">
+                    <button class="btn btn-sm btn-primary">Small</button>
+                    <button class="btn btn-primary">Default</button>
+                    <button class="btn btn-lg btn-primary">Large</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <p class="button-group-title">Disabled States</p>
+                <div class="button-row">
+                    <button class="btn" disabled>Default</button>
+                    <button class="btn btn-primary" disabled>Primary</button>
+                    <button class="btn btn-secondary" disabled>Secondary</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 05. FORMS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">05</p>
+                <h2 class="section-title">Forms</h2>
+                <p class="section-description">Input fields set against obsidian backgrounds with warm ember focus states. The glow intensifies on interaction, like heat radiating from fissures in cooled rock.</p>
+            </div>
+
+            <div class="form-grid">
+                <div class="input-group">
+                    <label class="input-label">Volcano Name <span class="required">*</span></label>
+                    <input type="text" class="input-field" placeholder="Enter volcano designation...">
+                    <p class="input-hint">Primary identification for geological records</p>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Access Code</label>
+                    <input type="password" class="input-field" value="secretpassword">
+                    <p class="input-hint">Encrypted seismic station credentials</p>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Classification</label>
+                    <div class="select-wrapper">
+                        <select class="input-field">
+                            <option>Select volcanic type...</option>
+                            <option>Stratovolcano</option>
+                            <option>Shield Volcano</option>
+                            <option>Caldera</option>
+                            <option>Cinder Cone</option>
+                            <option>Lava Dome</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Error State</label>
+                    <input type="text" class="input-field error" value="INVALID_COORDINATES">
+                    <p class="input-error">Location does not match known volcanic zone</p>
+                </div>
+
+                <div class="input-group full-span">
+                    <label class="input-label">Field Notes</label>
+                    <textarea class="input-field" placeholder="Record geological observations..."></textarea>
+                    <p class="input-hint">Maximum 2000 characters</p>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Activity Level</label>
+                    <div class="check-group">
+                        <label class="check-label">
+                            <input type="checkbox" checked>
+                            Seismic tremors detected
+                        </label>
+                        <label class="check-label">
+                            <input type="checkbox" checked>
+                            Gas emissions elevated
+                        </label>
+                        <label class="check-label">
+                            <input type="checkbox">
+                            Lava dome growth observed
+                        </label>
+                        <label class="check-label">
+                            <input type="checkbox">
+                            Pyroclastic flow risk
+                        </label>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Alert Priority</label>
+                    <div class="check-group">
+                        <label class="check-label">
+                            <input type="radio" name="priority">
+                            Green -- Normal
+                        </label>
+                        <label class="check-label">
+                            <input type="radio" name="priority" checked>
+                            Yellow -- Advisory
+                        </label>
+                        <label class="check-label">
+                            <input type="radio" name="priority">
+                            Orange -- Watch
+                        </label>
+                        <label class="check-label">
+                            <input type="radio" name="priority">
+                            Red -- Warning
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06. CARDS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">06</p>
+                <h2 class="section-title">Cards & Panels</h2>
+                <p class="section-description">Content containers with animated lava-flow top borders and subtle cracked-earth textures revealed on hover. Three variants span the thermal spectrum from active to cooled.</p>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-icon text-ember">&#9651;</div>
+                    <h3 class="card-title">Magma Chamber</h3>
+                    <p class="card-content">Standard card component with the default lava-gradient top border. Cracked earth texture patterns appear on hover, revealing the volcanic nature beneath the obsidian surface.</p>
+                    <div class="card-footer">
+                        <button class="btn btn-sm btn-primary">Monitor</button>
+                        <button class="btn btn-sm">Details</button>
+                    </div>
+                </div>
+
+                <div class="card card-magma">
+                    <div class="card-icon text-lava">&#9888;</div>
+                    <h3 class="card-title">Active Eruption</h3>
+                    <p class="card-content">The magma variant signals heightened status with a glowing top border and warm background gradient -- ideal for alerts, active monitoring, or critical data displays.</p>
+                    <div class="card-footer">
+                        <button class="btn btn-sm btn-primary">Respond</button>
+                    </div>
+                </div>
+
+                <div class="card card-obsidian">
+                    <div class="card-icon text-ash">&#8982;</div>
+                    <h3 class="card-title">Cooled Basalt</h3>
+                    <p class="card-content">The obsidian variant is subdued and grounded. Its muted ash-tone top border and darker background suit archival content, secondary information, and dormant system states.</p>
+                    <div class="card-footer">
+                        <button class="btn btn-sm btn-cooled">Archive</button>
+                        <button class="btn btn-sm">View</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 07. ALERTS -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">07</p>
+                <h2 class="section-title">Alerts & Notifications</h2>
+                <p class="section-description">System messages mapped to volcanic alert levels. The error state pulses with a living ember glow to demand attention, while informational alerts use the caldera teal for calm acknowledgement.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">&#8505;</div>
+                <div class="alert-content">
+                    <div class="alert-title">Seismic Activity Noted</div>
+                    <div class="alert-message">Low-frequency tremors detected at 4.2km depth. Consistent with normal background activity for this caldera system.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <div class="alert-icon">&#10004;</div>
+                <div class="alert-content">
+                    <div class="alert-title">System Nominal</div>
+                    <div class="alert-message">All seismic monitoring stations reporting within normal parameters. Gas emission levels stable. No evacuation measures required.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">&#9888;</div>
+                <div class="alert-content">
+                    <div class="alert-title">Elevated Emissions</div>
+                    <div class="alert-message">Sulfur dioxide output has increased 340% over the past 48 hours. Magma may be ascending within the conduit. Advisory level raised to Orange.</div>
+                </div>
+            </div>
+
+            <div class="alert alert-error">
+                <div class="alert-icon">&#10006;</div>
+                <div class="alert-content">
+                    <div class="alert-title">Eruption Imminent</div>
+                    <div class="alert-message">Harmonic tremor detected. Rapid ground deformation confirms magma breakthrough is imminent. Initiate evacuation protocol immediately.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- VOLCANIC DIVIDER -->
+        <div class="volcanic-divider">
+            <div class="volcanic-divider-line"></div>
+            <div class="volcanic-divider-icon"></div>
+            <div class="volcanic-divider-line"></div>
+        </div>
+
+        <!-- 08. DESIGN PRINCIPLES -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">08</p>
+                <h2 class="section-title">Design Principles</h2>
+                <p class="section-description">The philosophy behind the volcanic aesthetic.</p>
+            </div>
+
+            <div class="principle-grid">
+                <div class="principle-item">
+                    <div class="principle-number">01</div>
+                    <h3 class="principle-title">Darkness First</h3>
+                    <p class="principle-text">Begin with deep obsidian and basalt. The darkest backgrounds create depth and make every accent color feel like molten light escaping from fissures in the earth.</p>
+                </div>
+
+                <div class="principle-item">
+                    <div class="principle-number">02</div>
+                    <h3 class="principle-title">Controlled Heat</h3>
+                    <p class="principle-text">Use warm colors with surgical precision. A single lava accent against black is more powerful than a full spectrum. Heat is most visible in darkness.</p>
+                </div>
+
+                <div class="principle-item">
+                    <div class="principle-number">03</div>
+                    <h3 class="principle-title">Textured Surfaces</h3>
+                    <p class="principle-text">Nothing in nature is flat. Subtle gradients, grain overlays, and crack patterns give surfaces the tactile quality of actual volcanic rock.</p>
+                </div>
+
+                <div class="principle-item">
+                    <div class="principle-number">04</div>
+                    <h3 class="principle-title">Living Elements</h3>
+                    <p class="principle-text">Gentle animations suggest geological processes: slow lava flows, pulsing embers, drifting ash. Movement should feel inevitable and unhurried, like the earth itself.</p>
+                </div>
+
+                <div class="principle-item">
+                    <div class="principle-number">05</div>
+                    <h3 class="principle-title">Monumental Weight</h3>
+                    <p class="principle-text">Typography and layout should feel massive and grounded. Heavy display faces, generous spacing, and strong vertical rhythms channel the permanence of stone.</p>
+                </div>
+
+                <div class="principle-item">
+                    <div class="principle-number">06</div>
+                    <h3 class="principle-title">Thermal Hierarchy</h3>
+                    <p class="principle-text">Use the heat spectrum to signal importance. The hottest colors (gold, white-hot) for critical actions, warm reds for primary, and cool ash tones for secondary information.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FX. EFFECTS SHOWCASE -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">FX</p>
+                <h2 class="section-title">Animation Effects</h2>
+                <p class="section-description">CSS animations evoke geological processes -- the slow flow of magma, the pulse of embers, the shimmer of superheated air rising from fissures.</p>
+            </div>
+
+            <div class="lava-showcase">
+                <div class="lava-demo">
+                    <div class="lava-preview effect-lava-flow">FLOW</div>
+                    <div class="lava-label">Lava Flow</div>
+                </div>
+                <div class="lava-demo">
+                    <div class="lava-preview effect-ember-glow">EMBER</div>
+                    <div class="lava-label">Ember Pulse</div>
+                </div>
+                <div class="lava-demo">
+                    <div class="lava-preview effect-heat-shimmer">SHIMMER</div>
+                    <div class="lava-label">Heat Shimmer</div>
+                </div>
+                <div class="lava-demo">
+                    <div class="lava-preview effect-crack-glow">CRACK</div>
+                    <div class="lava-label">Crack Glow</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p class="footer-brand">Volcanic</p>
+            <p class="footer-text">VOLCANIC DESIGN SYSTEM // FRAMEWORK: IGNEOUS // BUILD 2026.02</p>
+            <p class="footer-tagline">Forged beneath the surface. Tempered by time.</p>
+        </footer>
+    </div>
+
+    <script>
+        // Generate floating ash particles
+        (function createAsh() {
+            var container = document.getElementById('ashContainer');
+            var particleCount = 30;
+
+            for (var i = 0; i < particleCount; i++) {
+                var particle = document.createElement('div');
+                particle.className = 'ash-particle';
+                particle.style.left = (Math.random() * 100) + '%';
+                particle.style.animationDelay = (Math.random() * 10) + 's';
+                particle.style.animationDuration = (Math.random() * 8 + 8) + 's';
+                particle.style.width = (Math.random() * 3 + 1) + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.opacity = (Math.random() * 0.4 + 0.1).toString();
+                container.appendChild(particle);
+            }
+        })();
+    </script>
+</body>
+</html>

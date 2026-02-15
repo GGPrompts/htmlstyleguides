@@ -29,20 +29,20 @@ Suggested themes/styles not yet in the collection. Organized by category.
 - [x] Mono/Developer — monospace everything, code-editor-as-design-system, syntax colors
 
 ## Nature / Environment
-- [ ] Volcanic — lava reds, basalt blacks, ember glows, cracked earth textures
-- [ ] Coral Reef — vivid underwater palette, anemone pinks, deep ocean blues
-- [ ] Desert/Sahara — sand dunes, terracotta, heat haze, burnt sienna
-- [ ] Mushroom/Mycelium — earthy, organic, fungal network patterns, forest floor
-- [ ] Aurora Borealis — curtains of light, arctic sky gradients, ethereal glow
+- [x] Volcanic — lava reds, basalt blacks, ember glows, cracked earth textures
+- [x] Coral Reef — vivid underwater palette, anemone pinks, deep ocean blues
+- [x] Desert/Sahara — sand dunes, terracotta, heat haze, burnt sienna
+- [x] Mushroom/Mycelium — earthy, organic, fungal network patterns, forest floor
+- [x] Aurora Borealis — curtains of light, arctic sky gradients, ethereal glow
 
 ## Tactile / Material
-- [ ] Leather & Wood — tooled leather, aged wood grain, brass hardware, warmth
-- [ ] Origami — folded paper, sharp creases, geometric shadows, clean folds
-- [ ] Roman Mosaic — tessellated stone tiles, classical motifs, aged grout
-- [ ] Cork Board — pinned notes, pushpins, layered paper scraps, string connections
+- [x] Leather & Wood — tooled leather, aged wood grain, brass hardware, warmth
+- [x] Origami — folded paper, sharp creases, geometric shadows, clean folds
+- [x] Roman Mosaic — tessellated stone tiles, classical motifs, aged grout
+- [x] Cork Board — pinned notes, pushpins, layered paper scraps, string connections
 
 ## Genre / Vibe
-- [ ] Steampunk — brass gears, Victorian + industrial, riveted metal, aged copper
+- [x] Steampunk — brass gears, Victorian + industrial, riveted metal, aged copper
 - [ ] Witchcore — dark occult aesthetic, herbs, candles, moon phases, aged paper
 - [ ] Outrun — sunset gradients, palm silhouettes, chrome grid, 80s driving aesthetic
 - [ ] Cassette Futurism — Alien/2001-era analog sci-fi, CRT screens, chunky switches

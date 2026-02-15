@@ -1,0 +1,1785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leather & Wood — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Merriweather:ital,wght@0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           LEATHER & WOOD DESIGN SYSTEM
+           ============================================
+           Tooled leather, aged wood grain, brass hardware.
+           Warmth, craftsman workshop, library study.
+           Stitching details, embossed textures, patina.
+           ============================================ */
+
+        :root {
+            /* LEATHER PALETTE */
+            --leather-dark: #3b2314;
+            --leather-saddle: #6b3a2a;
+            --leather-tan: #8b5e3c;
+            --leather-honey: #a67c52;
+            --leather-buff: #c9a86c;
+            --leather-cream: #e8d5b7;
+
+            /* WOOD PALETTE */
+            --wood-walnut: #3e2723;
+            --wood-mahogany: #5d3a1a;
+            --wood-oak: #7a5230;
+            --wood-maple: #a0784c;
+            --wood-birch: #c9b896;
+            --wood-pine: #dbc8a0;
+
+            /* BRASS & HARDWARE */
+            --brass-dark: #8b6914;
+            --brass: #b8960f;
+            --brass-bright: #d4af37;
+            --brass-light: #e8cc6e;
+            --brass-patina: #7a8a4a;
+            --iron-dark: #3a3632;
+
+            /* SURFACE COLORS */
+            --bg-primary: #2c1e14;
+            --bg-secondary: #3b2a1c;
+            --bg-panel: #4a3728;
+            --bg-inset: #1e140d;
+            --bg-page: #f4ead8;
+
+            /* TEXT COLORS */
+            --text-primary: #ede0cc;
+            --text-secondary: rgba(237, 224, 204, 0.75);
+            --text-muted: rgba(237, 224, 204, 0.5);
+            --text-dark: #2c1e14;
+            --text-dark-secondary: #5d4a3a;
+
+            /* TYPOGRAPHY */
+            --font-display: 'Bitter', Georgia, serif;
+            --font-heading: 'Merriweather', Georgia, serif;
+            --font-body: 'Lora', Georgia, serif;
+
+            /* SPACING */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --space-4xl: 96px;
+
+            /* BORDERS & STITCHING */
+            --stitch-color: #c9a86c;
+            --stitch-width: 2px;
+            --border-brass: 2px solid var(--brass);
+            --border-leather: 1px solid var(--leather-tan);
+
+            /* SHADOWS */
+            --shadow-emboss: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+            --shadow-stamp: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+            --shadow-raise: 0 4px 12px rgba(0, 0, 0, 0.35), 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-deep: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-brass-glow: 0 0 16px rgba(184, 150, 15, 0.15);
+
+            /* TRANSITIONS */
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.3s ease;
+            --transition-slow: 0.5s ease;
+
+            /* RADII */
+            --radius-sm: 3px;
+            --radius-md: 6px;
+            --radius-lg: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 17px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           WOOD GRAIN TEXTURE BACKGROUND
+           ============================================ */
+
+        .wood-grain-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.06;
+            background-image:
+                repeating-linear-gradient(
+                    2deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(139, 94, 60, 0.3) 8px,
+                    rgba(139, 94, 60, 0.3) 9px,
+                    transparent 9px,
+                    transparent 24px,
+                    rgba(107, 58, 42, 0.2) 24px,
+                    rgba(107, 58, 42, 0.2) 25px
+                ),
+                repeating-linear-gradient(
+                    178deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(122, 82, 48, 0.15) 40px,
+                    rgba(122, 82, 48, 0.15) 41px,
+                    transparent 41px,
+                    transparent 80px
+                ),
+                repeating-linear-gradient(
+                    1deg,
+                    transparent,
+                    transparent 15px,
+                    rgba(160, 120, 76, 0.12) 15px,
+                    rgba(160, 120, 76, 0.12) 15.5px
+                );
+            background-attachment: fixed;
+        }
+
+        /* Vignette for depth */
+        .vignette {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: radial-gradient(ellipse at center, transparent 0%, rgba(30, 20, 13, 0.5) 100%);
+        }
+
+        /* ============================================
+           CONTAINER & LAYOUT
+           ============================================ */
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1020px;
+            margin: 0 auto;
+            padding: var(--space-3xl) var(--space-xl);
+        }
+
+        /* ============================================
+           LEATHER STITCHING DIVIDERS
+           ============================================ */
+
+        .stitch-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+            margin: var(--space-2xl) 0;
+        }
+
+        .stitch-divider::before,
+        .stitch-divider::after {
+            content: '';
+            flex: 1;
+            height: 0;
+            border-top: var(--stitch-width) dashed var(--stitch-color);
+            opacity: 0.5;
+        }
+
+        .stitch-divider .brass-rivet {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--brass-bright), var(--brass) 45%, var(--brass-dark) 90%);
+            box-shadow:
+                inset -1px -1px 3px rgba(0, 0, 0, 0.4),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.25),
+                0 1px 3px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+
+        .header {
+            text-align: center;
+            padding: var(--space-4xl) var(--space-xl);
+            margin-bottom: var(--space-3xl);
+            position: relative;
+            background:
+                linear-gradient(135deg, rgba(74, 55, 40, 0.4) 0%, rgba(44, 30, 20, 0.6) 50%, rgba(74, 55, 40, 0.4) 100%);
+            border: 1px solid var(--leather-tan);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-deep);
+        }
+
+        /* Stitching border inside header */
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: var(--stitch-width) dashed var(--stitch-color);
+            border-radius: var(--radius-sm);
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* Corner brass rivets */
+        .header-rivet {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--brass-bright), var(--brass) 45%, var(--brass-dark) 90%);
+            box-shadow:
+                inset -1px -1px 3px rgba(0, 0, 0, 0.4),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.5);
+            z-index: 2;
+        }
+
+        .header-rivet.tl { top: 14px; left: 14px; }
+        .header-rivet.tr { top: 14px; right: 14px; }
+        .header-rivet.bl { bottom: 14px; left: 14px; }
+        .header-rivet.br { bottom: 14px; right: 14px; }
+
+        .header-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.35em;
+            color: var(--brass-bright);
+            margin-bottom: var(--space-lg);
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--leather-cream);
+            margin-bottom: var(--space-md);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            max-width: 520px;
+            margin: 0 auto var(--space-lg);
+        }
+
+        .header-tagline {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           SECTION STRUCTURE
+           ============================================ */
+
+        .section {
+            margin-bottom: var(--space-4xl);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3em;
+            color: var(--brass);
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.875rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            color: var(--leather-cream);
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-subtitle {
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        .tooling-line {
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--brass), transparent);
+            margin: var(--space-md) auto 0;
+        }
+
+        /* ============================================
+           LEATHER PANEL (reusable frame)
+           ============================================ */
+
+        .leather-panel {
+            position: relative;
+            background:
+                linear-gradient(145deg, var(--bg-secondary) 0%, var(--bg-panel) 50%, var(--bg-secondary) 100%);
+            border: 1px solid var(--leather-tan);
+            border-radius: var(--radius-md);
+            padding: var(--space-2xl);
+            box-shadow:
+                var(--shadow-raise),
+                var(--shadow-emboss);
+        }
+
+        /* Stitching inset */
+        .leather-panel::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: var(--stitch-width) dashed var(--stitch-color);
+            border-radius: var(--radius-sm);
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* ============================================
+           01. COLOR PALETTE
+           ============================================ */
+
+        .palette-group {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .palette-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .palette-group-title {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--brass-bright);
+            margin-bottom: var(--space-lg);
+            padding-bottom: var(--space-sm);
+            border-bottom: 1px solid rgba(184, 150, 15, 0.2);
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .color-swatch {
+            text-align: center;
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 70px;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(139, 94, 60, 0.4);
+            box-shadow:
+                inset 0 2px 4px rgba(0, 0, 0, 0.2),
+                0 2px 6px rgba(0, 0, 0, 0.2);
+            margin-bottom: var(--space-sm);
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--leather-cream);
+            margin-bottom: 2px;
+        }
+
+        .color-hex {
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+        }
+
+        /* ============================================
+           02. TYPOGRAPHY
+           ============================================ */
+
+        .type-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .type-specimen {
+            padding-bottom: var(--space-2xl);
+            border-bottom: 1px solid rgba(139, 94, 60, 0.2);
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .type-label {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--brass);
+            margin-bottom: var(--space-md);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 5vw, 3.75rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: var(--leather-cream);
+            line-height: 1.15;
+        }
+
+        .type-h1 {
+            font-family: var(--font-heading);
+            font-size: 2.25rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            color: var(--leather-cream);
+            line-height: 1.25;
+        }
+
+        .type-h2 {
+            font-family: var(--font-heading);
+            font-size: 1.625rem;
+            font-weight: 700;
+            color: var(--leather-buff);
+            line-height: 1.3;
+        }
+
+        .type-h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            font-style: italic;
+            color: var(--leather-honey);
+            line-height: 1.4;
+        }
+
+        .type-body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.75;
+            color: var(--text-secondary);
+            max-width: 62ch;
+        }
+
+        .type-caption {
+            font-family: var(--font-body);
+            font-size: 0.8125rem;
+            font-style: italic;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        /* Blockquote */
+        blockquote {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-style: italic;
+            line-height: 1.6;
+            padding: var(--space-xl) var(--space-2xl);
+            margin: var(--space-2xl) 0;
+            border-left: 4px solid var(--brass);
+            background: rgba(74, 55, 40, 0.3);
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+            color: var(--text-secondary);
+        }
+
+        blockquote cite {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 0.8125rem;
+            font-style: normal;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            margin-top: var(--space-md);
+            color: var(--brass-bright);
+        }
+
+        /* ============================================
+           03. SPACING
+           ============================================ */
+
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .spacing-label {
+            width: 80px;
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--brass);
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .spacing-value {
+            width: 40px;
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .spacing-bar {
+            height: 18px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(90deg, var(--leather-saddle), var(--leather-tan), var(--leather-honey));
+            border: 1px solid rgba(139, 94, 60, 0.4);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+        }
+
+        /* ============================================
+           04. BUTTONS
+           ============================================ */
+
+        .button-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .button-row-label {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--brass);
+            margin-bottom: var(--space-md);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            position: relative;
+            text-decoration: none;
+        }
+
+        /* Sizes */
+        .btn-sm {
+            font-size: 0.75rem;
+            padding: var(--space-sm) var(--space-md);
+        }
+
+        .btn-md {
+            font-size: 0.875rem;
+            padding: var(--space-sm) var(--space-lg);
+            min-height: 42px;
+        }
+
+        .btn-lg {
+            font-size: 1rem;
+            padding: var(--space-md) var(--space-xl);
+            min-height: 50px;
+        }
+
+        /* Primary: Rich leather with brass accents */
+        .btn-primary {
+            background: linear-gradient(180deg, var(--leather-saddle) 0%, var(--leather-dark) 100%);
+            color: var(--leather-cream);
+            border: 1px solid var(--leather-tan);
+            box-shadow:
+                var(--shadow-emboss),
+                0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(180deg, var(--leather-tan) 0%, var(--leather-saddle) 100%);
+            border-color: var(--brass);
+            box-shadow:
+                var(--shadow-emboss),
+                0 3px 10px rgba(0, 0, 0, 0.35),
+                var(--shadow-brass-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            background: linear-gradient(180deg, var(--leather-dark) 0%, var(--leather-saddle) 100%);
+            box-shadow: var(--shadow-stamp);
+            transform: translateY(0);
+        }
+
+        /* Secondary: Wood with subtle grain */
+        .btn-secondary {
+            background: linear-gradient(180deg, var(--wood-oak) 0%, var(--wood-mahogany) 100%);
+            color: var(--wood-pine);
+            border: 1px solid var(--wood-maple);
+            box-shadow:
+                var(--shadow-emboss),
+                0 2px 6px rgba(0, 0, 0, 0.25);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(180deg, var(--wood-maple) 0%, var(--wood-oak) 100%);
+            border-color: var(--brass);
+            box-shadow:
+                var(--shadow-emboss),
+                0 3px 10px rgba(0, 0, 0, 0.3),
+                var(--shadow-brass-glow);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary:active {
+            background: linear-gradient(180deg, var(--wood-mahogany) 0%, var(--wood-oak) 100%);
+            box-shadow: var(--shadow-stamp);
+            transform: translateY(0);
+        }
+
+        /* Ghost: Outlined brass */
+        .btn-ghost {
+            background: transparent;
+            color: var(--brass-bright);
+            border: 1px solid var(--brass);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(184, 150, 15, 0.1);
+            color: var(--brass-light);
+            border-color: var(--brass-bright);
+            box-shadow: var(--shadow-brass-glow);
+        }
+
+        .btn-ghost:active {
+            background: rgba(184, 150, 15, 0.05);
+        }
+
+        /* Disabled */
+        .btn-disabled,
+        .btn:disabled {
+            background: rgba(74, 55, 40, 0.4);
+            color: var(--text-muted);
+            border: 1px solid rgba(139, 94, 60, 0.2);
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-disabled:hover,
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* ============================================
+           05. FORMS
+           ============================================ */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            color: var(--brass-bright);
+            margin-bottom: var(--space-sm);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: var(--bg-inset);
+            border: 1px solid var(--leather-tan);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-stamp);
+            transition: all var(--transition-base);
+            min-height: 42px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--brass);
+            box-shadow:
+                var(--shadow-stamp),
+                0 0 0 3px rgba(184, 150, 15, 0.15);
+        }
+
+        .form-input::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        textarea.form-input {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.65;
+        }
+
+        select.form-input {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23b8960f' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right var(--space-md) center;
+            padding-right: var(--space-2xl);
+        }
+
+        /* Checkbox & Radio */
+        .check-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .check-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color var(--transition-fast);
+        }
+
+        .check-label:hover {
+            color: var(--text-primary);
+        }
+
+        .check-label input[type="checkbox"],
+        .check-label input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--leather-tan);
+            background: var(--bg-inset);
+            box-shadow: var(--shadow-stamp);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .check-label input[type="checkbox"] {
+            border-radius: var(--radius-sm);
+        }
+
+        .check-label input[type="radio"] {
+            border-radius: 50%;
+        }
+
+        .check-label input[type="checkbox"]:checked {
+            background: var(--leather-saddle);
+            border-color: var(--brass);
+        }
+
+        .check-label input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 6px;
+            width: 5px;
+            height: 10px;
+            border: 2px solid var(--brass-bright);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .check-label input[type="radio"]:checked {
+            background: var(--bg-inset);
+            border-color: var(--brass);
+        }
+
+        .check-label input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--brass-bright);
+        }
+
+        .check-label input:focus {
+            outline: none;
+            box-shadow:
+                var(--shadow-stamp),
+                0 0 0 3px rgba(184, 150, 15, 0.15);
+        }
+
+        /* ============================================
+           06. CARDS
+           ============================================ */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-xl);
+        }
+
+        .card {
+            position: relative;
+            background:
+                linear-gradient(160deg, var(--bg-panel) 0%, var(--bg-secondary) 100%);
+            border: 1px solid var(--leather-tan);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            transition: all var(--transition-base);
+            box-shadow: var(--shadow-raise);
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-deep), var(--shadow-brass-glow);
+            border-color: var(--brass);
+        }
+
+        /* Brass strip at top of card */
+        .card-brass-strip {
+            height: 4px;
+            background: linear-gradient(90deg, var(--brass-dark), var(--brass-bright), var(--brass-dark));
+        }
+
+        .card-body {
+            padding: var(--space-xl);
+        }
+
+        .card-icon {
+            font-size: 1.75rem;
+            margin-bottom: var(--space-md);
+            display: block;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--leather-cream);
+            margin-bottom: var(--space-sm);
+            letter-spacing: 0.02em;
+        }
+
+        .card-text {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .card-footer {
+            padding: var(--space-md) var(--space-xl);
+            border-top: 1px solid rgba(139, 94, 60, 0.25);
+            background: rgba(30, 20, 13, 0.3);
+        }
+
+        .card-footer-text {
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--brass);
+        }
+
+        /* ============================================
+           07. ALERTS / NOTIFICATIONS
+           ============================================ */
+
+        .alert-stack {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .alert {
+            position: relative;
+            padding: var(--space-md) var(--space-lg);
+            padding-left: var(--space-2xl);
+            border-radius: var(--radius-md);
+            border: 1px solid;
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 5px;
+            border-radius: var(--radius-md) 0 0 var(--radius-md);
+        }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-size: 0.9rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            margin-bottom: var(--space-xs);
+        }
+
+        /* Info: Deep wood tones */
+        .alert-info {
+            background: rgba(62, 39, 35, 0.5);
+            border-color: var(--wood-oak);
+            color: var(--wood-birch);
+        }
+
+        .alert-info::before {
+            background: var(--wood-oak);
+        }
+
+        .alert-info .alert-title {
+            color: var(--wood-pine);
+        }
+
+        /* Success: Brass patina green */
+        .alert-success {
+            background: rgba(72, 88, 50, 0.2);
+            border-color: var(--brass-patina);
+            color: #c2d4a0;
+        }
+
+        .alert-success::before {
+            background: var(--brass-patina);
+        }
+
+        .alert-success .alert-title {
+            color: #d4e4b8;
+        }
+
+        /* Warning: Warm brass glow */
+        .alert-warning {
+            background: rgba(184, 150, 15, 0.12);
+            border-color: var(--brass);
+            color: var(--brass-light);
+        }
+
+        .alert-warning::before {
+            background: var(--brass-bright);
+        }
+
+        .alert-warning .alert-title {
+            color: var(--brass-bright);
+        }
+
+        /* Error: Oxblood leather */
+        .alert-error {
+            background: rgba(120, 30, 20, 0.2);
+            border-color: #8b2020;
+            color: #e8a0a0;
+        }
+
+        .alert-error::before {
+            background: #8b2020;
+        }
+
+        .alert-error .alert-title {
+            color: #f0b8b8;
+        }
+
+        /* ============================================
+           WOODWORKER'S STAMP (decorative element)
+           ============================================ */
+
+        .workshop-stamp {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            border: 2px solid var(--brass);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--brass-bright);
+            opacity: 0.7;
+            transform: rotate(-2deg);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            text-align: center;
+            padding: var(--space-3xl) var(--space-xl);
+            margin-top: var(--space-3xl);
+            border-top: 1px solid rgba(139, 94, 60, 0.3);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20%;
+            right: 20%;
+            height: 0;
+            border-top: var(--stitch-width) dashed var(--stitch-color);
+            opacity: 0.3;
+        }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--leather-cream);
+            margin-bottom: var(--space-sm);
+            letter-spacing: 0.04em;
+        }
+
+        .footer-text {
+            font-family: var(--font-body);
+            font-size: 0.875rem;
+            font-style: italic;
+            color: var(--text-muted);
+            max-width: 440px;
+            margin: 0 auto var(--space-lg);
+        }
+
+        .footer-rivets {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-md);
+        }
+
+        .footer-rivets .brass-rivet {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, var(--brass-bright), var(--brass) 45%, var(--brass-dark) 90%);
+            box-shadow:
+                inset -1px -1px 2px rgba(0, 0, 0, 0.4),
+                inset 1px 1px 2px rgba(255, 255, 255, 0.2),
+                0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ============================================
+           RESPONSIVE BREAKPOINT
+           ============================================ */
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 16px;
+            }
+
+            .container {
+                padding: var(--space-2xl) var(--space-md);
+            }
+
+            .header {
+                padding: var(--space-2xl) var(--space-md);
+            }
+
+            .header::before {
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                bottom: 5px;
+            }
+
+            .header-rivet {
+                width: 12px;
+                height: 12px;
+            }
+
+            .header-rivet.tl { top: 10px; left: 10px; }
+            .header-rivet.tr { top: 10px; right: 10px; }
+            .header-rivet.bl { bottom: 10px; left: 10px; }
+            .header-rivet.br { bottom: 10px; right: 10px; }
+
+            .leather-panel {
+                padding: var(--space-lg);
+            }
+
+            .leather-panel::after {
+                top: 4px;
+                left: 4px;
+                right: 4px;
+                bottom: 4px;
+            }
+
+            .type-display {
+                font-size: 2rem;
+            }
+
+            .type-h1 {
+                font-size: 1.75rem;
+            }
+
+            .button-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .spacing-item {
+                gap: var(--space-md);
+            }
+
+            .spacing-label {
+                width: 60px;
+                font-size: 0.7rem;
+            }
+
+            .spacing-value {
+                width: 30px;
+                font-size: 0.65rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: var(--space-md);
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .workshop-stamp {
+                transform: rotate(0deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wood-grain-bg"></div>
+    <div class="vignette"></div>
+
+    <div class="container">
+
+        <!-- ============================================
+             HEADER
+             ============================================ -->
+        <header class="header">
+            <span class="header-rivet tl"></span>
+            <span class="header-rivet tr"></span>
+            <span class="header-rivet bl"></span>
+            <span class="header-rivet br"></span>
+
+            <p class="header-label">Design System</p>
+            <h1>Leather & Wood</h1>
+            <p class="header-subtitle">A warm design language of tooled leather, aged wood grain, and brass hardware</p>
+            <p class="header-tagline">Craftsman Workshop &middot; Library Study &middot; Heritage Materials</p>
+        </header>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             01. COLOR PALETTE
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section 01</p>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-subtitle">Rich hides, seasoned timber, and burnished hardware</p>
+                <div class="tooling-line"></div>
+            </div>
+
+            <div class="leather-panel">
+                <div class="palette-group">
+                    <h3 class="palette-group-title">Leather Tones</h3>
+                    <div class="color-grid">
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--leather-dark);"></div>
+                            <p class="color-name">Dark Hide</p>
+                            <p class="color-hex">#3B2314</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--leather-saddle);"></div>
+                            <p class="color-name">Saddle</p>
+                            <p class="color-hex">#6B3A2A</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--leather-tan);"></div>
+                            <p class="color-name">Tan</p>
+                            <p class="color-hex">#8B5E3C</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--leather-honey);"></div>
+                            <p class="color-name">Honey</p>
+                            <p class="color-hex">#A67C52</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--leather-buff);"></div>
+                            <p class="color-name">Buff</p>
+                            <p class="color-hex">#C9A86C</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--leather-cream);"></div>
+                            <p class="color-name">Cream</p>
+                            <p class="color-hex">#E8D5B7</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="palette-group">
+                    <h3 class="palette-group-title">Wood Grains</h3>
+                    <div class="color-grid">
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--wood-walnut);"></div>
+                            <p class="color-name">Walnut</p>
+                            <p class="color-hex">#3E2723</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--wood-mahogany);"></div>
+                            <p class="color-name">Mahogany</p>
+                            <p class="color-hex">#5D3A1A</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--wood-oak);"></div>
+                            <p class="color-name">Oak</p>
+                            <p class="color-hex">#7A5230</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--wood-maple);"></div>
+                            <p class="color-name">Maple</p>
+                            <p class="color-hex">#A0784C</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--wood-birch);"></div>
+                            <p class="color-name">Birch</p>
+                            <p class="color-hex">#C9B896</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--wood-pine);"></div>
+                            <p class="color-name">Pine</p>
+                            <p class="color-hex">#DBC8A0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="palette-group">
+                    <h3 class="palette-group-title">Brass & Hardware</h3>
+                    <div class="color-grid">
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--brass-dark);"></div>
+                            <p class="color-name">Aged Brass</p>
+                            <p class="color-hex">#8B6914</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--brass);"></div>
+                            <p class="color-name">Brass</p>
+                            <p class="color-hex">#B8960F</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--brass-bright);"></div>
+                            <p class="color-name">Polished Brass</p>
+                            <p class="color-hex">#D4AF37</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--brass-light);"></div>
+                            <p class="color-name">Brass Highlight</p>
+                            <p class="color-hex">#E8CC6E</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--brass-patina);"></div>
+                            <p class="color-name">Patina</p>
+                            <p class="color-hex">#7A8A4A</p>
+                        </div>
+                        <div class="color-swatch">
+                            <div class="color-preview" style="background: var(--iron-dark);"></div>
+                            <p class="color-name">Wrought Iron</p>
+                            <p class="color-hex">#3A3632</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             02. TYPOGRAPHY
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section 02</p>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-subtitle">Warm serif faces cut for clarity and craft</p>
+                <div class="tooling-line"></div>
+            </div>
+
+            <div class="type-showcase">
+                <div class="type-specimen">
+                    <p class="type-label">Display &mdash; Bitter 700 / 60px</p>
+                    <p class="type-display">Master Craftsman</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Heading 1 &mdash; Merriweather 700 / 36px</p>
+                    <p class="type-h1">The Workshop Library</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Heading 2 &mdash; Merriweather 700 / 26px</p>
+                    <p class="type-h2">Grain, Grain, and More Grain</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Heading 3 &mdash; Bitter Italic 600 / 20px</p>
+                    <p class="type-h3">On the Patina of Well-Used Things</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Body &mdash; Lora 400 / 17px</p>
+                    <p class="type-body">Good leather improves with age. Each crease tells a story, each scuff marks a memory. In the same way, a well-crafted design system grows more useful the more it is handled. The warmth of natural materials grounds us in something real -- the smell of cedar, the flex of a broken-in binding, the satisfying click of a brass clasp.</p>
+                </div>
+
+                <div class="type-specimen">
+                    <p class="type-label">Caption &mdash; Lora Italic 400 / 13px</p>
+                    <p class="type-caption">Hand-stitched using traditional saddle-stitch technique, circa 1923. Collection of the Artisan Heritage Museum.</p>
+                </div>
+            </div>
+
+            <blockquote>
+                "The details are not the details. They make the design."
+                <cite>&mdash; Charles Eames</cite>
+            </blockquote>
+        </section>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             03. SPACING
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section 03</p>
+                <h2 class="section-title">Spacing</h2>
+                <p class="section-subtitle">Measured intervals from a craftsman's rule</p>
+                <div class="tooling-line"></div>
+            </div>
+
+            <div class="leather-panel">
+                <div class="spacing-demo">
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-xs</span>
+                        <span class="spacing-value">4px</span>
+                        <div class="spacing-bar" style="width: 16px;"></div>
+                    </div>
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-sm</span>
+                        <span class="spacing-value">8px</span>
+                        <div class="spacing-bar" style="width: 32px;"></div>
+                    </div>
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-md</span>
+                        <span class="spacing-value">16px</span>
+                        <div class="spacing-bar" style="width: 64px;"></div>
+                    </div>
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-lg</span>
+                        <span class="spacing-value">24px</span>
+                        <div class="spacing-bar" style="width: 96px;"></div>
+                    </div>
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-xl</span>
+                        <span class="spacing-value">32px</span>
+                        <div class="spacing-bar" style="width: 128px;"></div>
+                    </div>
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-2xl</span>
+                        <span class="spacing-value">48px</span>
+                        <div class="spacing-bar" style="width: 192px;"></div>
+                    </div>
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-3xl</span>
+                        <span class="spacing-value">64px</span>
+                        <div class="spacing-bar" style="width: 256px;"></div>
+                    </div>
+                    <div class="spacing-item">
+                        <span class="spacing-label">--space-4xl</span>
+                        <span class="spacing-value">96px</span>
+                        <div class="spacing-bar" style="width: 320px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             04. BUTTONS
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section 04</p>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-subtitle">Solid hardware for reliable interactions</p>
+                <div class="tooling-line"></div>
+            </div>
+
+            <div class="leather-panel">
+                <div class="button-showcase">
+                    <div>
+                        <p class="button-row-label">Primary &mdash; Leather</p>
+                        <div class="button-row">
+                            <button class="btn btn-primary btn-sm">Small</button>
+                            <button class="btn btn-primary btn-md">Open Workshop</button>
+                            <button class="btn btn-primary btn-lg">Begin Crafting</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="button-row-label">Secondary &mdash; Wood</p>
+                        <div class="button-row">
+                            <button class="btn btn-secondary btn-sm">Small</button>
+                            <button class="btn btn-secondary btn-md">Browse Catalog</button>
+                            <button class="btn btn-secondary btn-lg">View Collection</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="button-row-label">Ghost &mdash; Brass Outline</p>
+                        <div class="button-row">
+                            <button class="btn btn-ghost btn-sm">Small</button>
+                            <button class="btn btn-ghost btn-md">Learn More</button>
+                            <button class="btn btn-ghost btn-lg">Explore Archive</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="button-row-label">Disabled</p>
+                        <div class="button-row">
+                            <button class="btn btn-disabled btn-sm" disabled>Small</button>
+                            <button class="btn btn-disabled btn-md" disabled>Unavailable</button>
+                            <button class="btn btn-disabled btn-lg" disabled>Out of Stock</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             05. FORMS
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section 05</p>
+                <h2 class="section-title">Forms</h2>
+                <p class="section-subtitle">Fields stamped and tooled for the workshop ledger</p>
+                <div class="tooling-line"></div>
+            </div>
+
+            <div class="leather-panel">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" placeholder="Enter your name...">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" placeholder="craftsman@workshop.com">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Material</label>
+                        <select class="form-input">
+                            <option>Select a material...</option>
+                            <option>Full-Grain Leather</option>
+                            <option>Top-Grain Leather</option>
+                            <option>American Walnut</option>
+                            <option>White Oak</option>
+                            <option>Cherry Wood</option>
+                            <option>Brass Hardware</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Project Type</label>
+                        <select class="form-input">
+                            <option>Select a project...</option>
+                            <option>Journal Binding</option>
+                            <option>Tool Belt</option>
+                            <option>Writing Desk</option>
+                            <option>Bookcase</option>
+                            <option>Saddle Bag</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Project Notes</label>
+                    <textarea class="form-input" placeholder="Describe your project requirements, preferred finishes, and any special instructions..."></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Finish Options</label>
+                        <div class="check-group">
+                            <label class="check-label">
+                                <input type="checkbox" checked>
+                                Hand-rubbed oil finish
+                            </label>
+                            <label class="check-label">
+                                <input type="checkbox">
+                                Beeswax sealant
+                            </label>
+                            <label class="check-label">
+                                <input type="checkbox" checked>
+                                Edge burnishing
+                            </label>
+                            <label class="check-label">
+                                <input type="checkbox">
+                                Custom monogram
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Thread Color</label>
+                        <div class="check-group">
+                            <label class="check-label">
+                                <input type="radio" name="thread" checked>
+                                Natural linen
+                            </label>
+                            <label class="check-label">
+                                <input type="radio" name="thread">
+                                Saddle tan
+                            </label>
+                            <label class="check-label">
+                                <input type="radio" name="thread">
+                                Dark brown
+                            </label>
+                            <label class="check-label">
+                                <input type="radio" name="thread">
+                                Black waxed
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             06. CARDS
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section 06</p>
+                <h2 class="section-title">Cards</h2>
+                <p class="section-subtitle">Content panels bound in leather and framed in wood</p>
+                <div class="tooling-line"></div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-brass-strip"></div>
+                    <div class="card-body">
+                        <span class="card-icon">&#128218;</span>
+                        <h3 class="card-title">The Bindery</h3>
+                        <p class="card-text">Where sheets become volumes. Hand-sewn signatures, linen thread through punched holes, and covers pressed from full-grain calfskin. Every spine tells a story before you open the book.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-footer-text">Est. 1887</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-brass-strip"></div>
+                    <div class="card-body">
+                        <span class="card-icon">&#128296;</span>
+                        <h3 class="card-title">The Woodshop</h3>
+                        <p class="card-text">Oak shavings curl from the plane. Dovetail joints are cut by hand. The bench carries decades of nicks and stains, each one a lesson in the honest work of making things that last.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-footer-text">Hand-Crafted</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-brass-strip"></div>
+                    <div class="card-body">
+                        <span class="card-icon">&#128273;</span>
+                        <h3 class="card-title">The Study</h3>
+                        <p class="card-text">Brass desk lamp over green felt. A leather blotter darkened by years of correspondence. The drawers smell of cedar and old ink. Everything within reach, nothing wasted.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-footer-text">Heritage Quality</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             07. ALERTS / NOTIFICATIONS
+             ============================================ -->
+        <section class="section">
+            <div class="section-header">
+                <p class="section-number">Section 07</p>
+                <h2 class="section-title">Alerts & Notifications</h2>
+                <p class="section-subtitle">Workshop notices stamped with authority</p>
+                <div class="tooling-line"></div>
+            </div>
+
+            <div class="alert-stack">
+                <div class="alert alert-info">
+                    <p class="alert-title">Workshop Note</p>
+                    <p>The walnut stock has been re-seasoned and is ready for joinery. Please allow 48 hours for the oil finish to cure before assembly.</p>
+                </div>
+
+                <div class="alert alert-success">
+                    <p class="alert-title">Order Complete</p>
+                    <p>Your custom leather journal has been hand-stitched, burnished, and monogrammed. It is ready for collection from the bindery.</p>
+                </div>
+
+                <div class="alert alert-warning">
+                    <p class="alert-title">Material Advisory</p>
+                    <p>The current batch of brass fittings shows slight variation in patina. This is characteristic of the alloy and will even out with use.</p>
+                </div>
+
+                <div class="alert alert-error">
+                    <p class="alert-title">Stock Alert</p>
+                    <p>We have exhausted our supply of Italian vegetable-tanned leather in the Cognac shade. Expected restock in three to four weeks.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="stitch-divider">
+            <span class="brass-rivet"></span>
+        </div>
+
+        <!-- ============================================
+             FOOTER
+             ============================================ -->
+        <footer class="footer">
+            <p class="footer-brand">Leather & Wood</p>
+            <p class="footer-text">A design system crafted from natural materials, built to age with grace. Tooled leather, seasoned timber, and polished brass.</p>
+            <div class="footer-rivets">
+                <span class="brass-rivet"></span>
+                <span class="brass-rivet"></span>
+                <span class="brass-rivet"></span>
+                <span class="brass-rivet"></span>
+                <span class="brass-rivet"></span>
+            </div>
+        </footer>
+
+    </div>
+</body>
+</html>

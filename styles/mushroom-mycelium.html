@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mushroom Mycelium — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,500&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* === Color Palette === */
+
+            /* Forest Floor — deep, dark, damp */
+            --forest-black: #1A1714;
+            --forest-deep: #2A231D;
+            --forest-dark: #342C24;
+            --forest-bark: #453A2E;
+            --forest-loam: #5C4F3F;
+
+            /* Mushroom Cap — tans, russets, warm organic */
+            --cap-cream: #D4C4A8;
+            --cap-tan: #B8A68A;
+            --cap-russet: #9A7B5B;
+            --cap-brown: #7A5E42;
+            --cap-umber: #5E4530;
+
+            /* Mycelium — pale, ghostly, thread-like */
+            --mycelium-white: #F0EDE6;
+            --mycelium-pale: #E3DDD2;
+            --mycelium-thread: #CFC6B5;
+            --mycelium-web: #B5A994;
+
+            /* Bioluminescent — ethereal glow accents */
+            --glow-cyan: #4AECC4;
+            --glow-cyan-dim: #2DB89A;
+            --glow-cyan-pale: #C8F5E9;
+            --glow-green: #7DE88D;
+            --glow-green-dim: #4BBF5E;
+            --glow-green-pale: #D5F5DA;
+            --glow-violet: #B08FE8;
+            --glow-violet-dim: #8B6BC4;
+            --glow-violet-pale: #E4D9F5;
+
+            /* Spore — muted secondary tones */
+            --spore-ochre: #C4983C;
+            --spore-ochre-pale: #F2E6C8;
+            --spore-rust: #A85C3B;
+            --spore-rust-pale: #F0D5C4;
+            --spore-olive: #6B7A3A;
+            --spore-olive-pale: #DBE3C4;
+
+            /* Semantic */
+            --text-primary: var(--mycelium-white);
+            --text-secondary: var(--mycelium-pale);
+            --text-muted: var(--mycelium-web);
+            --text-on-glow: var(--forest-black);
+            --bg-primary: var(--forest-black);
+            --bg-surface: var(--forest-deep);
+            --bg-elevated: var(--forest-dark);
+            --bg-card: var(--forest-dark);
+            --border-color: var(--forest-bark);
+            --border-subtle: rgba(207, 198, 181, 0.1);
+            --border-glow: rgba(74, 236, 196, 0.2);
+
+            /* Spacing Scale */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --space-4xl: 96px;
+
+            /* Typography */
+            --font-display: 'Fraunces', Georgia, 'Times New Roman', serif;
+            --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+
+            /* Shadows */
+            --shadow-spore: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-cap: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-forest: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-glow-cyan: 0 0 20px rgba(74, 236, 196, 0.15);
+            --shadow-glow-green: 0 0 20px rgba(125, 232, 141, 0.15);
+            --shadow-glow-violet: 0 0 20px rgba(176, 143, 232, 0.15);
+
+            /* Borders */
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 32px;
+            --radius-pill: 50px;
+            --radius-cap: 50% 50% 45% 45%;
+
+            /* Transitions */
+            --transition-gentle: 0.25s ease;
+            --transition-grow: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            --transition-glow: 0.6s ease;
+        }
+
+        /* === Reset & Base === */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Mycelium background network pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(ellipse 1px 1px at 15% 25%, rgba(74, 236, 196, 0.06) 0%, transparent 100%),
+                radial-gradient(ellipse 1px 1px at 72% 18%, rgba(125, 232, 141, 0.05) 0%, transparent 100%),
+                radial-gradient(ellipse 1px 1px at 45% 68%, rgba(176, 143, 232, 0.04) 0%, transparent 100%),
+                radial-gradient(ellipse 1px 1px at 88% 55%, rgba(74, 236, 196, 0.05) 0%, transparent 100%),
+                radial-gradient(ellipse 1px 1px at 32% 82%, rgba(125, 232, 141, 0.04) 0%, transparent 100%),
+                radial-gradient(ellipse 600px 600px at 20% 30%, rgba(74, 236, 196, 0.015) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 500px at 80% 60%, rgba(176, 143, 232, 0.012) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* === Layout === */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 var(--space-xl);
+            position: relative;
+            z-index: 1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .col-12 { grid-column: span 12; }
+        .col-6 { grid-column: span 6; }
+        .col-4 { grid-column: span 4; }
+        .col-3 { grid-column: span 3; }
+
+        @media (max-width: 768px) {
+            .container { padding: 0 var(--space-md); }
+            .grid { gap: var(--space-md); }
+            .col-6, .col-4, .col-3 { grid-column: span 12; }
+        }
+
+        /* === Typography === */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            line-height: 1.25;
+            color: var(--text-primary);
+        }
+
+        h1 { font-size: clamp(2.5rem, 5vw, 3.75rem); font-weight: 700; margin-bottom: var(--space-xl); }
+        h2 { font-size: clamp(1.75rem, 3vw, 2.25rem); margin-bottom: var(--space-lg); }
+        h3 { font-size: 1.5rem; margin-bottom: var(--space-md); }
+        h4 { font-size: 1.25rem; font-weight: 500; margin-bottom: var(--space-sm); }
+        h5 { font-size: 1.0625rem; margin-bottom: var(--space-sm); }
+        h6 {
+            font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.12em;
+            margin-bottom: var(--space-sm); color: var(--text-muted); font-weight: 500;
+        }
+
+        p { margin-bottom: var(--space-md); max-width: 64ch; color: var(--text-secondary); }
+
+        .lead {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            font-style: italic;
+            font-weight: 400;
+        }
+
+        .overline {
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--glow-cyan-dim);
+        }
+
+        .caption {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* === Mycelium Divider === */
+        .mycelium-divider {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin: var(--space-2xl) 0;
+        }
+
+        .mycelium-divider::before,
+        .mycelium-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-color) 20%, var(--border-color) 80%, transparent);
+        }
+
+        .mycelium-divider .spore {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .mycelium-divider .spore:nth-child(1) { background: var(--glow-cyan); box-shadow: 0 0 6px var(--glow-cyan); }
+        .mycelium-divider .spore:nth-child(2) { background: var(--glow-green); box-shadow: 0 0 6px var(--glow-green); width: 4px; height: 4px; }
+        .mycelium-divider .spore:nth-child(3) { background: var(--glow-violet); box-shadow: 0 0 6px var(--glow-violet); }
+
+        /* Spore dot pattern (reusable background) */
+        .spore-pattern {
+            background-image:
+                radial-gradient(circle 1px, rgba(74, 236, 196, 0.08) 0%, transparent 100%),
+                radial-gradient(circle 1px, rgba(125, 232, 141, 0.06) 0%, transparent 100%),
+                radial-gradient(circle 0.5px, rgba(176, 143, 232, 0.07) 0%, transparent 100%);
+            background-size: 37px 41px, 53px 47px, 43px 59px;
+            background-position: 0 0, 17px 23px, 7px 11px;
+        }
+
+        /* === Header === */
+        .header {
+            padding: var(--space-4xl) 0 var(--space-3xl);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 800px 400px at 50% 100%, rgba(74, 236, 196, 0.04) 0%, transparent 70%),
+                radial-gradient(ellipse 600px 300px at 20% 80%, rgba(176, 143, 232, 0.03) 0%, transparent 70%),
+                radial-gradient(ellipse 400px 200px at 80% 90%, rgba(125, 232, 141, 0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glow-cyan-dim), var(--glow-green-dim), var(--glow-violet-dim), transparent);
+            opacity: 0.3;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: var(--space-xl);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            margin-bottom: var(--space-sm);
+            background: linear-gradient(135deg, var(--mycelium-white) 0%, var(--glow-cyan-pale) 50%, var(--mycelium-white) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-tagline {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            color: var(--text-muted);
+            font-style: italic;
+            margin-bottom: 0;
+        }
+
+        .header-meta {
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        .header-icon {
+            width: 64px;
+            height: 64px;
+            background: var(--bg-elevated);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-bottom: var(--space-sm);
+            border: 1px solid var(--border-glow);
+            box-shadow: var(--shadow-glow-cyan);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-icon::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(74, 236, 196, 0.08) 0%, transparent 70%);
+        }
+
+        .header-icon svg {
+            width: 32px;
+            height: 32px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Mushroom SVG icon in header */
+        .mushroom-icon {
+            fill: none;
+            stroke: var(--glow-cyan);
+            stroke-width: 1.5;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        @media (max-width: 768px) {
+            .header { padding: var(--space-3xl) 0 var(--space-2xl); }
+            .header-content { flex-direction: column; align-items: flex-start; }
+            .header-meta { text-align: left; }
+            .header-icon { margin-left: 0; }
+        }
+
+        /* === Sections === */
+        .section {
+            padding: var(--space-4xl) 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .section:last-of-type { border-bottom: none; }
+
+        .section-header {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background: var(--bg-elevated);
+            border-radius: 50%;
+            font-family: var(--font-display);
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: var(--glow-cyan);
+            margin-bottom: var(--space-md);
+            border: 1px solid var(--border-glow);
+            box-shadow: var(--shadow-glow-cyan);
+        }
+
+        /* === Color Palette Section === */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: var(--space-md);
+        }
+
+        .color-block {
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: var(--shadow-spore);
+            transition: all var(--transition-grow);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .color-block:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-cap);
+        }
+
+        .color-swatch {
+            aspect-ratio: 1;
+            position: relative;
+        }
+
+        .color-swatch.glow::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 40% 40%, rgba(255,255,255,0.2) 0%, transparent 60%);
+        }
+
+        .color-info {
+            padding: var(--space-sm) var(--space-sm);
+            background: var(--bg-surface);
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-weight: 500;
+            font-size: 0.8125rem;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .color-value {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .color-group {
+            margin-bottom: var(--space-xl);
+        }
+
+        .color-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .color-group-title {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 500;
+            font-style: italic;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .color-group-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--border-color), transparent);
+        }
+
+        /* === Buttons === */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            padding: 10px var(--space-lg);
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            text-decoration: none;
+            border: 1px solid transparent;
+            border-radius: var(--radius-pill);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all var(--transition-gentle);
+            box-shadow: var(--shadow-spore);
+            line-height: 1.4;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-cap);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--glow-cyan-dim), var(--glow-cyan));
+            color: var(--text-on-glow);
+            border-color: var(--glow-cyan);
+            box-shadow: var(--shadow-glow-cyan);
+            font-weight: 600;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--glow-cyan), var(--glow-cyan-dim));
+            box-shadow: 0 0 30px rgba(74, 236, 196, 0.3), var(--shadow-cap);
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--glow-cyan);
+            border-color: var(--glow-cyan-dim);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(74, 236, 196, 0.08);
+            box-shadow: var(--shadow-glow-cyan);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            box-shadow: none;
+            color: var(--text-muted);
+            border-color: transparent;
+        }
+
+        .btn-ghost:hover {
+            background: var(--bg-surface);
+            color: var(--text-primary);
+            box-shadow: none;
+        }
+
+        .btn-glow-green {
+            background: linear-gradient(135deg, var(--glow-green-dim), var(--glow-green));
+            color: var(--text-on-glow);
+            border-color: var(--glow-green);
+            box-shadow: var(--shadow-glow-green);
+            font-weight: 600;
+        }
+
+        .btn-glow-green:hover {
+            box-shadow: 0 0 30px rgba(125, 232, 141, 0.3), var(--shadow-cap);
+        }
+
+        .btn-glow-violet {
+            background: linear-gradient(135deg, var(--glow-violet-dim), var(--glow-violet));
+            color: var(--text-on-glow);
+            border-color: var(--glow-violet);
+            box-shadow: var(--shadow-glow-violet);
+            font-weight: 600;
+        }
+
+        .btn-glow-violet:hover {
+            box-shadow: 0 0 30px rgba(176, 143, 232, 0.3), var(--shadow-cap);
+        }
+
+        .btn-earthy {
+            background: linear-gradient(135deg, var(--cap-brown), var(--cap-russet));
+            color: var(--mycelium-white);
+            border-color: var(--cap-russet);
+        }
+
+        .btn-earthy:hover {
+            background: linear-gradient(135deg, var(--cap-russet), var(--cap-tan));
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--glow-cyan-dim);
+            color: var(--glow-cyan);
+            background: rgba(74, 236, 196, 0.04);
+            box-shadow: none;
+        }
+
+        .btn-sm { padding: 6px var(--space-md); font-size: 0.8125rem; }
+        .btn-lg { padding: 14px var(--space-xl); font-size: 1.0625rem; }
+
+        .btn[disabled], .btn-disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .button-row {
+            display: flex;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-lg);
+        }
+
+        /* === Forms === */
+        .input-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .input-hint {
+            display: block;
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            margin-top: var(--space-xs);
+            font-style: italic;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px var(--space-md);
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-gentle);
+        }
+
+        .input-field:hover {
+            border-color: var(--forest-loam);
+            background: var(--bg-elevated);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--glow-cyan-dim);
+            background: var(--bg-surface);
+            box-shadow: 0 0 0 3px rgba(74, 236, 196, 0.1), var(--shadow-glow-cyan);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        textarea.input-field {
+            resize: vertical;
+            min-height: 120px;
+            line-height: 1.7;
+        }
+
+        .select-field {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%23B5A994' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right var(--space-md) center;
+            padding-right: var(--space-2xl);
+        }
+
+        /* Checkbox & Radio */
+        .check-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .check-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            transition: color var(--transition-gentle);
+        }
+
+        .check-label:hover {
+            color: var(--text-primary);
+        }
+
+        .check-input {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-surface);
+            cursor: pointer;
+            transition: all var(--transition-gentle);
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .check-input:checked {
+            background: var(--glow-cyan-dim);
+            border-color: var(--glow-cyan);
+            box-shadow: 0 0 8px rgba(74, 236, 196, 0.2);
+        }
+
+        .check-input:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 6px;
+            width: 5px;
+            height: 9px;
+            border: solid var(--forest-black);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .check-input:focus {
+            box-shadow: 0 0 0 3px rgba(74, 236, 196, 0.15);
+        }
+
+        .radio-input {
+            border-radius: 50%;
+        }
+
+        .radio-input:checked::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--forest-black);
+            border: none;
+            transform: none;
+        }
+
+        /* === Cards === */
+        .card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            padding: var(--space-lg);
+            box-shadow: var(--shadow-spore);
+            border: 1px solid var(--border-subtle);
+            transition: all var(--transition-gentle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-cap);
+            transform: translateY(-3px);
+            border-color: var(--border-color);
+        }
+
+        .card h3 { margin-bottom: var(--space-sm); }
+        .card p { color: var(--text-secondary); margin-bottom: 0; font-size: 0.9375rem; }
+
+        .card-footer {
+            margin-top: var(--space-lg);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* Card: Mycelium Network */
+        .card-mycelium {
+            border-color: var(--border-glow);
+        }
+
+        .card-mycelium::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--glow-cyan), var(--glow-green), var(--glow-violet));
+            opacity: 0.6;
+        }
+
+        .card-mycelium:hover {
+            box-shadow: var(--shadow-glow-cyan);
+            border-color: rgba(74, 236, 196, 0.3);
+        }
+
+        /* Card: Mushroom Cap */
+        .card-cap {
+            background: linear-gradient(165deg, var(--forest-dark) 0%, var(--forest-bark) 100%);
+            border-color: var(--cap-umber);
+        }
+
+        .card-cap::after {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -20px;
+            width: 120px;
+            height: 80px;
+            background: radial-gradient(ellipse, rgba(154, 123, 91, 0.15) 0%, transparent 70%);
+            border-radius: var(--radius-cap);
+            pointer-events: none;
+        }
+
+        .card-cap:hover {
+            border-color: var(--cap-russet);
+        }
+
+        /* Card: Spore */
+        .card-spore {
+            position: relative;
+        }
+
+        .card-spore::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: var(--radius-lg);
+            background-image:
+                radial-gradient(circle 2px at 20% 30%, rgba(74, 236, 196, 0.06) 0%, transparent 100%),
+                radial-gradient(circle 1.5px at 60% 20%, rgba(125, 232, 141, 0.05) 0%, transparent 100%),
+                radial-gradient(circle 2px at 80% 70%, rgba(176, 143, 232, 0.05) 0%, transparent 100%),
+                radial-gradient(circle 1px at 40% 80%, rgba(74, 236, 196, 0.04) 0%, transparent 100%),
+                radial-gradient(circle 1.5px at 90% 40%, rgba(125, 232, 141, 0.06) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .card-spore:hover {
+            box-shadow: var(--shadow-glow-green);
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--bg-surface);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: var(--space-md);
+            border: 1px solid var(--border-glow);
+        }
+
+        .card-icon svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--glow-cyan);
+            fill: none;
+            stroke-width: 1.5;
+        }
+
+        .card-icon-green { border-color: rgba(125, 232, 141, 0.2); }
+        .card-icon-green svg { stroke: var(--glow-green); }
+
+        .card-icon-violet { border-color: rgba(176, 143, 232, 0.2); }
+        .card-icon-violet svg { stroke: var(--glow-violet); }
+
+        /* === Alerts === */
+        .alert {
+            display: flex;
+            gap: var(--space-md);
+            padding: var(--space-lg);
+            border-radius: var(--radius-md);
+            border-left: 3px solid;
+            margin-bottom: var(--space-lg);
+            position: relative;
+        }
+
+        .alert-icon { flex-shrink: 0; }
+        .alert-icon svg { width: 20px; height: 20px; stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        .alert-content p {
+            margin-bottom: 0;
+            font-size: 0.9375rem;
+            max-width: none;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(176, 143, 232, 0.08), rgba(176, 143, 232, 0.03));
+            border-left-color: var(--glow-violet);
+        }
+        .alert-info .alert-icon svg { stroke: var(--glow-violet); }
+        .alert-info .alert-title { color: var(--glow-violet); }
+
+        .alert-success {
+            background: linear-gradient(135deg, rgba(74, 236, 196, 0.08), rgba(74, 236, 196, 0.03));
+            border-left-color: var(--glow-cyan);
+        }
+        .alert-success .alert-icon svg { stroke: var(--glow-cyan); }
+        .alert-success .alert-title { color: var(--glow-cyan); }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(196, 152, 60, 0.1), rgba(196, 152, 60, 0.03));
+            border-left-color: var(--spore-ochre);
+        }
+        .alert-warning .alert-icon svg { stroke: var(--spore-ochre); }
+        .alert-warning .alert-title { color: var(--spore-ochre); }
+
+        .alert-error {
+            background: linear-gradient(135deg, rgba(168, 92, 59, 0.1), rgba(168, 92, 59, 0.03));
+            border-left-color: var(--spore-rust);
+        }
+        .alert-error .alert-icon svg { stroke: var(--spore-rust); }
+        .alert-error .alert-title { color: var(--spore-rust); }
+
+        /* === Spacing Demo === */
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-sm);
+        }
+
+        .spacing-label {
+            width: 80px;
+            font-size: 0.8125rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 20px;
+            border-radius: var(--radius-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .spacing-bar-fill {
+            height: 100%;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(90deg, var(--glow-cyan-dim), var(--glow-cyan));
+            box-shadow: 0 0 8px rgba(74, 236, 196, 0.2);
+            position: relative;
+        }
+
+        .spacing-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 50%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 100%);
+            border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+        }
+
+        .spacing-value {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            width: 60px;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        /* === Type Scale === */
+        .type-row {
+            display: flex;
+            align-items: baseline;
+            padding: var(--space-lg) 0;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .type-row:last-child { border-bottom: none; }
+
+        .type-meta {
+            width: 160px;
+            flex-shrink: 0;
+        }
+
+        .type-size {
+            font-family: var(--font-display);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--glow-cyan);
+            margin-bottom: 2px;
+        }
+
+        .type-specs {
+            font-size: 0.6875rem;
+            color: var(--text-muted);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+
+        .type-sample {
+            flex: 1;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .type-row { flex-direction: column; gap: var(--space-xs); }
+            .type-meta { width: auto; }
+        }
+
+        /* === Feature Banner === */
+        .forest-banner {
+            background: var(--bg-surface);
+            border-radius: var(--radius-xl);
+            padding: var(--space-3xl) var(--space-2xl);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border-glow);
+        }
+
+        .forest-banner::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 300px 200px at 30% 80%, rgba(74, 236, 196, 0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 250px 150px at 70% 20%, rgba(176, 143, 232, 0.05) 0%, transparent 70%),
+                radial-gradient(ellipse 200px 100px at 50% 50%, rgba(125, 232, 141, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .forest-banner::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                radial-gradient(circle 1.5px, rgba(74, 236, 196, 0.1) 0%, transparent 100%),
+                radial-gradient(circle 1px, rgba(125, 232, 141, 0.08) 0%, transparent 100%),
+                radial-gradient(circle 1px, rgba(176, 143, 232, 0.07) 0%, transparent 100%);
+            background-size: 47px 53px, 61px 67px, 37px 43px;
+            background-position: 0 0, 23px 31px, 11px 17px;
+            pointer-events: none;
+        }
+
+        .forest-banner h3 {
+            font-size: 1.75rem;
+            margin-bottom: var(--space-sm);
+            color: var(--text-primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .forest-banner p {
+            max-width: 50ch;
+            margin: 0 auto;
+            color: var(--text-secondary);
+            position: relative;
+            z-index: 1;
+            font-style: italic;
+        }
+
+        /* === Badges === */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--space-xs) var(--space-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: var(--radius-pill);
+            background: var(--bg-elevated);
+            color: var(--text-muted);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .badge-glow {
+            background: rgba(74, 236, 196, 0.1);
+            color: var(--glow-cyan);
+            border-color: rgba(74, 236, 196, 0.2);
+        }
+
+        .badge-green {
+            background: rgba(125, 232, 141, 0.1);
+            color: var(--glow-green);
+            border-color: rgba(125, 232, 141, 0.2);
+        }
+
+        .badge-violet {
+            background: rgba(176, 143, 232, 0.1);
+            color: var(--glow-violet);
+            border-color: rgba(176, 143, 232, 0.2);
+        }
+
+        .badge-ochre {
+            background: rgba(196, 152, 60, 0.1);
+            color: var(--spore-ochre);
+            border-color: rgba(196, 152, 60, 0.2);
+        }
+
+        .badge-rust {
+            background: rgba(168, 92, 59, 0.1);
+            color: var(--spore-rust);
+            border-color: rgba(168, 92, 59, 0.2);
+        }
+
+        .badge-solid {
+            background: var(--glow-cyan-dim);
+            color: var(--text-on-glow);
+            border-color: var(--glow-cyan);
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: currentColor;
+            margin-right: var(--space-xs);
+            box-shadow: 0 0 4px currentColor;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: var(--space-sm);
+            flex-wrap: wrap;
+        }
+
+        /* === Data Table === */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-spore);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9375rem;
+        }
+
+        .data-table thead {
+            background: var(--bg-surface);
+        }
+
+        .data-table th {
+            font-family: var(--font-display);
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--glow-cyan);
+            padding: var(--space-md) var(--space-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+        }
+
+        .data-table tbody tr {
+            background: var(--bg-card);
+            transition: background var(--transition-gentle);
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--bg-elevated);
+        }
+
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .table-highlight { font-family: var(--font-display); font-weight: 500; color: var(--text-primary); }
+
+        /* === Design Principles === */
+        .principle-card {
+            padding: var(--space-lg);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-subtle);
+            box-shadow: var(--shadow-spore);
+            transition: all var(--transition-gentle);
+        }
+
+        .principle-card:hover {
+            box-shadow: var(--shadow-cap);
+            transform: translateY(-2px);
+        }
+
+        .principle-number {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: var(--space-sm);
+            background: linear-gradient(135deg, var(--glow-cyan), var(--glow-green));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .principle-card h4 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: var(--space-sm);
+        }
+
+        .principle-card p {
+            font-size: 0.9375rem;
+            margin-bottom: 0;
+        }
+
+        /* === Footer === */
+        .footer {
+            padding: var(--space-3xl) 0;
+            text-align: center;
+            margin-top: var(--space-4xl);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glow-cyan-dim) 30%, var(--glow-green-dim) 50%, var(--glow-violet-dim) 70%, transparent);
+            opacity: 0.4;
+        }
+
+        .footer-spores {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-md);
+        }
+
+        .footer-spores span {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .footer-spores span:nth-child(1) { background: var(--glow-cyan); box-shadow: 0 0 4px var(--glow-cyan); }
+        .footer-spores span:nth-child(2) { background: var(--glow-green); box-shadow: 0 0 4px var(--glow-green); opacity: 0.7; }
+        .footer-spores span:nth-child(3) { background: var(--glow-violet); box-shadow: 0 0 4px var(--glow-violet); }
+        .footer-spores span:nth-child(4) { background: var(--glow-cyan); box-shadow: 0 0 4px var(--glow-cyan); opacity: 0.5; }
+        .footer-spores span:nth-child(5) { background: var(--glow-green); box-shadow: 0 0 4px var(--glow-green); opacity: 0.8; }
+
+        .footer-brand {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .footer p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin: 0 auto;
+            font-style: italic;
+        }
+
+        /* === Utilities === */
+        .mb-0 { margin-bottom: 0; }
+        .mb-sm { margin-bottom: var(--space-sm); }
+        .mb-md { margin-bottom: var(--space-md); }
+        .mb-lg { margin-bottom: var(--space-lg); }
+        .mb-xl { margin-bottom: var(--space-xl); }
+        .mt-lg { margin-top: var(--space-lg); }
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+            margin: var(--space-lg) 0;
+        }
+
+        /* Selection */
+        ::selection {
+            background: rgba(74, 236, 196, 0.2);
+            color: var(--mycelium-white);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--forest-deep); }
+        ::-webkit-scrollbar-thumb { background: var(--forest-bark); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--cap-umber); }
+
+        /* Glow pulse animation for bioluminescent accents */
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .glow-pulse {
+            animation: glow-pulse 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <p class="overline" style="margin-bottom: var(--space-sm);">Design System</p>
+                    <h1>Mushroom &amp; Mycelium</h1>
+                    <p class="header-tagline">Earthy, organic, bioluminescent -- a design language from the forest floor</p>
+                </div>
+                <div class="header-meta">
+                    <div class="header-icon">
+                        <svg viewBox="0 0 32 32" class="mushroom-icon">
+                            <ellipse cx="16" cy="12" rx="12" ry="8"/>
+                            <path d="M12 12 C12 12 11 26 11 28"/>
+                            <path d="M20 12 C20 12 21 26 21 28"/>
+                            <path d="M11 28 Q16 30 21 28"/>
+                            <circle cx="10" cy="9" r="1.5" fill="rgba(74,236,196,0.3)" stroke="none"/>
+                            <circle cx="18" cy="7" r="1" fill="rgba(125,232,141,0.3)" stroke="none"/>
+                            <circle cx="22" cy="11" r="1.2" fill="rgba(176,143,232,0.3)" stroke="none"/>
+                        </svg>
+                    </div>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 0;">
+                        Beneath the canopy,<br>
+                        the network connects<br>
+                        all living things.
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- 01 Color Palette -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">01</div>
+                <h2>Color Palette</h2>
+                <p class="lead">Harvested from the damp woodland floor and the ghostly glow of bioluminescent fungi. Deep forest blacks anchor the palette while mushroom tans bring warmth, and ethereal cyan-green accents pulse like foxfire in the dark.</p>
+            </div>
+
+            <div class="color-group">
+                <div class="color-group-title">Forest Floor</div>
+                <div class="color-grid">
+                    <div class="color-block"><div class="color-swatch" style="background: var(--forest-black);"></div><div class="color-info"><span class="color-name">Forest Black</span><span class="color-value">#1A1714</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--forest-deep);"></div><div class="color-info"><span class="color-name">Forest Deep</span><span class="color-value">#2A231D</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--forest-dark);"></div><div class="color-info"><span class="color-name">Forest Dark</span><span class="color-value">#342C24</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--forest-bark);"></div><div class="color-info"><span class="color-name">Forest Bark</span><span class="color-value">#453A2E</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--forest-loam);"></div><div class="color-info"><span class="color-name">Forest Loam</span><span class="color-value">#5C4F3F</span></div></div>
+                </div>
+            </div>
+
+            <div class="color-group">
+                <div class="color-group-title">Mushroom Cap</div>
+                <div class="color-grid">
+                    <div class="color-block"><div class="color-swatch" style="background: var(--cap-cream);"></div><div class="color-info"><span class="color-name">Cap Cream</span><span class="color-value">#D4C4A8</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--cap-tan);"></div><div class="color-info"><span class="color-name">Cap Tan</span><span class="color-value">#B8A68A</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--cap-russet);"></div><div class="color-info"><span class="color-name">Cap Russet</span><span class="color-value">#9A7B5B</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--cap-brown);"></div><div class="color-info"><span class="color-name">Cap Brown</span><span class="color-value">#7A5E42</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--cap-umber);"></div><div class="color-info"><span class="color-name">Cap Umber</span><span class="color-value">#5E4530</span></div></div>
+                </div>
+            </div>
+
+            <div class="color-group">
+                <div class="color-group-title">Mycelium Thread</div>
+                <div class="color-grid">
+                    <div class="color-block"><div class="color-swatch" style="background: var(--mycelium-white);"></div><div class="color-info"><span class="color-name">Mycelium White</span><span class="color-value">#F0EDE6</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--mycelium-pale);"></div><div class="color-info"><span class="color-name">Mycelium Pale</span><span class="color-value">#E3DDD2</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--mycelium-thread);"></div><div class="color-info"><span class="color-name">Mycelium Thread</span><span class="color-value">#CFC6B5</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--mycelium-web);"></div><div class="color-info"><span class="color-name">Mycelium Web</span><span class="color-value">#B5A994</span></div></div>
+                </div>
+            </div>
+
+            <div class="color-group">
+                <div class="color-group-title">Bioluminescent Glow</div>
+                <div class="color-grid">
+                    <div class="color-block"><div class="color-swatch glow" style="background: var(--glow-cyan);"></div><div class="color-info"><span class="color-name">Glow Cyan</span><span class="color-value">#4AECC4</span></div></div>
+                    <div class="color-block"><div class="color-swatch glow" style="background: var(--glow-cyan-dim);"></div><div class="color-info"><span class="color-name">Glow Cyan Dim</span><span class="color-value">#2DB89A</span></div></div>
+                    <div class="color-block"><div class="color-swatch glow" style="background: var(--glow-green);"></div><div class="color-info"><span class="color-name">Glow Green</span><span class="color-value">#7DE88D</span></div></div>
+                    <div class="color-block"><div class="color-swatch glow" style="background: var(--glow-green-dim);"></div><div class="color-info"><span class="color-name">Glow Green Dim</span><span class="color-value">#4BBF5E</span></div></div>
+                    <div class="color-block"><div class="color-swatch glow" style="background: var(--glow-violet);"></div><div class="color-info"><span class="color-name">Glow Violet</span><span class="color-value">#B08FE8</span></div></div>
+                    <div class="color-block"><div class="color-swatch glow" style="background: var(--glow-violet-dim);"></div><div class="color-info"><span class="color-name">Glow Violet Dim</span><span class="color-value">#8B6BC4</span></div></div>
+                </div>
+            </div>
+
+            <div class="color-group" style="margin-bottom: 0;">
+                <div class="color-group-title">Spore Tones</div>
+                <div class="color-grid">
+                    <div class="color-block"><div class="color-swatch" style="background: var(--spore-ochre);"></div><div class="color-info"><span class="color-name">Spore Ochre</span><span class="color-value">#C4983C</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--spore-ochre-pale);"></div><div class="color-info"><span class="color-name">Ochre Pale</span><span class="color-value">#F2E6C8</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--spore-rust);"></div><div class="color-info"><span class="color-name">Spore Rust</span><span class="color-value">#A85C3B</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--spore-rust-pale);"></div><div class="color-info"><span class="color-name">Rust Pale</span><span class="color-value">#F0D5C4</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--spore-olive);"></div><div class="color-info"><span class="color-name">Spore Olive</span><span class="color-value">#6B7A3A</span></div></div>
+                    <div class="color-block"><div class="color-swatch" style="background: var(--spore-olive-pale);"></div><div class="color-info"><span class="color-name">Olive Pale</span><span class="color-value">#DBE3C4</span></div></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02 Typography -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">02</div>
+                <h2>Typography</h2>
+                <p class="lead">Fraunces brings organic, slightly wonky letterforms to headings -- its soft serifs feel grown rather than drawn. DM Sans provides clean, readable body text like the clear air between trees.</p>
+            </div>
+
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Display</p><p class="type-specs">60px / Fraunces 800</p></div>
+                <div class="type-sample" style="font-family: var(--font-display); font-size: 3.75rem; font-weight: 800; line-height: 1.1;">Fungi</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Heading 1</p><p class="type-specs">40px / Fraunces 700</p></div>
+                <div class="type-sample" style="font-family: var(--font-display); font-size: 2.5rem; font-weight: 700; line-height: 1.15;">Mycelium Network</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Heading 2</p><p class="type-specs">32px / Fraunces 600</p></div>
+                <div class="type-sample" style="font-family: var(--font-display); font-size: 2rem; font-weight: 600;">Fruiting Bodies</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Heading 3</p><p class="type-specs">24px / Fraunces 600</p></div>
+                <div class="type-sample" style="font-family: var(--font-display); font-size: 1.5rem; font-weight: 600;">Spore Dispersal</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Heading 4</p><p class="type-specs">20px / Fraunces 500</p></div>
+                <div class="type-sample" style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 500;">Decomposition</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Body</p><p class="type-specs">16px / DM Sans 400</p></div>
+                <div class="type-sample">Beneath the forest floor lies an immense, ancient network of fungal threads. The mycelium connects the roots of trees across vast distances, sharing nutrients and chemical signals in a symbiotic web that some scientists call the Wood Wide Web.</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Body Italic</p><p class="type-specs">16px / DM Sans 400i</p></div>
+                <div class="type-sample" style="font-style: italic;">The ghost pipe flower has no chlorophyll at all. It feeds entirely through its mycorrhizal fungal partner, drawing nutrients that originally came from photosynthesizing trees.</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Caption</p><p class="type-specs">13px / DM Sans 400i</p></div>
+                <div class="type-sample caption">Mycena chlorophos, a bioluminescent mushroom native to subtropical Asia and Australasia.</div>
+            </div>
+            <div class="type-row">
+                <div class="type-meta"><p class="type-size">Overline</p><p class="type-specs">12px / DM Sans 600</p></div>
+                <div class="type-sample overline">Kingdom Fungi</div>
+            </div>
+        </section>
+
+        <!-- 03 Spacing -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">03</div>
+                <h2>Spacing System</h2>
+                <p class="lead">Like the branching patterns of hyphae, spacing grows in measured increments. Dense where connections cluster, open where the forest breathes. A base unit of 4px multiplied by organic ratios.</p>
+            </div>
+
+            <div class="spacing-row">
+                <span class="spacing-label">4px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 16px;"></div></div>
+                <span class="spacing-value">--space-xs</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">8px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 32px;"></div></div>
+                <span class="spacing-value">--space-sm</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">16px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 64px;"></div></div>
+                <span class="spacing-value">--space-md</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">24px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 96px;"></div></div>
+                <span class="spacing-value">--space-lg</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">32px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 128px;"></div></div>
+                <span class="spacing-value">--space-xl</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">48px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 160px;"></div></div>
+                <span class="spacing-value">--space-2xl</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">64px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 180px;"></div></div>
+                <span class="spacing-value">--space-3xl</span>
+            </div>
+            <div class="spacing-row">
+                <span class="spacing-label">96px</span>
+                <div class="spacing-bar" style="width: 200px;"><div class="spacing-bar-fill" style="width: 200px;"></div></div>
+                <span class="spacing-value">--space-4xl</span>
+            </div>
+
+            <div class="alert alert-info mt-lg">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor"/><line x1="12" y1="16" x2="12" y2="12" stroke="currentColor"/><line x1="12" y1="8" x2="12.01" y2="8" stroke="currentColor"/></svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">On Fungal Geometry</p>
+                    <p>Mycelium networks follow neither strict grids nor pure randomness. They branch at roughly consistent angles, filling space efficiently. Our spacing scale mirrors this: predictable increments that feel organic rather than mechanical.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04 Buttons -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">04</div>
+                <h2>Buttons</h2>
+                <p class="lead">Buttons shaped like smooth mushroom caps -- rounded, tactile, and glowing with bioluminescent energy when active. The primary action pulses with the signature foxfire cyan; secondary actions remain grounded in earth tones.</p>
+            </div>
+
+            <h4 class="mb-md">Primary Variants</h4>
+            <div class="button-row">
+                <button class="btn btn-primary">Bioluminescent</button>
+                <button class="btn btn-glow-green">Foxfire</button>
+                <button class="btn btn-glow-violet">Spore Violet</button>
+                <button class="btn btn-earthy">Earthy</button>
+            </div>
+
+            <h4 class="mb-md">Secondary &amp; Utility</h4>
+            <div class="button-row">
+                <button class="btn btn-secondary">Secondary</button>
+                <button class="btn btn-outline">Outline</button>
+                <button class="btn btn-ghost">Ghost</button>
+                <button class="btn">Default</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <h4 class="mb-md">Sizes</h4>
+            <div class="button-row">
+                <button class="btn btn-sm btn-primary">Small Spore</button>
+                <button class="btn btn-primary">Medium Cap</button>
+                <button class="btn btn-lg btn-primary">Large Fruiting Body</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <h4 class="mb-md">Disabled State</h4>
+            <div class="button-row">
+                <button class="btn btn-primary btn-disabled" disabled>Dormant</button>
+                <button class="btn btn-secondary btn-disabled" disabled>Dormant</button>
+                <button class="btn btn-outline btn-disabled" disabled>Dormant</button>
+            </div>
+
+            <div class="divider"></div>
+
+            <h4 class="mb-md">With Icons</h4>
+            <div class="button-row">
+                <button class="btn btn-primary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    Cultivate
+                </button>
+                <button class="btn btn-glow-green">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+                    Propagate
+                </button>
+                <button class="btn btn-secondary">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Harvest
+                </button>
+            </div>
+        </section>
+
+        <!-- 05 Forms -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">05</div>
+                <h2>Forms</h2>
+                <p class="lead">Input fields sit in the dark loam like prepared substrate, their borders barely visible until focused, when they illuminate with a soft bioluminescent glow -- the organism responding to interaction.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Species Name</label>
+                        <input type="text" class="input-field" placeholder="e.g. Amanita muscaria">
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Habitat</label>
+                        <input type="text" class="input-field" placeholder="Deciduous forest floor">
+                        <span class="input-hint">Primary ecological niche</span>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Phylum</label>
+                        <select class="input-field select-field">
+                            <option value="">Select classification...</option>
+                            <option>Basidiomycota</option>
+                            <option>Ascomycota</option>
+                            <option>Zygomycota</option>
+                            <option>Chytridiomycota</option>
+                            <option>Glomeromycota</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group">
+                        <label class="input-label">Growth Medium</label>
+                        <select class="input-field select-field">
+                            <option value="">Choose substrate...</option>
+                            <option>Hardwood logs</option>
+                            <option>Straw</option>
+                            <option>Wood chips</option>
+                            <option>Grain spawn</option>
+                            <option>Agar plates</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <div class="input-group">
+                        <label class="input-label">Field Notes</label>
+                        <textarea class="input-field" placeholder="Describe the specimen, its habitat, substrate, and any notable features..."></textarea>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group mb-0">
+                        <label class="input-label" style="margin-bottom: var(--space-md);">Cap Characteristics</label>
+                        <div class="check-group">
+                            <label class="check-label">
+                                <input type="checkbox" class="check-input" checked>
+                                Convex pileus
+                            </label>
+                            <label class="check-label">
+                                <input type="checkbox" class="check-input" checked>
+                                Partial veil present
+                            </label>
+                            <label class="check-label">
+                                <input type="checkbox" class="check-input">
+                                Universal veil remnants
+                            </label>
+                            <label class="check-label">
+                                <input type="checkbox" class="check-input">
+                                Bioluminescent
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="input-group mb-0">
+                        <label class="input-label" style="margin-bottom: var(--space-md);">Spore Print Color</label>
+                        <div class="check-group">
+                            <label class="check-label">
+                                <input type="radio" name="spore-color" class="check-input radio-input" checked>
+                                White / Cream
+                            </label>
+                            <label class="check-label">
+                                <input type="radio" name="spore-color" class="check-input radio-input">
+                                Pink / Salmon
+                            </label>
+                            <label class="check-label">
+                                <input type="radio" name="spore-color" class="check-input radio-input">
+                                Brown / Rusty
+                            </label>
+                            <label class="check-label">
+                                <input type="radio" name="spore-color" class="check-input radio-input">
+                                Dark Purple-Black
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 06 Cards -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">06</div>
+                <h2>Cards &amp; Panels</h2>
+                <p class="lead">Content containers shaped by their purpose -- some glow with the mycelium network's luminescence, others are grounded and earthy like a mushroom cap emerging from the humus. Each holds its contents like a hollow log harboring life.</p>
+            </div>
+
+            <h4 class="mb-md">Standard &amp; Network Cards</h4>
+            <div class="grid mb-xl">
+                <div class="col-4">
+                    <div class="card">
+                        <div class="card-icon">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" stroke="currentColor"/><path d="M12 6v6l4 2" stroke="currentColor"/></svg>
+                        </div>
+                        <h3>Standard</h3>
+                        <p>A simple container in the dark loam. Minimal borders, generous padding, and a quiet presence on the forest floor.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-mycelium">
+                        <div class="card-icon card-icon-green">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor"/><path d="M2 17l10 5 10-5" stroke="currentColor"/><path d="M2 12l10 5 10-5" stroke="currentColor"/></svg>
+                        </div>
+                        <h3>Mycelium Network</h3>
+                        <p>Connected to the network. A luminous gradient border signals that this card carries active, interconnected information.</p>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="card card-cap">
+                        <div class="card-icon card-icon-violet">
+                            <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor"/></svg>
+                        </div>
+                        <h3>Mushroom Cap</h3>
+                        <p>Warm earth tones with a subtle radial gradient that suggests the rounded dome of a fruiting body emerging from bark.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mycelium-divider">
+                <span class="spore"></span>
+                <span class="spore"></span>
+                <span class="spore"></span>
+            </div>
+
+            <h4 class="mb-md">Spore Card &amp; Feature Panels</h4>
+            <div class="grid mb-xl">
+                <div class="col-6">
+                    <div class="card card-spore">
+                        <h3>Spore Cloud</h3>
+                        <p>Floating spore particles drift across this card as subtle dot patterns. Use it for content that feels like it is dispersing outward, spreading knowledge like spores on the wind.</p>
+                        <div class="card-footer">
+                            <button class="btn btn-sm btn-primary">Release Spores</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="card card-mycelium">
+                        <h3>Symbiotic Partnership</h3>
+                        <p>Mycorrhizal fungi form mutualistic relationships with over 90% of plant species. The fungus extends the plant's root network, accessing water and minerals the roots cannot reach alone.</p>
+                        <div class="card-footer">
+                            <div class="badge-row">
+                                <span class="badge badge-glow"><span class="badge-dot"></span>Mutualistic</span>
+                                <span class="badge badge-green"><span class="badge-dot"></span>Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="forest-banner">
+                <h3>The Network Is Listening</h3>
+                <p>A single mycelium network can span thousands of acres, connecting millions of trees in a living internet of nutrient exchange and chemical signaling.</p>
+            </div>
+        </section>
+
+        <!-- 07 Alerts / Notifications -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">07</div>
+                <h2>Alerts &amp; Notifications</h2>
+                <p class="lead">Signals from the network. Each alert carries a distinct luminescence -- informational violet, successful cyan, cautionary ochre, and critical rust. Like chemical signals passing through hyphae, they communicate urgency through color alone.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor"/><line x1="12" y1="16" x2="12" y2="12" stroke="currentColor"/><line x1="12" y1="8" x2="12.01" y2="8" stroke="currentColor"/></svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Mycelium Signal</p>
+                    <p>The network has detected new organic matter on the forest floor. Hyphae are extending toward the substrate for decomposition analysis.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-success">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor"/><polyline points="22 4 12 14.01 9 11.01" stroke="currentColor"/></svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Colonization Complete</p>
+                    <p>Mycelium has fully colonized the substrate. Primordia are forming. Expect fruiting bodies within 7-14 days under current humidity conditions.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="currentColor"/><line x1="12" y1="9" x2="12" y2="13" stroke="currentColor"/><line x1="12" y1="17" x2="12.01" y2="17" stroke="currentColor"/></svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Humidity Dropping</p>
+                    <p>Ambient humidity has fallen below 80%. The fruiting chamber requires misting to prevent primordia from aborting. Increase frequency of FAE cycles.</p>
+                </div>
+            </div>
+
+            <div class="alert alert-error" style="margin-bottom: 0;">
+                <div class="alert-icon">
+                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor"/><line x1="15" y1="9" x2="9" y2="15" stroke="currentColor"/><line x1="9" y1="9" x2="15" y2="15" stroke="currentColor"/></svg>
+                </div>
+                <div class="alert-content">
+                    <p class="alert-title">Contamination Detected</p>
+                    <p>Green mold (Trichoderma) spotted in sector 4B. Isolate the affected substrate immediately. The competing organism is aggressive and will outcompete the culture if not contained.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 08 Data Table -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">08</div>
+                <h2>Data Table</h2>
+                <p class="lead">Structured information arranged like a mycologist's field log. Muted rows with gentle hover states let each specimen entry stand clearly against the dark substrate.</p>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Species</th>
+                            <th>Habitat</th>
+                            <th>Cap Color</th>
+                            <th>Edibility</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="table-highlight">Mycena chlorophos</td>
+                            <td>Subtropical forest</td>
+                            <td>Pale green (luminous)</td>
+                            <td>Unknown</td>
+                            <td><span class="badge badge-glow"><span class="badge-dot"></span>Bioluminescent</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table-highlight">Cantharellus cibarius</td>
+                            <td>Mixed woodland</td>
+                            <td>Golden yellow</td>
+                            <td>Choice edible</td>
+                            <td><span class="badge badge-ochre"><span class="badge-dot"></span>Fruiting</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table-highlight">Amanita muscaria</td>
+                            <td>Birch, pine forest</td>
+                            <td>Scarlet with white warts</td>
+                            <td>Toxic</td>
+                            <td><span class="badge badge-rust"><span class="badge-dot"></span>Warning</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table-highlight">Pleurotus ostreatus</td>
+                            <td>Dead hardwood</td>
+                            <td>Grey to blue-grey</td>
+                            <td>Choice edible</td>
+                            <td><span class="badge badge-green"><span class="badge-dot"></span>Cultivated</span></td>
+                        </tr>
+                        <tr>
+                            <td class="table-highlight">Trametes versicolor</td>
+                            <td>Dead logs, stumps</td>
+                            <td>Multicolored zones</td>
+                            <td>Medicinal</td>
+                            <td><span class="badge badge-violet"><span class="badge-dot"></span>Perennial</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 09 Badges & Tags -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">09</div>
+                <h2>Badges &amp; Tags</h2>
+                <p class="lead">Small classification markers, like the spore print colors a mycologist uses to identify species. Glowing variants signal active states; muted tones indicate archived or dormant data.</p>
+            </div>
+
+            <h4 class="mb-md">Color Variants</h4>
+            <div class="badge-row mb-lg">
+                <span class="badge">Default</span>
+                <span class="badge badge-glow">Cyan Glow</span>
+                <span class="badge badge-green">Green Glow</span>
+                <span class="badge badge-violet">Violet Glow</span>
+                <span class="badge badge-ochre">Ochre</span>
+                <span class="badge badge-rust">Rust</span>
+            </div>
+
+            <h4 class="mb-md">With Status Indicators</h4>
+            <div class="badge-row mb-lg">
+                <span class="badge badge-glow"><span class="badge-dot"></span>Colonizing</span>
+                <span class="badge badge-green"><span class="badge-dot"></span>Fruiting</span>
+                <span class="badge badge-ochre"><span class="badge-dot"></span>Sporulating</span>
+                <span class="badge badge-violet"><span class="badge-dot"></span>Dormant</span>
+                <span class="badge"><span class="badge-dot"></span>Unknown</span>
+            </div>
+
+            <h4 class="mb-md">Solid Variant</h4>
+            <div class="badge-row">
+                <span class="badge badge-solid">Active Network</span>
+            </div>
+        </section>
+
+        <!-- 10 Design Principles -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">10</div>
+                <h2>Design Principles</h2>
+                <p class="lead">The philosophy underlying this system draws from the biology of fungi -- organisms that connect, decompose, transform, and illuminate the darkness.</p>
+            </div>
+
+            <div class="grid">
+                <div class="col-6">
+                    <div class="principle-card">
+                        <div class="principle-number">01</div>
+                        <h4>Grow From Darkness</h4>
+                        <p>Dark backgrounds are the substrate. Content emerges from the dark like fruiting bodies from loam. Light is earned, not given freely -- use bioluminescent accents sparingly for maximum impact.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="principle-card">
+                        <div class="principle-number">02</div>
+                        <h4>Connect Everything</h4>
+                        <p>Like the mycelium network that links trees across a forest, UI elements should feel interconnected. Consistent spacing, shared color tokens, and cohesive type create a unified organism.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="principle-card">
+                        <div class="principle-number">03</div>
+                        <h4>Organic Over Rigid</h4>
+                        <p>Prefer rounded shapes, soft gradients, and natural proportions over sharp angles and mechanical grids. Nature does not render in 90-degree corners.</p>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="principle-card">
+                        <div class="principle-number">04</div>
+                        <h4>Signal Through Luminescence</h4>
+                        <p>Use bioluminescent color as a signaling mechanism. Cyan for primary actions, green for success, violet for information. Like real bioluminescence, the glow should feel purposeful, not decorative.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-spores">
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+            <p class="footer-brand">Mushroom &amp; Mycelium Design System</p>
+            <p>Grown from the forest floor. Connected by invisible threads. Illuminated by foxfire.</p>
+        </footer>
+    </div>
+</body>
+</html>

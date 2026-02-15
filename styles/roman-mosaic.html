@@ -1,0 +1,2210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roman Mosaic — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Cinzel+Decorative:wght@400;700;900&family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           ROOT VARIABLES
+           ============================================ */
+        :root {
+            /* Color Palette — Roman Villa */
+            --terracotta: #C2703E;
+            --terracotta-light: #D4885A;
+            --terracotta-dark: #9A4F24;
+            --terracotta-deep: #7A3B18;
+            --marble-white: #F2EDE4;
+            --marble-cream: #E8E0D0;
+            --marble-veined: #DDD5C3;
+            --roman-red: #8B2A2A;
+            --roman-red-light: #A83C3C;
+            --roman-red-dark: #6B1C1C;
+            --imperial-blue: #2C4A6E;
+            --imperial-blue-light: #3D6590;
+            --imperial-blue-dark: #1E3350;
+            --olive-green: #5C6B3C;
+            --olive-green-light: #7A8C52;
+            --olive-green-dark: #414D2A;
+            --aged-stone: #8C8376;
+            --aged-stone-light: #A69E92;
+            --aged-stone-dark: #6E675C;
+            --grout: #9B9283;
+            --grout-dark: #7A7265;
+            --grout-line: #B5ADA0;
+            --ochre: #C9A84C;
+            --ochre-dark: #A68930;
+            --charcoal: #3A3530;
+            --charcoal-light: #524D46;
+
+            /* Semantic Colors */
+            --bg-primary: var(--marble-white);
+            --bg-secondary: var(--marble-cream);
+            --bg-stone: var(--marble-veined);
+            --text-primary: var(--charcoal);
+            --text-secondary: var(--aged-stone-dark);
+            --text-heading: var(--terracotta-deep);
+            --accent-primary: var(--terracotta);
+            --accent-secondary: var(--roman-red);
+            --accent-tertiary: var(--imperial-blue);
+
+            /* Typography */
+            --font-display: 'Cinzel Decorative', serif;
+            --font-heading: 'Cinzel', serif;
+            --font-body: 'Cormorant', serif;
+
+            /* Spacing Scale */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --space-4xl: 96px;
+
+            /* Shadows */
+            --shadow-tile: 1px 1px 2px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.3);
+            --shadow-card: 0 4px 16px rgba(58,53,48,0.12), 0 1px 4px rgba(58,53,48,0.08);
+            --shadow-card-hover: 0 8px 32px rgba(58,53,48,0.18), 0 2px 8px rgba(58,53,48,0.12);
+            --shadow-inset: inset 0 2px 6px rgba(58,53,48,0.1);
+
+            /* Border */
+            --border-grout: 2px solid var(--grout);
+            --border-stone: 1px solid var(--grout-line);
+            --radius-tile: 2px;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1.125rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================
+           TESSELLATED BACKGROUND PATTERN
+           Simulates a floor of tiny mosaic tiles
+           ============================================ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.35;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 11px,
+                    var(--grout-line) 11px,
+                    var(--grout-line) 12px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 11px,
+                    var(--grout-line) 11px,
+                    var(--grout-line) 12px
+                );
+        }
+
+        /* Subtle stone texture overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.04;
+            background-image:
+                radial-gradient(ellipse at 15% 25%, var(--terracotta) 0%, transparent 50%),
+                radial-gradient(ellipse at 85% 75%, var(--imperial-blue) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, var(--olive-green) 0%, transparent 60%);
+        }
+
+        /* ============================================
+           CONTAINER
+           ============================================ */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1140px;
+            margin: 0 auto;
+            padding: var(--space-3xl) var(--space-xl);
+        }
+
+        /* ============================================
+           MOSAIC BORDER PATTERN
+           Decorative tessellated border strip
+           ============================================ */
+        .mosaic-border {
+            height: 24px;
+            position: relative;
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    var(--terracotta) 0px,
+                    var(--terracotta) 10px,
+                    var(--grout-line) 10px,
+                    var(--grout-line) 12px,
+                    var(--marble-cream) 12px,
+                    var(--marble-cream) 22px,
+                    var(--grout-line) 22px,
+                    var(--grout-line) 24px,
+                    var(--roman-red) 24px,
+                    var(--roman-red) 34px,
+                    var(--grout-line) 34px,
+                    var(--grout-line) 36px,
+                    var(--imperial-blue) 36px,
+                    var(--imperial-blue) 46px,
+                    var(--grout-line) 46px,
+                    var(--grout-line) 48px
+                );
+            border-top: 2px solid var(--grout);
+            border-bottom: 2px solid var(--grout);
+            margin-bottom: var(--space-3xl);
+        }
+
+        /* Meander / Greek key pattern via CSS */
+        .meander-border {
+            height: 16px;
+            background: var(--terracotta-deep);
+            position: relative;
+            margin: var(--space-2xl) 0;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    var(--terracotta-deep) 0px,
+                    var(--terracotta-deep) 6px,
+                    var(--marble-cream) 6px,
+                    var(--marble-cream) 8px,
+                    var(--terracotta-deep) 8px,
+                    var(--terracotta-deep) 14px,
+                    var(--marble-cream) 14px,
+                    var(--marble-cream) 16px
+                );
+            border: 2px solid var(--grout);
+        }
+
+        /* Guilloche-inspired double border */
+        .villa-border {
+            position: relative;
+            padding: var(--space-2xl);
+            border: 3px solid var(--terracotta);
+            background: var(--bg-primary);
+        }
+
+        .villa-border::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px solid var(--grout);
+            pointer-events: none;
+        }
+
+        .villa-border::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid var(--grout-line);
+            pointer-events: none;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+        header {
+            text-align: center;
+            padding: var(--space-4xl) var(--space-xl);
+            margin-bottom: var(--space-3xl);
+            position: relative;
+            background: linear-gradient(180deg, var(--marble-cream) 0%, var(--bg-primary) 100%);
+            border: 3px solid var(--terracotta);
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            border: 1px solid var(--terracotta-light);
+            pointer-events: none;
+        }
+
+        /* Tessellated corner ornaments */
+        .corner-ornament {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+        }
+
+        .corner-ornament::before,
+        .corner-ornament::after {
+            content: '';
+            position: absolute;
+        }
+
+        .corner-ornament::before {
+            width: 16px;
+            height: 16px;
+            background: var(--terracotta);
+            border: 1px solid var(--grout);
+        }
+
+        .corner-ornament::after {
+            width: 10px;
+            height: 10px;
+            background: var(--roman-red);
+            border: 1px solid var(--grout);
+        }
+
+        .corner-tl { top: 16px; left: 16px; }
+        .corner-tl::before { top: 0; left: 0; }
+        .corner-tl::after { top: 18px; left: 18px; }
+
+        .corner-tr { top: 16px; right: 16px; }
+        .corner-tr::before { top: 0; right: 0; }
+        .corner-tr::after { top: 18px; right: 18px; }
+
+        .corner-bl { bottom: 16px; left: 16px; }
+        .corner-bl::before { bottom: 0; left: 0; }
+        .corner-bl::after { bottom: 18px; left: 18px; }
+
+        .corner-br { bottom: 16px; right: 16px; }
+        .corner-br::before { bottom: 0; right: 0; }
+        .corner-br::after { bottom: 18px; right: 18px; }
+
+        /* Central mosaic medallion in header */
+        .header-medallion {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto var(--space-xl);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-medallion svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 7vw, 4rem);
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            color: var(--terracotta-deep);
+            margin-bottom: var(--space-md);
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.5);
+        }
+
+        .header-subtitle {
+            font-family: var(--font-heading);
+            font-size: 1.1rem;
+            color: var(--aged-stone-dark);
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+        }
+
+        .header-tagline {
+            font-family: var(--font-body);
+            font-style: italic;
+            font-size: 1.15rem;
+            color: var(--aged-stone);
+            margin-top: var(--space-md);
+            max-width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Decorative tile row beneath header text */
+        .tile-row {
+            display: flex;
+            justify-content: center;
+            gap: 3px;
+            margin-top: var(--space-xl);
+        }
+
+        .tile-row .tile {
+            width: 14px;
+            height: 14px;
+            border: 1px solid var(--grout);
+        }
+
+        .tile-row .tile:nth-child(odd) { background: var(--terracotta); }
+        .tile-row .tile:nth-child(even) { background: var(--marble-cream); }
+        .tile-row .tile:nth-child(3) { background: var(--roman-red); }
+        .tile-row .tile:nth-child(5) { background: var(--imperial-blue); }
+        .tile-row .tile:nth-child(7) { background: var(--olive-green); }
+        .tile-row .tile:nth-child(9) { background: var(--ochre); }
+
+        /* ============================================
+           SECTION STYLING
+           ============================================ */
+        section {
+            margin-bottom: var(--space-4xl);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            color: var(--terracotta);
+            opacity: 0.3;
+            line-height: 1;
+            margin-bottom: var(--space-xs);
+        }
+
+        .section-title {
+            font-family: var(--font-heading);
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-heading);
+            margin-bottom: var(--space-md);
+        }
+
+        .section-desc {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--aged-stone);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Decorative divider with mosaic diamond */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-md);
+            margin-top: var(--space-md);
+        }
+
+        .section-divider::before,
+        .section-divider::after {
+            content: '';
+            width: 80px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--terracotta), transparent);
+        }
+
+        .section-divider .diamond {
+            width: 12px;
+            height: 12px;
+            background: var(--terracotta);
+            transform: rotate(45deg);
+            border: 1px solid var(--grout);
+        }
+
+        /* ============================================
+           01. COLOR PALETTE
+           ============================================ */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 3px;
+            background: var(--grout);
+            padding: 3px;
+            border: 2px solid var(--grout-dark);
+        }
+
+        .color-swatch {
+            text-align: center;
+            padding: var(--space-lg) var(--space-md);
+            background: var(--bg-primary);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.02);
+            box-shadow: var(--shadow-card);
+            z-index: 2;
+        }
+
+        .color-preview {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-md);
+            border: 2px solid var(--grout);
+            position: relative;
+            box-shadow: var(--shadow-tile);
+        }
+
+        /* Tessera-style tile appearance on swatch */
+        .color-preview::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+        }
+
+        .color-name {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .color-hex {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--aged-stone);
+        }
+
+        .color-usage {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-style: italic;
+            color: var(--aged-stone-light);
+            margin-top: var(--space-xs);
+        }
+
+        /* ============================================
+           02. TYPOGRAPHY
+           ============================================ */
+        .type-specimens {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .type-specimen {
+            padding: var(--space-xl);
+            border-bottom: 1px solid var(--grout-line);
+            position: relative;
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+        }
+
+        .type-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: var(--space-md);
+            flex-wrap: wrap;
+            gap: var(--space-sm);
+        }
+
+        .type-label {
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--terracotta);
+            background: var(--marble-cream);
+            padding: var(--space-xs) var(--space-sm);
+            border: 1px solid var(--grout-line);
+        }
+
+        .type-info {
+            font-family: monospace;
+            font-size: 0.75rem;
+            color: var(--aged-stone);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            color: var(--terracotta-deep);
+            text-shadow: 2px 2px 0 rgba(194,112,62,0.15);
+        }
+
+        .type-h1 {
+            font-family: var(--font-heading);
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-heading);
+        }
+
+        .type-h2 {
+            font-family: var(--font-heading);
+            font-size: clamp(1.5rem, 3.5vw, 2rem);
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--charcoal);
+        }
+
+        .type-h3 {
+            font-family: var(--font-heading);
+            font-size: 1.25rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            color: var(--aged-stone-dark);
+        }
+
+        .type-body-sample {
+            font-family: var(--font-body);
+            font-size: 1.2rem;
+            font-weight: 400;
+            line-height: 1.85;
+            max-width: 62ch;
+            color: var(--text-primary);
+        }
+
+        .type-body-sample .drop-cap::first-letter {
+            font-family: var(--font-display);
+            font-size: 3.5em;
+            float: left;
+            line-height: 0.8;
+            padding-right: var(--space-sm);
+            color: var(--terracotta);
+        }
+
+        .type-caption {
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--aged-stone);
+            letter-spacing: 0.02em;
+        }
+
+        .type-inscription {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: var(--roman-red);
+            text-align: center;
+        }
+
+        /* ============================================
+           03. SPACING SCALE
+           ============================================ */
+        .spacing-demo {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .spacing-label {
+            width: 100px;
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-heading);
+            text-align: right;
+            letter-spacing: 0.05em;
+            flex-shrink: 0;
+        }
+
+        .spacing-bar {
+            height: 20px;
+            position: relative;
+            border: 1px solid var(--grout);
+            /* Each bar looks like a row of tiny tiles */
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    var(--terracotta) 0px,
+                    var(--terracotta) 8px,
+                    var(--grout-line) 8px,
+                    var(--grout-line) 10px
+                );
+            box-shadow: var(--shadow-tile);
+        }
+
+        .spacing-value {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: var(--aged-stone);
+            flex-shrink: 0;
+        }
+
+        /* ============================================
+           04. BUTTONS
+           ============================================ */
+        .button-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .button-row-label {
+            width: 100%;
+            text-align: center;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--aged-stone);
+            margin-bottom: var(--space-sm);
+        }
+
+        .btn {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            padding: var(--space-md) var(--space-xl);
+            border: 2px solid var(--terracotta);
+            background: transparent;
+            color: var(--terracotta-deep);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.35s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Tile-texture hover effect */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    var(--terracotta) 0px,
+                    var(--terracotta) 6px,
+                    var(--grout-line) 6px,
+                    var(--grout-line) 7px
+                );
+            opacity: 0.15;
+            transition: left 0.4s ease;
+        }
+
+        .btn:hover::before {
+            left: 0;
+        }
+
+        .btn:hover {
+            background: var(--terracotta);
+            color: var(--marble-white);
+            border-color: var(--terracotta-dark);
+            box-shadow: var(--shadow-card);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+            box-shadow: none;
+        }
+
+        /* Primary button - filled */
+        .btn-primary {
+            background: var(--terracotta);
+            color: var(--marble-white);
+        }
+
+        .btn-primary:hover {
+            background: var(--terracotta-dark);
+            border-color: var(--terracotta-deep);
+        }
+
+        /* Secondary - outlined (default .btn) */
+
+        /* Roman Red variant */
+        .btn-red {
+            border-color: var(--roman-red);
+            color: var(--roman-red);
+        }
+
+        .btn-red::before {
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    var(--roman-red) 0px,
+                    var(--roman-red) 6px,
+                    var(--grout-line) 6px,
+                    var(--grout-line) 7px
+                );
+        }
+
+        .btn-red:hover {
+            background: var(--roman-red);
+            color: var(--marble-white);
+            border-color: var(--roman-red-dark);
+        }
+
+        /* Imperial Blue variant */
+        .btn-blue {
+            border-color: var(--imperial-blue);
+            color: var(--imperial-blue);
+        }
+
+        .btn-blue::before {
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    var(--imperial-blue) 0px,
+                    var(--imperial-blue) 6px,
+                    var(--grout-line) 6px,
+                    var(--grout-line) 7px
+                );
+        }
+
+        .btn-blue:hover {
+            background: var(--imperial-blue);
+            color: var(--marble-white);
+            border-color: var(--imperial-blue-dark);
+        }
+
+        /* Olive variant */
+        .btn-olive {
+            border-color: var(--olive-green);
+            color: var(--olive-green);
+        }
+
+        .btn-olive::before {
+            background-image:
+                repeating-linear-gradient(
+                    90deg,
+                    var(--olive-green) 0px,
+                    var(--olive-green) 6px,
+                    var(--grout-line) 6px,
+                    var(--grout-line) 7px
+                );
+        }
+
+        .btn-olive:hover {
+            background: var(--olive-green);
+            color: var(--marble-white);
+            border-color: var(--olive-green-dark);
+        }
+
+        /* Disabled */
+        .btn-disabled {
+            border-color: var(--grout-line);
+            color: var(--grout);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-disabled:hover {
+            background: transparent;
+            color: var(--grout);
+            border-color: var(--grout-line);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-disabled::before {
+            display: none;
+        }
+
+        /* Sizes */
+        .btn-sm {
+            font-size: 0.7rem;
+            padding: var(--space-sm) var(--space-md);
+            letter-spacing: 0.15em;
+        }
+
+        .btn-lg {
+            font-size: 1rem;
+            padding: var(--space-lg) var(--space-2xl);
+        }
+
+        /* ============================================
+           05. FORMS
+           ============================================ */
+        .form-panel {
+            background: var(--marble-cream);
+            border: 2px solid var(--grout);
+            padding: var(--space-2xl);
+            position: relative;
+        }
+
+        .form-panel::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px solid var(--grout-line);
+            pointer-events: none;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--space-xl);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .form-group label {
+            display: block;
+            font-family: var(--font-heading);
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--terracotta-deep);
+            margin-bottom: var(--space-sm);
+        }
+
+        .input {
+            width: 100%;
+            padding: var(--space-md) var(--space-lg);
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            font-weight: 400;
+            background: var(--marble-white);
+            border: 2px solid var(--grout);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: var(--terracotta);
+            box-shadow: 0 0 0 3px rgba(194,112,62,0.15);
+        }
+
+        .input::placeholder {
+            color: var(--grout);
+            font-style: italic;
+        }
+
+        textarea.input {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        /* Select */
+        .select-wrap {
+            position: relative;
+        }
+
+        .select-wrap::after {
+            content: '';
+            position: absolute;
+            right: var(--space-md);
+            top: 50%;
+            transform: translateY(-60%) rotate(45deg);
+            width: 8px;
+            height: 8px;
+            border-right: 2px solid var(--terracotta);
+            border-bottom: 2px solid var(--terracotta);
+            pointer-events: none;
+        }
+
+        .select {
+            appearance: none;
+            width: 100%;
+            padding: var(--space-md) var(--space-lg);
+            padding-right: var(--space-2xl);
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            background: var(--marble-white);
+            border: 2px solid var(--grout);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .select:focus {
+            outline: none;
+            border-color: var(--terracotta);
+            box-shadow: 0 0 0 3px rgba(194,112,62,0.15);
+        }
+
+        /* Checkbox & Radio */
+        .choice-group {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-sm);
+        }
+
+        .choice-label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: var(--space-xs) 0;
+        }
+
+        .choice-label input[type="checkbox"],
+        .choice-label input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--grout);
+            background: var(--marble-white);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .choice-label input[type="radio"] {
+            border-radius: 50%;
+        }
+
+        .choice-label input[type="checkbox"]:checked {
+            background: var(--terracotta);
+            border-color: var(--terracotta-dark);
+        }
+
+        .choice-label input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 6px;
+            width: 5px;
+            height: 9px;
+            border: 2px solid var(--marble-white);
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .choice-label input[type="radio"]:checked {
+            border-color: var(--terracotta-dark);
+        }
+
+        .choice-label input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--terracotta);
+        }
+
+        .choice-label input:focus {
+            box-shadow: 0 0 0 3px rgba(194,112,62,0.15);
+        }
+
+        /* ============================================
+           06. CARDS / PANELS
+           ============================================ */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 3px;
+            background: var(--grout);
+            padding: 3px;
+        }
+
+        .card {
+            background: var(--bg-primary);
+            padding: var(--space-xl);
+            position: relative;
+            transition: all 0.35s ease;
+            overflow: hidden;
+        }
+
+        /* Subtle tile grid on card background */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.06;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 19px,
+                    var(--grout) 19px,
+                    var(--grout) 20px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 19px,
+                    var(--grout) 19px,
+                    var(--grout) 20px
+                );
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+
+        .card:hover::before {
+            opacity: 0.12;
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-card-hover);
+            z-index: 2;
+        }
+
+        /* Top colored bar */
+        .card-bar {
+            height: 6px;
+            margin: calc(-1 * var(--space-xl)) calc(-1 * var(--space-xl)) var(--space-lg) calc(-1 * var(--space-xl));
+        }
+
+        .card-bar-terracotta { background: var(--terracotta); }
+        .card-bar-red { background: var(--roman-red); }
+        .card-bar-blue { background: var(--imperial-blue); }
+        .card-bar-olive { background: var(--olive-green); }
+
+        /* Mosaic icon badge */
+        .card-icon {
+            width: 56px;
+            height: 56px;
+            margin-bottom: var(--space-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--marble-cream);
+            border: 2px solid var(--grout);
+            position: relative;
+        }
+
+        .card-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .card-title {
+            font-family: var(--font-heading);
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--text-heading);
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-text {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            line-height: 1.75;
+        }
+
+        .card-footer {
+            margin-top: var(--space-lg);
+            padding-top: var(--space-md);
+            border-top: 1px solid var(--grout-line);
+            font-family: var(--font-heading);
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--aged-stone);
+        }
+
+        /* Feature card (full-width) */
+        .card-feature {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-xl);
+            align-items: center;
+        }
+
+        .card-feature .card-mosaic {
+            height: 200px;
+            background: var(--marble-cream);
+            border: 2px solid var(--grout);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative tessellation pattern inside feature card */
+        .card-feature .card-mosaic::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                repeating-conic-gradient(
+                    var(--terracotta) 0% 25%,
+                    var(--marble-cream) 0% 50%
+                );
+            background-size: 20px 20px;
+            opacity: 0.4;
+        }
+
+        .card-feature .card-mosaic::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 19px,
+                    var(--grout-line) 19px,
+                    var(--grout-line) 20px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 19px,
+                    var(--grout-line) 19px,
+                    var(--grout-line) 20px
+                );
+            opacity: 0.6;
+        }
+
+        /* ============================================
+           07. ALERTS / NOTIFICATIONS
+           ============================================ */
+        .alerts-stack {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+
+        .alert {
+            padding: var(--space-lg) var(--space-xl);
+            border: 2px solid;
+            position: relative;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--space-md);
+        }
+
+        /* Grout-style inner border */
+        .alert::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            right: 4px;
+            bottom: 4px;
+            border: 1px solid;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .alert-icon {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid;
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .alert-body {
+            flex: 1;
+        }
+
+        .alert-title {
+            font-family: var(--font-heading);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            margin-bottom: var(--space-xs);
+        }
+
+        .alert-text {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Info */
+        .alert-info {
+            border-color: var(--imperial-blue);
+            background: rgba(44,74,110,0.06);
+        }
+
+        .alert-info::before { border-color: var(--imperial-blue); }
+        .alert-info .alert-icon {
+            border-color: var(--imperial-blue);
+            color: var(--imperial-blue);
+            background: rgba(44,74,110,0.1);
+        }
+        .alert-info .alert-title { color: var(--imperial-blue); }
+        .alert-info .alert-text { color: var(--imperial-blue-dark); }
+
+        /* Success */
+        .alert-success {
+            border-color: var(--olive-green);
+            background: rgba(92,107,60,0.06);
+        }
+
+        .alert-success::before { border-color: var(--olive-green); }
+        .alert-success .alert-icon {
+            border-color: var(--olive-green);
+            color: var(--olive-green);
+            background: rgba(92,107,60,0.1);
+        }
+        .alert-success .alert-title { color: var(--olive-green); }
+        .alert-success .alert-text { color: var(--olive-green-dark); }
+
+        /* Warning */
+        .alert-warning {
+            border-color: var(--ochre);
+            background: rgba(201,168,76,0.08);
+        }
+
+        .alert-warning::before { border-color: var(--ochre); }
+        .alert-warning .alert-icon {
+            border-color: var(--ochre);
+            color: var(--ochre-dark);
+            background: rgba(201,168,76,0.15);
+        }
+        .alert-warning .alert-title { color: var(--ochre-dark); }
+        .alert-warning .alert-text { color: var(--charcoal); }
+
+        /* Error */
+        .alert-error {
+            border-color: var(--roman-red);
+            background: rgba(139,42,42,0.06);
+        }
+
+        .alert-error::before { border-color: var(--roman-red); }
+        .alert-error .alert-icon {
+            border-color: var(--roman-red);
+            color: var(--roman-red);
+            background: rgba(139,42,42,0.1);
+        }
+        .alert-error .alert-title { color: var(--roman-red); }
+        .alert-error .alert-text { color: var(--roman-red-dark); }
+
+        /* ============================================
+           MOSAIC PATTERN SHOWCASE
+           Decorative element between sections
+           ============================================ */
+        .mosaic-showcase {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 2px;
+            background: var(--grout);
+            padding: 2px;
+            margin: var(--space-2xl) 0;
+            border: 2px solid var(--grout-dark);
+        }
+
+        .mosaic-showcase .t {
+            aspect-ratio: 1;
+            border: 0;
+        }
+
+        /* Tessera colors for the decorative mosaic */
+        .t-tc { background: var(--terracotta); }
+        .t-rr { background: var(--roman-red); }
+        .t-ib { background: var(--imperial-blue); }
+        .t-og { background: var(--olive-green); }
+        .t-mw { background: var(--marble-white); }
+        .t-mc { background: var(--marble-cream); }
+        .t-as { background: var(--aged-stone); }
+        .t-oc { background: var(--ochre); }
+        .t-ch { background: var(--charcoal); }
+
+        /* ============================================
+           DESIGN PRINCIPLES
+           ============================================ */
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: var(--space-xl);
+        }
+
+        .principle {
+            padding: var(--space-lg);
+            border-left: 4px solid var(--terracotta);
+            background: var(--marble-cream);
+        }
+
+        .principle-title {
+            font-family: var(--font-heading);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-heading);
+            margin-bottom: var(--space-sm);
+        }
+
+        .principle-text {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+        }
+
+        .principle:nth-child(2) { border-left-color: var(--roman-red); }
+        .principle:nth-child(3) { border-left-color: var(--imperial-blue); }
+        .principle:nth-child(4) { border-left-color: var(--olive-green); }
+        .principle:nth-child(5) { border-left-color: var(--ochre); }
+        .principle:nth-child(6) { border-left-color: var(--aged-stone); }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+        footer {
+            text-align: center;
+            padding: var(--space-4xl) var(--space-xl) var(--space-3xl);
+            margin-top: var(--space-4xl);
+            position: relative;
+            border-top: 3px solid var(--terracotta);
+        }
+
+        footer::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--terracotta-light);
+        }
+
+        footer::after {
+            content: '';
+            position: absolute;
+            top: 9px;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--grout-line);
+        }
+
+        .footer-medallion {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto var(--space-xl);
+        }
+
+        .footer-medallion svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--terracotta-deep);
+            margin-bottom: var(--space-md);
+            letter-spacing: 0.06em;
+        }
+
+        .footer-text {
+            font-family: var(--font-body);
+            font-size: 1.05rem;
+            font-style: italic;
+            color: var(--aged-stone);
+            max-width: 480px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .footer-latin {
+            font-family: var(--font-heading);
+            font-size: 0.8rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--grout);
+            margin-top: var(--space-xl);
+        }
+
+        /* ============================================
+           RESPONSIVE BREAKPOINT
+           ============================================ */
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-xl) var(--space-md);
+            }
+
+            header {
+                padding: var(--space-2xl) var(--space-md);
+            }
+
+            header h1 {
+                letter-spacing: 0.03em;
+            }
+
+            .section-number {
+                font-size: 2rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            }
+
+            .color-preview {
+                width: 60px;
+                height: 60px;
+            }
+
+            .button-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-panel {
+                padding: var(--space-lg);
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-feature {
+                grid-template-columns: 1fr;
+            }
+
+            .card-feature .card-mosaic {
+                height: 140px;
+            }
+
+            .spacing-item {
+                gap: var(--space-md);
+            }
+
+            .spacing-label {
+                width: 70px;
+                font-size: 0.7rem;
+            }
+
+            .mosaic-showcase {
+                grid-template-columns: repeat(6, 1fr);
+            }
+
+            .type-display {
+                word-break: break-word;
+            }
+
+            .principles-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .villa-border {
+                padding: var(--space-lg);
+            }
+
+            .corner-ornament {
+                display: none;
+            }
+
+            .tile-row .tile {
+                width: 10px;
+                height: 10px;
+            }
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .text-center { text-align: center; }
+        .text-terracotta { color: var(--terracotta); }
+        .text-red { color: var(--roman-red); }
+        .text-blue { color: var(--imperial-blue); }
+        .text-olive { color: var(--olive-green); }
+        .text-stone { color: var(--aged-stone); }
+        .mt-md { margin-top: var(--space-md); }
+        .mt-lg { margin-top: var(--space-lg); }
+        .mt-xl { margin-top: var(--space-xl); }
+        .mb-md { margin-bottom: var(--space-md); }
+        .mb-lg { margin-bottom: var(--space-lg); }
+        .mb-xl { margin-bottom: var(--space-xl); }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ============================================
+             HEADER
+             ============================================ -->
+        <header>
+            <div class="corner-ornament corner-tl"></div>
+            <div class="corner-ornament corner-tr"></div>
+            <div class="corner-ornament corner-bl"></div>
+            <div class="corner-ornament corner-br"></div>
+
+            <div class="header-medallion">
+                <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Outer circle (stone border) -->
+                    <circle cx="60" cy="60" r="56" fill="none" stroke="#9B9283" stroke-width="3"/>
+                    <circle cx="60" cy="60" r="52" fill="none" stroke="#B5ADA0" stroke-width="1"/>
+                    <!-- Tessellated ring -->
+                    <circle cx="60" cy="60" r="46" fill="none" stroke="#C2703E" stroke-width="6"/>
+                    <circle cx="60" cy="60" r="40" fill="none" stroke="#9B9283" stroke-width="1"/>
+                    <!-- Inner diamond pattern -->
+                    <rect x="42" y="42" width="36" height="36" fill="none" stroke="#8B2A2A" stroke-width="2" transform="rotate(45 60 60)"/>
+                    <rect x="48" y="48" width="24" height="24" fill="#E8E0D0" stroke="#9B9283" stroke-width="1" transform="rotate(45 60 60)"/>
+                    <!-- Central tessera -->
+                    <rect x="54" y="54" width="12" height="12" fill="#C2703E" stroke="#7A7265" stroke-width="1" transform="rotate(45 60 60)"/>
+                    <!-- Corner tesserae on the ring -->
+                    <circle cx="60" cy="14" r="4" fill="#2C4A6E" stroke="#9B9283" stroke-width="1"/>
+                    <circle cx="106" cy="60" r="4" fill="#5C6B3C" stroke="#9B9283" stroke-width="1"/>
+                    <circle cx="60" cy="106" r="4" fill="#8B2A2A" stroke="#9B9283" stroke-width="1"/>
+                    <circle cx="14" cy="60" r="4" fill="#C9A84C" stroke="#9B9283" stroke-width="1"/>
+                </svg>
+            </div>
+
+            <h1>Roman Mosaic</h1>
+            <p class="header-subtitle">Tesserae of the Ancient Villa</p>
+            <p class="header-tagline">A design system inspired by the tessellated stone floors of Pompeii, Herculaneum, and the grand villas of the Roman Empire.</p>
+
+            <div class="tile-row">
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+                <span class="tile"></span>
+            </div>
+        </header>
+
+        <!-- Decorative mosaic border strip -->
+        <div class="mosaic-border"></div>
+
+        <!-- ============================================
+             01. COLOR PALETTE
+             ============================================ -->
+        <section id="colors">
+            <div class="section-header">
+                <div class="section-number">I</div>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-desc">Drawn from the natural pigments and stones of the Roman world: terracotta tiles, Carrara marble, volcanic ash, and imported lapis.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--terracotta);"></div>
+                    <p class="color-name">Terracotta</p>
+                    <p class="color-hex">#C2703E</p>
+                    <p class="color-usage">Primary accent</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--marble-white);"></div>
+                    <p class="color-name">Marble White</p>
+                    <p class="color-hex">#F2EDE4</p>
+                    <p class="color-usage">Background</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--roman-red);"></div>
+                    <p class="color-name">Roman Red</p>
+                    <p class="color-hex">#8B2A2A</p>
+                    <p class="color-usage">Emphasis, danger</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--imperial-blue);"></div>
+                    <p class="color-name">Imperial Blue</p>
+                    <p class="color-hex">#2C4A6E</p>
+                    <p class="color-usage">Information, links</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--olive-green);"></div>
+                    <p class="color-name">Olive Green</p>
+                    <p class="color-hex">#5C6B3C</p>
+                    <p class="color-usage">Success, nature</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--aged-stone);"></div>
+                    <p class="color-name">Aged Stone</p>
+                    <p class="color-hex">#8C8376</p>
+                    <p class="color-usage">Neutral, grout</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--ochre);"></div>
+                    <p class="color-name">Ochre</p>
+                    <p class="color-hex">#C9A84C</p>
+                    <p class="color-usage">Warning, gold</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--charcoal);"></div>
+                    <p class="color-name">Charcoal</p>
+                    <p class="color-hex">#3A3530</p>
+                    <p class="color-usage">Text, anchoring</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Decorative tessellated strip -->
+        <div class="mosaic-showcase">
+            <div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-tc"></div><div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-rr"></div><div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-ib"></div><div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-tc"></div>
+            <div class="t t-mw"></div><div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-tc"></div><div class="t t-rr"></div><div class="t t-mc"></div><div class="t t-rr"></div><div class="t t-ib"></div><div class="t t-mc"></div><div class="t t-ib"></div><div class="t t-tc"></div><div class="t t-mw"></div>
+            <div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-og"></div><div class="t t-mc"></div><div class="t t-mc"></div><div class="t t-oc"></div><div class="t t-mc"></div><div class="t t-mc"></div><div class="t t-og"></div><div class="t t-mc"></div><div class="t t-mc"></div><div class="t t-tc"></div>
+            <div class="t t-mw"></div><div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-tc"></div><div class="t t-rr"></div><div class="t t-mc"></div><div class="t t-rr"></div><div class="t t-ib"></div><div class="t t-mc"></div><div class="t t-ib"></div><div class="t t-tc"></div><div class="t t-mw"></div>
+            <div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-tc"></div><div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-rr"></div><div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-ib"></div><div class="t t-mw"></div><div class="t t-mw"></div><div class="t t-tc"></div>
+        </div>
+
+        <!-- ============================================
+             02. TYPOGRAPHY
+             ============================================ -->
+        <section id="typography">
+            <div class="section-header">
+                <div class="section-number">II</div>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-desc">Classical serifs evoking carved Roman inscriptions, paired with elegant body text for extended reading.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="villa-border">
+                <div class="type-specimens">
+                    <div class="type-specimen">
+                        <div class="type-meta">
+                            <span class="type-label">Display</span>
+                            <span class="type-info">Cinzel Decorative / 400 / clamp(3-5.5rem)</span>
+                        </div>
+                        <p class="type-display">SPQR</p>
+                    </div>
+
+                    <div class="type-specimen">
+                        <div class="type-meta">
+                            <span class="type-label">Heading 1</span>
+                            <span class="type-info">Cinzel / 800 / clamp(2-3rem)</span>
+                        </div>
+                        <p class="type-h1">Ave Imperator</p>
+                    </div>
+
+                    <div class="type-specimen">
+                        <div class="type-meta">
+                            <span class="type-label">Heading 2</span>
+                            <span class="type-info">Cinzel / 600 / clamp(1.5-2rem)</span>
+                        </div>
+                        <p class="type-h2">Villa dei Misteri</p>
+                    </div>
+
+                    <div class="type-specimen">
+                        <div class="type-meta">
+                            <span class="type-label">Heading 3</span>
+                            <span class="type-info">Cinzel / 500 / 1.25rem</span>
+                        </div>
+                        <p class="type-h3">Opus Tessellatum et Opus Vermiculatum</p>
+                    </div>
+
+                    <div class="type-specimen">
+                        <div class="type-meta">
+                            <span class="type-label">Body</span>
+                            <span class="type-info">Cormorant / 400 / 1.2rem / 1.85 line-height</span>
+                        </div>
+                        <div class="type-body-sample">
+                            <p class="drop-cap">Roman mosaics were among the most enduring achievements of classical antiquity. Composed of thousands of small stone, glass, and ceramic pieces called tesserae, these floor and wall decorations adorned everything from modest townhouses to grand imperial palaces. The craftsmen who laid them, known as tessellarii, developed techniques of extraordinary precision that would not be equalled for centuries after the fall of Rome.</p>
+                        </div>
+                    </div>
+
+                    <div class="type-specimen">
+                        <div class="type-meta">
+                            <span class="type-label">Caption</span>
+                            <span class="type-info">Cormorant Italic / 400 / 0.9rem</span>
+                        </div>
+                        <p class="type-caption">Detail of the Alexander Mosaic from the House of the Faun, Pompeii, c. 100 BCE. Naples National Archaeological Museum.</p>
+                    </div>
+
+                    <div class="type-specimen">
+                        <div class="type-meta">
+                            <span class="type-label">Inscription</span>
+                            <span class="type-info">Cinzel / 700 / 1.5rem / 0.35em tracking</span>
+                        </div>
+                        <p class="type-inscription">CAVE CANEM</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="meander-border"></div>
+
+        <!-- ============================================
+             03. SPACING SCALE
+             ============================================ -->
+        <section id="spacing">
+            <div class="section-header">
+                <div class="section-number">III</div>
+                <h2 class="section-title">Spacing Scale</h2>
+                <p class="section-desc">A proportional scale based on the modular dimensions of Roman tile-work, from the smallest tessera to the grandest atrium.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="spacing-demo">
+                <div class="spacing-item">
+                    <span class="spacing-label">XS</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">4px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">SM</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">8px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">MD</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                    <span class="spacing-value">16px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">LG</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                    <span class="spacing-value">24px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">XL</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                    <span class="spacing-value">32px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">2XL</span>
+                    <div class="spacing-bar" style="width: 340px;"></div>
+                    <span class="spacing-value">48px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">3XL</span>
+                    <div class="spacing-bar" style="width: 420px;"></div>
+                    <span class="spacing-value">64px</span>
+                </div>
+                <div class="spacing-item">
+                    <span class="spacing-label">4XL</span>
+                    <div class="spacing-bar" style="width: 520px;"></div>
+                    <span class="spacing-value">96px</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             04. BUTTONS
+             ============================================ -->
+        <section id="buttons">
+            <div class="section-header">
+                <div class="section-number">IV</div>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-desc">Solid, functional controls echoing the directness of Roman engineering. Hover reveals a tessellated texture beneath.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="button-showcase">
+                <!-- Primary & Secondary -->
+                <div class="button-row">
+                    <p class="button-row-label">Primary &amp; Secondary</p>
+                    <button class="btn btn-primary">Primary Action</button>
+                    <button class="btn">Secondary Action</button>
+                    <button class="btn btn-disabled" disabled>Disabled</button>
+                </div>
+
+                <!-- Color Variants -->
+                <div class="button-row">
+                    <p class="button-row-label">Color Variants</p>
+                    <button class="btn btn-red">Roman Red</button>
+                    <button class="btn btn-blue">Imperial Blue</button>
+                    <button class="btn btn-olive">Olive Grove</button>
+                </div>
+
+                <!-- Sizes -->
+                <div class="button-row">
+                    <p class="button-row-label">Sizes</p>
+                    <button class="btn btn-primary btn-sm">Small</button>
+                    <button class="btn btn-primary">Medium</button>
+                    <button class="btn btn-primary btn-lg">Large</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="meander-border"></div>
+
+        <!-- ============================================
+             05. FORMS
+             ============================================ -->
+        <section id="forms">
+            <div class="section-header">
+                <div class="section-number">V</div>
+                <h2 class="section-title">Form Elements</h2>
+                <p class="section-desc">Input fields framed in the stone and grout palette of the ancient workshop. Each element is a tessera in the larger composition.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="form-panel">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="name">Nomen (Name)</label>
+                        <input type="text" id="name" class="input" placeholder="Marcus Aurelius">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Epistula (Email)</label>
+                        <input type="email" id="email" class="input" placeholder="marcus@roma.gov">
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="province">Provincia (Province)</label>
+                        <div class="select-wrap">
+                            <select id="province" class="select">
+                                <option>Italia</option>
+                                <option>Gallia</option>
+                                <option>Hispania</option>
+                                <option>Britannia</option>
+                                <option>Aegyptus</option>
+                                <option>Africa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="villa-type">Villa Type</label>
+                        <div class="select-wrap">
+                            <select id="villa-type" class="select">
+                                <option>Villa Urbana</option>
+                                <option>Villa Rustica</option>
+                                <option>Villa Maritima</option>
+                                <option>Domus</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Descriptio (Description)</label>
+                    <textarea id="message" class="input" placeholder="Describe the mosaic pattern you envision for your atrium..."></textarea>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Mosaic Techniques</label>
+                        <div class="choice-group">
+                            <label class="choice-label">
+                                <input type="checkbox" checked>
+                                Opus Tessellatum (regular tiles)
+                            </label>
+                            <label class="choice-label">
+                                <input type="checkbox">
+                                Opus Vermiculatum (worm-like detail)
+                            </label>
+                            <label class="choice-label">
+                                <input type="checkbox" checked>
+                                Opus Sectile (cut stone inlay)
+                            </label>
+                            <label class="choice-label">
+                                <input type="checkbox">
+                                Opus Signinum (terracotta mortar)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Preferred Motif</label>
+                        <div class="choice-group">
+                            <label class="choice-label">
+                                <input type="radio" name="motif" checked>
+                                Geometric meander
+                            </label>
+                            <label class="choice-label">
+                                <input type="radio" name="motif">
+                                Marine creatures
+                            </label>
+                            <label class="choice-label">
+                                <input type="radio" name="motif">
+                                Mythological scene
+                            </label>
+                            <label class="choice-label">
+                                <input type="radio" name="motif">
+                                Flora and fauna
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-xl">
+                    <button class="btn btn-primary btn-lg">Commission Mosaic</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             06. CARDS / PANELS
+             ============================================ -->
+        <section id="cards">
+            <div class="section-header">
+                <div class="section-number">VI</div>
+                <h2 class="section-title">Cards &amp; Panels</h2>
+                <p class="section-desc">Content containers laid like tiles in a floor -- separated by grout lines, each holding its own scene.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-bar card-bar-terracotta"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect x="2" y="2" width="10" height="10" fill="#C2703E" stroke="#9B9283" stroke-width="1"/>
+                            <rect x="14" y="2" width="10" height="10" fill="#E8E0D0" stroke="#9B9283" stroke-width="1"/>
+                            <rect x="2" y="14" width="10" height="10" fill="#E8E0D0" stroke="#9B9283" stroke-width="1"/>
+                            <rect x="14" y="14" width="10" height="10" fill="#C2703E" stroke="#9B9283" stroke-width="1"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Opus Tessellatum</h3>
+                    <p class="card-text">The most common technique, using standardized cubic tesserae of roughly equal size to create geometric patterns and decorative borders on villa floors.</p>
+                    <p class="card-footer">Geometric Patterns</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-bar card-bar-red"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14 2 C14 2, 26 10, 26 18 C26 24, 20 26, 14 26 C8 26, 2 24, 2 18 C2 10, 14 2, 14 2Z" fill="none" stroke="#8B2A2A" stroke-width="2"/>
+                            <circle cx="14" cy="16" r="4" fill="#8B2A2A"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Opus Vermiculatum</h3>
+                    <p class="card-text">An intricate technique using very small, irregularly shaped tesserae to render fine pictorial detail, named for its worm-like curving lines of tiles.</p>
+                    <p class="card-footer">Pictorial Detail</p>
+                </div>
+
+                <div class="card">
+                    <div class="card-bar card-bar-blue"></div>
+                    <div class="card-icon">
+                        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="14,2 24,8 24,20 14,26 4,20 4,8" fill="none" stroke="#2C4A6E" stroke-width="2"/>
+                            <polygon points="14,8 19,11 19,17 14,20 9,17 9,11" fill="#2C4A6E"/>
+                        </svg>
+                    </div>
+                    <h3 class="card-title">Opus Sectile</h3>
+                    <p class="card-text">Precisely cut pieces of marble and colored stone fitted together to form figurative and geometric compositions, favored in the most luxurious Roman interiors.</p>
+                    <p class="card-footer">Marble Inlay</p>
+                </div>
+
+                <!-- Feature card spanning full width -->
+                <div class="card card-feature">
+                    <div class="card-mosaic"></div>
+                    <div>
+                        <div class="card-bar card-bar-olive" style="margin-left: 0; margin-right: 0;"></div>
+                        <h3 class="card-title mt-lg">The Alexander Mosaic</h3>
+                        <p class="card-text">Perhaps the most famous Roman mosaic ever discovered, this monumental floor piece from the House of the Faun in Pompeii depicts the Battle of Issus between Alexander the Great and Darius III of Persia. Composed of an estimated 1.5 million tesserae in opus vermiculatum technique, it demonstrates the pinnacle of Roman mosaic artistry.</p>
+                        <p class="card-footer">House of the Faun, Pompeii &middot; c. 100 BCE</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="meander-border"></div>
+
+        <!-- ============================================
+             07. ALERTS / NOTIFICATIONS
+             ============================================ -->
+        <section id="alerts">
+            <div class="section-header">
+                <div class="section-number">VII</div>
+                <h2 class="section-title">Alerts &amp; Notifications</h2>
+                <p class="section-desc">Messages bordered like inscription tablets, each color drawn from the natural palette of stone, earth, and imported pigment.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="alerts-stack">
+                <div class="alert alert-info">
+                    <div class="alert-icon">i</div>
+                    <div class="alert-body">
+                        <p class="alert-title">Nota Bene</p>
+                        <p class="alert-text">The tessellarii will arrive at dawn to begin laying the atrium floor. Ensure the mortar bed has been prepared according to Vitruvius, Book VII specifications.</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-success">
+                    <div class="alert-icon">V</div>
+                    <div class="alert-body">
+                        <p class="alert-title">Opus Completum</p>
+                        <p class="alert-text">The triclinium mosaic has been completed successfully. All 24,000 tesserae have been set and the grout has fully cured. The floor is ready for use.</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <div class="alert-icon">!</div>
+                    <div class="alert-body">
+                        <p class="alert-title">Caveat</p>
+                        <p class="alert-text">The shipment of blue glass tesserae from Egypt has been delayed. Consider substituting local limestone for the border pattern until supplies arrive.</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-error">
+                    <div class="alert-icon">X</div>
+                    <div class="alert-body">
+                        <p class="alert-title">Periculum</p>
+                        <p class="alert-text">Subsidence detected beneath the caldarium floor. The mosaic must be lifted and the substrate repaired before the tiles crack further. Cease all foot traffic immediately.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Decorative mosaic pattern -->
+        <div class="mosaic-showcase">
+            <div class="t t-rr"></div><div class="t t-mc"></div><div class="t t-rr"></div><div class="t t-mc"></div><div class="t t-ib"></div><div class="t t-mc"></div><div class="t t-ib"></div><div class="t t-mc"></div><div class="t t-og"></div><div class="t t-mc"></div><div class="t t-og"></div><div class="t t-mc"></div>
+            <div class="t t-mc"></div><div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-tc"></div><div class="t t-mc"></div><div class="t t-tc"></div>
+            <div class="t t-oc"></div><div class="t t-mc"></div><div class="t t-oc"></div><div class="t t-mc"></div><div class="t t-rr"></div><div class="t t-mc"></div><div class="t t-rr"></div><div class="t t-mc"></div><div class="t t-ib"></div><div class="t t-mc"></div><div class="t t-ib"></div><div class="t t-mc"></div>
+        </div>
+
+        <!-- ============================================
+             DESIGN PRINCIPLES
+             ============================================ -->
+        <section id="principles">
+            <div class="section-header">
+                <div class="section-number">VIII</div>
+                <h2 class="section-title">Design Principles</h2>
+                <p class="section-desc">Guiding philosophies drawn from two millennia of enduring craftsmanship.</p>
+                <div class="section-divider">
+                    <span class="diamond"></span>
+                </div>
+            </div>
+
+            <div class="principles-grid">
+                <div class="principle">
+                    <h3 class="principle-title">Tessellated Structure</h3>
+                    <p class="principle-text">Every element is a tessera in a larger composition. Grout-gap borders separate components the way mortar lines separate tiles, creating visual rhythm through repetition and interval.</p>
+                </div>
+                <div class="principle">
+                    <h3 class="principle-title">Earthy Materiality</h3>
+                    <p class="principle-text">Colors should feel as though they were ground from natural stone and mineral pigments. Avoid digital-feeling neons or gradients. Every hue should feel like it could be held in the hand.</p>
+                </div>
+                <div class="principle">
+                    <h3 class="principle-title">Classical Proportion</h3>
+                    <p class="principle-text">Follow the Roman sense of order and symmetry. Typography draws from carved inscriptions. Spacing follows a modular scale. Balance and alignment are paramount.</p>
+                </div>
+                <div class="principle">
+                    <h3 class="principle-title">Aged Patina</h3>
+                    <p class="principle-text">Surfaces should suggest centuries of wear. Slightly muted colors, subtle texture overlays, and warm undertones give the impression of sunlit stone that has weathered gracefully.</p>
+                </div>
+                <div class="principle">
+                    <h3 class="principle-title">Functional Beauty</h3>
+                    <p class="principle-text">Roman engineering married utility with aesthetics. Every decorative element should serve a functional purpose. Borders delineate, patterns guide the eye, and motifs communicate hierarchy.</p>
+                </div>
+                <div class="principle">
+                    <h3 class="principle-title">Enduring Craft</h3>
+                    <p class="principle-text">Like the mosaics that survive two thousand years after their creation, build with care and intention. Semantic markup, clean CSS variables, and responsive foundations ensure longevity.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             FOOTER
+             ============================================ -->
+        <footer>
+            <div class="footer-medallion">
+                <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Simplified rosette pattern -->
+                    <circle cx="40" cy="40" r="36" fill="none" stroke="#C2703E" stroke-width="2"/>
+                    <circle cx="40" cy="40" r="30" fill="none" stroke="#9B9283" stroke-width="1"/>
+                    <!-- Petal pattern -->
+                    <ellipse cx="40" cy="22" rx="6" ry="12" fill="none" stroke="#8B2A2A" stroke-width="1.5" transform="rotate(0 40 40)"/>
+                    <ellipse cx="40" cy="22" rx="6" ry="12" fill="none" stroke="#2C4A6E" stroke-width="1.5" transform="rotate(60 40 40)"/>
+                    <ellipse cx="40" cy="22" rx="6" ry="12" fill="none" stroke="#5C6B3C" stroke-width="1.5" transform="rotate(120 40 40)"/>
+                    <ellipse cx="40" cy="22" rx="6" ry="12" fill="none" stroke="#8B2A2A" stroke-width="1.5" transform="rotate(180 40 40)"/>
+                    <ellipse cx="40" cy="22" rx="6" ry="12" fill="none" stroke="#2C4A6E" stroke-width="1.5" transform="rotate(240 40 40)"/>
+                    <ellipse cx="40" cy="22" rx="6" ry="12" fill="none" stroke="#5C6B3C" stroke-width="1.5" transform="rotate(300 40 40)"/>
+                    <!-- Center -->
+                    <circle cx="40" cy="40" r="8" fill="#E8E0D0" stroke="#C2703E" stroke-width="2"/>
+                    <circle cx="40" cy="40" r="3" fill="#C2703E"/>
+                </svg>
+            </div>
+            <h2 class="footer-title">Roman Mosaic</h2>
+            <p class="footer-text">A design system inspired by the tessellated floors of Roman villas, where each stone was placed with purpose and every pattern told a story that would endure for millennia.</p>
+            <p class="footer-latin">Ars longa, vita brevis</p>
+        </footer>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,2109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cork Board — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Patrick+Hand&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cork / Board Colors */
+            --cork-light: #d4a96a;
+            --cork-mid: #c49a5c;
+            --cork-dark: #a67c42;
+            --cork-deep: #8b6530;
+            --cork-shadow: #6b4c24;
+            --board-frame: #5c3d1e;
+            --board-frame-light: #7a5233;
+            --board-frame-dark: #3d2810;
+
+            /* Paper Note Colors */
+            --paper-white: #faf9f5;
+            --paper-cream: #f5f0e1;
+            --paper-yellow: #fff9b0;
+            --paper-yellow-dark: #f0e68c;
+            --paper-blue: #d4e8f7;
+            --paper-blue-dark: #a8cce4;
+            --paper-pink: #fad4e0;
+            --paper-pink-dark: #f0a8c0;
+            --paper-green: #d4edda;
+            --paper-green-dark: #a8d8b8;
+            --paper-lined: #c8daf0;
+
+            /* Pushpin Colors */
+            --pin-red: #d32f2f;
+            --pin-red-highlight: #ef5350;
+            --pin-yellow: #fbc02d;
+            --pin-yellow-highlight: #fdd835;
+            --pin-green: #388e3c;
+            --pin-green-highlight: #4caf50;
+            --pin-blue: #1976d2;
+            --pin-blue-highlight: #42a5f5;
+            --pin-white: #e0e0e0;
+
+            /* Text Colors */
+            --text-dark: #2c2418;
+            --text-body: #3d3225;
+            --text-muted: #6b5d4e;
+            --text-light: #8c7e6f;
+            --text-ink-blue: #1a3a5c;
+            --text-ink-red: #8b1a1a;
+
+            /* Tape Colors */
+            --tape-clear: rgba(255, 252, 230, 0.55);
+            --tape-masking: rgba(228, 212, 175, 0.8);
+            --tape-washi-pink: rgba(240, 180, 200, 0.6);
+            --tape-washi-blue: rgba(180, 210, 240, 0.6);
+
+            /* String / Thread */
+            --string-red: #c62828;
+            --string-white: #d4c9b8;
+
+            /* Spacing Scale */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --space-4xl: 96px;
+
+            /* Typography */
+            --font-handwritten: 'Caveat', cursive;
+            --font-casual: 'Patrick Hand', cursive;
+            --font-clean: 'Inter', sans-serif;
+
+            /* Shadows */
+            --shadow-note: 2px 3px 8px rgba(0,0,0,0.18), 1px 1px 3px rgba(0,0,0,0.12);
+            --shadow-note-hover: 3px 5px 14px rgba(0,0,0,0.25), 2px 2px 5px rgba(0,0,0,0.15);
+            --shadow-pin: 0 2px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+            --shadow-inset-frame: inset 0 2px 8px rgba(0,0,0,0.3);
+
+            /* Transitions */
+            --transition-fast: 0.15s ease-out;
+            --transition-base: 0.25s ease-out;
+
+            /* Cork texture gradient (simulates granular cork) */
+            --cork-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.12'/%3E%3C/svg%3E");
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: var(--font-clean);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--text-body);
+            background-color: var(--cork-mid);
+            background-image:
+                var(--cork-texture),
+                radial-gradient(ellipse at 20% 30%, var(--cork-light) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, var(--cork-light) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 50%, var(--cork-dark) 0%, transparent 60%),
+                linear-gradient(135deg, var(--cork-dark) 0%, var(--cork-mid) 30%, var(--cork-light) 50%, var(--cork-mid) 70%, var(--cork-dark) 100%);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+
+        /* Wooden frame border around the entire board */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border: 18px solid var(--board-frame);
+            border-image: linear-gradient(
+                160deg,
+                var(--board-frame-light) 0%,
+                var(--board-frame) 20%,
+                var(--board-frame-dark) 45%,
+                var(--board-frame) 60%,
+                var(--board-frame-light) 80%,
+                var(--board-frame) 100%
+            ) 1;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        /* Inner shadow on the cork board */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 18px;
+            left: 18px;
+            right: 18px;
+            bottom: 18px;
+            box-shadow: var(--shadow-inset-frame);
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* ========================================
+           CONTAINER
+           ======================================== */
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-3xl) var(--space-xl);
+        }
+
+        /* ========================================
+           PUSHPIN COMPONENT
+           ======================================== */
+
+        .pushpin {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            position: absolute;
+            z-index: 10;
+            box-shadow: var(--shadow-pin);
+        }
+
+        .pushpin::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 5px;
+            width: 8px;
+            height: 6px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            transform: rotate(-20deg);
+        }
+
+        .pushpin::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 6px;
+            background: #888;
+            border-radius: 0 0 1px 1px;
+        }
+
+        .pushpin-red { background: radial-gradient(circle at 35% 35%, var(--pin-red-highlight), var(--pin-red)); }
+        .pushpin-yellow { background: radial-gradient(circle at 35% 35%, var(--pin-yellow-highlight), var(--pin-yellow)); }
+        .pushpin-green { background: radial-gradient(circle at 35% 35%, var(--pin-green-highlight), var(--pin-green)); }
+        .pushpin-blue { background: radial-gradient(circle at 35% 35%, var(--pin-blue-highlight), var(--pin-blue)); }
+        .pushpin-white { background: radial-gradient(circle at 35% 35%, #f5f5f5, var(--pin-white)); }
+
+        /* ========================================
+           TAPE STRIP COMPONENT
+           ======================================== */
+
+        .tape {
+            position: absolute;
+            z-index: 5;
+            height: 22px;
+            width: 80px;
+            background: var(--tape-clear);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .tape-masking {
+            background: var(--tape-masking);
+            border-top: 1px solid rgba(255,255,255,0.3);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .tape-washi-pink {
+            background: var(--tape-washi-pink);
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 4px,
+                rgba(255,255,255,0.3) 4px,
+                rgba(255,255,255,0.3) 8px
+            );
+        }
+
+        .tape-washi-blue {
+            background: var(--tape-washi-blue);
+            background-image: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 4px,
+                rgba(255,255,255,0.3) 4px,
+                rgba(255,255,255,0.3) 8px
+            );
+        }
+
+        /* ========================================
+           PAPER NOTE BASE
+           ======================================== */
+
+        .note {
+            background: var(--paper-white);
+            padding: var(--space-lg) var(--space-xl);
+            position: relative;
+            box-shadow: var(--shadow-note);
+            transition: all var(--transition-base);
+        }
+
+        .note:hover {
+            box-shadow: var(--shadow-note-hover);
+            transform: translateY(-2px);
+        }
+
+        .note-white { background: var(--paper-white); }
+        .note-cream { background: var(--paper-cream); }
+        .note-yellow { background: var(--paper-yellow); }
+        .note-blue { background: var(--paper-blue); }
+        .note-pink { background: var(--paper-pink); }
+        .note-green { background: var(--paper-green); }
+
+        /* Lined paper effect */
+        .note-lined {
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                transparent 27px,
+                var(--paper-lined) 27px,
+                var(--paper-lined) 28px
+            );
+            background-position: 0 16px;
+        }
+
+        /* Torn edge effect (bottom) */
+        .note-torn {
+            clip-path: polygon(
+                0% 0%, 100% 0%, 100% calc(100% - 8px),
+                97% calc(100% - 4px), 94% calc(100% - 9px),
+                90% calc(100% - 3px), 86% calc(100% - 7px),
+                82% calc(100% - 2px), 78% calc(100% - 8px),
+                74% calc(100% - 4px), 70% calc(100% - 9px),
+                66% calc(100% - 3px), 62% calc(100% - 7px),
+                58% calc(100% - 2px), 54% calc(100% - 8px),
+                50% calc(100% - 5px), 46% calc(100% - 9px),
+                42% calc(100% - 3px), 38% calc(100% - 7px),
+                34% calc(100% - 2px), 30% calc(100% - 8px),
+                26% calc(100% - 4px), 22% calc(100% - 9px),
+                18% calc(100% - 3px), 14% calc(100% - 7px),
+                10% calc(100% - 2px), 6% calc(100% - 8px),
+                3% calc(100% - 5px), 0% calc(100% - 6px)
+            );
+        }
+
+        /* Curled corner effect */
+        .note-curled::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(
+                225deg,
+                var(--cork-mid) 0%,
+                var(--cork-mid) 45%,
+                rgba(0,0,0,0.06) 50%,
+                rgba(0,0,0,0.02) 55%,
+                transparent 60%
+            );
+            box-shadow: -2px -2px 5px rgba(0,0,0,0.08);
+        }
+
+        /* ========================================
+           HEADER
+           ======================================== */
+
+        .header {
+            text-align: center;
+            padding: var(--space-3xl) var(--space-lg);
+            margin-bottom: var(--space-2xl);
+            position: relative;
+        }
+
+        .header-note {
+            background: var(--paper-white);
+            display: inline-block;
+            padding: var(--space-2xl) var(--space-3xl);
+            box-shadow: var(--shadow-note);
+            position: relative;
+            transform: rotate(-1deg);
+        }
+
+        .header-note .pushpin {
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .header-title {
+            font-family: var(--font-handwritten);
+            font-size: clamp(2.8rem, 8vw, 5rem);
+            font-weight: 700;
+            color: var(--text-dark);
+            line-height: 1.1;
+            margin-bottom: var(--space-sm);
+        }
+
+        .header-subtitle {
+            font-family: var(--font-casual);
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            margin-top: var(--space-md);
+        }
+
+        /* Decorative string between header pins */
+        .header-string {
+            position: absolute;
+            top: 20px;
+            left: 10%;
+            right: 10%;
+            height: 40px;
+            border-bottom: 2px solid var(--string-red);
+            border-radius: 0 0 50% 50%;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        /* ========================================
+           SECTIONS
+           ======================================== */
+
+        .section {
+            margin-bottom: var(--space-3xl);
+            position: relative;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-xl);
+            position: relative;
+        }
+
+        .section-label {
+            background: var(--paper-yellow);
+            display: inline-block;
+            padding: var(--space-xs) var(--space-md);
+            font-family: var(--font-casual);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transform: rotate(-2deg);
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.12);
+            margin-bottom: var(--space-sm);
+            position: relative;
+        }
+
+        .section-label::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 16px;
+            background: var(--tape-clear);
+            z-index: 2;
+        }
+
+        .section-title {
+            font-family: var(--font-handwritten);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-lead {
+            font-family: var(--font-casual);
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            max-width: 60ch;
+            line-height: 1.5;
+        }
+
+        /* ========================================
+           GRID HELPERS
+           ======================================== */
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-xl);
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-xl);
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .flex-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-lg);
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3, .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           01 - COLOR PALETTE
+           ======================================== */
+
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-lg);
+            justify-content: center;
+        }
+
+        .color-swatch {
+            text-align: center;
+            width: 130px;
+        }
+
+        .color-chip {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto var(--space-sm);
+            box-shadow: var(--shadow-note);
+            position: relative;
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .color-chip .pushpin {
+            width: 14px;
+            height: 14px;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .color-chip .pushpin::before {
+            top: 2px;
+            left: 3px;
+            width: 6px;
+            height: 4px;
+        }
+
+        .color-chip .pushpin::after {
+            bottom: -3px;
+            width: 2px;
+            height: 4px;
+        }
+
+        .color-name {
+            font-family: var(--font-casual);
+            font-size: 1rem;
+            color: var(--text-dark);
+            margin-bottom: 2px;
+        }
+
+        .color-hex {
+            font-family: var(--font-clean);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            letter-spacing: 0.03em;
+        }
+
+        .color-group-title {
+            font-family: var(--font-handwritten);
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: var(--space-md);
+            margin-top: var(--space-xl);
+        }
+
+        /* ========================================
+           02 - TYPOGRAPHY
+           ======================================== */
+
+        .type-specimen {
+            background: var(--paper-cream);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-note);
+            position: relative;
+            transform: rotate(0.3deg);
+        }
+
+        .type-specimen .pushpin {
+            top: -8px;
+            right: 30px;
+        }
+
+        .type-row {
+            padding: var(--space-md) 0;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+        }
+
+        .type-row:last-child {
+            border-bottom: none;
+        }
+
+        .type-meta {
+            font-family: var(--font-clean);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-xs);
+        }
+
+        .type-display {
+            font-family: var(--font-handwritten);
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .type-h1 {
+            font-family: var(--font-handwritten);
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .type-h2 {
+            font-family: var(--font-handwritten);
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .type-h3 {
+            font-family: var(--font-casual);
+            font-size: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .type-body {
+            font-family: var(--font-clean);
+            font-size: 1rem;
+            color: var(--text-body);
+            line-height: 1.65;
+        }
+
+        .type-caption {
+            font-family: var(--font-casual);
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .font-showcase {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-xl);
+            margin-top: var(--space-xl);
+        }
+
+        @media (max-width: 768px) {
+            .font-showcase {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .font-card {
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-note);
+            text-align: center;
+            position: relative;
+            transition: all var(--transition-base);
+        }
+
+        .font-card:hover {
+            box-shadow: var(--shadow-note-hover);
+            transform: translateY(-3px);
+        }
+
+        .font-card .pushpin {
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .font-preview {
+            font-size: 2.2rem;
+            color: var(--text-dark);
+            margin-bottom: var(--space-sm);
+        }
+
+        .font-name {
+            font-family: var(--font-clean);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ========================================
+           03 - SPACING
+           ======================================== */
+
+        .spacing-scale {
+            background: var(--paper-white);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-note);
+            position: relative;
+            transform: rotate(-0.4deg);
+        }
+
+        .spacing-scale .pushpin {
+            top: -8px;
+            left: 25px;
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-sm);
+            padding: var(--space-xs) 0;
+        }
+
+        .spacing-label {
+            width: 70px;
+            font-family: var(--font-casual);
+            font-size: 0.95rem;
+            color: var(--text-body);
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 18px;
+            background: var(--cork-mid);
+            border-radius: 3px;
+            position: relative;
+            border: 1px solid var(--cork-dark);
+        }
+
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: var(--cork-texture);
+            border-radius: inherit;
+            opacity: 0.5;
+        }
+
+        .spacing-value {
+            font-family: var(--font-clean);
+            font-size: 0.8rem;
+            color: var(--text-light);
+            width: 50px;
+        }
+
+        /* ========================================
+           04 - BUTTONS
+           ======================================== */
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+            align-items: center;
+        }
+
+        .btn {
+            font-family: var(--font-casual);
+            font-size: 1rem;
+            padding: var(--space-sm) var(--space-xl);
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            position: relative;
+            text-decoration: none;
+            line-height: 1.4;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        /* Primary: looks like a pinned sticky note */
+        .btn-primary {
+            background: var(--paper-yellow);
+            color: var(--text-dark);
+            box-shadow: var(--shadow-note);
+            transform: rotate(-1deg);
+        }
+
+        .btn-primary:hover {
+            box-shadow: var(--shadow-note-hover);
+            transform: rotate(0deg) translateY(-2px);
+            background: var(--paper-yellow-dark);
+        }
+
+        /* Secondary: outlined paper look */
+        .btn-secondary {
+            background: var(--paper-white);
+            color: var(--text-body);
+            box-shadow: 1px 2px 4px rgba(0,0,0,0.12);
+            border: 1px dashed var(--text-light);
+        }
+
+        .btn-secondary:hover {
+            box-shadow: var(--shadow-note);
+            background: var(--paper-cream);
+            border-color: var(--text-muted);
+        }
+
+        /* Danger / urgent note */
+        .btn-danger {
+            background: var(--paper-pink);
+            color: var(--text-ink-red);
+            box-shadow: var(--shadow-note);
+            transform: rotate(1deg);
+        }
+
+        .btn-danger:hover {
+            box-shadow: var(--shadow-note-hover);
+            transform: rotate(0deg) translateY(-2px);
+            background: var(--paper-pink-dark);
+        }
+
+        /* Ghost / transparent */
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-body);
+            border: 2px solid var(--text-light);
+            border-radius: 4px;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255,255,255,0.5);
+            border-color: var(--text-body);
+        }
+
+        /* Disabled */
+        .btn-disabled, .btn:disabled {
+            background: #ddd;
+            color: #aaa;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-disabled:hover, .btn:disabled:hover {
+            box-shadow: none;
+            transform: none !important;
+            background: #ddd;
+        }
+
+        /* Size variants */
+        .btn-sm {
+            padding: var(--space-xs) var(--space-md);
+            font-size: 0.85rem;
+        }
+
+        .btn-lg {
+            padding: var(--space-md) var(--space-2xl);
+            font-size: 1.15rem;
+        }
+
+        /* Pin icon for buttons */
+        .btn-pin::before {
+            content: '';
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--pin-red);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        /* ========================================
+           05 - FORM ELEMENTS
+           ======================================== */
+
+        .form-note {
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-note);
+            position: relative;
+        }
+
+        .form-note .pushpin {
+            top: -8px;
+        }
+
+        .input-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .input-label {
+            display: block;
+            font-family: var(--font-casual);
+            font-size: 1rem;
+            color: var(--text-body);
+            margin-bottom: var(--space-xs);
+        }
+
+        .input-field {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-casual);
+            font-size: 1rem;
+            color: var(--text-dark);
+            background: rgba(255,255,255,0.6);
+            border: none;
+            border-bottom: 2px solid var(--cork-dark);
+            transition: all var(--transition-fast);
+            outline: none;
+        }
+
+        .input-field:focus {
+            background: rgba(255,255,255,0.9);
+            border-bottom-color: var(--pin-blue);
+            box-shadow: 0 2px 0 var(--pin-blue);
+        }
+
+        .input-field::placeholder {
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        textarea.input-field {
+            min-height: 100px;
+            resize: vertical;
+            border: 1px solid rgba(0,0,0,0.12);
+            border-bottom: 2px solid var(--cork-dark);
+            border-radius: 2px;
+            padding: var(--space-md);
+            background-image: repeating-linear-gradient(
+                to bottom,
+                transparent 0px,
+                transparent 27px,
+                var(--paper-lined) 27px,
+                var(--paper-lined) 28px
+            );
+        }
+
+        /* Select */
+        .select-field {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-casual);
+            font-size: 1rem;
+            color: var(--text-dark);
+            background: rgba(255,255,255,0.6);
+            border: none;
+            border-bottom: 2px solid var(--cork-dark);
+            appearance: none;
+            cursor: pointer;
+            outline: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 12'%3E%3Cpath d='M2 2 L10 10 L18 2' stroke='%236b5d4e' stroke-width='2.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            padding-right: 36px;
+        }
+
+        .select-field:focus {
+            background-color: rgba(255,255,255,0.9);
+            border-bottom-color: var(--pin-blue);
+        }
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            cursor: pointer;
+            font-family: var(--font-casual);
+            color: var(--text-body);
+        }
+
+        .checkbox-input {
+            display: none;
+        }
+
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--cork-dark);
+            background: rgba(255,255,255,0.6);
+            position: relative;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .checkbox-input:checked + .checkbox-custom {
+            background: var(--paper-green);
+            border-color: var(--pin-green);
+        }
+
+        .checkbox-input:checked + .checkbox-custom::after {
+            content: '';
+            position: absolute;
+            left: 5px;
+            top: 1px;
+            width: 6px;
+            height: 11px;
+            border: solid var(--pin-green);
+            border-width: 0 2.5px 2.5px 0;
+            transform: rotate(45deg);
+        }
+
+        /* Radio */
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            cursor: pointer;
+            font-family: var(--font-casual);
+            color: var(--text-body);
+        }
+
+        .radio-input {
+            display: none;
+        }
+
+        .radio-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--cork-dark);
+            border-radius: 50%;
+            background: rgba(255,255,255,0.6);
+            position: relative;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .radio-input:checked + .radio-custom {
+            border-color: var(--pin-blue);
+        }
+
+        .radio-input:checked + .radio-custom::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--pin-blue);
+        }
+
+        /* ========================================
+           06 - CARDS / PANELS
+           ======================================== */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-xl);
+        }
+
+        @media (max-width: 900px) {
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            padding: var(--space-xl) var(--space-lg);
+            box-shadow: var(--shadow-note);
+            position: relative;
+            transition: all var(--transition-base);
+        }
+
+        .card:hover {
+            box-shadow: var(--shadow-note-hover);
+            transform: translateY(-3px) rotate(0deg) !important;
+            z-index: 5;
+        }
+
+        .card .pushpin {
+            top: -8px;
+        }
+
+        .card-title {
+            font-family: var(--font-handwritten);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-text {
+            font-family: var(--font-clean);
+            font-size: 0.95rem;
+            color: var(--text-body);
+            line-height: 1.55;
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-meta {
+            font-family: var(--font-casual);
+            font-size: 0.8rem;
+            color: var(--text-light);
+        }
+
+        /* Card with tape */
+        .card-taped {
+            position: relative;
+        }
+
+        .card-taped .tape {
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Index card style */
+        .card-index {
+            background: var(--paper-white);
+            border-top: 3px solid var(--pin-red);
+            background-image:
+                linear-gradient(to right, var(--pin-red) 1px, transparent 1px),
+                repeating-linear-gradient(
+                    to bottom,
+                    transparent 0px,
+                    transparent 27px,
+                    var(--paper-lined) 27px,
+                    var(--paper-lined) 28px
+                );
+            background-size: 1px 100%, 100% 28px;
+            background-position: 60px 0, 0 16px;
+            background-repeat: no-repeat, repeat;
+        }
+
+        /* Photo style card */
+        .card-photo {
+            background: var(--paper-white);
+            padding: var(--space-sm);
+            padding-bottom: var(--space-2xl);
+        }
+
+        .card-photo-img {
+            width: 100%;
+            height: 160px;
+            background: linear-gradient(135deg, var(--cork-light), var(--cork-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-casual);
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .card-photo-caption {
+            font-family: var(--font-handwritten);
+            font-size: 1.1rem;
+            color: var(--text-body);
+            text-align: center;
+            margin-top: var(--space-sm);
+        }
+
+        /* ========================================
+           07 - ALERTS / NOTIFICATIONS
+           ======================================== */
+
+        .alert {
+            padding: var(--space-md) var(--space-xl);
+            padding-left: var(--space-2xl);
+            position: relative;
+            box-shadow: var(--shadow-note);
+            font-family: var(--font-casual);
+            font-size: 1rem;
+            margin-bottom: var(--space-md);
+            transform: rotate(-0.3deg);
+        }
+
+        .alert::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 15px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            box-shadow: var(--shadow-pin);
+            z-index: 2;
+        }
+
+        .alert::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: 20px;
+            width: 2px;
+            height: 6px;
+            background: #888;
+            z-index: 1;
+        }
+
+        .alert-title {
+            font-family: var(--font-handwritten);
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: var(--space-xs);
+        }
+
+        /* Info */
+        .alert-info {
+            background: var(--paper-blue);
+            color: var(--text-ink-blue);
+            border-left: 4px solid var(--pin-blue);
+        }
+
+        .alert-info::before {
+            background: radial-gradient(circle at 35% 35%, var(--pin-blue-highlight), var(--pin-blue));
+        }
+
+        /* Success */
+        .alert-success {
+            background: var(--paper-green);
+            color: #1b5e20;
+            border-left: 4px solid var(--pin-green);
+        }
+
+        .alert-success::before {
+            background: radial-gradient(circle at 35% 35%, var(--pin-green-highlight), var(--pin-green));
+        }
+
+        /* Warning */
+        .alert-warning {
+            background: var(--paper-yellow);
+            color: #5d4600;
+            border-left: 4px solid var(--pin-yellow);
+        }
+
+        .alert-warning::before {
+            background: radial-gradient(circle at 35% 35%, var(--pin-yellow-highlight), var(--pin-yellow));
+        }
+
+        /* Error */
+        .alert-error {
+            background: var(--paper-pink);
+            color: var(--text-ink-red);
+            border-left: 4px solid var(--pin-red);
+        }
+
+        .alert-error::before {
+            background: radial-gradient(circle at 35% 35%, var(--pin-red-highlight), var(--pin-red));
+        }
+
+        /* ========================================
+           STRING / CONNECTION LINES
+           ======================================== */
+
+        .string-connection {
+            position: relative;
+            padding: var(--space-xl) 0;
+        }
+
+        .string-connection::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 30px;
+            width: 2px;
+            height: 100%;
+            background: var(--string-red);
+            opacity: 0.5;
+        }
+
+        .string-item {
+            position: relative;
+            margin-left: var(--space-2xl);
+            margin-bottom: var(--space-lg);
+            padding: var(--space-md) var(--space-lg);
+            background: var(--paper-cream);
+            box-shadow: var(--shadow-note);
+        }
+
+        .string-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: -26px;
+            width: 24px;
+            height: 2px;
+            background: var(--string-red);
+            opacity: 0.5;
+        }
+
+        .string-item::after {
+            content: '';
+            position: absolute;
+            top: calc(50% - 5px);
+            left: -32px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--pin-red);
+            box-shadow: var(--shadow-pin);
+        }
+
+        /* ========================================
+           DECORATIVE EXTRAS
+           ======================================== */
+
+        /* Post-it note style quote */
+        .sticky-quote {
+            background: var(--paper-yellow);
+            padding: var(--space-xl);
+            max-width: 400px;
+            box-shadow: var(--shadow-note);
+            transform: rotate(2deg);
+            position: relative;
+            margin: var(--space-xl) auto;
+        }
+
+        .sticky-quote::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 0 25px 25px;
+            border-color: transparent transparent var(--cork-mid) transparent;
+            opacity: 0.5;
+        }
+
+        .sticky-quote-text {
+            font-family: var(--font-handwritten);
+            font-size: 1.4rem;
+            color: var(--text-dark);
+            line-height: 1.4;
+            margin-bottom: var(--space-sm);
+        }
+
+        .sticky-quote-author {
+            font-family: var(--font-casual);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        /* Stamp / badge */
+        .stamp {
+            display: inline-block;
+            padding: var(--space-xs) var(--space-md);
+            border: 3px solid var(--pin-red);
+            border-radius: 4px;
+            font-family: var(--font-clean);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--pin-red);
+            transform: rotate(-5deg);
+            opacity: 0.8;
+        }
+
+        .stamp-approved {
+            border-color: var(--pin-green);
+            color: var(--pin-green);
+        }
+
+        .stamp-pending {
+            border-color: var(--pin-yellow);
+            color: #8b7000;
+        }
+
+        /* Washi tape decorative strip */
+        .washi-strip {
+            height: 28px;
+            margin: var(--space-xl) 0;
+            opacity: 0.7;
+        }
+
+        .washi-strip-pink {
+            background: var(--tape-washi-pink);
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 6px,
+                rgba(255,255,255,0.4) 6px,
+                rgba(255,255,255,0.4) 12px
+            );
+        }
+
+        .washi-strip-blue {
+            background: var(--tape-washi-blue);
+            background-image: repeating-linear-gradient(
+                -45deg,
+                transparent,
+                transparent 6px,
+                rgba(255,255,255,0.4) 6px,
+                rgba(255,255,255,0.4) 12px
+            );
+        }
+
+        /* ========================================
+           FOOTER
+           ======================================== */
+
+        .footer {
+            text-align: center;
+            padding: var(--space-3xl) 0 var(--space-2xl);
+            position: relative;
+        }
+
+        .footer-note {
+            background: var(--paper-cream);
+            display: inline-block;
+            padding: var(--space-xl) var(--space-2xl);
+            box-shadow: var(--shadow-note);
+            position: relative;
+            transform: rotate(1deg);
+        }
+
+        .footer-note .pushpin {
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .footer-title {
+            font-family: var(--font-handwritten);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: var(--space-xs);
+        }
+
+        .footer-text {
+            font-family: var(--font-casual);
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        .footer-pins {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-lg);
+            margin-top: var(--space-xl);
+        }
+
+        .footer-pin {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+
+        /* ========================================
+           UTILITY CLASSES
+           ======================================== */
+
+        .text-center { text-align: center; }
+        .mt-md { margin-top: var(--space-md); }
+        .mt-lg { margin-top: var(--space-lg); }
+        .mt-xl { margin-top: var(--space-xl); }
+        .mb-md { margin-bottom: var(--space-md); }
+        .mb-lg { margin-bottom: var(--space-lg); }
+        .rotate-cw-1 { transform: rotate(1deg); }
+        .rotate-cw-2 { transform: rotate(2deg); }
+        .rotate-cw-3 { transform: rotate(3deg); }
+        .rotate-ccw-1 { transform: rotate(-1deg); }
+        .rotate-ccw-2 { transform: rotate(-2deg); }
+        .rotate-ccw-3 { transform: rotate(-3deg); }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-2xl) var(--space-md);
+            }
+
+            body::before {
+                border-width: 10px;
+            }
+
+            body::after {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+
+            .header-note {
+                padding: var(--space-xl) var(--space-lg);
+            }
+
+            .header-title {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .type-display {
+                font-size: 2.5rem;
+            }
+
+            .color-palette {
+                gap: var(--space-md);
+            }
+
+            .color-swatch {
+                width: 100px;
+            }
+
+            .color-chip {
+                width: 80px;
+                height: 80px;
+            }
+
+            .button-row {
+                gap: var(--space-sm);
+            }
+
+            .alert {
+                transform: rotate(0deg);
+            }
+
+            .font-showcase {
+                grid-template-columns: 1fr;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                transform: rotate(0deg) !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- ============================================================
+             HEADER
+             ============================================================ -->
+        <header class="header">
+            <div class="header-string"></div>
+            <div class="header-note">
+                <div class="pushpin pushpin-red" style="top: -8px; left: 50%; transform: translateX(-50%);"></div>
+                <h1 class="header-title">Cork Board</h1>
+                <p class="header-subtitle">A design system of pinned notes, pushpins, and layered paper</p>
+            </div>
+        </header>
+
+        <!-- ============================================================
+             01 - COLOR PALETTE
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">01</div>
+                <h2 class="section-title">Color Palette</h2>
+                <p class="section-lead">Warm cork browns set the stage, while paper whites, sticky-note yellows, and pastel scraps bring layered color to the board.</p>
+            </div>
+
+            <h3 class="color-group-title">Cork &amp; Frame</h3>
+            <div class="color-palette">
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--cork-light);">
+                        <div class="pushpin pushpin-red"></div>
+                    </div>
+                    <p class="color-name">Cork Light</p>
+                    <p class="color-hex">#D4A96A</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--cork-mid);">
+                        <div class="pushpin pushpin-yellow"></div>
+                    </div>
+                    <p class="color-name">Cork Mid</p>
+                    <p class="color-hex">#C49A5C</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--cork-dark);">
+                        <div class="pushpin pushpin-green"></div>
+                    </div>
+                    <p class="color-name">Cork Dark</p>
+                    <p class="color-hex">#A67C42</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--board-frame);">
+                        <div class="pushpin pushpin-white"></div>
+                    </div>
+                    <p class="color-name">Board Frame</p>
+                    <p class="color-hex">#5C3D1E</p>
+                </div>
+            </div>
+
+            <h3 class="color-group-title">Paper Notes</h3>
+            <div class="color-palette">
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--paper-white);">
+                        <div class="pushpin pushpin-blue"></div>
+                    </div>
+                    <p class="color-name">Paper White</p>
+                    <p class="color-hex">#FAF9F5</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--paper-yellow);">
+                        <div class="pushpin pushpin-red"></div>
+                    </div>
+                    <p class="color-name">Sticky Yellow</p>
+                    <p class="color-hex">#FFF9B0</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--paper-blue);">
+                        <div class="pushpin pushpin-green"></div>
+                    </div>
+                    <p class="color-name">Note Blue</p>
+                    <p class="color-hex">#D4E8F7</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--paper-pink);">
+                        <div class="pushpin pushpin-yellow"></div>
+                    </div>
+                    <p class="color-name">Note Pink</p>
+                    <p class="color-hex">#FAD4E0</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--paper-green);">
+                        <div class="pushpin pushpin-blue"></div>
+                    </div>
+                    <p class="color-name">Note Green</p>
+                    <p class="color-hex">#D4EDDA</p>
+                </div>
+            </div>
+
+            <h3 class="color-group-title">Pushpins</h3>
+            <div class="color-palette">
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--pin-red);">
+                        <div class="pushpin pushpin-red"></div>
+                    </div>
+                    <p class="color-name">Pin Red</p>
+                    <p class="color-hex">#D32F2F</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--pin-yellow);">
+                        <div class="pushpin pushpin-yellow"></div>
+                    </div>
+                    <p class="color-name">Pin Yellow</p>
+                    <p class="color-hex">#FBC02D</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--pin-green);">
+                        <div class="pushpin pushpin-green"></div>
+                    </div>
+                    <p class="color-name">Pin Green</p>
+                    <p class="color-hex">#388E3C</p>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-chip" style="background: var(--pin-blue);">
+                        <div class="pushpin pushpin-blue"></div>
+                    </div>
+                    <p class="color-name">Pin Blue</p>
+                    <p class="color-hex">#1976D2</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             02 - TYPOGRAPHY
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">02</div>
+                <h2 class="section-title">Typography</h2>
+                <p class="section-lead">Handwritten notes meet clean print. Caveat for scribbled headings, Patrick Hand for casual labels, and Inter for readable body text.</p>
+            </div>
+
+            <div class="font-showcase">
+                <div class="font-card note-yellow">
+                    <div class="pushpin pushpin-red"></div>
+                    <div class="font-preview" style="font-family: var(--font-handwritten); font-weight: 700;">Aa Bb Cc</div>
+                    <p class="font-name">Caveat -- Display &amp; Headings</p>
+                </div>
+                <div class="font-card note-blue">
+                    <div class="pushpin pushpin-green"></div>
+                    <div class="font-preview" style="font-family: var(--font-casual);">Aa Bb Cc</div>
+                    <p class="font-name">Patrick Hand -- Casual / Labels</p>
+                </div>
+                <div class="font-card note-white">
+                    <div class="pushpin pushpin-blue"></div>
+                    <div class="font-preview" style="font-family: var(--font-clean); font-weight: 500;">Aa Bb Cc</div>
+                    <p class="font-name">Inter -- Body Text</p>
+                </div>
+            </div>
+
+            <div class="type-specimen mt-xl">
+                <div class="pushpin pushpin-yellow" style="right: 30px;"></div>
+                <div class="type-row">
+                    <p class="type-meta">Display / Caveat Bold / 56px</p>
+                    <p class="type-display">Pinned to the Board</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Heading 1 / Caveat Bold / 40px</p>
+                    <p class="type-h1">Important Reminder</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Heading 2 / Caveat Semibold / 32px</p>
+                    <p class="type-h2">Meeting Notes</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Heading 3 / Patrick Hand / 24px</p>
+                    <p class="type-h3">Don't forget!</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Body / Inter Regular / 16px</p>
+                    <p class="type-body">The quick brown fox jumps over the lazy dog. Clean, readable body text anchors the handwritten personality of headers and labels. Every note on the board needs to be legible at a glance.</p>
+                </div>
+                <div class="type-row">
+                    <p class="type-meta">Caption / Patrick Hand / 14px</p>
+                    <p class="type-caption">Scribbled in the margin -- date unknown</p>
+                </div>
+            </div>
+
+            <div class="sticky-quote mt-xl">
+                <p class="sticky-quote-text">"The best ideas start as scraps of paper pinned to a board."</p>
+                <p class="sticky-quote-author">-- Every creative team, ever</p>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             03 - SPACING
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">03</div>
+                <h2 class="section-title">Spacing Scale</h2>
+                <p class="section-lead">A 4px base unit keeps elements tidy, like measuring the gaps between pinned notes on a well-organized board.</p>
+            </div>
+
+            <div class="spacing-scale">
+                <div class="pushpin pushpin-green" style="left: 25px;"></div>
+                <div class="spacing-row">
+                    <span class="spacing-label">4px</span>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <span class="spacing-value">xs</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">8px</span>
+                    <div class="spacing-bar" style="width: 32px;"></div>
+                    <span class="spacing-value">sm</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">16px</span>
+                    <div class="spacing-bar" style="width: 64px;"></div>
+                    <span class="spacing-value">md</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">24px</span>
+                    <div class="spacing-bar" style="width: 96px;"></div>
+                    <span class="spacing-value">lg</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">32px</span>
+                    <div class="spacing-bar" style="width: 128px;"></div>
+                    <span class="spacing-value">xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">48px</span>
+                    <div class="spacing-bar" style="width: 192px;"></div>
+                    <span class="spacing-value">2xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">64px</span>
+                    <div class="spacing-bar" style="width: 256px;"></div>
+                    <span class="spacing-value">3xl</span>
+                </div>
+                <div class="spacing-row">
+                    <span class="spacing-label">96px</span>
+                    <div class="spacing-bar" style="width: 320px;"></div>
+                    <span class="spacing-value">4xl</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             04 - BUTTONS
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">04</div>
+                <h2 class="section-title">Buttons</h2>
+                <p class="section-lead">Interactive elements styled as pinned paper scraps -- sticky-note primaries, outlined secondaries, and urgent pink danger notes.</p>
+            </div>
+
+            <div class="note note-cream rotate-ccw-1 mb-lg" style="display: inline-block;">
+                <div class="pushpin pushpin-red" style="top: -8px; left: 20px;"></div>
+                <h3 style="font-family: var(--font-handwritten); font-size: 1.4rem; color: var(--text-dark); margin-bottom: var(--space-md);">Primary, Secondary &amp; Danger</h3>
+                <div class="button-row">
+                    <button class="btn btn-primary">Pin It</button>
+                    <button class="btn btn-secondary">Maybe Later</button>
+                    <button class="btn btn-danger">Urgent!</button>
+                    <button class="btn btn-ghost">Ghost</button>
+                </div>
+            </div>
+
+            <div class="note note-white rotate-cw-1 mb-lg" style="display: inline-block;">
+                <div class="pushpin pushpin-blue" style="top: -8px; right: 20px;"></div>
+                <h3 style="font-family: var(--font-handwritten); font-size: 1.4rem; color: var(--text-dark); margin-bottom: var(--space-md);">With Pin Icon</h3>
+                <div class="button-row">
+                    <button class="btn btn-primary btn-pin">Pin to Board</button>
+                    <button class="btn btn-secondary btn-pin">Save for Later</button>
+                </div>
+            </div>
+
+            <div class="note note-cream rotate-ccw-1 mb-lg" style="display: inline-block;">
+                <div class="pushpin pushpin-yellow" style="top: -8px; left: 20px;"></div>
+                <h3 style="font-family: var(--font-handwritten); font-size: 1.4rem; color: var(--text-dark); margin-bottom: var(--space-md);">Sizes</h3>
+                <div class="button-row">
+                    <button class="btn btn-primary btn-sm">Small</button>
+                    <button class="btn btn-primary">Medium</button>
+                    <button class="btn btn-primary btn-lg">Large</button>
+                </div>
+            </div>
+
+            <div class="note note-white rotate-cw-1" style="display: inline-block;">
+                <div class="pushpin pushpin-green" style="top: -8px; right: 20px;"></div>
+                <h3 style="font-family: var(--font-handwritten); font-size: 1.4rem; color: var(--text-dark); margin-bottom: var(--space-md);">Disabled State</h3>
+                <div class="button-row">
+                    <button class="btn btn-disabled" disabled>Can't Touch This</button>
+                    <button class="btn btn-disabled btn-sm" disabled>Nope</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             05 - FORMS
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">05</div>
+                <h2 class="section-title">Form Elements</h2>
+                <p class="section-lead">Input fields written on paper notes -- underlined text areas, squared-off checkboxes, and round radio buttons.</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-note note-cream note-lined">
+                    <div class="pushpin pushpin-red" style="top: -8px; left: 20px;"></div>
+                    <div class="input-group">
+                        <label class="input-label">Your Name</label>
+                        <input type="text" class="input-field" placeholder="Write here...">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Email</label>
+                        <input type="email" class="input-field" placeholder="you@example.com">
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Subject</label>
+                        <select class="select-field">
+                            <option>Choose a topic...</option>
+                            <option>Project Update</option>
+                            <option>Meeting Request</option>
+                            <option>Idea Pitch</option>
+                            <option>Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="input-label">Notes</label>
+                        <textarea class="input-field" placeholder="Jot down your thoughts..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-note note-white">
+                    <div class="pushpin pushpin-blue" style="top: -8px; right: 20px;"></div>
+
+                    <h3 style="font-family: var(--font-handwritten); font-size: 1.4rem; color: var(--text-dark); margin-bottom: var(--space-md);">Checklist</h3>
+                    <label class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input" checked>
+                        <span class="checkbox-custom"></span>
+                        <span>Buy pushpins</span>
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input" checked>
+                        <span class="checkbox-custom"></span>
+                        <span>Print flyers</span>
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input">
+                        <span class="checkbox-custom"></span>
+                        <span>Organize the board</span>
+                    </label>
+                    <label class="checkbox-group">
+                        <input type="checkbox" class="checkbox-input">
+                        <span class="checkbox-custom"></span>
+                        <span>Add string connections</span>
+                    </label>
+
+                    <h3 style="font-family: var(--font-handwritten); font-size: 1.4rem; color: var(--text-dark); margin: var(--space-xl) 0 var(--space-md);">Priority Level</h3>
+                    <label class="radio-group">
+                        <input type="radio" name="priority" class="radio-input" checked>
+                        <span class="radio-custom"></span>
+                        <span>High -- pin at eye level</span>
+                    </label>
+                    <label class="radio-group">
+                        <input type="radio" name="priority" class="radio-input">
+                        <span class="radio-custom"></span>
+                        <span>Medium -- somewhere visible</span>
+                    </label>
+                    <label class="radio-group">
+                        <input type="radio" name="priority" class="radio-input">
+                        <span class="radio-custom"></span>
+                        <span>Low -- tuck it in the corner</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             06 - CARDS / PANELS
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">06</div>
+                <h2 class="section-title">Cards &amp; Panels</h2>
+                <p class="section-lead">Content containers styled as pinned scraps -- sticky notes, index cards, photo prints, and torn paper edges, each slightly askew.</p>
+            </div>
+
+            <h3 class="color-group-title">Pinned Note Cards</h3>
+            <div class="card-grid">
+                <div class="card note-white rotate-ccw-2">
+                    <div class="pushpin pushpin-red" style="left: 20px;"></div>
+                    <h3 class="card-title">Team Standup</h3>
+                    <p class="card-text">Quick sync every morning at 9:15. Bring your coffee and your status update.</p>
+                    <p class="card-meta">Pinned Monday</p>
+                </div>
+                <div class="card note-yellow rotate-cw-1">
+                    <div class="pushpin pushpin-yellow" style="left: 50%; transform: translateX(-50%);"></div>
+                    <h3 class="card-title">Don't Forget!</h3>
+                    <p class="card-text">Submit the quarterly report before Friday. Templates are in the shared drive.</p>
+                    <p class="card-meta">Due this week</p>
+                </div>
+                <div class="card note-pink rotate-ccw-1">
+                    <div class="pushpin pushpin-green" style="right: 20px;"></div>
+                    <h3 class="card-title">Birthday Party</h3>
+                    <p class="card-text">Surprise party for Sarah in the break room. Bring snacks if you can!</p>
+                    <p class="card-meta">Thursday 3pm</p>
+                </div>
+            </div>
+
+            <h3 class="color-group-title">Taped Cards</h3>
+            <div class="card-grid mt-lg">
+                <div class="card card-taped note-blue rotate-cw-2">
+                    <div class="tape tape-masking"></div>
+                    <h3 class="card-title">Research Notes</h3>
+                    <p class="card-text">Preliminary findings suggest a 30% improvement. Need more data points to confirm.</p>
+                    <p class="card-meta">Draft -- do not cite</p>
+                </div>
+                <div class="card card-taped note-green rotate-ccw-1">
+                    <div class="tape tape-washi-pink"></div>
+                    <h3 class="card-title">Approved!</h3>
+                    <p class="card-text">Budget has been approved for the new office plants. Pick them up this weekend.</p>
+                    <p class="card-meta"><span class="stamp stamp-approved">Approved</span></p>
+                </div>
+                <div class="card card-taped note-cream rotate-cw-1">
+                    <div class="tape tape-washi-blue"></div>
+                    <h3 class="card-title">Waiting Room</h3>
+                    <p class="card-text">Ideas parked here until we have bandwidth. Review next sprint planning.</p>
+                    <p class="card-meta"><span class="stamp stamp-pending">Pending</span></p>
+                </div>
+            </div>
+
+            <h3 class="color-group-title">Special Card Styles</h3>
+            <div class="card-grid mt-lg">
+                <div class="card card-index" style="transform: rotate(-1deg);">
+                    <div class="pushpin pushpin-red" style="left: 20px;"></div>
+                    <h3 class="card-title" style="margin-left: 50px;">Index Card</h3>
+                    <p class="card-text" style="margin-left: 50px;">Lined with a red margin, just like the real thing. Great for structured notes and lists.</p>
+                </div>
+                <div class="card card-photo rotate-cw-2">
+                    <div class="pushpin pushpin-blue" style="left: 50%; transform: translateX(-50%);"></div>
+                    <div class="card-photo-img">[Photo placeholder]</div>
+                    <p class="card-photo-caption">Polaroid-style memory</p>
+                </div>
+                <div class="card note-white note-torn note-curled rotate-ccw-2">
+                    <div class="pushpin pushpin-yellow" style="left: 20px;"></div>
+                    <h3 class="card-title">Torn Edge</h3>
+                    <p class="card-text">Ripped from a notebook and hastily pinned. The curled corner adds character.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             07 - ALERTS / NOTIFICATIONS
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">07</div>
+                <h2 class="section-title">Alerts &amp; Notifications</h2>
+                <p class="section-lead">Urgent notices pinned front and center -- color-coded paper strips with pushpin accents for info, success, warning, and error states.</p>
+            </div>
+
+            <div class="alert alert-info">
+                <p class="alert-title">Heads up</p>
+                <p>The conference room is booked all day Tuesday. Use the lounge for meetings instead.</p>
+            </div>
+
+            <div class="alert alert-success" style="transform: rotate(0.2deg);">
+                <p class="alert-title">All done!</p>
+                <p>Your report has been submitted successfully. A copy was pinned to the shared board.</p>
+            </div>
+
+            <div class="alert alert-warning" style="transform: rotate(-0.5deg);">
+                <p class="alert-title">Watch out</p>
+                <p>The printer is running low on toner. Place an order before it runs out completely.</p>
+            </div>
+
+            <div class="alert alert-error" style="transform: rotate(0.4deg);">
+                <p class="alert-title">Problem!</p>
+                <p>The shared drive is currently offline. IT has been notified and is working on a fix.</p>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             08 - EXTRA: STRING CONNECTIONS
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">08</div>
+                <h2 class="section-title">String Connections</h2>
+                <p class="section-lead">Red thread linking related items -- the hallmark of every detective board, project timeline, and conspiracy wall.</p>
+            </div>
+
+            <div class="string-connection">
+                <div class="string-item">
+                    <h3 class="card-title">Step 1: Research</h3>
+                    <p class="card-text">Gather requirements and user feedback. Pin all findings to the board.</p>
+                </div>
+                <div class="string-item" style="background: var(--paper-yellow);">
+                    <h3 class="card-title">Step 2: Ideate</h3>
+                    <p class="card-text">Brainstorm solutions. Every sticky note is a potential breakthrough.</p>
+                </div>
+                <div class="string-item" style="background: var(--paper-blue);">
+                    <h3 class="card-title">Step 3: Prototype</h3>
+                    <p class="card-text">Build a rough version. Tape mockups to the board for team review.</p>
+                </div>
+                <div class="string-item" style="background: var(--paper-green);">
+                    <h3 class="card-title">Step 4: Ship It</h3>
+                    <p class="card-text">Launch, celebrate, and pin the victory memo to the board.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             09 - DECORATIVE ELEMENTS
+             ============================================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-label">09</div>
+                <h2 class="section-title">Decorative Elements</h2>
+                <p class="section-lead">Washi tape dividers, rubber stamps, pushpin clusters, and other finishing touches for the board.</p>
+            </div>
+
+            <h3 class="color-group-title">Washi Tape Dividers</h3>
+            <div class="washi-strip washi-strip-pink"></div>
+            <div class="washi-strip washi-strip-blue"></div>
+
+            <h3 class="color-group-title mt-xl">Stamps</h3>
+            <div class="note note-white" style="display: inline-block; padding: var(--space-xl) var(--space-2xl); transform: rotate(-1deg);">
+                <div class="pushpin pushpin-red" style="top: -8px; left: 20px;"></div>
+                <div style="display: flex; gap: var(--space-xl); flex-wrap: wrap; align-items: center;">
+                    <span class="stamp stamp-approved">Approved</span>
+                    <span class="stamp stamp-pending">Pending</span>
+                    <span class="stamp">Rejected</span>
+                    <span class="stamp" style="border-color: var(--pin-blue); color: var(--pin-blue); transform: rotate(3deg);">Draft</span>
+                </div>
+            </div>
+
+            <h3 class="color-group-title mt-xl">Pushpin Cluster</h3>
+            <div style="position: relative; height: 80px; max-width: 400px;">
+                <div class="pushpin pushpin-red" style="top: 10px; left: 20px;"></div>
+                <div class="pushpin pushpin-yellow" style="top: 5px; left: 60px;"></div>
+                <div class="pushpin pushpin-green" style="top: 15px; left: 100px;"></div>
+                <div class="pushpin pushpin-blue" style="top: 8px; left: 140px;"></div>
+                <div class="pushpin pushpin-white" style="top: 12px; left: 180px;"></div>
+                <div class="pushpin pushpin-red" style="top: 25px; left: 40px;"></div>
+                <div class="pushpin pushpin-green" style="top: 30px; left: 80px;"></div>
+                <div class="pushpin pushpin-yellow" style="top: 22px; left: 120px;"></div>
+                <div class="pushpin pushpin-blue" style="top: 28px; left: 160px;"></div>
+            </div>
+
+            <h3 class="color-group-title mt-xl">Paper Textures</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: var(--space-lg);">
+                <div style="text-align: center;">
+                    <div class="note note-white" style="width: 120px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <span class="type-caption">Plain</span>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="note note-white note-lined" style="width: 120px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <span class="type-caption">Lined</span>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="note note-white note-torn" style="width: 120px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                        <span class="type-caption">Torn</span>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="note note-white note-curled" style="width: 120px; height: 80px; display: flex; align-items: center; justify-content: center;">
+                        <span class="type-caption">Curled</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================================
+             FOOTER
+             ============================================================ -->
+        <footer class="footer">
+            <div class="footer-note">
+                <div class="pushpin pushpin-red" style="top: -8px; left: 50%; transform: translateX(-50%);"></div>
+                <p class="footer-title">Cork Board</p>
+                <p class="footer-text">A design system of pinned notes, pushpins, and layered paper scraps</p>
+            </div>
+            <div class="footer-pins">
+                <div class="footer-pin" style="background: radial-gradient(circle at 35% 35%, var(--pin-red-highlight), var(--pin-red));"></div>
+                <div class="footer-pin" style="background: radial-gradient(circle at 35% 35%, var(--pin-yellow-highlight), var(--pin-yellow));"></div>
+                <div class="footer-pin" style="background: radial-gradient(circle at 35% 35%, var(--pin-green-highlight), var(--pin-green));"></div>
+                <div class="footer-pin" style="background: radial-gradient(circle at 35% 35%, var(--pin-blue-highlight), var(--pin-blue));"></div>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

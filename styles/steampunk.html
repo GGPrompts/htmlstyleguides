@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steampunk — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           STEAMPUNK DESIGN SYSTEM
+           ============================================
+           Brass gears & clockwork mechanisms.
+           Victorian elegance meets industrial power.
+           Riveted iron, aged copper, steam pipes.
+           Airships sailing through amber skies.
+           ============================================ */
+
+        :root {
+            /* BRASS & GOLD */
+            --brass: #B5893A;
+            --brass-light: #D4A84B;
+            --brass-bright: #E8C66A;
+            --brass-dark: #8A6729;
+            --brass-deep: #6B4F1D;
+            --polished-brass: #C9A84C;
+
+            /* COPPER & VERDIGRIS */
+            --copper: #B87333;
+            --copper-dark: #8B4F24;
+            --copper-aged: #7A5C3A;
+            --verdigris: #4A8B6F;
+            --verdigris-light: #5DA882;
+            --verdigris-dark: #2E6B50;
+            --patina: #6B9E87;
+
+            /* IRON & STEEL */
+            --iron: #3C3C3C;
+            --iron-dark: #2A2A2A;
+            --iron-light: #555555;
+            --gunmetal: #4A4E50;
+            --dark-steel: #363A3C;
+
+            /* LEATHER & WOOD */
+            --leather: #6B3A2A;
+            --leather-light: #8B5A3C;
+            --mahogany: #4E2B1C;
+            --walnut: #5C3A1E;
+
+            /* VICTORIAN BACKGROUNDS */
+            --parchment: #F0E6D3;
+            --parchment-dark: #E0D3B8;
+            --cream: #F5EFE0;
+            --ivory: #FAF6ED;
+            --aged-paper: #E8DCC8;
+
+            /* FUNCTIONAL COLORS */
+            --steam-white: #E8E4DC;
+            --smoke: #8A8580;
+            --soot: #1A1714;
+            --oil-dark: #0F0D0A;
+
+            /* ACCENT COLORS */
+            --ruby: #8B2332;
+            --emerald: #2D6B45;
+            --sapphire: #2B4A7A;
+            --amber-glow: #E8A828;
+
+            /* TYPOGRAPHY */
+            --font-display: 'Playfair Display', 'Georgia', serif;
+            --font-body: 'IM Fell English', 'Georgia', serif;
+            --font-mono: 'Courier Prime', 'Courier New', monospace;
+
+            /* SPACING SCALE (base 4px) */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --space-4xl: 96px;
+
+            /* BORDERS */
+            --border-rivet: 3px solid var(--iron);
+            --border-brass: 2px solid var(--brass);
+            --border-copper: 2px solid var(--copper);
+
+            /* SHADOWS */
+            --shadow-inset: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+            --shadow-raised: 0 4px 12px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-brass-glow: 0 0 15px rgba(181, 137, 58, 0.3);
+            --shadow-deep: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+            /* RADII */
+            --radius-sm: 2px;
+            --radius-md: 4px;
+            --radius-lg: 8px;
+        }
+
+        /* RESET */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--soot);
+            background: var(--parchment);
+            min-height: 100vh;
+        }
+
+        /* ============================================
+           BACKGROUND TEXTURES
+           ============================================ */
+
+        /* Subtle parchment noise */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.03;
+            background-image:
+                radial-gradient(ellipse at 20% 50%, var(--copper-dark) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, var(--brass-dark) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, var(--leather) 0%, transparent 55%);
+        }
+
+        /* Gear pattern overlay - purely decorative */
+        .gear-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.018;
+            background-image:
+                radial-gradient(circle at 10% 15%, var(--brass) 0%, var(--brass) 30px, transparent 31px),
+                radial-gradient(circle at 10% 15%, transparent 18px, var(--parchment) 19px, var(--parchment) 20px, transparent 21px),
+                radial-gradient(circle at 90% 85%, var(--copper) 0%, var(--copper) 45px, transparent 46px),
+                radial-gradient(circle at 90% 85%, transparent 28px, var(--parchment) 29px, var(--parchment) 30px, transparent 31px),
+                radial-gradient(circle at 85% 10%, var(--brass-dark) 0%, var(--brass-dark) 22px, transparent 23px),
+                radial-gradient(circle at 15% 90%, var(--copper-dark) 0%, var(--copper-dark) 35px, transparent 36px);
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: var(--space-3xl) var(--space-xl);
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+
+        .header {
+            text-align: center;
+            padding: var(--space-4xl) var(--space-xl);
+            margin-bottom: var(--space-3xl);
+            position: relative;
+            background:
+                linear-gradient(135deg, var(--iron-dark) 0%, var(--iron) 30%, var(--gunmetal) 50%, var(--iron) 70%, var(--iron-dark) 100%);
+            border: 4px solid var(--iron);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-deep), var(--shadow-inset);
+        }
+
+        /* Riveted border effect */
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid var(--iron-light);
+            border-radius: var(--radius-sm);
+            pointer-events: none;
+        }
+
+        /* Corner rivets on header */
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            right: 14px;
+            bottom: 14px;
+            background-image:
+                radial-gradient(circle at 0% 0%, var(--brass-dark) 4px, transparent 4.5px),
+                radial-gradient(circle at 100% 0%, var(--brass-dark) 4px, transparent 4.5px),
+                radial-gradient(circle at 0% 100%, var(--brass-dark) 4px, transparent 4.5px),
+                radial-gradient(circle at 100% 100%, var(--brass-dark) 4px, transparent 4.5px),
+                radial-gradient(circle at 0% 0%, var(--brass-light) 2px, transparent 2.5px),
+                radial-gradient(circle at 100% 0%, var(--brass-light) 2px, transparent 2.5px),
+                radial-gradient(circle at 0% 100%, var(--brass-light) 2px, transparent 2.5px),
+                radial-gradient(circle at 100% 100%, var(--brass-light) 2px, transparent 2.5px);
+            pointer-events: none;
+        }
+
+        .header-gear {
+            font-size: 1.5rem;
+            color: var(--brass-light);
+            letter-spacing: 0.3em;
+            margin-bottom: var(--space-lg);
+            text-shadow: 0 0 10px rgba(181, 137, 58, 0.4);
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 7vw, 4.5rem);
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--brass-bright);
+            text-shadow:
+                0 1px 0 var(--brass-dark),
+                0 2px 0 var(--brass-deep),
+                0 3px 8px rgba(0, 0, 0, 0.4),
+                0 0 30px rgba(232, 198, 106, 0.2);
+            margin-bottom: var(--space-md);
+            line-height: 1.1;
+        }
+
+        .header .subtitle {
+            font-family: var(--font-body);
+            font-style: italic;
+            font-size: 1.125rem;
+            color: var(--steam-white);
+            letter-spacing: 0.05em;
+            opacity: 0.85;
+        }
+
+        .header .tagline {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--brass);
+            margin-top: var(--space-lg);
+            opacity: 0.7;
+        }
+
+        /* ============================================
+           SECTION STYLING
+           ============================================ */
+
+        .section {
+            margin-bottom: var(--space-4xl);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+            position: relative;
+        }
+
+        .section-number {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--copper);
+            margin-bottom: var(--space-xs);
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--iron-dark);
+            letter-spacing: 0.06em;
+            margin-bottom: var(--space-sm);
+        }
+
+        .section-rule {
+            width: 180px;
+            height: 3px;
+            margin: 0 auto;
+            background: linear-gradient(90deg, transparent, var(--brass), var(--copper), var(--brass), transparent);
+            border: none;
+            position: relative;
+        }
+
+        .section-rule::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: var(--brass);
+            border-radius: 50%;
+            border: 2px solid var(--brass-dark);
+        }
+
+        .section-desc {
+            font-style: italic;
+            color: var(--smoke);
+            text-align: center;
+            margin-top: var(--space-md);
+            max-width: 60ch;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* ============================================
+           DECORATIVE ELEMENTS
+           ============================================ */
+
+        /* Pipe divider between sections */
+        .pipe-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: var(--space-3xl) 0;
+            gap: var(--space-md);
+        }
+
+        .pipe-divider::before,
+        .pipe-divider::after {
+            content: '';
+            flex: 1;
+            height: 6px;
+            background:
+                linear-gradient(180deg,
+                    var(--iron-light) 0%,
+                    var(--iron) 30%,
+                    var(--iron-dark) 50%,
+                    var(--iron) 70%,
+                    var(--iron-light) 100%);
+            border-radius: 3px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .pipe-divider .pipe-joint {
+            width: 24px;
+            height: 24px;
+            background: radial-gradient(circle at 35% 35%, var(--brass-light), var(--brass), var(--brass-dark));
+            border-radius: 50%;
+            border: 2px solid var(--brass-dark);
+            box-shadow:
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+                0 2px 4px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .pipe-divider .pipe-joint::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: var(--brass-deep);
+            border-radius: 50%;
+        }
+
+        /* Rivet row decoration */
+        .rivet-row {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: var(--space-sm) 0;
+        }
+
+        .rivet {
+            width: 8px;
+            height: 8px;
+            background: radial-gradient(circle at 35% 35%, var(--brass-light), var(--brass), var(--brass-dark));
+            border-radius: 50%;
+            box-shadow:
+                inset 0 -1px 2px rgba(0, 0, 0, 0.3),
+                0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Metal panel container */
+        .metal-panel {
+            background:
+                linear-gradient(135deg,
+                    var(--iron) 0%,
+                    var(--gunmetal) 25%,
+                    var(--dark-steel) 50%,
+                    var(--gunmetal) 75%,
+                    var(--iron) 100%);
+            border: 3px solid var(--iron-dark);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            position: relative;
+            box-shadow: var(--shadow-raised);
+            color: var(--steam-white);
+        }
+
+        .metal-panel::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            right: 6px;
+            bottom: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: var(--radius-sm);
+            pointer-events: none;
+        }
+
+        /* Brass plate container */
+        .brass-plate {
+            background:
+                linear-gradient(145deg,
+                    var(--brass-light) 0%,
+                    var(--brass) 20%,
+                    var(--polished-brass) 40%,
+                    var(--brass) 60%,
+                    var(--brass-dark) 100%);
+            border: 2px solid var(--brass-deep);
+            border-radius: var(--radius-sm);
+            padding: var(--space-md) var(--space-lg);
+            color: var(--soot);
+            box-shadow: var(--shadow-raised);
+            text-align: center;
+        }
+
+        /* Riveted border mixin via class */
+        .riveted {
+            position: relative;
+        }
+
+        .riveted::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            right: 8px;
+            bottom: 8px;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 0% 0%, var(--brass-dark) 3.5px, transparent 4px),
+                radial-gradient(circle at 100% 0%, var(--brass-dark) 3.5px, transparent 4px),
+                radial-gradient(circle at 0% 100%, var(--brass-dark) 3.5px, transparent 4px),
+                radial-gradient(circle at 100% 100%, var(--brass-dark) 3.5px, transparent 4px),
+                radial-gradient(circle at 0% 0%, var(--brass-light) 1.5px, transparent 2px),
+                radial-gradient(circle at 100% 0%, var(--brass-light) 1.5px, transparent 2px),
+                radial-gradient(circle at 0% 100%, var(--brass-light) 1.5px, transparent 2px),
+                radial-gradient(circle at 100% 100%, var(--brass-light) 1.5px, transparent 2px);
+        }
+
+        /* ============================================
+           01. COLOR PALETTE
+           ============================================ */
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .color-swatch {
+            text-align: center;
+            background: var(--cream);
+            border: 2px solid var(--iron-light);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-preview {
+            height: 90px;
+            position: relative;
+        }
+
+        /* Brushed metal texture on swatch */
+        .color-preview::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 1px,
+                rgba(255, 255, 255, 0.03) 1px,
+                rgba(255, 255, 255, 0.03) 2px
+            );
+        }
+
+        .color-info {
+            padding: var(--space-sm) var(--space-md);
+            border-top: 2px solid var(--iron-light);
+        }
+
+        .color-name {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--iron-dark);
+            margin-bottom: 2px;
+        }
+
+        .color-hex {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--smoke);
+        }
+
+        .color-group-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--copper);
+            margin-bottom: var(--space-md);
+            margin-top: var(--space-xl);
+            padding-bottom: var(--space-xs);
+            border-bottom: 1px solid var(--copper);
+        }
+
+        .color-group-label:first-child {
+            margin-top: 0;
+        }
+
+        /* ============================================
+           02. TYPOGRAPHY
+           ============================================ */
+
+        .type-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .type-specimen {
+            padding: var(--space-xl);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+        }
+
+        .type-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            color: var(--copper);
+            margin-bottom: var(--space-sm);
+        }
+
+        .type-meta {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--smoke);
+            margin-top: var(--space-sm);
+        }
+
+        .type-display {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 900;
+            color: var(--brass-dark);
+            line-height: 1.1;
+            letter-spacing: 0.04em;
+        }
+
+        .type-heading {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--iron-dark);
+            line-height: 1.2;
+        }
+
+        .type-subheading {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 400;
+            font-style: italic;
+            color: var(--copper-dark);
+            line-height: 1.3;
+        }
+
+        .type-body-sample {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--soot);
+            max-width: 65ch;
+        }
+
+        .type-caption {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--smoke);
+            line-height: 1.5;
+            letter-spacing: 0.02em;
+        }
+
+        /* ============================================
+           03. SPACING
+           ============================================ */
+
+        .spacing-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .spacing-row {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .spacing-label {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--iron-dark);
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .spacing-value {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--smoke);
+            min-width: 40px;
+        }
+
+        .spacing-bar {
+            height: 16px;
+            background:
+                linear-gradient(180deg,
+                    var(--brass-light) 0%,
+                    var(--brass) 40%,
+                    var(--brass-dark) 100%);
+            border-radius: 2px;
+            border: 1px solid var(--brass-dark);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        /* Pipe joint cap on spacing bar */
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: -2px;
+            width: 8px;
+            height: 20px;
+            background:
+                linear-gradient(180deg,
+                    var(--copper) 0%,
+                    var(--copper-dark) 100%);
+            border-radius: 2px;
+            border: 1px solid var(--copper-dark);
+        }
+
+        /* ============================================
+           04. BUTTONS
+           ============================================ */
+
+        .button-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-2xl);
+        }
+
+        .button-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .button-row-label {
+            width: 100%;
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--copper);
+            margin-bottom: var(--space-xs);
+        }
+
+        .btn {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.9rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: var(--space-sm) var(--space-xl);
+            border: 2px solid var(--brass-dark);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.25s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* Primary button - brass */
+        .btn-primary {
+            background:
+                linear-gradient(180deg,
+                    var(--brass-bright) 0%,
+                    var(--brass) 40%,
+                    var(--brass-dark) 100%);
+            color: var(--soot);
+            border-color: var(--brass-deep);
+            border-radius: var(--radius-sm);
+            box-shadow:
+                0 3px 6px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary:hover {
+            background:
+                linear-gradient(180deg,
+                    var(--brass-bright) 0%,
+                    var(--brass-light) 40%,
+                    var(--brass) 100%);
+            box-shadow:
+                0 4px 10px rgba(0, 0, 0, 0.3),
+                0 0 15px rgba(181, 137, 58, 0.2),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active {
+            transform: translateY(1px);
+            box-shadow:
+                0 1px 3px rgba(0, 0, 0, 0.3),
+                inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Secondary button - iron outline */
+        .btn-secondary {
+            background: transparent;
+            color: var(--iron-dark);
+            border-color: var(--iron);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: var(--iron-dark);
+            color: var(--steam-white);
+            border-color: var(--iron-dark);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary:active {
+            transform: translateY(1px);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Copper button */
+        .btn-copper {
+            background:
+                linear-gradient(180deg,
+                    #C98545 0%,
+                    var(--copper) 40%,
+                    var(--copper-dark) 100%);
+            color: var(--cream);
+            border-color: var(--copper-dark);
+            border-radius: var(--radius-sm);
+            box-shadow:
+                0 3px 6px rgba(0, 0, 0, 0.25),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-copper:hover {
+            background:
+                linear-gradient(180deg,
+                    #D89550 0%,
+                    #C98545 40%,
+                    var(--copper) 100%);
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 10px rgba(0, 0, 0, 0.3),
+                0 0 12px rgba(184, 115, 51, 0.2);
+        }
+
+        /* Disabled state */
+        .btn-disabled,
+        .btn:disabled {
+            background: var(--iron-light);
+            color: var(--smoke);
+            border-color: var(--iron-light);
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+            transform: none;
+        }
+
+        .btn-disabled:hover,
+        .btn:disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Size variants */
+        .btn-sm {
+            font-size: 0.75rem;
+            padding: var(--space-xs) var(--space-md);
+        }
+
+        .btn-lg {
+            font-size: 1.05rem;
+            padding: var(--space-md) var(--space-2xl);
+        }
+
+        /* ============================================
+           05. FORMS
+           ============================================ */
+
+        .form-showcase {
+            background: var(--cream);
+            border: 2px solid var(--iron-light);
+            border-radius: var(--radius-md);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-inset);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--iron-dark);
+            margin-bottom: var(--space-xs);
+            text-transform: uppercase;
+        }
+
+        .form-hint {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--smoke);
+            margin-bottom: var(--space-sm);
+            display: block;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--soot);
+            background: var(--ivory);
+            border: 2px solid var(--iron-light);
+            border-radius: var(--radius-sm);
+            transition: all 0.2s ease;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--brass);
+            box-shadow:
+                inset 0 1px 4px rgba(0, 0, 0, 0.08),
+                0 0 0 3px rgba(181, 137, 58, 0.15);
+        }
+
+        .form-input::placeholder {
+            color: var(--smoke);
+            font-style: italic;
+        }
+
+        textarea.form-input {
+            min-height: 100px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        /* Select */
+        .form-select {
+            width: 100%;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            color: var(--soot);
+            background: var(--ivory);
+            border: 2px solid var(--iron-light);
+            border-radius: var(--radius-sm);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%233C3C3C'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-select:focus {
+            outline: none;
+            border-color: var(--brass);
+            box-shadow:
+                inset 0 1px 4px rgba(0, 0, 0, 0.08),
+                0 0 0 3px rgba(181, 137, 58, 0.15);
+        }
+
+        /* Checkbox & Radio */
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            cursor: pointer;
+        }
+
+        .form-check input[type="checkbox"],
+        .form-check input[type="radio"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--iron-light);
+            background: var(--ivory);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .form-check input[type="checkbox"] {
+            border-radius: var(--radius-sm);
+        }
+
+        .form-check input[type="radio"] {
+            border-radius: 50%;
+        }
+
+        .form-check input[type="checkbox"]:checked {
+            background: var(--brass);
+            border-color: var(--brass-dark);
+        }
+
+        .form-check input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 5px;
+            width: 5px;
+            height: 10px;
+            border: 2px solid var(--soot);
+            border-top: none;
+            border-left: none;
+            transform: rotate(45deg);
+        }
+
+        .form-check input[type="radio"]:checked {
+            border-color: var(--copper);
+        }
+
+        .form-check input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 10px;
+            height: 10px;
+            background: var(--copper);
+            border-radius: 50%;
+        }
+
+        .form-check-label {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--iron-dark);
+            cursor: pointer;
+        }
+
+        .form-check input:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(181, 137, 58, 0.2);
+        }
+
+        /* ============================================
+           06. CARDS / PANELS
+           ============================================ */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--space-xl);
+        }
+
+        .card {
+            background: var(--cream);
+            border: 2px solid var(--iron-light);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+        }
+
+        .card-header {
+            padding: var(--space-md) var(--space-lg);
+            background:
+                linear-gradient(135deg,
+                    var(--iron-dark) 0%,
+                    var(--gunmetal) 50%,
+                    var(--iron-dark) 100%);
+            border-bottom: 3px solid var(--brass-dark);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .card-icon {
+            font-size: 1.3rem;
+            line-height: 1;
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brass-bright);
+            letter-spacing: 0.04em;
+        }
+
+        .card-body {
+            padding: var(--space-lg);
+        }
+
+        .card-body p {
+            font-size: 0.95rem;
+            color: var(--iron-dark);
+            line-height: 1.7;
+        }
+
+        .card-footer {
+            padding: var(--space-sm) var(--space-lg);
+            border-top: 1px solid var(--parchment-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-footer-text {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--smoke);
+            letter-spacing: 0.05em;
+        }
+
+        /* Brass-framed card variant */
+        .card-brass {
+            border-color: var(--brass-dark);
+            border-width: 3px;
+        }
+
+        .card-brass .card-header {
+            background:
+                linear-gradient(135deg,
+                    var(--brass-dark) 0%,
+                    var(--brass) 30%,
+                    var(--polished-brass) 50%,
+                    var(--brass) 70%,
+                    var(--brass-dark) 100%);
+            border-bottom-color: var(--brass-deep);
+        }
+
+        .card-brass .card-title {
+            color: var(--soot);
+        }
+
+        /* Dark iron card variant */
+        .card-iron {
+            background:
+                linear-gradient(160deg,
+                    var(--iron) 0%,
+                    var(--gunmetal) 50%,
+                    var(--dark-steel) 100%);
+            border-color: var(--iron-dark);
+            color: var(--steam-white);
+        }
+
+        .card-iron .card-body p {
+            color: var(--steam-white);
+            opacity: 0.9;
+        }
+
+        .card-iron .card-footer {
+            border-top-color: var(--iron-light);
+        }
+
+        .card-iron .card-footer-text {
+            color: var(--smoke);
+        }
+
+        /* ============================================
+           07. ALERTS / NOTIFICATIONS
+           ============================================ */
+
+        .alert-showcase {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-lg);
+        }
+
+        .alert {
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            border-left: 5px solid;
+            position: relative;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-title {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: var(--space-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .alert-title .alert-icon {
+            font-size: 1.1rem;
+        }
+
+        /* Info - Sapphire blue */
+        .alert-info {
+            background: #EDF2F9;
+            border-left-color: var(--sapphire);
+            color: #1A3050;
+        }
+
+        .alert-info .alert-title {
+            color: var(--sapphire);
+        }
+
+        /* Success - Emerald / verdigris */
+        .alert-success {
+            background: #E8F5EE;
+            border-left-color: var(--verdigris);
+            color: #1A4030;
+        }
+
+        .alert-success .alert-title {
+            color: var(--verdigris-dark);
+        }
+
+        /* Warning - Amber brass */
+        .alert-warning {
+            background: #FDF5E6;
+            border-left-color: var(--amber-glow);
+            color: #5C3A00;
+        }
+
+        .alert-warning .alert-title {
+            color: var(--brass-dark);
+        }
+
+        /* Error - Ruby red */
+        .alert-error {
+            background: #FAEAEC;
+            border-left-color: var(--ruby);
+            color: #4A1520;
+        }
+
+        .alert-error .alert-title {
+            color: var(--ruby);
+        }
+
+        /* Alert with riveted plate styling */
+        .alert-plate {
+            background:
+                linear-gradient(135deg,
+                    var(--iron) 0%,
+                    var(--gunmetal) 50%,
+                    var(--iron) 100%);
+            border: 2px solid var(--iron-dark);
+            border-left: 5px solid var(--brass);
+            color: var(--steam-white);
+            box-shadow: var(--shadow-raised);
+        }
+
+        .alert-plate .alert-title {
+            color: var(--brass-bright);
+        }
+
+        /* ============================================
+           GEAR CSS ART
+           ============================================ */
+
+        .gear-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-xl) 0;
+        }
+
+        .gear {
+            border-radius: 50%;
+            position: relative;
+            animation: gear-rotate 10s linear infinite;
+        }
+
+        .gear::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        .gear::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+        }
+
+        .gear-large {
+            width: 80px;
+            height: 80px;
+            background: conic-gradient(
+                from 0deg,
+                var(--brass-dark) 0deg,
+                var(--brass-light) 20deg,
+                var(--brass-dark) 40deg,
+                var(--brass-light) 60deg,
+                var(--brass-dark) 80deg,
+                var(--brass-light) 100deg,
+                var(--brass-dark) 120deg,
+                var(--brass-light) 140deg,
+                var(--brass-dark) 160deg,
+                var(--brass-light) 180deg,
+                var(--brass-dark) 200deg,
+                var(--brass-light) 220deg,
+                var(--brass-dark) 240deg,
+                var(--brass-light) 260deg,
+                var(--brass-dark) 280deg,
+                var(--brass-light) 300deg,
+                var(--brass-dark) 320deg,
+                var(--brass-light) 340deg,
+                var(--brass-dark) 360deg
+            );
+            box-shadow:
+                0 0 0 4px var(--brass),
+                0 0 0 6px var(--brass-dark),
+                0 0 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .gear-large::before {
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 40% 40%, var(--brass-bright), var(--brass-dark));
+            border: 3px solid var(--brass-deep);
+        }
+
+        .gear-large::after {
+            width: 10px;
+            height: 10px;
+            background: var(--iron-dark);
+            border: 2px solid var(--brass-deep);
+        }
+
+        .gear-small {
+            width: 50px;
+            height: 50px;
+            background: conic-gradient(
+                from 15deg,
+                var(--copper-dark) 0deg,
+                var(--copper) 25deg,
+                var(--copper-dark) 50deg,
+                var(--copper) 75deg,
+                var(--copper-dark) 100deg,
+                var(--copper) 125deg,
+                var(--copper-dark) 150deg,
+                var(--copper) 175deg,
+                var(--copper-dark) 200deg,
+                var(--copper) 225deg,
+                var(--copper-dark) 250deg,
+                var(--copper) 275deg,
+                var(--copper-dark) 300deg,
+                var(--copper) 325deg,
+                var(--copper-dark) 350deg,
+                var(--copper) 360deg
+            );
+            animation-direction: reverse;
+            animation-duration: 7s;
+            box-shadow:
+                0 0 0 3px var(--copper),
+                0 0 0 5px var(--copper-dark),
+                0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .gear-small::before {
+            width: 18px;
+            height: 18px;
+            background: radial-gradient(circle at 40% 40%, #D08848, var(--copper-dark));
+            border: 2px solid var(--copper-dark);
+        }
+
+        .gear-small::after {
+            width: 6px;
+            height: 6px;
+            background: var(--iron-dark);
+            border: 1px solid var(--copper-dark);
+        }
+
+        @keyframes gear-rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================
+           GAUGE / PRESSURE METER DECORATION
+           ============================================ */
+
+        .gauge {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(
+                circle at 45% 45%,
+                var(--ivory) 0%,
+                var(--parchment) 50%,
+                var(--parchment-dark) 100%
+            );
+            border: 4px solid var(--brass-dark);
+            box-shadow:
+                0 0 0 2px var(--brass),
+                0 0 0 5px var(--brass-dark),
+                inset 0 2px 8px rgba(0, 0, 0, 0.2),
+                0 4px 12px rgba(0, 0, 0, 0.3);
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .gauge::before {
+            content: 'PSI';
+            position: absolute;
+            bottom: 22px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-mono);
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            color: var(--iron-dark);
+        }
+
+        .gauge-needle {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            width: 3px;
+            height: 40px;
+            background: linear-gradient(0deg, var(--ruby) 0%, var(--ruby) 80%, transparent 100%);
+            transform-origin: bottom center;
+            transform: translateX(-50%) rotate(45deg);
+            border-radius: 1px 1px 0 0;
+        }
+
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle at 40% 40%, var(--brass-bright), var(--brass-dark));
+            border-radius: 50%;
+            border: 2px solid var(--brass-deep);
+            z-index: 2;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .footer {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-xl);
+            margin-top: var(--space-3xl);
+            background:
+                linear-gradient(135deg,
+                    var(--iron-dark) 0%,
+                    var(--iron) 30%,
+                    var(--gunmetal) 50%,
+                    var(--iron) 70%,
+                    var(--iron-dark) 100%);
+            border: 3px solid var(--iron-dark);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-deep);
+            position: relative;
+        }
+
+        .footer .rivet-row {
+            margin-bottom: var(--space-md);
+        }
+
+        .footer-title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--brass-bright);
+            letter-spacing: 0.08em;
+            margin-bottom: var(--space-sm);
+        }
+
+        .footer-text {
+            font-family: var(--font-body);
+            font-style: italic;
+            font-size: 0.95rem;
+            color: var(--steam-white);
+            opacity: 0.75;
+            margin-bottom: var(--space-sm);
+        }
+
+        .footer-meta {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--brass);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.6;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-xl) var(--space-md);
+            }
+
+            .header {
+                padding: var(--space-2xl) var(--space-md);
+            }
+
+            .header h1 {
+                letter-spacing: 0.04em;
+            }
+
+            .section-title {
+                font-size: 1.6rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+                gap: var(--space-md);
+            }
+
+            .color-preview {
+                height: 70px;
+            }
+
+            .button-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .spacing-row {
+                gap: var(--space-md);
+            }
+
+            .spacing-label {
+                min-width: 60px;
+                font-size: 0.7rem;
+            }
+
+            .gear-display {
+                transform: scale(0.8);
+            }
+
+            .metal-panel {
+                padding: var(--space-md);
+            }
+
+            .form-showcase {
+                padding: var(--space-md);
+            }
+
+            .pipe-divider::before,
+            .pipe-divider::after {
+                height: 4px;
+            }
+
+            .type-display {
+                font-size: 2rem;
+            }
+
+            .gauge {
+                width: 90px;
+                height: 90px;
+            }
+
+            .gauge-needle {
+                height: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="gear-pattern"></div>
+
+    <div class="container">
+        <!-- ================================ -->
+        <!-- HEADER                           -->
+        <!-- ================================ -->
+        <header class="header riveted">
+            <div class="header-gear">&#9881; &#9881; &#9881;</div>
+            <h1>Steampunk</h1>
+            <p class="subtitle">Brass, Gears &amp; Victorian Ingenuity</p>
+            <p class="tagline">A Design System Forged in Steam &amp; Iron</p>
+        </header>
+
+        <!-- Decorative gear display -->
+        <div class="gear-display">
+            <div class="gear gear-small"></div>
+            <div class="gear gear-large"></div>
+            <div class="gear gear-small"></div>
+        </div>
+
+        <!-- ================================ -->
+        <!-- 01. COLOR PALETTE                -->
+        <!-- ================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">Section 01</div>
+                <h2 class="section-title">Color Palette</h2>
+                <div class="section-rule"></div>
+                <p class="section-desc">A palette drawn from the workshop: polished brass, oxidized copper, wrought iron, and aged parchment.</p>
+            </div>
+
+            <!-- Brass & Gold -->
+            <p class="color-group-label">Brass &amp; Gold</p>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--brass-bright);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Bright Brass</p>
+                        <p class="color-hex">#E8C66A</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--brass-light);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Polished Brass</p>
+                        <p class="color-hex">#D4A84B</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--brass);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Brass</p>
+                        <p class="color-hex">#B5893A</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--brass-dark);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Dark Brass</p>
+                        <p class="color-hex">#8A6729</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--brass-deep);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Deep Brass</p>
+                        <p class="color-hex">#6B4F1D</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Copper & Verdigris -->
+            <p class="color-group-label">Copper &amp; Verdigris</p>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--copper);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Copper</p>
+                        <p class="color-hex">#B87333</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--copper-dark);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Dark Copper</p>
+                        <p class="color-hex">#8B4F24</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--verdigris);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Verdigris</p>
+                        <p class="color-hex">#4A8B6F</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--verdigris-light);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Light Verdigris</p>
+                        <p class="color-hex">#5DA882</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--patina);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Patina</p>
+                        <p class="color-hex">#6B9E87</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Iron & Steel -->
+            <p class="color-group-label">Iron &amp; Steel</p>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--iron);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Iron</p>
+                        <p class="color-hex">#3C3C3C</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--iron-dark);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Dark Iron</p>
+                        <p class="color-hex">#2A2A2A</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--gunmetal);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Gunmetal</p>
+                        <p class="color-hex">#4A4E50</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--soot);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Soot</p>
+                        <p class="color-hex">#1A1714</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Leather & Backgrounds -->
+            <p class="color-group-label">Leather &amp; Parchment</p>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--leather);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Leather</p>
+                        <p class="color-hex">#6B3A2A</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--mahogany);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Mahogany</p>
+                        <p class="color-hex">#4E2B1C</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--parchment);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Parchment</p>
+                        <p class="color-hex">#F0E6D3</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--cream);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Victorian Cream</p>
+                        <p class="color-hex">#F5EFE0</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--ivory);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Ivory</p>
+                        <p class="color-hex">#FAF6ED</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Accent Colors -->
+            <p class="color-group-label">Accent Tones</p>
+            <div class="color-grid">
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--ruby);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Ruby</p>
+                        <p class="color-hex">#8B2332</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--emerald);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Emerald</p>
+                        <p class="color-hex">#2D6B45</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--sapphire);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Sapphire</p>
+                        <p class="color-hex">#2B4A7A</p>
+                    </div>
+                </div>
+                <div class="color-swatch">
+                    <div class="color-preview" style="background: var(--amber-glow);"></div>
+                    <div class="color-info">
+                        <p class="color-name">Amber Glow</p>
+                        <p class="color-hex">#E8A828</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipe-divider">
+            <div class="pipe-joint"></div>
+        </div>
+
+        <!-- ================================ -->
+        <!-- 02. TYPOGRAPHY                   -->
+        <!-- ================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">Section 02</div>
+                <h2 class="section-title">Typography</h2>
+                <div class="section-rule"></div>
+                <p class="section-desc">Victorian letterforms meet industrial clarity. Playfair Display for grandeur, IM Fell English for the charm of the printed word, and Courier Prime for mechanical readouts.</p>
+            </div>
+
+            <div class="type-showcase">
+                <div class="type-specimen">
+                    <p class="type-label">Display / Playfair Display 900</p>
+                    <p class="type-display">Clockwork Empire</p>
+                    <p class="type-meta">clamp(2.5rem, 6vw, 4rem) -- Weight 900 -- Tracking 0.04em</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Heading / Playfair Display 700</p>
+                    <p class="type-heading">The Age of Invention</p>
+                    <p class="type-meta">2.25rem -- Weight 700 -- Line-height 1.2</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Subheading / Playfair Display Italic</p>
+                    <p class="type-subheading">Gears in motion, steam ascending, the engine of progress turns ever onward</p>
+                    <p class="type-meta">1.5rem -- Weight 400 -- Italic -- Line-height 1.3</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Body / IM Fell English</p>
+                    <p class="type-body-sample">The steampunk aesthetic reimagines a world where steam power remained the dominant technology. Victorian elegance merges with industrial innovation, producing a visual language of brass mechanisms, leather-bound instruments, and copper-piped contraptions. Every rivet tells a story of craftsmanship; every gear tooth represents the relentless march of an alternate modernity.</p>
+                    <p class="type-meta">1rem -- Line-height 1.7 -- Max-width 65ch</p>
+                </div>
+                <div class="type-specimen">
+                    <p class="type-label">Caption / Courier Prime</p>
+                    <p class="type-caption">PRESSURE GAUGE :: MODEL VII-A :: CALIBRATED 1887 :: IMPERIAL STANDARD</p>
+                    <p class="type-meta">0.8rem -- Monospace -- Tracking 0.02em</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipe-divider">
+            <div class="pipe-joint"></div>
+        </div>
+
+        <!-- ================================ -->
+        <!-- 03. SPACING                      -->
+        <!-- ================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">Section 03</div>
+                <h2 class="section-title">Spacing Scale</h2>
+                <div class="section-rule"></div>
+                <p class="section-desc">A 4px base unit, scaled through the precision of a clockmaker's hand.</p>
+            </div>
+
+            <div class="metal-panel riveted">
+                <div class="spacing-scale">
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-xs</span>
+                        <span class="spacing-value">4px</span>
+                        <div class="spacing-bar" style="width: 24px;"></div>
+                    </div>
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-sm</span>
+                        <span class="spacing-value">8px</span>
+                        <div class="spacing-bar" style="width: 48px;"></div>
+                    </div>
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-md</span>
+                        <span class="spacing-value">16px</span>
+                        <div class="spacing-bar" style="width: 96px;"></div>
+                    </div>
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-lg</span>
+                        <span class="spacing-value">24px</span>
+                        <div class="spacing-bar" style="width: 144px;"></div>
+                    </div>
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-xl</span>
+                        <span class="spacing-value">32px</span>
+                        <div class="spacing-bar" style="width: 192px;"></div>
+                    </div>
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-2xl</span>
+                        <span class="spacing-value">48px</span>
+                        <div class="spacing-bar" style="width: 256px;"></div>
+                    </div>
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-3xl</span>
+                        <span class="spacing-value">64px</span>
+                        <div class="spacing-bar" style="width: 320px;"></div>
+                    </div>
+                    <div class="spacing-row">
+                        <span class="spacing-label">--space-4xl</span>
+                        <span class="spacing-value">96px</span>
+                        <div class="spacing-bar" style="width: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipe-divider">
+            <div class="pipe-joint"></div>
+        </div>
+
+        <!-- ================================ -->
+        <!-- 04. BUTTONS                      -->
+        <!-- ================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">Section 04</div>
+                <h2 class="section-title">Buttons</h2>
+                <div class="section-rule"></div>
+                <p class="section-desc">Levers and switches forged from brass, copper, and iron. Pull them to set the machine in motion.</p>
+            </div>
+
+            <!-- Decorative gauge -->
+            <div style="margin-bottom: var(--space-2xl);">
+                <div class="gauge">
+                    <div class="gauge-needle"></div>
+                    <div class="gauge-center"></div>
+                </div>
+            </div>
+
+            <div class="button-showcase">
+                <!-- Primary Buttons -->
+                <div>
+                    <p class="button-row-label">Primary -- Brass</p>
+                    <div class="button-row">
+                        <button class="btn btn-primary btn-sm">Small Lever</button>
+                        <button class="btn btn-primary">Engage</button>
+                        <button class="btn btn-primary btn-lg">Full Steam</button>
+                    </div>
+                </div>
+
+                <!-- Secondary Buttons -->
+                <div>
+                    <p class="button-row-label">Secondary -- Iron Outline</p>
+                    <div class="button-row">
+                        <button class="btn btn-secondary btn-sm">Inspect</button>
+                        <button class="btn btn-secondary">Calibrate</button>
+                        <button class="btn btn-secondary btn-lg">Disengage</button>
+                    </div>
+                </div>
+
+                <!-- Copper Variant -->
+                <div>
+                    <p class="button-row-label">Copper Variant</p>
+                    <div class="button-row">
+                        <button class="btn btn-copper btn-sm">Auxiliary</button>
+                        <button class="btn btn-copper">Activate</button>
+                        <button class="btn btn-copper btn-lg">Overhaul</button>
+                    </div>
+                </div>
+
+                <!-- Disabled State -->
+                <div>
+                    <p class="button-row-label">Disabled State</p>
+                    <div class="button-row">
+                        <button class="btn btn-primary btn-disabled" disabled>Locked</button>
+                        <button class="btn btn-secondary btn-disabled" disabled>Sealed</button>
+                        <button class="btn btn-copper btn-disabled" disabled>Offline</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipe-divider">
+            <div class="pipe-joint"></div>
+        </div>
+
+        <!-- ================================ -->
+        <!-- 05. FORMS                        -->
+        <!-- ================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">Section 05</div>
+                <h2 class="section-title">Form Elements</h2>
+                <div class="section-rule"></div>
+                <p class="section-desc">Input dials and configuration panels for the discerning engineer.</p>
+            </div>
+
+            <div class="form-showcase">
+                <div class="rivet-row">
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                </div>
+
+                <div class="form-grid">
+                    <!-- Text inputs -->
+                    <div class="form-group">
+                        <label class="form-label" for="inventor-name">Inventor Name</label>
+                        <span class="form-hint">As registered with the Royal Academy</span>
+                        <input type="text" id="inventor-name" class="form-input" placeholder="e.g. Isambard Kingdom Brunel">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="patent-no">Patent Number</label>
+                        <span class="form-hint">Imperial Patent Office reference</span>
+                        <input type="text" id="patent-no" class="form-input" placeholder="e.g. GB-1887-04521">
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    <label class="form-label" for="telegraph">Telegraph Address</label>
+                    <span class="form-hint">For pneumatic tube correspondence</span>
+                    <input type="email" id="telegraph" class="form-input" placeholder="inventor@steamworks.co.uk">
+                </div>
+
+                <!-- Select -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="engine-type">Engine Classification</label>
+                        <select id="engine-type" class="form-select">
+                            <option value="">Select engine type...</option>
+                            <option value="reciprocating">Reciprocating Steam Engine</option>
+                            <option value="turbine">Steam Turbine</option>
+                            <option value="compound">Compound Expansion Engine</option>
+                            <option value="rotary">Rotary Steam Engine</option>
+                            <option value="atmospheric">Atmospheric Engine</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="pressure">Operating Pressure</label>
+                        <select id="pressure" class="form-select">
+                            <option value="">Select pressure range...</option>
+                            <option value="low">Low (0-50 PSI)</option>
+                            <option value="medium">Medium (50-150 PSI)</option>
+                            <option value="high">High (150-300 PSI)</option>
+                            <option value="extreme">Extreme (300+ PSI)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Textarea -->
+                <div class="form-group">
+                    <label class="form-label" for="specifications">Technical Specifications</label>
+                    <span class="form-hint">Describe the mechanism in full detail</span>
+                    <textarea id="specifications" class="form-input" placeholder="A triple-expansion steam engine with Corliss valve gear, featuring a flywheel governor and condensing apparatus..."></textarea>
+                </div>
+
+                <!-- Checkboxes -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Required Components</label>
+                        <label class="form-check">
+                            <input type="checkbox" checked>
+                            <span class="form-check-label">Brass gear assembly</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="checkbox" checked>
+                            <span class="form-check-label">Copper steam pipes</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="checkbox">
+                            <span class="form-check-label">Pneumatic pressure regulator</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="checkbox">
+                            <span class="form-check-label">Aetheric resonance coil</span>
+                        </label>
+                    </div>
+
+                    <!-- Radio buttons -->
+                    <div class="form-group">
+                        <label class="form-label">Power Source</label>
+                        <label class="form-check">
+                            <input type="radio" name="power" value="coal" checked>
+                            <span class="form-check-label">Coal-fired boiler</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="radio" name="power" value="wood">
+                            <span class="form-check-label">Wood-burning furnace</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="radio" name="power" value="oil">
+                            <span class="form-check-label">Oil-fed combustion</span>
+                        </label>
+                        <label class="form-check">
+                            <input type="radio" name="power" value="aether">
+                            <span class="form-check-label">Aetheric generator</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: var(--space-lg);">
+                    <button class="btn btn-primary btn-lg">Submit Patent Application</button>
+                </div>
+
+                <div class="rivet-row" style="margin-top: var(--space-lg);">
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                    <span class="rivet"></span>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipe-divider">
+            <div class="pipe-joint"></div>
+        </div>
+
+        <!-- ================================ -->
+        <!-- 06. CARDS / PANELS               -->
+        <!-- ================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">Section 06</div>
+                <h2 class="section-title">Cards &amp; Panels</h2>
+                <div class="section-rule"></div>
+                <p class="section-desc">Information containers styled as workshop notices, brass plaques, and iron bulletin boards.</p>
+            </div>
+
+            <!-- Standard cards -->
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-icon">&#9881;</span>
+                        <h3 class="card-title">Clockwork Engine</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>A precision-wound mainspring drives an intricate series of escapements and reduction gears, producing reliable rotational force without the need for external fuel or steam pressure.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-footer-text">Patent No. 1842-0731</span>
+                        <span class="card-footer-text">Class: Mechanical</span>
+                    </div>
+                </div>
+
+                <div class="card card-brass">
+                    <div class="card-header">
+                        <span class="card-icon">&#9978;</span>
+                        <h3 class="card-title">Airship Docking</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>The mooring mast receives vessels of all tonnage, equipped with pneumatic capture arms and hydrogen ballast management systems. Passengers disembark via articulated gangways.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-footer-text">Bay Alpha-7</span>
+                        <span class="card-footer-text">Capacity: 40t</span>
+                    </div>
+                </div>
+
+                <div class="card card-iron">
+                    <div class="card-header">
+                        <span class="card-icon">&#9875;</span>
+                        <h3 class="card-title">Boiler Room</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>The heart of the vessel. Triple-expansion engines convert superheated steam into mechanical force, driving twin propeller shafts at speeds exceeding twelve knots.</p>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-footer-text">Deck: Lower-3</span>
+                        <span class="card-footer-text">Temp: 380&deg;F</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brass plate example -->
+            <div style="margin-top: var(--space-xl); max-width: 500px; margin-left: auto; margin-right: auto;">
+                <div class="brass-plate">
+                    <p style="font-family: var(--font-display); font-weight: 700; font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase;">Imperial Engineering Works</p>
+                    <p style="font-family: var(--font-body); font-style: italic; font-size: 0.9rem; margin-top: 4px;">Established 1851 &middot; London &middot; Birmingham &middot; Manchester</p>
+                </div>
+            </div>
+
+            <!-- Metal panel example -->
+            <div style="margin-top: var(--space-xl);">
+                <div class="metal-panel riveted">
+                    <p style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: var(--brass-bright); margin-bottom: var(--space-sm); text-transform: uppercase; letter-spacing: 0.06em;">Engineering Notice</p>
+                    <p style="color: var(--steam-white); opacity: 0.85; line-height: 1.7;">All personnel are advised that boiler pressure tests shall be conducted on the third Thursday of each month. Workshops will be closed during testing hours. Safety goggles and leather aprons are mandatory in all designated areas.</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipe-divider">
+            <div class="pipe-joint"></div>
+        </div>
+
+        <!-- ================================ -->
+        <!-- 07. ALERTS / NOTIFICATIONS       -->
+        <!-- ================================ -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-number">Section 07</div>
+                <h2 class="section-title">Alerts &amp; Notifications</h2>
+                <div class="section-rule"></div>
+                <p class="section-desc">Workshop bulletins, safety warnings, and dispatch notices delivered through the pneumatic message system.</p>
+            </div>
+
+            <div class="alert-showcase">
+                <!-- Info -->
+                <div class="alert alert-info">
+                    <p class="alert-title">
+                        <span class="alert-icon">&#9432;</span>
+                        Informational Dispatch
+                    </p>
+                    <p>The new Babbage Analytical Engine has been installed in the computation chamber. All mathematical queries may now be submitted via punch card at Window 3.</p>
+                </div>
+
+                <!-- Success -->
+                <div class="alert alert-success">
+                    <p class="alert-title">
+                        <span class="alert-icon">&#10003;</span>
+                        Operation Successful
+                    </p>
+                    <p>Boiler calibration complete. All pressure readings are within nominal parameters. The vessel is cleared for departure at the scheduled hour.</p>
+                </div>
+
+                <!-- Warning -->
+                <div class="alert alert-warning">
+                    <p class="alert-title">
+                        <span class="alert-icon">&#9888;</span>
+                        Caution Advisory
+                    </p>
+                    <p>Steam pressure in manifold C-7 is approaching the upper threshold. Reduce fuel intake and engage the auxiliary release valve before readings exceed 280 PSI.</p>
+                </div>
+
+                <!-- Error -->
+                <div class="alert alert-error">
+                    <p class="alert-title">
+                        <span class="alert-icon">&#10007;</span>
+                        Critical Failure
+                    </p>
+                    <p>Catastrophic seal breach detected in cylinder block 4. Immediate shutdown of the port-side engine is required. All hands to emergency stations.</p>
+                </div>
+
+                <!-- Industrial plate alert -->
+                <div class="alert alert-plate">
+                    <p class="alert-title">
+                        <span class="alert-icon">&#9881;</span>
+                        Workshop Bulletin
+                    </p>
+                    <p>Quarterly maintenance of all brass fittings and copper pipework is due. Report to the Chief Engineer with your toolkit and station assignment ledger.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================================ -->
+        <!-- DECORATIVE FOOTER                -->
+        <!-- ================================ -->
+        <div class="gear-display">
+            <div class="gear gear-small"></div>
+            <div class="gear gear-large"></div>
+            <div class="gear gear-small"></div>
+        </div>
+
+        <footer class="footer">
+            <div class="rivet-row">
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+                <span class="rivet"></span>
+            </div>
+            <p class="footer-title">&#9881; Steampunk &#9881;</p>
+            <p class="footer-text">Brass, gears, steam, and the relentless engine of Victorian invention</p>
+            <p class="footer-meta">An HTML Style Guide &middot; Forged with CSS &amp; Imagination</p>
+        </footer>
+    </div>
+</body>
+</html>
