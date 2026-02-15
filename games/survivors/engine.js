@@ -339,18 +339,23 @@ const cam = { x: 0, y: 0 };
 const enemyHash = new SpatialHash(100);
 
 const enemies = new Pool(
-  () => ({ x:0, y:0, hp:0, maxHp:0, size:0, speed:0, type:null, xpValue:0, isBoss:false, spawnTime:0, hitFlash:0 }),
+  () => ({ x:0, y:0, hp:0, maxHp:0, size:0, speed:0, type:null, xpValue:0, isBoss:false, spawnTime:0, hitFlash:0,
+    movementType:'chase', movementState:null, attackTimer:0, attackPattern:null }),
   (e, x, y, type, isBoss) => {
     e.x = x; e.y = y;
     e.type = type;
     e.isBoss = isBoss || false;
     const hpMult = 1 + gameTime / 120;
-    e.hp = e.maxHp = (isBoss ? type.hp : type.hp * hpMult);
+    e.hp = e.maxHp = isBoss ? type.hp * (1 + gameTime / 80) * 1.5 : type.hp * hpMult;
     e.size = type.size;
     e.speed = type.speed;
     e.xpValue = type.xp;
     e.spawnTime = gameTime;
     e.hitFlash = 0;
+    e.movementType = type.movementType || 'chase';
+    e.movementState = { timer: 0, phase: 'approach', dashAngle: 0, anchorX: 0, anchorY: 0, orbitAngle: 0, waitX: 0, waitY: 0 };
+    e.attackTimer = isBoss ? 3 + Math.random() * 2 : 0;
+    e.attackPattern = type.attackPattern || null;
   }
 );
 
@@ -390,6 +395,7 @@ const particles = new Pool(
 
 // Active fields/beams/areas
 const activeEffects = [];
+const telegraphs = [];
 
 // Weapon state
 const weaponTimers = {};
@@ -612,6 +618,245 @@ function chainHit(enemy, damage, bouncesLeft, range, hitSet) {
 }
 
 // ============================================================
+// MOVEMENT BEHAVIORS
+// ============================================================
+const MOVEMENT_HANDLERS = {};
+
+// Default beeline toward player
+MOVEMENT_HANDLERS.chase = function(e, dt, player) {
+  const dx = player.x - e.x;
+  const dy = player.y - e.y;
+  const d = Math.hypot(dx, dy);
+  if(d > 5) {
+    e.x += (dx/d) * e.speed * dt;
+    e.y += (dy/d) * e.speed * dt;
+  }
+};
+
+// Circle player at ~200px, dash in periodically
+MOVEMENT_HANDLERS.strafe = function(e, dt, player) {
+  const dx = player.x - e.x;
+  const dy = player.y - e.y;
+  const d = Math.hypot(dx, dy);
+  const ms = e.movementState;
+  ms.timer -= dt;
+
+  if(ms.phase === 'approach') {
+    // Move toward strafe range
+    if(d > 220) {
+      e.x += (dx/d) * e.speed * dt;
+      e.y += (dy/d) * e.speed * dt;
+    } else {
+      ms.phase = 'circle';
+      ms.orbitAngle = Math.atan2(e.y - player.y, e.x - player.x);
+      ms.timer = 2 + Math.random() * 2;
+    }
+  } else if(ms.phase === 'circle') {
+    // Orbit around player at ~200px
+    ms.orbitAngle += e.speed / 200 * dt;
+    const targetX = player.x + Math.cos(ms.orbitAngle) * 200;
+    const targetY = player.y + Math.sin(ms.orbitAngle) * 200;
+    e.x += (targetX - e.x) * 3 * dt;
+    e.y += (targetY - e.y) * 3 * dt;
+    if(ms.timer <= 0) {
+      ms.phase = 'dash';
+      ms.timer = 0.4;
+    }
+  } else if(ms.phase === 'dash') {
+    // Dash toward player
+    if(d > 5) {
+      e.x += (dx/d) * e.speed * 2.5 * dt;
+      e.y += (dy/d) * e.speed * 2.5 * dt;
+    }
+    if(ms.timer <= 0) {
+      ms.phase = 'approach';
+      ms.timer = 0;
+    }
+  }
+};
+
+// Approach to ~250px, pause (telegraph), then dash at 3x speed
+MOVEMENT_HANDLERS.charge = function(e, dt, player) {
+  const dx = player.x - e.x;
+  const dy = player.y - e.y;
+  const d = Math.hypot(dx, dy);
+  const ms = e.movementState;
+  ms.timer -= dt;
+
+  if(ms.phase === 'approach') {
+    if(d > 250) {
+      e.x += (dx/d) * e.speed * dt;
+      e.y += (dy/d) * e.speed * dt;
+    } else {
+      ms.phase = 'telegraph';
+      ms.timer = 1.0;
+      ms.dashAngle = Math.atan2(dy, dx);
+    }
+  } else if(ms.phase === 'telegraph') {
+    // Stand still, telegraph is rendered by telegraph system
+    if(ms.timer <= 0) {
+      ms.phase = 'dash';
+      ms.timer = 0.5;
+      // Lock dash direction
+      ms.dashAngle = Math.atan2(player.y - e.y, player.x - e.x);
+    }
+  } else if(ms.phase === 'dash') {
+    e.x += Math.cos(ms.dashAngle) * e.speed * 3 * dt;
+    e.y += Math.sin(ms.dashAngle) * e.speed * 3 * dt;
+    if(ms.timer <= 0) {
+      ms.phase = 'approach';
+      ms.timer = 0;
+    }
+  }
+};
+
+// Spiral inward getting closer
+MOVEMENT_HANDLERS.orbit = function(e, dt, player) {
+  const dx = player.x - e.x;
+  const dy = player.y - e.y;
+  const d = Math.hypot(dx, dy);
+  const ms = e.movementState;
+
+  if(ms.orbitAngle === 0) {
+    ms.orbitAngle = Math.atan2(e.y - player.y, e.x - player.x);
+  }
+
+  // Slowly spiral inward
+  const orbitRadius = Math.max(30, d - 15 * dt);
+  ms.orbitAngle += (e.speed / Math.max(orbitRadius, 80)) * dt;
+  const targetX = player.x + Math.cos(ms.orbitAngle) * orbitRadius;
+  const targetY = player.y + Math.sin(ms.orbitAngle) * orbitRadius;
+  e.x += (targetX - e.x) * 4 * dt;
+  e.y += (targetY - e.y) * 4 * dt;
+};
+
+// Intercept player's path, wait, then pounce at 2.5x speed
+MOVEMENT_HANDLERS.ambush = function(e, dt, player) {
+  const dx = player.x - e.x;
+  const dy = player.y - e.y;
+  const d = Math.hypot(dx, dy);
+  const ms = e.movementState;
+  ms.timer -= dt;
+
+  if(ms.phase === 'approach') {
+    // Move to an intercept point ahead of the player
+    if(d > 300) {
+      e.x += (dx/d) * e.speed * 1.2 * dt;
+      e.y += (dy/d) * e.speed * 1.2 * dt;
+    } else {
+      ms.phase = 'wait';
+      ms.timer = 0.8 + Math.random() * 0.5;
+      ms.waitX = e.x;
+      ms.waitY = e.y;
+    }
+  } else if(ms.phase === 'wait') {
+    // Hold position
+    e.x += (ms.waitX - e.x) * 5 * dt;
+    e.y += (ms.waitY - e.y) * 5 * dt;
+    if(ms.timer <= 0) {
+      ms.phase = 'pounce';
+      ms.timer = 0.6;
+      ms.dashAngle = Math.atan2(player.y - e.y, player.x - e.x);
+    }
+  } else if(ms.phase === 'pounce') {
+    e.x += Math.cos(ms.dashAngle) * e.speed * 2.5 * dt;
+    e.y += Math.sin(ms.dashAngle) * e.speed * 2.5 * dt;
+    if(ms.timer <= 0) {
+      ms.phase = 'approach';
+      ms.timer = 0;
+    }
+  }
+};
+
+// ============================================================
+// BOSS ATTACK SYSTEM
+// ============================================================
+const BOSS_ATTACK_HANDLERS = {};
+
+// Expanding damage ring — player must move out
+BOSS_ATTACK_HANDLERS.shockwave = function(boss) {
+  const dmg = 15 + gameTime * 0.05;
+  activeEffects.push({
+    type: 'bossShockwave', x: boss.x, y: boss.y,
+    radius: 0, maxRadius: 200 + boss.size,
+    damage: dmg, life: 0.8, maxLife: 0.8,
+    hit: new Set()
+  });
+  // Telegraph: warning circle
+  telegraphs.push({
+    type: 'chargeWarning', source: boss,
+    x: boss.x, y: boss.y, life: 0.5, maxLife: 0.5
+  });
+  telegraphs.push({
+    type: 'exclamation', source: boss,
+    life: 0.5, maxLife: 0.5
+  });
+  spawnParticles(boss.x, boss.y, 12, boss.type.color, 4);
+  Audio.noise(0.3, 0.12);
+  Audio.note(80, 0.5, 'sawtooth', 0.1);
+};
+
+// Telegraph line then boss dashes across it
+BOSS_ATTACK_HANDLERS.charge = function(boss) {
+  const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+  const dmg = 15 + gameTime * 0.05;
+  activeEffects.push({
+    type: 'bossChargeLine', x: boss.x, y: boss.y, angle: angle,
+    range: 400, width: boss.size * 0.8,
+    damage: dmg, life: 1.2, maxLife: 1.2,
+    phase: 'telegraph', bossRef: boss, hit: new Set()
+  });
+  Audio.note(150, 0.3, 'square', 0.08);
+};
+
+// Spawn minion wave around boss
+BOSS_ATTACK_HANDLERS.summon = function(boss) {
+  const count = 3 + Math.floor(gameTime / 120);
+  const available = THEME.enemies.filter(e => gameTime >= e.spawnAfter);
+  if(available.length === 0) return;
+  for(let i = 0; i < count; i++) {
+    const type = available[Math.random() * available.length | 0];
+    const angle = (Math.PI * 2 * i) / count;
+    const dist = boss.size + 30;
+    enemies.get(boss.x + Math.cos(angle) * dist, boss.y + Math.sin(angle) * dist, type, false);
+  }
+  spawnParticles(boss.x, boss.y, 15, boss.type.color, 3);
+  Audio.note(200, 0.2, 'sawtooth', 0.1);
+  Audio.note(100, 0.3, 'sawtooth', 0.08);
+};
+
+// Sweeping beam that rotates — must dodge
+BOSS_ATTACK_HANDLERS.beam = function(boss) {
+  const angle = Math.atan2(player.y - boss.y, player.x - boss.x);
+  const dmg = 15 + gameTime * 0.05;
+  activeEffects.push({
+    type: 'bossSweepBeam', x: boss.x, y: boss.y,
+    startAngle: angle - 0.8, angle: angle - 0.8, targetAngle: angle + 0.8,
+    range: 350, width: 12,
+    damage: dmg, life: 1.5, maxLife: 1.5,
+    tickTimer: 0
+  });
+  // Telegraph: exclamation warning
+  telegraphs.push({
+    type: 'exclamation', source: boss,
+    life: 0.6, maxLife: 0.6
+  });
+  Audio.note(200, 1.5, 'sawtooth', 0.07);
+};
+
+function updateBossAttacks(dt) {
+  enemies.forEach(e => {
+    if(!e.isBoss || !e.attackPattern) return;
+    e.attackTimer -= dt;
+    if(e.attackTimer <= 0) {
+      e.attackTimer = 4 + Math.random() * 3;
+      const handler = BOSS_ATTACK_HANDLERS[e.attackPattern];
+      if(handler) handler(e);
+    }
+  });
+}
+
+// ============================================================
 // ENEMY / DAMAGE
 // ============================================================
 function damageEnemy(e, dmg) {
@@ -823,10 +1068,17 @@ function gameLoop(timestamp) {
 
   gameTime += dt;
 
-  // Difficulty ramp
+  // Difficulty ramp — wave system (40s cycles: 30s intense + 10s breather)
   const progress = Math.min(gameTime / 600, 1); // 10 min to max
-  spawnRate = Math.max(0.15, 1.5 - progress * 1.2);
-  waveNum = Math.floor(gameTime / 30) + 1;
+  const waveCycle = gameTime % 40;
+  const inBreather = waveCycle >= 30;
+  const breatherMult = inBreather ? 0.4 : 1.0;
+  // Check if any boss is alive — reduce spawns during boss fights
+  let bossAlive = false;
+  enemies.forEach(e => { if(e.isBoss) bossAlive = true; });
+  const bossMult = bossAlive ? 0.4 : 1.0;
+  spawnRate = Math.max(0.3, 1.5 - progress * 1.0) / (breatherMult * bossMult);
+  waveNum = Math.floor(gameTime / 40) + 1;
   Audio.updateAmbient(progress);
 
   // Movement
@@ -851,7 +1103,7 @@ function gameLoop(timestamp) {
   spawnTimer -= dt;
   if(spawnTimer <= 0) {
     spawnTimer = spawnRate;
-    const count = 1 + Math.floor(progress * 3);
+    const count = 1 + Math.floor(progress * 2.5);
     for(let i=0;i<count;i++) spawnEnemy();
   }
 
@@ -966,20 +1218,94 @@ function gameLoop(timestamp) {
         const hits = enemyHash.query(ef.x, ef.y, ef.radius);
         for(const e of hits) damageEnemy(e, ef.damage);
       }
+    } else if(ef.type === 'bossShockwave') {
+      ef.radius = ef.maxRadius * (1 - ef.life/ef.maxLife);
+      // Damage player if in ring zone
+      const pd = Math.hypot(player.x - ef.x, player.y - ef.y);
+      const ringInner = Math.max(0, ef.radius - 30);
+      if(pd >= ringInner && pd <= ef.radius && player.invulnTime <= 0 && !ef.hit.has('player')) {
+        ef.hit.add('player');
+        const dmg = ef.damage * player.defense;
+        player.hp -= dmg;
+        player.invulnTime = 0.5;
+        damageFlash = 0.15;
+        screenShake = 0.15;
+        Audio.damageTaken();
+        if(player.hp <= 0) gameOver();
+      }
+    } else if(ef.type === 'bossChargeLine') {
+      if(ef.phase === 'telegraph' && ef.life < ef.maxLife * 0.5) {
+        // Switch to dash phase
+        ef.phase = 'dash';
+        if(ef.bossRef) {
+          const b = ef.bossRef;
+          b.x += Math.cos(ef.angle) * ef.range * 0.8;
+          b.y += Math.sin(ef.angle) * ef.range * 0.8;
+          // Damage player if in the charge path
+          const cos = Math.cos(ef.angle);
+          const sin = Math.sin(ef.angle);
+          for(let d = 0; d < ef.range; d += 15) {
+            const cx = ef.x + cos * d;
+            const cy = ef.y + sin * d;
+            const pd = Math.hypot(player.x - cx, player.y - cy);
+            if(pd < ef.width + 12 && player.invulnTime <= 0 && !ef.hit.has('player')) {
+              ef.hit.add('player');
+              const dmg = ef.damage * player.defense;
+              player.hp -= dmg;
+              player.invulnTime = 0.5;
+              damageFlash = 0.15;
+              screenShake = 0.2;
+              Audio.damageTaken();
+              if(player.hp <= 0) gameOver();
+              break;
+            }
+          }
+        }
+      }
+    } else if(ef.type === 'bossSweepBeam') {
+      // Sweep angle over lifetime
+      const t = 1 - ef.life / ef.maxLife;
+      ef.angle = ef.startAngle + (ef.targetAngle - ef.startAngle) * t;
+      ef.tickTimer -= dt;
+      if(ef.tickTimer <= 0) {
+        ef.tickTimer = 0.15;
+        // Check player collision along beam
+        const cos = Math.cos(ef.angle);
+        const sin = Math.sin(ef.angle);
+        for(let d = 0; d < ef.range; d += 15) {
+          const bx = ef.x + cos * d;
+          const by = ef.y + sin * d;
+          const pd = Math.hypot(player.x - bx, player.y - by);
+          if(pd < ef.width + 12 && player.invulnTime <= 0) {
+            const dmg = ef.damage * player.defense;
+            player.hp -= dmg;
+            player.invulnTime = 0.5;
+            damageFlash = 0.15;
+            screenShake = 0.1;
+            Audio.damageTaken();
+            if(player.hp <= 0) gameOver();
+            break;
+          }
+        }
+      }
     }
   }
+
+  // Boss attack loop
+  updateBossAttacks(dt);
+
+  // Update telegraphs
+  updateTelegraphs(dt);
 
   // Update enemies
   player.invulnTime -= dt;
   enemies.forEach(e => {
-    // Move toward player
+    // Movement dispatch
+    const handler = MOVEMENT_HANDLERS[e.movementType] || MOVEMENT_HANDLERS.chase;
+    handler(e, dt, player);
     const dx = player.x - e.x;
     const dy = player.y - e.y;
     const d = Math.hypot(dx, dy);
-    if(d > 5) {
-      e.x += (dx/d) * e.speed * dt;
-      e.y += (dy/d) * e.speed * dt;
-    }
     // Separation from nearby enemies
     const nearby = enemyHash.query(e.x, e.y, e.size * 2.5);
     for(const other of nearby) {
@@ -998,7 +1324,7 @@ function gameLoop(timestamp) {
 
     // Hit player
     if(d < e.size + 12 && player.invulnTime <= 0) {
-      const dmg = (e.isBoss ? 15 : 5 + gameTime*0.02) * player.defense;
+      const dmg = (e.isBoss ? 15 + gameTime * 0.05 : 5 + gameTime*0.02) * player.defense;
       player.hp -= dmg;
       player.invulnTime = 0.5;
       damageFlash = 0.15;
@@ -1104,6 +1430,194 @@ EFFECT_RENDERERS.chainLine = function(ctx, ef, theme) {
   ctx.beginPath(); ctx.moveTo(ef.x1, ef.y1); ctx.lineTo(ef.x2, ef.y2); ctx.stroke();
 };
 
+EFFECT_RENDERERS.bossShockwave = function(ctx, ef) {
+  const alpha = ef.life / ef.maxLife;
+  ctx.save();
+  ctx.strokeStyle = `rgba(255,80,30,${alpha * 0.8})`;
+  ctx.lineWidth = 4 + (1 - alpha) * 6;
+  ctx.shadowColor = '#ff4400';
+  ctx.shadowBlur = 15;
+  ctx.beginPath(); ctx.arc(ef.x, ef.y, ef.radius, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = `rgba(255,100,50,${alpha * 0.1})`;
+  ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+};
+
+EFFECT_RENDERERS.bossChargeLine = function(ctx, ef) {
+  const alpha = ef.life / ef.maxLife;
+  const cos = Math.cos(ef.angle);
+  const sin = Math.sin(ef.angle);
+  ctx.save();
+  if(ef.phase === 'telegraph') {
+    // Pulsing red warning line
+    const pulse = 0.4 + 0.6 * Math.sin(gameTime * 15);
+    ctx.strokeStyle = `rgba(255,40,40,${pulse * alpha})`;
+    ctx.lineWidth = ef.width * 2;
+    ctx.setLineDash([15, 10]);
+  } else {
+    // Solid impact trail
+    ctx.strokeStyle = `rgba(255,200,50,${alpha})`;
+    ctx.lineWidth = ef.width;
+    ctx.shadowColor = '#ffcc00';
+    ctx.shadowBlur = 20;
+  }
+  ctx.beginPath();
+  ctx.moveTo(ef.x, ef.y);
+  ctx.lineTo(ef.x + cos * ef.range, ef.y + sin * ef.range);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.shadowBlur = 0;
+  ctx.restore();
+};
+
+EFFECT_RENDERERS.bossSweepBeam = function(ctx, ef) {
+  const alpha = ef.life / ef.maxLife;
+  const cos = Math.cos(ef.angle);
+  const sin = Math.sin(ef.angle);
+  ctx.save();
+  ctx.strokeStyle = `rgba(255,50,50,${alpha * 0.9})`;
+  ctx.shadowColor = '#ff2222';
+  ctx.shadowBlur = 25;
+  ctx.lineWidth = ef.width;
+  ctx.beginPath();
+  ctx.moveTo(ef.x, ef.y);
+  ctx.lineTo(ef.x + cos * ef.range, ef.y + sin * ef.range);
+  ctx.stroke();
+  // Wider glow
+  ctx.strokeStyle = `rgba(255,100,100,${alpha * 0.3})`;
+  ctx.lineWidth = ef.width * 3;
+  ctx.beginPath();
+  ctx.moveTo(ef.x, ef.y);
+  ctx.lineTo(ef.x + cos * ef.range, ef.y + sin * ef.range);
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+  ctx.restore();
+};
+
+// ============================================================
+// TELEGRAPH SYSTEM
+// ============================================================
+function updateTelegraphs(dt) {
+  // Clean expired telegraphs
+  for(let i = telegraphs.length - 1; i >= 0; i--) {
+    telegraphs[i].life -= dt;
+    if(telegraphs[i].life <= 0) telegraphs.splice(i, 1);
+  }
+
+  // Add telegraphs for charge-type enemies in telegraph phase
+  enemies.forEach(e => {
+    if(e.movementType === 'charge' && e.movementState.phase === 'telegraph') {
+      // Check if we already have a telegraph for this enemy
+      if(!telegraphs.find(t => t.source === e && t.type === 'chargeWarning')) {
+        telegraphs.push({
+          type: 'chargeWarning', source: e,
+          x: e.x, y: e.y, life: 1.0, maxLife: 1.0
+        });
+      }
+    }
+    if(e.movementType === 'charge' && e.movementState.phase === 'telegraph') {
+      if(!telegraphs.find(t => t.source === e && t.type === 'exclamation')) {
+        telegraphs.push({
+          type: 'exclamation', source: e,
+          life: 1.0, maxLife: 1.0
+        });
+      }
+    }
+  });
+
+  // Update positions to track source
+  for(const t of telegraphs) {
+    if(t.source && t.type === 'chargeWarning') {
+      t.x = t.source.x;
+      t.y = t.source.y;
+    }
+  }
+}
+
+const TELEGRAPH_RENDERERS = {};
+
+// Red pulsing danger circle on ground around charging enemy
+TELEGRAPH_RENDERERS.chargeWarning = function(ctx, t) {
+  const pulse = 0.5 + 0.5 * Math.sin(gameTime * 12);
+  const alpha = (t.life / t.maxLife) * pulse;
+  ctx.save();
+  ctx.strokeStyle = `rgba(255,40,40,${alpha})`;
+  ctx.lineWidth = 3;
+  ctx.setLineDash([8, 4]);
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, 40 + (1 - t.life / t.maxLife) * 20, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.fillStyle = `rgba(255,0,0,${alpha * 0.15})`;
+  ctx.fill();
+  ctx.setLineDash([]);
+  ctx.restore();
+};
+
+// Bouncing "!" above charging enemies
+TELEGRAPH_RENDERERS.exclamation = function(ctx, t) {
+  if(!t.source) return;
+  const bounce = Math.abs(Math.sin(gameTime * 8)) * 8;
+  const alpha = Math.min(1, t.life / t.maxLife * 2);
+  ctx.save();
+  ctx.fillStyle = `rgba(255,60,60,${alpha})`;
+  ctx.font = 'bold 20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('!', t.source.x, t.source.y - t.source.size - 12 - bounce);
+  ctx.restore();
+};
+
+// Edge-of-screen arrows for nearby offscreen enemies/bosses
+function renderOffscreenArrows(ctx) {
+  enemies.forEach(e => {
+    // Only show arrows for bosses and enemies within 400px of screen edge
+    const screenX = e.x - cam.x;
+    const screenY = e.y - cam.y;
+    const margin = 30;
+    const isOffscreen = screenX < -margin || screenX > W + margin || screenY < -margin || screenY > H + margin;
+    if(!isOffscreen) return;
+
+    const distToPlayer = Math.hypot(e.x - player.x, e.y - player.y);
+    if(!e.isBoss && distToPlayer > 400) return;
+
+    // Clamp to screen edge
+    const angle = Math.atan2(screenY - H/2, screenX - W/2);
+    const edgeX = Math.max(margin, Math.min(W - margin, W/2 + Math.cos(angle) * (W/2 - margin)));
+    const edgeY = Math.max(margin, Math.min(H - margin, H/2 + Math.sin(angle) * (H/2 - margin)));
+
+    ctx.save();
+    ctx.translate(edgeX, edgeY);
+    ctx.rotate(angle);
+
+    // Arrow color: gold for boss, red for regular
+    const color = e.isBoss ? '#ffcc00' : '#ff4444';
+    const pulse = e.isBoss ? 0.7 + 0.3 * Math.sin(gameTime * 6) : 0.5 + 0.5 * Math.sin(gameTime * 4);
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = color;
+
+    // Draw arrow triangle
+    const size = e.isBoss ? 14 : 8;
+    ctx.beginPath();
+    ctx.moveTo(size, 0);
+    ctx.lineTo(-size * 0.6, -size * 0.6);
+    ctx.lineTo(-size * 0.6, size * 0.6);
+    ctx.closePath();
+    ctx.fill();
+
+    // Boss indicator ring
+    if(e.isBoss) {
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(0, 0, size + 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  });
+}
+
 // ============================================================
 // RENDERING
 // ============================================================
@@ -1194,7 +1708,16 @@ function render(dt) {
   });
   ctx.globalAlpha = 1;
 
+  // Render telegraphs (world space)
+  for(const t of telegraphs) {
+    const renderer = TELEGRAPH_RENDERERS[t.type];
+    if(renderer) renderer(ctx, t);
+  }
+
   ctx.restore();
+
+  // Offscreen arrows (screen space)
+  renderOffscreenArrows(ctx);
 
   // Damage flash overlay
   if(damageFlash > 0) {
@@ -1243,6 +1766,7 @@ function startGame() {
   gems.releaseAll();
   particles.releaseAll();
   activeEffects.length = 0;
+  telegraphs.length = 0;
   Object.keys(weaponTimers).forEach(k => weaponTimers[k] = 0);
   damageFlash = 0;
   screenShake = 0;
