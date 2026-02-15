@@ -1,0 +1,4125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI CLI Developer Setup — Tech Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           NEUMORPHISM — AI CLI DEVELOPER SETUP GUIDE
+           Soft, raised/pressed surfaces on light gray
+           ============================================ */
+
+        :root {
+            /* Colors */
+            --bg: #e0e5ec;
+            --bg-darker: #d1d6dd;
+            --bg-lighter: #edf1f7;
+
+            --text-primary: #31344b;
+            --text-secondary: #5e6073;
+            --text-muted: #9094a6;
+
+            --accent: #6d5dfc;
+            --accent-light: #8b7fff;
+            --accent-dark: #5641d4;
+            --accent-bg: rgba(109, 93, 252, 0.08);
+            --accent-bg-strong: rgba(109, 93, 252, 0.15);
+
+            --success: #27ae60;
+            --success-bg: rgba(39, 174, 96, 0.08);
+            --warning: #f39c12;
+            --warning-bg: rgba(243, 156, 18, 0.08);
+            --danger: #e74c3c;
+            --danger-bg: rgba(231, 76, 60, 0.08);
+
+            /* Neumorphic shadows */
+            --shadow-light: #ffffff;
+            --shadow-dark: #a3b1c6;
+            --neu-raised: 6px 6px 12px #a3b1c6, -6px -6px 12px #ffffff;
+            --neu-raised-sm: 3px 3px 6px #a3b1c6, -3px -3px 6px #ffffff;
+            --neu-raised-lg: 10px 10px 20px #a3b1c6, -10px -10px 20px #ffffff;
+            --neu-pressed: inset 4px 4px 8px #a3b1c6, inset -4px -4px 8px #ffffff;
+            --neu-pressed-sm: inset 2px 2px 4px #a3b1c6, inset -2px -2px 4px #ffffff;
+            --neu-flat: 2px 2px 5px #a3b1c6, -2px -2px 5px #ffffff;
+
+            /* Code block dark theme */
+            --code-bg: #2b2d42;
+            --code-bg-dark: #1e1f33;
+            --code-text: #e8eaf6;
+            --code-comment: #8b92b0;
+            --code-keyword: #c792ea;
+            --code-string: #c3e88d;
+            --code-function: #82aaff;
+            --code-number: #f78c6c;
+            --code-variable: #89ddff;
+
+            /* Typography */
+            --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+            /* Spacing */
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            /* Radii */
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 30px;
+            --radius-full: 9999px;
+
+            /* Layout */
+            --max-width: 1100px;
+            --body-line-height: 1.7;
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+            scroll-padding-top: 70px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: var(--body-line-height);
+            color: var(--text-secondary);
+            background: var(--bg);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           LAYOUT
+           ============================================ */
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--space-5);
+        }
+
+        /* ============================================
+           BACK LINK
+           ============================================ */
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-2);
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-decoration: none;
+            padding: var(--space-4) var(--space-5);
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--accent-dark);
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+
+        .site-header {
+            text-align: center;
+            padding: var(--space-8) var(--space-5) var(--space-7);
+        }
+
+        .header-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: var(--radius-lg);
+            background: var(--bg);
+            box-shadow: var(--neu-raised-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--space-6);
+            font-size: 2.5rem;
+        }
+
+        .site-header h1 {
+            font-family: var(--font-body);
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            font-weight: 900;
+            color: var(--text-primary);
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin-bottom: var(--space-3);
+        }
+
+        .site-header h1 .accent {
+            color: var(--accent);
+        }
+
+        .tagline {
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           STICKY JUMP NAV (wrapper pattern)
+           ============================================ */
+
+        .jump-nav-wrapper {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: var(--bg);
+            box-shadow: 0 4px 12px rgba(163, 177, 198, 0.35);
+        }
+
+        .jump-nav {
+            display: flex;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            scrollbar-color: var(--shadow-dark) var(--bg);
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--space-3);
+        }
+
+        .jump-nav::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .jump-nav::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        .jump-nav::-webkit-scrollbar-thumb {
+            background: var(--shadow-dark);
+            border-radius: var(--radius-full);
+        }
+
+        .jump-nav a {
+            flex-shrink: 0;
+            white-space: nowrap;
+            padding: var(--space-3) var(--space-4);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            text-decoration: none;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .jump-nav a:hover {
+            color: var(--accent);
+        }
+
+        .jump-nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 3px;
+            background: var(--accent);
+            border-radius: var(--radius-full);
+            transition: width 0.2s;
+        }
+
+        .jump-nav a:hover::after {
+            width: 60%;
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
+
+        .section {
+            padding: var(--space-8) 0;
+        }
+
+        .section + .section {
+            border-top: 1px solid var(--bg-darker);
+        }
+
+        .section-header {
+            margin-bottom: var(--space-6);
+        }
+
+        .section-number {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: var(--space-2);
+        }
+
+        .section-title {
+            font-family: var(--font-body);
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            font-weight: 900;
+            color: var(--text-primary);
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+
+        .section-description {
+            font-size: 1rem;
+            color: var(--text-muted);
+            margin-top: var(--space-2);
+            max-width: 65ch;
+        }
+
+        /* ============================================
+           SUBSECTIONS
+           ============================================ */
+
+        .subsection {
+            margin-bottom: var(--space-7);
+        }
+
+        .subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .subsection-title {
+            font-family: var(--font-body);
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 2px solid var(--accent-bg-strong);
+        }
+
+        /* ============================================
+           NEUMORPHIC CARDS
+           ============================================ */
+
+        .card {
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-raised);
+            padding: var(--space-5);
+            margin-bottom: var(--space-5);
+            min-width: 0;
+        }
+
+        .card-sm {
+            border-radius: var(--radius-sm);
+            box-shadow: var(--neu-raised-sm);
+            padding: var(--space-4);
+        }
+
+        .card-pressed {
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-pressed);
+            padding: var(--space-5);
+            margin-bottom: var(--space-5);
+            min-width: 0;
+        }
+
+        .card-title {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .card-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-2);
+        }
+
+        .card-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           COMMAND GRID
+           ============================================ */
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--space-5);
+        }
+
+        .command-card {
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-raised);
+            padding: var(--space-5);
+            min-width: 0;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+
+        .command-card:hover {
+            box-shadow: var(--neu-raised-lg);
+            transform: translateY(-2px);
+        }
+
+        .command-card .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--bg);
+            box-shadow: var(--neu-raised-sm);
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: var(--space-3);
+        }
+
+        .command-card .command-label {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .command-card .command-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+            line-height: 1.5;
+        }
+
+        .command-card pre {
+            margin: 0;
+        }
+
+        /* ============================================
+           CODE BLOCKS
+           ============================================ */
+
+        pre {
+            background: var(--code-bg);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--neu-pressed-sm);
+            padding: var(--space-4) var(--space-5);
+            overflow-x: auto;
+            margin-bottom: var(--space-4);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        pre code {
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            line-height: 1.7;
+            color: var(--code-text);
+            background: none;
+            padding: 0;
+            border-radius: 0;
+            box-shadow: none;
+            white-space: pre;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.85em;
+            background: var(--accent-bg);
+            color: var(--accent-dark);
+            padding: 2px 8px;
+            border-radius: 6px;
+            box-shadow: var(--neu-flat);
+        }
+
+        pre code .comment { color: var(--code-comment); font-style: italic; }
+        pre code .keyword { color: var(--code-keyword); }
+        pre code .string { color: var(--code-string); }
+        pre code .function { color: var(--code-function); }
+        pre code .number { color: var(--code-number); }
+        pre code .variable { color: var(--code-variable); }
+
+        /* ============================================
+           TABLES
+           ============================================ */
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-raised);
+            margin-bottom: var(--space-5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        thead th {
+            background: var(--bg-darker);
+            color: var(--text-primary);
+            font-weight: 800;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            border-bottom: 2px solid var(--shadow-dark);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: var(--space-3) var(--space-4);
+            border-bottom: 1px solid var(--bg-darker);
+            color: var(--text-secondary);
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(163, 177, 198, 0.06);
+        }
+
+        tbody tr:nth-child(odd) {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        tbody tr:hover {
+            background: var(--accent-bg);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        td code {
+            font-size: 0.8rem;
+        }
+
+        /* ============================================
+           ALERTS / CALLOUTS
+           ============================================ */
+
+        .alert {
+            border-radius: var(--radius-sm);
+            padding: var(--space-4) var(--space-5);
+            margin-bottom: var(--space-5);
+            box-shadow: var(--neu-raised-sm);
+            font-size: 0.9rem;
+            line-height: 1.6;
+            display: flex;
+            gap: var(--space-3);
+            align-items: flex-start;
+        }
+
+        .alert-icon {
+            flex-shrink: 0;
+            font-size: 1.1rem;
+            margin-top: 2px;
+        }
+
+        .alert-content {
+            min-width: 0;
+        }
+
+        .alert-content strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: var(--space-1);
+            font-weight: 800;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, var(--accent-bg), rgba(109, 93, 252, 0.04));
+            border-left: 4px solid var(--accent);
+            color: var(--text-secondary);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, var(--warning-bg), rgba(243, 156, 18, 0.04));
+            border-left: 4px solid var(--warning);
+            color: var(--text-secondary);
+        }
+
+        .alert-tip {
+            background: linear-gradient(135deg, var(--success-bg), rgba(39, 174, 96, 0.04));
+            border-left: 4px solid var(--success);
+            color: var(--text-secondary);
+        }
+
+        .alert-danger {
+            background: linear-gradient(135deg, var(--danger-bg), rgba(231, 76, 60, 0.04));
+            border-left: 4px solid var(--danger);
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           BADGES / TAGS
+           ============================================ */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 3px 10px;
+            border-radius: var(--radius-full);
+            box-shadow: var(--neu-flat);
+        }
+
+        .badge-accent {
+            background: var(--accent-bg-strong);
+            color: var(--accent);
+        }
+
+        .badge-success {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+
+        .badge-warning {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+
+        .badge-muted {
+            background: rgba(144, 148, 166, 0.12);
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           STEP LISTS
+           ============================================ */
+
+        .step-list {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            position: relative;
+            padding-left: 52px;
+            margin-bottom: var(--space-6);
+            min-height: 36px;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg);
+            box-shadow: var(--neu-raised-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .step-list li strong {
+            display: block;
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+        }
+
+        .step-list li p,
+        .step-list li .card-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-3);
+        }
+
+        /* ============================================
+           FEATURE / BENEFIT CARDS (grid)
+           ============================================ */
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+
+        .feature-card {
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-raised);
+            padding: var(--space-5);
+            text-align: center;
+            min-width: 0;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+
+        .feature-card:hover {
+            box-shadow: var(--neu-raised-lg);
+            transform: translateY(-2px);
+        }
+
+        .feature-card .icon {
+            font-size: 2rem;
+            margin-bottom: var(--space-3);
+        }
+
+        .feature-card .feature-title {
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-2);
+            font-size: 1rem;
+        }
+
+        .feature-card .feature-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ============================================
+           ARCHITECTURE DIAGRAM
+           ============================================ */
+
+        .arch-diagram {
+            background: var(--bg);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--neu-pressed);
+            padding: var(--space-6);
+            margin-bottom: var(--space-5);
+        }
+
+        .arch-layer {
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--neu-raised-sm);
+            padding: var(--space-4) var(--space-5);
+            text-align: center;
+            margin-bottom: var(--space-3);
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+
+        .arch-layer:last-child {
+            margin-bottom: 0;
+        }
+
+        .arch-layer .layer-label {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            display: block;
+            margin-bottom: var(--space-1);
+        }
+
+        .arch-connector {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            margin-bottom: var(--space-3);
+            line-height: 1;
+        }
+
+        /* ============================================
+           TWO-COLUMN LAYOUT
+           ============================================ */
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-5);
+        }
+
+        .two-col > * {
+            min-width: 0;
+        }
+
+        /* ============================================
+           INLINE LISTS
+           ============================================ */
+
+        .check-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .check-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: var(--space-3);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .check-list li::before {
+            content: '\2713';
+            position: absolute;
+            left: 0;
+            color: var(--success);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .x-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .x-list li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: var(--space-3);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .x-list li::before {
+            content: '\2717';
+            position: absolute;
+            left: 0;
+            color: var(--danger);
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        /* ============================================
+           LINKS & TYPOGRAPHY
+           ============================================ */
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--accent-dark);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        p {
+            margin-bottom: var(--space-4);
+            max-width: 72ch;
+        }
+
+        strong {
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        /* ============================================
+           COMPARISON CARDS
+           ============================================ */
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-5);
+            margin-bottom: var(--space-5);
+        }
+
+        .compare-card {
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--neu-raised);
+            padding: var(--space-5);
+            min-width: 0;
+        }
+
+        .compare-card.bad {
+            border-top: 4px solid var(--danger);
+        }
+
+        .compare-card.good {
+            border-top: 4px solid var(--success);
+        }
+
+        .compare-card .compare-heading {
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: var(--space-3);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        /* ============================================
+           PILL TABS
+           ============================================ */
+
+        .pill-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-2);
+            margin-bottom: var(--space-4);
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-1);
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: var(--space-2) var(--space-4);
+            border-radius: var(--radius-full);
+            background: var(--bg);
+            box-shadow: var(--neu-raised-sm);
+            color: var(--text-secondary);
+        }
+
+        .pill-accent {
+            background: var(--accent-bg-strong);
+            color: var(--accent);
+            box-shadow: var(--neu-flat);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .site-footer {
+            text-align: center;
+            padding: var(--space-7) var(--space-5);
+            margin-top: var(--space-8);
+            border-top: 1px solid var(--bg-darker);
+        }
+
+        .site-footer a {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .footer-note {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: var(--space-3);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            html {
+                scroll-padding-top: 56px;
+            }
+
+            .site-header {
+                padding: var(--space-7) var(--space-4) var(--space-6);
+            }
+
+            .site-header h1 {
+                font-size: 1.6rem;
+            }
+
+            .tagline {
+                font-size: 0.9rem;
+            }
+
+            .jump-nav a {
+                padding: var(--space-2) var(--space-3);
+                font-size: 0.68rem;
+            }
+
+            .section {
+                padding: var(--space-6) 0;
+            }
+
+            .section-title {
+                font-size: 1.4rem;
+            }
+
+            .container {
+                padding: 0 var(--space-4);
+            }
+
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+
+            pre {
+                padding: var(--space-3) var(--space-4);
+                border-radius: 10px;
+            }
+
+            pre code {
+                font-size: 0.76rem;
+            }
+
+            .card, .command-card, .feature-card, .compare-card {
+                padding: var(--space-4);
+            }
+
+            .step-list li {
+                padding-left: 44px;
+            }
+
+            .alert {
+                padding: var(--space-3) var(--space-4);
+            }
+
+            .arch-diagram {
+                padding: var(--space-4);
+            }
+
+            .header-icon {
+                width: 64px;
+                height: 64px;
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            pre code {
+                font-size: 0.72rem;
+            }
+
+            .jump-nav a {
+                padding: var(--space-2) var(--space-2);
+                font-size: 0.62rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-link">&larr; Tech Guides</a>
+
+    <!-- ============================================
+         HEADER
+         ============================================ -->
+
+    <header class="site-header">
+        <div class="header-icon">&#9881;</div>
+        <h1>AI CLI <span class="accent">Developer Setup</span></h1>
+        <p class="tagline">From Windows to WSL2 &middot; Claude Code &middot; Codex CLI &mdash; A Complete Beginner's Guide</p>
+    </header>
+
+    <!-- ============================================
+         STICKY JUMP NAV
+         ============================================ -->
+
+    <div class="jump-nav-wrapper">
+        <nav class="jump-nav">
+            <a href="#quick-ref">Quick Ref</a>
+            <a href="#why-wsl2">Why WSL2</a>
+            <a href="#wsl2-setup">WSL2 Setup</a>
+            <a href="#essential-tools">Essential Tools</a>
+            <a href="#line-endings">Line Endings</a>
+            <a href="#claude-code">Claude Code</a>
+            <a href="#codex-cli">Codex CLI</a>
+            <a href="#terminal-shell">Terminal &amp; Shell</a>
+            <a href="#cli-tools">CLI Power Tools</a>
+            <a href="#pitfalls">Pitfalls</a>
+            <a href="#tips">Tips &amp; Workflow</a>
+        </nav>
+    </div>
+
+    <main class="container">
+
+        <!-- ============================================
+             SECTION 01: QUICK REFERENCE
+             ============================================ -->
+
+        <section id="quick-ref" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 01</span>
+                <h2 class="section-title">Quick Reference</h2>
+                <p class="section-description">The essential setup flow at a glance. Run these commands in order to go from a fresh Windows machine to a working AI-powered dev environment.</p>
+            </div>
+
+            <div class="command-grid">
+
+                <div class="command-card">
+                    <div class="step-number">1</div>
+                    <div class="command-label">Install WSL2</div>
+                    <div class="command-desc">Run in PowerShell as Administrator. Reboot when prompted.</div>
+                    <pre><code>wsl --install</code></pre>
+                </div>
+
+                <div class="command-card">
+                    <div class="step-number">2</div>
+                    <div class="command-label">First Ubuntu Steps</div>
+                    <div class="command-desc">After reboot, Ubuntu opens automatically. Create your user, then update packages.</div>
+                    <pre><code><span class="comment"># Update package lists &amp; upgrade</span>
+sudo apt update &amp;&amp; sudo apt upgrade -y
+
+<span class="comment"># Install essentials</span>
+sudo apt install -y build-essential curl git</code></pre>
+                </div>
+
+                <div class="command-card">
+                    <div class="step-number">3</div>
+                    <div class="command-label">Install Node.js via nvm</div>
+                    <div class="command-desc">nvm lets you manage multiple Node versions. Claude Code needs Node &ge; 18.</div>
+                    <pre><code><span class="comment"># Install nvm</span>
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+<span class="comment"># Reload shell, then install Node</span>
+source ~/.bashrc
+nvm install --lts</code></pre>
+                </div>
+
+                <div class="command-card">
+                    <div class="step-number">4</div>
+                    <div class="command-label">Install Claude Code</div>
+                    <div class="command-desc">Anthropic's AI coding assistant for the terminal.</div>
+                    <pre><code><span class="comment"># Install globally via npm</span>
+npm install -g @anthropic-ai/claude-code
+
+<span class="comment"># Verify</span>
+claude --version</code></pre>
+                </div>
+
+                <div class="command-card">
+                    <div class="step-number">5</div>
+                    <div class="command-label">Install Codex CLI</div>
+                    <div class="command-desc">OpenAI's open-source coding agent for the terminal.</div>
+                    <pre><code><span class="comment"># Install globally via npm</span>
+npm install -g @openai/codex
+
+<span class="comment"># Verify</span>
+codex --version</code></pre>
+                </div>
+
+                <div class="command-card">
+                    <div class="step-number">6</div>
+                    <div class="command-label">Configure Git</div>
+                    <div class="command-desc">Set your identity. Required for commits.</div>
+                    <pre><code>git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+git config --global init.defaultBranch main</code></pre>
+                </div>
+
+                <div class="command-card">
+                    <div class="step-number">7</div>
+                    <div class="command-label">Fix Line Endings</div>
+                    <div class="command-desc">Prevent CRLF/LF headaches between Windows and WSL.</div>
+                    <pre><code><span class="comment"># In WSL (Linux side)</span>
+git config --global core.autocrlf input
+
+<span class="comment"># Create .gitattributes in projects</span>
+echo "* text=auto eol=lf" &gt; .gitattributes</code></pre>
+                </div>
+
+            </div>
+
+            <div class="alert alert-tip">
+                <span class="alert-icon">&#128161;</span>
+                <div class="alert-content">
+                    <strong>Pro Tip</strong>
+                    Keep this cheat sheet handy. The sections below explain each step in detail with context, troubleshooting, and best practices.
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 02: WHY WSL2
+             ============================================ -->
+
+        <section id="why-wsl2" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 02</span>
+                <h2 class="section-title">Why WSL2?</h2>
+                <p class="section-description">AI CLI tools like Claude Code and Codex CLI are built for Unix environments. Here's why WSL2 is the best path for Windows developers.</p>
+            </div>
+
+            <!-- What Breaks on Native Windows -->
+            <div class="subsection">
+                <h3 class="subsection-title">What Breaks on Native Windows</h3>
+                <p>Running AI dev tools directly on Windows (via PowerShell or cmd) leads to a cascade of subtle, hard-to-debug problems:</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">&#128680;</div>
+                        <div class="feature-title">CRLF Line Endings</div>
+                        <div class="feature-desc">Windows uses <code>CRLF</code> (\r\n), Unix uses <code>LF</code> (\n). AI tools generate LF code. Git diffs explode. Shell scripts break with <code>\r</code> errors.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128736;</div>
+                        <div class="feature-title">Missing POSIX Tools</div>
+                        <div class="feature-desc">No native <code>grep</code>, <code>sed</code>, <code>awk</code>, <code>chmod</code>, <code>ssh-keygen</code>. AI agents assume these exist. Half their output fails.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128230;</div>
+                        <div class="feature-title">npm/Node Headaches</div>
+                        <div class="feature-desc">Native modules (node-gyp) need Visual Studio Build Tools on Windows. Path length limits (260 chars) break deep <code>node_modules</code> trees.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128196;</div>
+                        <div class="feature-title">BOM &amp; Encoding</div>
+                        <div class="feature-desc">Some Windows editors add a UTF-8 BOM (byte order mark). This invisible character breaks shebangs, JSON parsing, and YAML configs.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WSL2 Architecture -->
+            <div class="subsection">
+                <h3 class="subsection-title">WSL2 Architecture</h3>
+                <p>WSL2 runs a <strong>real Linux kernel</strong> inside a lightweight virtual machine managed by Windows. It's not emulation &mdash; it's actual Linux.</p>
+
+                <div class="arch-diagram">
+                    <div class="arch-layer" style="background: var(--accent-bg-strong); border-left: 4px solid var(--accent);">
+                        <span class="layer-label">Your Terminal</span>
+                        Windows Terminal, VS Code, or any terminal emulator
+                    </div>
+                    <div class="arch-connector">&darr;</div>
+                    <div class="arch-layer" style="background: var(--success-bg); border-left: 4px solid var(--success);">
+                        <span class="layer-label">WSL2 Integration Layer</span>
+                        Translates between Windows and Linux. Shares networking, filesystem mounts.
+                    </div>
+                    <div class="arch-connector">&darr;</div>
+                    <div class="arch-layer" style="background: var(--warning-bg); border-left: 4px solid var(--warning);">
+                        <span class="layer-label">Lightweight VM (Hyper-V)</span>
+                        Microsoft's custom lightweight virtual machine. Boots in ~1 second.
+                    </div>
+                    <div class="arch-connector">&darr;</div>
+                    <div class="arch-layer" style="background: rgba(109, 93, 252, 0.06); border-left: 4px solid var(--accent-light);">
+                        <span class="layer-label">Real Linux Kernel</span>
+                        Full Linux kernel (5.15+). Runs Ubuntu, Debian, or other distros natively.
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Requirements -->
+            <div class="subsection">
+                <h3 class="subsection-title">System Requirements</h3>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Requirement</th>
+                                <th>Minimum</th>
+                                <th>Recommended</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Windows Version</strong></td>
+                                <td>Windows 10 version 2004 (build 19041)</td>
+                                <td>Windows 11</td>
+                            </tr>
+                            <tr>
+                                <td><strong>RAM</strong></td>
+                                <td>8 GB</td>
+                                <td>16 GB+</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Disk Space</strong></td>
+                                <td>~1 GB for WSL + distro</td>
+                                <td>10 GB+ free for projects</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Virtualization</strong></td>
+                                <td>Must be enabled in BIOS/UEFI</td>
+                                <td>Usually on by default</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Architecture</strong></td>
+                                <td>x64 or ARM64</td>
+                                <td>x64</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>How to Check Your Version</strong>
+                        Press <code>Win + R</code>, type <code>winver</code>, and press Enter. You'll see your Windows version and build number.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Benefits -->
+            <div class="subsection">
+                <h3 class="subsection-title">Key Benefits of WSL2</h3>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">&#9889;</div>
+                        <div class="feature-title">Near-Native Speed</div>
+                        <div class="feature-desc">File I/O is 2-5x faster than WSL1. Compiles and builds run at native Linux speed on the Linux filesystem.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128268;</div>
+                        <div class="feature-title">Full Compatibility</div>
+                        <div class="feature-desc">Runs every Linux binary. Docker, Node, Python, Rust toolchains &mdash; everything works exactly like a real Linux box.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128187;</div>
+                        <div class="feature-title">VS Code Integration</div>
+                        <div class="feature-desc">VS Code's Remote-WSL extension lets you edit WSL files with a native Windows editor. Best of both worlds.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128640;</div>
+                        <div class="feature-title">Instant Startup</div>
+                        <div class="feature-desc">WSL2 boots in about 1 second. No VM management. Just open your terminal and you're in Linux.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 03: WSL2 SETUP
+             ============================================ -->
+
+        <section id="wsl2-setup" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 03</span>
+                <h2 class="section-title">WSL2 Setup</h2>
+                <p class="section-description">A step-by-step walkthrough to get WSL2 and Ubuntu running on your Windows machine. No prior Linux experience needed.</p>
+            </div>
+
+            <!-- Step 1: Install WSL -->
+            <div class="subsection">
+                <h3 class="subsection-title">Step 1: Install WSL</h3>
+                <p>Open <strong>PowerShell</strong> or <strong>Windows Terminal</strong> as <strong>Administrator</strong> (right-click &rarr; "Run as administrator") and run:</p>
+
+                <pre><code>wsl --install</code></pre>
+
+                <p>This single command does everything:</p>
+                <ul class="check-list">
+                    <li>Enables the WSL feature</li>
+                    <li>Enables the Virtual Machine Platform</li>
+                    <li>Downloads the latest Linux kernel</li>
+                    <li>Sets WSL2 as the default version</li>
+                    <li>Installs Ubuntu (the default distribution)</li>
+                </ul>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Reboot Required</strong>
+                        After running <code>wsl --install</code>, you must restart your computer. Don't skip this step &mdash; WSL won't work until you reboot.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Choose Your Distribution -->
+            <div class="subsection">
+                <h3 class="subsection-title">Step 2: Choose Your Distribution</h3>
+                <p>Ubuntu is installed by default and is the best choice for beginners. If you want a different distro, you can see available options:</p>
+
+                <pre><code><span class="comment"># List available distributions</span>
+wsl --list --online
+
+<span class="comment"># Install a specific one (example)</span>
+wsl --install -d Ubuntu-24.04</code></pre>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Distribution</th>
+                                <th>Best For</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Ubuntu</strong> (default)</td>
+                                <td>Beginners, general dev</td>
+                                <td>Largest community, most tutorials</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Debian</strong></td>
+                                <td>Stability purists</td>
+                                <td>Lighter than Ubuntu, rock-solid</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Fedora</strong></td>
+                                <td>Latest packages</td>
+                                <td>Bleeding-edge software</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Recommendation</strong>
+                        Stick with <strong>Ubuntu</strong> (the default). Almost every tutorial, Stack Overflow answer, and AI tool assumes Ubuntu. You can always install more distros later.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Windows Terminal Setup -->
+            <div class="subsection">
+                <h3 class="subsection-title">Step 3: Get Windows Terminal</h3>
+                <p>Windows Terminal is the best way to use WSL. It supports tabs, split panes, and automatic WSL integration.</p>
+
+                <div class="compare-grid">
+                    <div class="compare-card bad">
+                        <div class="compare-heading">&#10060; Old Way (cmd.exe / PowerShell)</div>
+                        <ul class="x-list">
+                            <li>No tabs or panes</li>
+                            <li>Poor Unicode/emoji support</li>
+                            <li>No GPU-accelerated rendering</li>
+                            <li>Clunky copy/paste</li>
+                        </ul>
+                    </div>
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#9989; Windows Terminal</div>
+                        <ul class="check-list">
+                            <li>Tabs + split panes</li>
+                            <li>Full Unicode &amp; emoji</li>
+                            <li>GPU-accelerated, buttery smooth</li>
+                            <li>Auto-detects WSL distros</li>
+                            <li>Customizable themes &amp; fonts</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p><strong>Install it</strong> from the <a href="https://aka.ms/terminal" target="_blank">Microsoft Store</a> or via <code>winget</code>:</p>
+                <pre><code><span class="comment"># Install Windows Terminal (from PowerShell)</span>
+winget install Microsoft.WindowsTerminal</code></pre>
+
+                <p>Once installed, Ubuntu will appear as a dropdown option in Windows Terminal automatically.</p>
+            </div>
+
+            <!-- Step 4: First Launch -->
+            <div class="subsection">
+                <h3 class="subsection-title">Step 4: First Launch &mdash; Creating Your User</h3>
+                <p>After reboot, Ubuntu launches automatically (or open it from Windows Terminal). You'll be prompted to create a Unix username and password:</p>
+
+                <div class="card">
+                    <div class="card-label">What You'll See</div>
+                    <pre><code>Installing, this may take a few minutes...
+Please create a default UNIX user account.
+The username does not need to match your Windows username.
+Enter new UNIX username: <span class="string">yourname</span>
+New password: <span class="comment">(type your password — it won't show)</span>
+Retype new password:
+passwd: password updated successfully
+Installation successful!</code></pre>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Password Is Invisible</strong>
+                        When typing your password, nothing appears on screen &mdash; no dots, no stars. This is normal Linux behavior. Just type and press Enter.
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Remember Your Password</strong>
+                        You'll need this password for <code>sudo</code> commands (installing software, changing system settings). If you forget it, you can reset it, but it's a hassle.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Initial System Update -->
+            <div class="subsection">
+                <h3 class="subsection-title">Step 5: Update Everything</h3>
+                <p>First thing to do in any fresh Linux install: update the package lists and upgrade installed packages.</p>
+
+                <pre><code><span class="comment"># Update package lists</span>
+sudo apt update
+
+<span class="comment"># Upgrade all installed packages</span>
+sudo apt upgrade -y
+
+<span class="comment"># Install essential build tools</span>
+sudo apt install -y build-essential curl wget git unzip</code></pre>
+
+                <p>What each package gives you:</p>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Package</th>
+                                <th>What It Provides</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>build-essential</code></td>
+                                <td>gcc, g++, make &mdash; needed to compile native Node.js modules</td>
+                            </tr>
+                            <tr>
+                                <td><code>curl</code></td>
+                                <td>Download files and interact with APIs from the command line</td>
+                            </tr>
+                            <tr>
+                                <td><code>wget</code></td>
+                                <td>Another download tool, commonly used in install scripts</td>
+                            </tr>
+                            <tr>
+                                <td><code>git</code></td>
+                                <td>Version control &mdash; essential for every developer</td>
+                            </tr>
+                            <tr>
+                                <td><code>unzip</code></td>
+                                <td>Extract .zip files (not included by default in minimal installs)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Step 6: Configure Git -->
+            <div class="subsection">
+                <h3 class="subsection-title">Step 6: Configure Git</h3>
+                <p>Tell Git who you are. This information appears in every commit you make.</p>
+
+                <pre><code><span class="comment"># Set your identity</span>
+git config --global user.name "Your Full Name"
+git config --global user.email "your.email@example.com"
+
+<span class="comment"># Use 'main' as the default branch name</span>
+git config --global init.defaultBranch main
+
+<span class="comment"># Set default editor (nano is easiest for beginners)</span>
+git config --global core.editor nano
+
+<span class="comment"># Enable colored output</span>
+git config --global color.ui auto
+
+<span class="comment"># Verify your config</span>
+git config --global --list</code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Git in WSL is separate from Git on Windows</strong>
+                        Your WSL Git config is independent of any Windows Git installation. You need to configure Git inside WSL even if you already set it up on Windows.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 7: Verify Everything Works -->
+            <div class="subsection">
+                <h3 class="subsection-title">Step 7: Verify Everything Works</h3>
+                <p>Run these commands to confirm your WSL2 environment is healthy:</p>
+
+                <pre><code><span class="comment"># Confirm you're running WSL2 (not WSL1)</span>
+wsl.exe -l -v
+<span class="comment"># Should show VERSION 2 next to your distro</span>
+
+<span class="comment"># Check your Linux version</span>
+lsb_release -a
+<span class="comment"># Should show Ubuntu with a version number</span>
+
+<span class="comment"># Verify git</span>
+git --version
+
+<span class="comment"># Check you're in your home directory</span>
+pwd
+<span class="comment"># Should show /home/yourname</span>
+
+<span class="comment"># Verify internet connectivity</span>
+curl -s https://httpbin.org/ip | head -5</code></pre>
+
+                <div class="card card-pressed">
+                    <div class="card-label">Expected Output</div>
+                    <div class="card-text">If all commands run without errors, your WSL2 environment is ready. You'll see your distro name with "VERSION 2", your Ubuntu version, Git version, your home directory path, and your public IP address.</div>
+                </div>
+            </div>
+
+            <!-- Where Are My Files? -->
+            <div class="subsection">
+                <h3 class="subsection-title">Where Are My Files?</h3>
+                <p>Understanding the filesystem is critical. WSL2 has its own Linux filesystem, but it can also access Windows files:</p>
+
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-label">Linux Filesystem (fast)</div>
+                        <div class="card-title">~/projects/</div>
+                        <div class="card-text">
+                            <code>/home/yourname/</code><br>
+                            This is your Linux home directory. <strong>Always work here</strong> for best performance. AI tools and Node.js run fastest on the native Linux filesystem.
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Windows Filesystem (slow)</div>
+                        <div class="card-title">/mnt/c/Users/...</div>
+                        <div class="card-text">
+                            <code>/mnt/c/Users/YourName/</code><br>
+                            Your Windows C: drive, mounted in WSL. Access is <strong>5-10x slower</strong> due to filesystem translation. Avoid running projects from here.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Golden Rule: Keep Projects on the Linux Side</strong>
+                        Store all your code in <code>~/projects/</code> (the Linux filesystem), not in <code>/mnt/c/</code> (the Windows filesystem). Filesystem translation across the boundary is slow and causes permission issues, CRLF problems, and file-watching failures.
+                    </div>
+                </div>
+
+                <pre><code><span class="comment"># Create a projects directory in your Linux home</span>
+mkdir -p ~/projects
+cd ~/projects
+
+<span class="comment"># Access your Windows Desktop (if needed)</span>
+ls /mnt/c/Users/$USER/Desktop/
+
+<span class="comment"># Open current WSL directory in Windows Explorer</span>
+explorer.exe .</code></pre>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 04: ESSENTIAL TOOLS
+             ============================================ -->
+
+        <section id="essential-tools" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 04</span>
+                <h2 class="section-title">Essential Tools</h2>
+                <p class="section-description">Install development tools inside WSL &mdash; not on the Windows side. Everything here runs in your Ubuntu terminal.</p>
+            </div>
+
+            <!-- Git Configuration -->
+            <div class="subsection">
+                <h3 class="subsection-title">Git &mdash; Beyond the Basics</h3>
+                <p>Git comes pre-installed with Ubuntu, but you need to configure it properly for WSL. These settings prevent common cross-platform headaches.</p>
+
+                <pre><code><span class="comment"># Identity (required for commits)</span>
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+
+<span class="comment"># Line ending behavior (critical for WSL)</span>
+git config --global core.autocrlf false
+git config --global core.eol lf
+
+<span class="comment"># Modern defaults</span>
+git config --global init.defaultBranch main
+git config --global color.ui auto
+git config --global pull.rebase false
+
+<span class="comment"># Credential storage (keeps you logged in)</span>
+git config --global credential.helper store
+
+<span class="comment"># Verify everything</span>
+git config --global --list</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Why <code>core.autocrlf false</code>?</strong>
+                        In WSL you're running native Linux &mdash; there's no reason for Git to convert line endings. Setting it to <code>false</code> means Git stores and checks out files exactly as-is. We'll cover line endings in depth in <a href="#line-endings">Section 05</a>.
+                    </div>
+                </div>
+            </div>
+
+            <!-- GitHub CLI -->
+            <div class="subsection">
+                <h3 class="subsection-title">GitHub CLI (<code>gh</code>)</h3>
+                <p>The GitHub CLI lets you create repos, open PRs, manage issues, and authenticate &mdash; all from the terminal. It's the fastest way to connect Git to your GitHub account.</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Install GitHub CLI</strong>
+                        <p>Add the official repository and install:</p>
+                        <pre><code><span class="comment"># Add GitHub CLI repository</span>
+(type -p wget &gt;/dev/null || sudo apt install wget -y) \
+  &amp;&amp; sudo mkdir -p -m 755 /etc/apt/keyrings \
+  &amp;&amp; wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+  | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &gt;/dev/null \
+  &amp;&amp; sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+  &amp;&amp; echo "deb [arch=$(dpkg --print-architecture) \
+  signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] \
+  https://cli.github.com/packages stable main" \
+  | sudo tee /etc/apt/sources.list.d/github-cli.list &gt;/dev/null \
+  &amp;&amp; sudo apt update \
+  &amp;&amp; sudo apt install gh -y</code></pre>
+                    </li>
+                    <li>
+                        <strong>Authenticate with GitHub</strong>
+                        <p>Log in using the browser-based OAuth flow:</p>
+                        <pre><code>gh auth login</code></pre>
+                        <p>Choose: <strong>GitHub.com</strong> &rarr; <strong>HTTPS</strong> &rarr; <strong>Login with a web browser</strong>. Copy the one-time code, open the URL in your browser, paste the code, and authorize.</p>
+                    </li>
+                    <li>
+                        <strong>Verify authentication</strong>
+                        <pre><code><span class="comment"># Check login status</span>
+gh auth status
+
+<span class="comment"># Test by listing your repos</span>
+gh repo list --limit 5</code></pre>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Node.js via nvm -->
+            <div class="subsection">
+                <h3 class="subsection-title">Node.js via nvm</h3>
+
+                <div class="alert alert-danger">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Do NOT use <code>sudo apt install nodejs</code></strong>
+                        The Ubuntu repository ships an ancient Node.js version (often v12 or v14). It also installs to a system directory, requiring <code>sudo</code> for every global npm install. This breaks tools like Claude Code. Always use <strong>nvm</strong> instead.
+                    </div>
+                </div>
+
+                <p><strong>nvm</strong> (Node Version Manager) lets you install and switch between multiple Node.js versions without root access. It installs everything to your home directory.</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Install nvm</strong>
+                        <pre><code>curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash</code></pre>
+                    </li>
+                    <li>
+                        <strong>Reload your shell</strong>
+                        <pre><code><span class="comment"># Pick one depending on your shell</span>
+source ~/.bashrc    <span class="comment"># for bash</span>
+source ~/.zshrc     <span class="comment"># for zsh</span></code></pre>
+                    </li>
+                    <li>
+                        <strong>Install the latest LTS version</strong>
+                        <pre><code><span class="comment"># Install latest Long Term Support release</span>
+nvm install --lts
+
+<span class="comment"># Set it as your default</span>
+nvm alias default lts/*
+
+<span class="comment"># Verify</span>
+node --version   <span class="comment"># Should show v20.x or v22.x</span>
+npm --version    <span class="comment"># Should show 10.x+</span></code></pre>
+                    </li>
+                </ol>
+
+                <div class="card">
+                    <div class="card-label">Common nvm Commands</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Command</th>
+                                    <th>What It Does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>nvm install 22</code></td>
+                                    <td>Install Node.js v22 (latest in that major)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nvm install --lts</code></td>
+                                    <td>Install the latest LTS release</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nvm use 20</code></td>
+                                    <td>Switch to Node.js v20 for the current shell</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nvm alias default 22</code></td>
+                                    <td>Set v22 as the default for new shells</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nvm ls</code></td>
+                                    <td>List all locally installed versions</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nvm ls-remote --lts</code></td>
+                                    <td>List all available LTS versions</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nvm current</code></td>
+                                    <td>Show the currently active version</td>
+                                </tr>
+                                <tr>
+                                    <td><code>nvm uninstall 18</code></td>
+                                    <td>Remove a specific installed version</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Project-Specific Versions with <code>.nvmrc</code></strong>
+                        Create a <code>.nvmrc</code> file in your project root with just the version number (e.g., <code>20</code>). Then run <code>nvm use</code> in that directory to automatically switch. Team members with nvm will use the same version.
+                    </div>
+                </div>
+
+                <pre><code><span class="comment"># Create .nvmrc in your project</span>
+echo "20" &gt; .nvmrc
+
+<span class="comment"># Later, in that project directory:</span>
+nvm use
+<span class="comment"># Found '/home/you/projects/myapp/.nvmrc' with version &lt;20&gt;</span>
+<span class="comment"># Now using node v20.x.x</span></code></pre>
+            </div>
+
+            <!-- Python -->
+            <div class="subsection">
+                <h3 class="subsection-title">Python</h3>
+                <p>Ubuntu ships with Python 3, but you'll often need a newer version or multiple versions. There are two solid approaches:</p>
+
+                <div class="compare-grid">
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#127919; Option A: deadsnakes PPA</div>
+                        <p class="card-text" style="margin-bottom: var(--space-3);">Simpler approach &mdash; install specific Python versions via Ubuntu's package manager. Best for most people.</p>
+                        <ul class="check-list">
+                            <li>Easy to install and manage</li>
+                            <li>System-level, available everywhere</li>
+                            <li>Automatic security updates via apt</li>
+                        </ul>
+                        <ul class="x-list">
+                            <li>Limited to versions the PPA provides</li>
+                            <li>Harder to switch between versions</li>
+                        </ul>
+                    </div>
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#128736; Option B: pyenv</div>
+                        <p class="card-text" style="margin-bottom: var(--space-3);">More flexible &mdash; like nvm but for Python. Best if you work on multiple Python projects.</p>
+                        <ul class="check-list">
+                            <li>Install any Python version ever released</li>
+                            <li>Switch versions per-project with <code>.python-version</code></li>
+                            <li>No root access needed</li>
+                        </ul>
+                        <ul class="x-list">
+                            <li>Builds from source (takes a few minutes)</li>
+                            <li>Requires build dependencies</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Option A &mdash; deadsnakes PPA</div>
+                    <pre><code><span class="comment"># Add the deadsnakes PPA</span>
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+
+<span class="comment"># Install Python 3.12 (or whatever version you need)</span>
+sudo apt install -y python3.12 python3.12-venv python3.12-dev
+
+<span class="comment"># Verify</span>
+python3.12 --version</code></pre>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Option B &mdash; pyenv</div>
+                    <pre><code><span class="comment"># Install build dependencies first</span>
+sudo apt install -y make build-essential libssl-dev zlib1g-dev \
+  libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm \
+  libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev \
+  libffi-dev liblzma-dev
+
+<span class="comment"># Install pyenv</span>
+curl https://pyenv.run | bash
+
+<span class="comment"># Add to your shell config (~/.bashrc or ~/.zshrc)</span>
+echo 'export PYENV_ROOT="$HOME/.pyenv"' &gt;&gt; ~/.bashrc
+echo 'command -v pyenv &gt;/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' &gt;&gt; ~/.bashrc
+echo 'eval "$(pyenv init -)"' &gt;&gt; ~/.bashrc
+
+<span class="comment"># Reload shell</span>
+source ~/.bashrc
+
+<span class="comment"># Install and set a Python version</span>
+pyenv install 3.12
+pyenv global 3.12
+
+<span class="comment"># Verify</span>
+python --version</code></pre>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Common Python Commands</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Command</th>
+                                    <th>What It Does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>python3 -m venv .venv</code></td>
+                                    <td>Create a virtual environment in the current directory</td>
+                                </tr>
+                                <tr>
+                                    <td><code>source .venv/bin/activate</code></td>
+                                    <td>Activate the virtual environment</td>
+                                </tr>
+                                <tr>
+                                    <td><code>deactivate</code></td>
+                                    <td>Exit the virtual environment</td>
+                                </tr>
+                                <tr>
+                                    <td><code>pip install package-name</code></td>
+                                    <td>Install a package (inside venv, no sudo needed)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>pip freeze &gt; requirements.txt</code></td>
+                                    <td>Export installed packages to a file</td>
+                                </tr>
+                                <tr>
+                                    <td><code>pip install -r requirements.txt</code></td>
+                                    <td>Install all packages from a requirements file</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Windows PATH Warning -->
+            <div class="subsection">
+                <h3 class="subsection-title">Windows PATH Leaking into WSL</h3>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>This catches almost everyone.</strong>
+                        By default, WSL appends your entire Windows <code>PATH</code> to Linux's <code>PATH</code>. This means when you type <code>node</code>, you might accidentally run the <em>Windows</em> version of Node instead of the Linux one. Same for <code>git</code>, <code>python</code>, <code>code</code>, and any other tool installed on both sides.
+                    </div>
+                </div>
+
+                <p><strong>Symptoms of PATH leaking:</strong></p>
+                <ul class="x-list">
+                    <li><code>which node</code> shows <code>/mnt/c/Program Files/nodejs/node</code> instead of an nvm path</li>
+                    <li>Commands run painfully slow (crossing the filesystem boundary)</li>
+                    <li><code>echo $PATH</code> is hundreds of characters long, full of <code>/mnt/c/...</code> entries</li>
+                    <li>Wrong tool versions are picked up silently</li>
+                </ul>
+
+                <p><strong>The fix:</strong> Disable Windows PATH injection in <code>/etc/wsl.conf</code>:</p>
+
+                <pre><code><span class="comment"># Create or edit /etc/wsl.conf</span>
+sudo nano /etc/wsl.conf</code></pre>
+
+                <p>Add these lines:</p>
+
+                <pre><code><span class="comment"># /etc/wsl.conf</span>
+[interop]
+appendWindowsPath = false</code></pre>
+
+                <p>Then restart WSL from PowerShell:</p>
+
+                <pre><code><span class="comment"># Run in PowerShell (not in WSL)</span>
+wsl --shutdown
+
+<span class="comment"># Reopen Ubuntu from Windows Terminal</span></code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>After disabling Windows PATH</strong>
+                        You'll lose direct access to Windows executables like <code>explorer.exe</code> and <code>code</code> (VS Code). You can still call them by full path (<code>/mnt/c/Windows/explorer.exe</code>) or add specific entries back to your <code>~/.bashrc</code>:
+                        <pre style="margin-top: var(--space-2); margin-bottom: 0;"><code><span class="comment"># Selectively add back useful Windows commands</span>
+export PATH="$PATH:/mnt/c/Windows/System32"
+export PATH="$PATH:/mnt/c/Users/$USER/AppData/Local/Programs/Microsoft VS Code/bin"</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 05: LINE ENDINGS & ENCODING
+             ============================================ -->
+
+        <section id="line-endings" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 05</span>
+                <h2 class="section-title">Line Endings &amp; Encoding</h2>
+                <p class="section-description">The hidden gotcha that silently breaks scripts, pollutes diffs, and wastes hours of debugging time. Understand it once, fix it forever.</p>
+            </div>
+
+            <!-- CRLF vs LF -->
+            <div class="subsection">
+                <h3 class="subsection-title">CRLF vs LF Explained</h3>
+                <p>Every text file uses invisible characters to mark the end of each line. The problem? Windows and Linux use different ones.</p>
+
+                <div class="compare-grid">
+                    <div class="compare-card bad">
+                        <div class="compare-heading">&#128187; Windows: CRLF</div>
+                        <div class="card-text">
+                            <p><strong>Carriage Return + Line Feed</strong></p>
+                            <p>Two characters: <code>\r\n</code> (hex: <code>0D 0A</code>)</p>
+                            <p>Heritage from typewriters: "move carriage to start" + "advance paper one line." Windows kept both characters.</p>
+                        </div>
+                    </div>
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#128039; Linux/macOS: LF</div>
+                        <div class="card-text">
+                            <p><strong>Line Feed only</strong></p>
+                            <p>One character: <code>\n</code> (hex: <code>0A</code>)</p>
+                            <p>Unix chose simplicity. One character, one meaning. This is the standard for programming, Git, and the web.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <p><strong>What goes wrong when CRLF sneaks into Linux files:</strong></p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">&#128165;</div>
+                        <div class="feature-title">Shell Scripts Break</div>
+                        <div class="feature-desc">Bash sees <code>\r</code> as part of the command. You get cryptic errors like <code>$'\r': command not found</code> or <code>bad interpreter: No such file or directory</code>.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128200;</div>
+                        <div class="feature-title">Git Shows False Diffs</div>
+                        <div class="feature-desc">Every line appears changed even though only the line ending is different. Pull requests become unreadable walls of red and green.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128295;</div>
+                        <div class="feature-title">Config Files Fail</div>
+                        <div class="feature-desc">JSON, YAML, <code>.env</code> files, and <code>.gitattributes</code> can silently break when trailing <code>\r</code> characters are present.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Configuration for Line Endings -->
+            <div class="subsection">
+                <h3 class="subsection-title">Git Configuration</h3>
+                <p>Git has a setting called <code>core.autocrlf</code> that controls automatic line ending conversion. Here are your options:</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Setting</th>
+                                <th>On Checkout</th>
+                                <th>On Commit</th>
+                                <th>Verdict</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>false</code></td>
+                                <td>No conversion</td>
+                                <td>No conversion</td>
+                                <td><span class="badge badge-success">Recommended for WSL</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>input</code></td>
+                                <td>No conversion</td>
+                                <td>CRLF &rarr; LF</td>
+                                <td><span class="badge badge-accent">Safe middle ground</span></td>
+                            </tr>
+                            <tr>
+                                <td><code>true</code></td>
+                                <td>LF &rarr; CRLF</td>
+                                <td>CRLF &rarr; LF</td>
+                                <td><span class="badge badge-danger">Bad for WSL</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <pre><code><span class="comment"># Best for WSL: no conversion at all</span>
+git config --global core.autocrlf false
+git config --global core.eol lf
+
+<span class="comment"># Alternative: convert CRLF to LF on commit only</span>
+<span class="comment"># git config --global core.autocrlf input</span></code></pre>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Never use <code>core.autocrlf true</code> in WSL</strong>
+                        This tells Git to convert LF to CRLF on checkout &mdash; injecting Windows line endings into your Linux filesystem. Shell scripts will break, linters will complain, and debugging will be miserable.
+                    </div>
+                </div>
+            </div>
+
+            <!-- .gitattributes -->
+            <div class="subsection">
+                <h3 class="subsection-title"><code>.gitattributes</code> &mdash; The Definitive Fix</h3>
+                <p>While <code>core.autocrlf</code> is a per-machine setting, <code>.gitattributes</code> travels with the repository. It ensures every contributor uses the same line ending rules regardless of their OS or Git config.</p>
+
+                <div class="card">
+                    <div class="card-label">Example .gitattributes File</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># Auto-detect text files and normalize to LF</span>
+* text=auto eol=lf
+
+<span class="comment"># Explicitly declare text files</span>
+*.js    text eol=lf
+*.ts    text eol=lf
+*.jsx   text eol=lf
+*.tsx   text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.html  text eol=lf
+*.css   text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.sh    text eol=lf
+*.py    text eol=lf
+*.rb    text eol=lf
+*.sql   text eol=lf
+*.xml   text eol=lf
+*.env   text eol=lf
+
+<span class="comment"># Declare binary files (never convert)</span>
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.pdf   binary
+*.zip   binary</code></pre>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Add <code>.gitattributes</code> to every project</strong>
+                        Make this the first file you create in any new repository. It protects the entire team. The <code>* text=auto eol=lf</code> line alone handles 95% of cases.
+                    </div>
+                </div>
+
+                <p>If your repo already has CRLF files, you need to renormalize after adding <code>.gitattributes</code>:</p>
+
+                <pre><code><span class="comment"># Renormalize all files after adding .gitattributes</span>
+git add --renormalize .
+git commit -m "Normalize line endings to LF"</code></pre>
+            </div>
+
+            <!-- dos2unix -->
+            <div class="subsection">
+                <h3 class="subsection-title"><code>dos2unix</code> &mdash; Fix Existing Files</h3>
+                <p>When CRLF has already crept into your files, <code>dos2unix</code> converts them in place.</p>
+
+                <pre><code><span class="comment"># Install dos2unix</span>
+sudo apt install -y dos2unix
+
+<span class="comment"># Convert a single file</span>
+dos2unix script.sh
+
+<span class="comment"># Convert multiple files</span>
+dos2unix *.sh *.py *.js
+
+<span class="comment"># Convert all text files in a directory recursively</span>
+find . -type f -name "*.sh" -exec dos2unix {} +</code></pre>
+
+                <p><strong>How to detect CRLF in files:</strong></p>
+
+                <pre><code><span class="comment"># The `file` command shows line ending type</span>
+file script.sh
+<span class="comment"># script.sh: Bash script, ASCII text, with CRLF line terminators</span>
+<span class="comment">#                                    ^^^^^^^^^^^^^^^^^^^^^^^^</span>
+<span class="comment"># If it says "CRLF" — that's your problem</span>
+
+<span class="comment"># Show CRLF characters as ^M in a file</span>
+cat -A script.sh | head -5
+<span class="comment"># Lines ending with ^M$ have CRLF</span>
+<span class="comment"># Lines ending with just $ are LF (correct)</span></code></pre>
+            </div>
+
+            <!-- BOM -->
+            <div class="subsection">
+                <h3 class="subsection-title">BOM (Byte Order Mark)</h3>
+                <p>The Byte Order Mark is a hidden 3-byte sequence (<code>EF BB BF</code>) that some Windows editors (notably old versions of Notepad) add to the beginning of UTF-8 files. It's invisible in most editors but causes real problems:</p>
+
+                <ul class="x-list">
+                    <li>Shell scripts fail: the shebang (<code>#!/bin/bash</code>) isn't the first bytes anymore</li>
+                    <li>JSON parsing breaks: the BOM isn't valid JSON</li>
+                    <li>PHP outputs a blank line before any content</li>
+                    <li>YAML and config files may silently misparse</li>
+                </ul>
+
+                <pre><code><span class="comment"># Detect BOM by inspecting the first bytes</span>
+hexdump -C script.sh | head -1
+<span class="comment"># If the first three bytes are: ef bb bf — that's a BOM</span>
+<span class="comment"># Example output with BOM:</span>
+<span class="comment"># 00000000  ef bb bf 23 21 2f 62 69  6e 2f 62 61 73 68 0a  |...#!/bin/bash.|</span>
+<span class="comment">#           ^^^^^^^^ BOM bytes</span>
+
+<span class="comment"># Remove BOM with sed</span>
+sed -i '1s/^\xEF\xBB\xBF//' file.txt
+
+<span class="comment"># Or use dos2unix (handles BOM too)</span>
+dos2unix --remove-bom file.txt</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Modern Windows Notepad (Windows 11) no longer adds BOM by default.</strong>
+                        But if you're working with files created by older tools, BOM can still sneak in. VS Code shows BOM status in the bottom-right status bar and lets you save without it.
+                    </div>
+                </div>
+            </div>
+
+            <!-- .editorconfig -->
+            <div class="subsection">
+                <h3 class="subsection-title"><code>.editorconfig</code> &mdash; Prevent Issues at the Source</h3>
+                <p>EditorConfig is a cross-editor standard that configures line endings, indentation, and encoding <em>before</em> files are even saved. Most editors (VS Code, JetBrains, Vim, Sublime) support it natively or via plugin.</p>
+
+                <div class="card">
+                    <div class="card-label">Example .editorconfig File</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># EditorConfig — https://editorconfig.org</span>
+root = true
+
+<span class="comment"># Apply to all files</span>
+[*]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+<span class="comment"># Python: 4-space indent</span>
+[*.py]
+indent_size = 4
+
+<span class="comment"># Makefiles: must use tabs</span>
+[Makefile]
+indent_style = tab
+
+<span class="comment"># Markdown: trailing whitespace is intentional (line breaks)</span>
+[*.md]
+trim_trailing_whitespace = false</code></pre>
+                </div>
+
+                <p>Drop this file in your project root alongside <code>.gitattributes</code>. Together, they form a two-layer defense:</p>
+
+                <div class="two-col">
+                    <div class="card card-sm">
+                        <div class="card-title">.editorconfig</div>
+                        <div class="card-text"><strong>Prevention</strong> &mdash; tells editors to use LF when creating and saving files. Catches the problem before it starts.</div>
+                    </div>
+                    <div class="card card-sm">
+                        <div class="card-title">.gitattributes</div>
+                        <div class="card-text"><strong>Enforcement</strong> &mdash; tells Git to normalize line endings on commit. Catches anything that slips past the editor.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 06: CLAUDE CODE
+             ============================================ -->
+
+        <section id="claude-code" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 06</span>
+                <h2 class="section-title">Claude Code</h2>
+                <p class="section-description">Anthropic's AI coding assistant that lives in your terminal. It reads your codebase, writes code, runs commands, and manages Git &mdash; all through natural language.</p>
+            </div>
+
+            <!-- Installation -->
+            <div class="subsection">
+                <h3 class="subsection-title">Installation</h3>
+                <p>There are two ways to install Claude Code. Both require Node.js 18+.</p>
+
+                <div class="compare-grid">
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#9889; Option A: Native Installer (Recommended)</div>
+                        <pre style="margin-bottom: var(--space-2);"><code>curl -fsSL https://claude.ai/install.sh | sh</code></pre>
+                        <div class="card-text">Downloads the latest version directly. No Node.js configuration needed on the install side.</div>
+                    </div>
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#128230; Option B: npm</div>
+                        <pre style="margin-bottom: var(--space-2);"><code>npm install -g @anthropic-ai/claude-code</code></pre>
+                        <div class="card-text">Standard npm global install. Good if you manage all tools through npm.</div>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Never use <code>sudo npm install -g</code></strong>
+                        If npm asks for <code>sudo</code>, your Node.js was installed with <code>apt</code> instead of <code>nvm</code>. Go back to <a href="#essential-tools">Section 04</a> and install Node via nvm. With nvm, global installs work without root access.
+                    </div>
+                </div>
+
+                <pre><code><span class="comment"># Verify the installation</span>
+claude --version
+
+<span class="comment"># Check that everything is working</span>
+claude doctor</code></pre>
+            </div>
+
+            <!-- Authentication -->
+            <div class="subsection">
+                <h3 class="subsection-title">Authentication</h3>
+                <p>Claude Code supports two authentication methods:</p>
+
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-label">Option A &mdash; OAuth (Subscription)</div>
+                        <div class="card-title">Claude Pro / Max / Team</div>
+                        <div class="card-text">
+                            <p>If you have a Claude subscription, just run <code>claude</code> and it will open a browser window for OAuth login. No API key needed.</p>
+                            <ul class="check-list">
+                                <li>Easiest setup &mdash; just log in</li>
+                                <li>Usage included in your subscription</li>
+                                <li>Max plan includes generous Claude Code usage</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Option B &mdash; API Key</div>
+                        <div class="card-title">ANTHROPIC_API_KEY</div>
+                        <div class="card-text">
+                            <p>Generate a key at <strong>console.anthropic.com</strong> and set it as an environment variable. Pay-per-use.</p>
+                            <pre style="margin-bottom: var(--space-2);"><code><span class="comment"># Add to ~/.bashrc or ~/.zshrc</span>
+export ANTHROPIC_API_KEY="sk-ant-..."</code></pre>
+                            <pre style="margin-bottom: 0;"><code><span class="comment"># Reload shell config</span>
+source ~/.bashrc</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Keep your API key secret</strong>
+                        Never commit <code>ANTHROPIC_API_KEY</code> to Git or share it publicly. Add <code>.env</code> to your <code>.gitignore</code>. If a key is leaked, rotate it immediately at console.anthropic.com.
+                    </div>
+                </div>
+            </div>
+
+            <!-- First Run -->
+            <div class="subsection">
+                <h3 class="subsection-title">First Run</h3>
+                <p>Navigate to a project directory and launch Claude Code:</p>
+
+                <pre><code><span class="comment"># Navigate to your project</span>
+cd ~/projects/my-app
+
+<span class="comment"># Launch Claude Code</span>
+claude</code></pre>
+
+                <p>On first run, you'll authenticate (browser opens automatically for OAuth). Then you're in an interactive session where you can type natural language requests.</p>
+
+                <div class="card">
+                    <div class="card-label">Essential Slash Commands</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Command</th>
+                                    <th>What It Does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>/help</code></td>
+                                    <td>Show all available commands and keyboard shortcuts</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/init</code></td>
+                                    <td>Generate a <code>CLAUDE.md</code> file for the current project</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/cost</code></td>
+                                    <td>Show token usage and cost for the current session</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/config</code></td>
+                                    <td>Open the configuration menu</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/context</code></td>
+                                    <td>Show what files and context Claude currently has loaded</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/clear</code></td>
+                                    <td>Clear conversation history (reset context window)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/compact</code></td>
+                                    <td>Summarize conversation to free up context space</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permission Modes -->
+            <div class="subsection">
+                <h3 class="subsection-title">Permission Modes</h3>
+                <p>Claude Code has three permission modes that control how much autonomy the AI has. Cycle between them with <strong>Shift+Tab</strong>.</p>
+
+                <div class="command-grid">
+                    <div class="command-card">
+                        <div class="step-number" style="background: var(--success-bg); color: var(--success);">&#128274;</div>
+                        <div class="command-label">Default Mode</div>
+                        <div class="command-desc">Claude asks permission before every file write, command execution, and Git operation. You approve or deny each action.</div>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Safest</span>
+                            <span class="pill">Best for beginners</span>
+                        </div>
+                    </div>
+                    <div class="command-card">
+                        <div class="step-number" style="background: var(--warning-bg); color: var(--warning);">&#9889;</div>
+                        <div class="command-label">Auto-Accept Mode</div>
+                        <div class="command-desc">Claude executes file writes and approved commands without asking. Much faster workflow, but you need to review changes after.</div>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Fastest</span>
+                            <span class="pill">For experienced users</span>
+                        </div>
+                    </div>
+                    <div class="command-card">
+                        <div class="step-number" style="background: var(--accent-bg); color: var(--accent);">&#128065;</div>
+                        <div class="command-label">Plan Mode</div>
+                        <div class="command-desc">Claude can only read files and discuss plans &mdash; it cannot write files or execute commands. Perfect for exploring a codebase or discussing architecture.</div>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Read-only</span>
+                            <span class="pill">For planning &amp; review</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Start in Default mode.</strong>
+                        As a beginner, keep Default mode active so you can see and approve every action Claude takes. This builds your understanding of what the AI is doing. Graduate to Auto-Accept once you're comfortable reviewing diffs and reverting with Git.
+                    </div>
+                </div>
+            </div>
+
+            <!-- CLAUDE.md -->
+            <div class="subsection">
+                <h3 class="subsection-title">CLAUDE.md &mdash; Your Project Instruction File</h3>
+                <p><code>CLAUDE.md</code> is a special file that Claude Code reads automatically when you start a session. It tells the AI about your project: what it is, how it's structured, what conventions to follow, and what commands to run.</p>
+
+                <div class="card">
+                    <div class="card-label">Example CLAUDE.md</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># My Web App</span>
+
+<span class="comment">## Project Overview</span>
+A React + TypeScript SPA with a Node.js/Express backend.
+Uses PostgreSQL for data, Redis for caching.
+
+<span class="comment">## Tech Stack</span>
+- Frontend: React 18, TypeScript, Vite, Tailwind CSS
+- Backend: Node.js 20, Express, Prisma ORM
+- Database: PostgreSQL 15
+- Testing: Vitest (unit), Playwright (e2e)
+
+<span class="comment">## Commands</span>
+- `npm run dev` — Start dev server (frontend + backend)
+- `npm test` — Run unit tests
+- `npm run lint` — Run ESLint + Prettier check
+- `npm run build` — Production build
+
+<span class="comment">## Conventions</span>
+- Use functional components with hooks (no class components)
+- All API routes go in `src/api/routes/`
+- Database migrations in `prisma/migrations/`
+- Use named exports, not default exports
+- Commit messages: conventional commits format
+
+<span class="comment">## Important Notes</span>
+- Never modify `prisma/schema.prisma` without running
+  `npx prisma migrate dev` afterward
+- The `.env` file is gitignored — see `.env.example`</code></pre>
+                </div>
+
+                <p><strong>Best practices for CLAUDE.md:</strong></p>
+                <ul class="check-list">
+                    <li>Keep it under 300 lines &mdash; Claude reads this every session, so conciseness matters</li>
+                    <li>Focus on what's non-obvious: conventions, gotchas, project-specific patterns</li>
+                    <li>Include the commands Claude will need: test, lint, build, deploy</li>
+                    <li>List the tech stack so Claude knows what frameworks/versions to target</li>
+                    <li>Update it as your project evolves &mdash; treat it like living documentation</li>
+                </ul>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Layered CLAUDE.md Files</strong>
+                        You can place <code>CLAUDE.md</code> at multiple levels: the repo root, inside subdirectories, and even in your home directory (<code>~/.claude/CLAUDE.md</code>) for global preferences. Claude Code merges them, with more specific files taking precedence.
+                    </div>
+                </div>
+
+                <pre><code><span class="comment"># Generate a starter CLAUDE.md for your project</span>
+cd ~/projects/my-app
+claude
+<span class="comment"># Then type:</span>
+/init</code></pre>
+            </div>
+
+            <!-- Cost Awareness -->
+            <div class="subsection">
+                <h3 class="subsection-title">Cost Awareness</h3>
+                <p>Claude Code uses AI models that cost money to run, whether through a subscription or API usage. Understanding costs helps you budget effectively.</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Plan</th>
+                                <th>Price</th>
+                                <th>Claude Code Access</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Pro</strong></td>
+                                <td>$20/mo</td>
+                                <td>Included (limited usage)</td>
+                                <td>Good for light/occasional use</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Max (5x)</strong></td>
+                                <td>$100/mo</td>
+                                <td>Included (generous usage)</td>
+                                <td>Best value for daily Claude Code users</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Max (20x)</strong></td>
+                                <td>$200/mo</td>
+                                <td>Included (heavy usage)</td>
+                                <td>For power users and professionals</td>
+                            </tr>
+                            <tr>
+                                <td><strong>API (Pay-per-use)</strong></td>
+                                <td>Varies</td>
+                                <td>Per-token billing</td>
+                                <td>You control spending; requires API key</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">API Pricing by Model</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Input (per 1M tokens)</th>
+                                    <th>Output (per 1M tokens)</th>
+                                    <th>Best For</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Haiku</strong></td>
+                                    <td>$0.25</td>
+                                    <td>$1.25</td>
+                                    <td>Quick tasks, simple edits</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Sonnet</strong></td>
+                                    <td>$3</td>
+                                    <td>$15</td>
+                                    <td>Balanced speed/quality (default)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Opus</strong></td>
+                                    <td>$15</td>
+                                    <td>$75</td>
+                                    <td>Complex reasoning, architecture</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <pre><code><span class="comment"># Check your current session cost</span>
+/cost
+
+<span class="comment"># Example output:</span>
+<span class="comment"># Total cost: $0.42</span>
+<span class="comment"># Input tokens: 45,230</span>
+<span class="comment"># Output tokens: 12,847</span></code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Cost-saving tips</strong>
+                        Use <code>/compact</code> to summarize long conversations and free up context. Use <code>/clear</code> to start fresh when switching tasks. Write a good <code>CLAUDE.md</code> so Claude doesn't waste tokens figuring out your project. On the API, a typical active day costs $2&ndash;$10 with Sonnet.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 07: CODEX CLI
+             ============================================ -->
+
+        <section id="codex-cli" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 07</span>
+                <h2 class="section-title">Codex CLI</h2>
+                <p class="section-description">OpenAI's open-source coding agent for the terminal. A different philosophy from Claude Code &mdash; worth knowing both.</p>
+            </div>
+
+            <!-- Installation -->
+            <div class="subsection">
+                <h3 class="subsection-title">Installation</h3>
+                <p>Codex CLI is installed via npm, just like Claude Code. You need Node.js 18+ (which you already have if you followed the earlier sections).</p>
+
+                <pre><code><span class="comment"># Install Codex CLI globally</span>
+npm install -g @openai/codex
+
+<span class="comment"># Verify installation</span>
+codex --version</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Same Node, different tools</strong>
+                        Claude Code and Codex CLI both install via npm and coexist peacefully. Having both installed lets you pick the right tool for each task.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentication -->
+            <div class="subsection">
+                <h3 class="subsection-title">Authentication</h3>
+                <p>Codex CLI needs to connect to OpenAI's API. There are two ways to authenticate:</p>
+
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-label">Option A &mdash; ChatGPT OAuth (Recommended)</div>
+                        <div class="card-title">Browser Login</div>
+                        <div class="card-text">
+                            <p>Just run <code>codex</code> and it will open your browser for a ChatGPT sign-in. No API key needed. Usage is tied to your ChatGPT subscription.</p>
+                            <ul class="check-list">
+                                <li>Easiest setup &mdash; just log in with your ChatGPT account</li>
+                                <li>Usage included with ChatGPT Plus/Pro/Team</li>
+                                <li>No environment variables to manage</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Option B &mdash; API Key</div>
+                        <div class="card-title">OPENAI_API_KEY</div>
+                        <div class="card-text">
+                            <p>Generate a key at <strong>platform.openai.com</strong> and set it as an environment variable. Pay-per-use pricing.</p>
+                            <pre style="margin-bottom: var(--space-2);"><code><span class="comment"># Add to ~/.bashrc or ~/.zshrc</span>
+export OPENAI_API_KEY="sk-..."</code></pre>
+                            <pre style="margin-bottom: 0;"><code><span class="comment"># Reload shell config</span>
+source ~/.bashrc</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Keep your API key secret</strong>
+                        Same rules as with Anthropic: never commit <code>OPENAI_API_KEY</code> to Git. Add <code>.env</code> to your <code>.gitignore</code>. Rotate immediately if leaked.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Basic Usage -->
+            <div class="subsection">
+                <h3 class="subsection-title">Basic Usage</h3>
+                <p>Codex CLI has two primary modes: interactive and non-interactive.</p>
+
+                <pre><code><span class="comment"># Interactive mode — opens a REPL session</span>
+codex
+
+<span class="comment"># Non-interactive — execute a single task and exit</span>
+codex exec "add error handling to the login function"
+
+<span class="comment"># Run with a specific model</span>
+codex --model o4-mini
+
+<span class="comment"># Quiet mode — less output, just results</span>
+codex --quiet exec "fix the failing test in auth.test.js"</code></pre>
+
+                <div class="card">
+                    <div class="card-label">Key Slash Commands</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Command</th>
+                                    <th>What It Does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>/help</code></td>
+                                    <td>Show available commands and options</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/model</code></td>
+                                    <td>Switch between models (o4-mini, o3, etc.)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/approval</code></td>
+                                    <td>Change the approval mode (suggest, auto-edit, full-auto)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/undo</code></td>
+                                    <td>Revert the last file change</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/diff</code></td>
+                                    <td>Show pending changes as a diff</td>
+                                </tr>
+                                <tr>
+                                    <td><code>/clear</code></td>
+                                    <td>Clear the conversation history</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <p>Codex CLI also supports three <strong>approval modes</strong>, similar to Claude Code's permission system:</p>
+
+                <div class="command-grid">
+                    <div class="command-card">
+                        <div class="step-number" style="background: var(--success-bg); color: var(--success);">&#128274;</div>
+                        <div class="command-label">Suggest Mode</div>
+                        <div class="command-desc">Shows proposed changes but applies nothing automatically. You review and approve each change. The safest option.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="step-number" style="background: var(--warning-bg); color: var(--warning);">&#9889;</div>
+                        <div class="command-label">Auto-Edit Mode</div>
+                        <div class="command-desc">Automatically applies file edits but asks before running shell commands. A good middle ground for experienced developers.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="step-number" style="background: var(--danger-bg); color: var(--danger);">&#128640;</div>
+                        <div class="command-label">Full-Auto Mode</div>
+                        <div class="command-desc">Applies edits and runs commands without asking. Fastest, but use with caution. Best inside a sandbox or container.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison with Claude Code -->
+            <div class="subsection">
+                <h3 class="subsection-title">Claude Code vs. Codex CLI</h3>
+                <p>Both are excellent AI coding agents, but they have different strengths and philosophies. Here's an honest comparison to help you decide when to reach for each one.</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Aspect</th>
+                                <th>Claude Code</th>
+                                <th>Codex CLI</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Philosophy</strong></td>
+                                <td>"Measure twice, cut once" &mdash; thorough analysis before acting</td>
+                                <td>"Move fast" &mdash; quick iterations, rapid prototyping</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Coding Accuracy</strong></td>
+                                <td>Excellent on complex, multi-file refactors. Strong architectural reasoning</td>
+                                <td>Very good for focused tasks. Excels at code generation speed</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Speed</strong></td>
+                                <td>Slightly slower &mdash; reads more context, thinks longer</td>
+                                <td>Generally faster response times, especially with o4-mini</td>
+                            </tr>
+                            <tr>
+                                <td><strong>MCP Support</strong></td>
+                                <td>Full MCP (Model Context Protocol) &mdash; connects to databases, APIs, external tools</td>
+                                <td>MCP support available, growing ecosystem</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Context Handling</strong></td>
+                                <td>200K token window. Reads entire repos. Excellent at understanding large codebases</td>
+                                <td>Uses sandboxed execution. Files loaded on demand</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Pricing Model</strong></td>
+                                <td>Claude Pro/Max subscription or Anthropic API (pay-per-token)</td>
+                                <td>ChatGPT Plus/Pro subscription or OpenAI API (pay-per-token)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Open Source</strong></td>
+                                <td>Source-available (not fully open source)</td>
+                                <td>Fully open source (Apache 2.0)</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Best At</strong></td>
+                                <td>Large refactors, understanding complex codebases, careful edits, Git workflows</td>
+                                <td>Quick tasks, rapid prototyping, code generation, exploring ideas</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="two-col">
+                    <div class="card">
+                        <div class="card-label">Claude Code Strengths</div>
+                        <ul class="check-list">
+                            <li>Reads your entire codebase for context-aware edits</li>
+                            <li>CLAUDE.md project instructions for consistent behavior</li>
+                            <li>Rich MCP ecosystem (databases, APIs, tools)</li>
+                            <li>Excellent at multi-file refactors and architecture</li>
+                            <li>Built-in Git integration (commits, PRs, reviews)</li>
+                        </ul>
+                    </div>
+                    <div class="card">
+                        <div class="card-label">Codex CLI Strengths</div>
+                        <ul class="check-list">
+                            <li>Open source &mdash; you can inspect and modify the code</li>
+                            <li>Fast iteration with <code>codex exec</code> one-liners</li>
+                            <li>Sandboxed execution for safety</li>
+                            <li>Multiple model choices (o4-mini for speed, o3 for power)</li>
+                            <li>Lightweight and focused on the task at hand</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-tip">
+                <span class="alert-icon">&#128161;</span>
+                <div class="alert-content">
+                    <strong>Try both &mdash; they're complementary, not competing</strong>
+                    Many developers use Claude Code for deep, multi-file work and Codex CLI for quick one-off tasks. They share the same terminal, the same projects, and the same Git history. Install both, experiment for a week, and let your workflow tell you which fits where.
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 08: TERMINAL & SHELL
+             ============================================ -->
+
+        <section id="terminal-shell" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 08</span>
+                <h2 class="section-title">Terminal &amp; Shell</h2>
+                <p class="section-description">Customize your terminal environment for productivity and comfort. A well-configured shell saves hours every week.</p>
+            </div>
+
+            <!-- Zsh Installation -->
+            <div class="subsection">
+                <h3 class="subsection-title">Zsh Installation</h3>
+                <p>Bash is the default shell in Ubuntu, but <strong>Zsh</strong> is a more feature-rich alternative with better autocompletion, theming, and plugin support. Most modern developer setups use Zsh.</p>
+
+                <pre><code><span class="comment"># Install Zsh</span>
+sudo apt install -y zsh
+
+<span class="comment"># Verify installation</span>
+zsh --version
+
+<span class="comment"># Set Zsh as your default shell</span>
+chsh -s $(which zsh)
+
+<span class="comment"># Log out and back in (or restart your terminal)</span>
+<span class="comment"># Verify it took effect</span>
+echo $SHELL
+<span class="comment"># Should output: /usr/bin/zsh</span></code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>First launch prompt</strong>
+                        The first time Zsh runs, it asks you to configure it. You can press <code>0</code> to create a blank <code>.zshrc</code> &mdash; we'll fill it with Oh My Zsh in the next step, which overwrites the default config anyway.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Oh My Zsh -->
+            <div class="subsection">
+                <h3 class="subsection-title">Oh My Zsh</h3>
+                <p>Oh My Zsh is a community-driven framework for managing your Zsh configuration. It provides themes, plugins, and sensible defaults that make Zsh immediately more useful.</p>
+
+                <pre><code><span class="comment"># Install Oh My Zsh (downloads and sets up automatically)</span>
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"</code></pre>
+
+                <p>After installation, Oh My Zsh gives you:</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">&#127912;</div>
+                        <div class="feature-title">Themes</div>
+                        <div class="feature-desc">150+ built-in themes. The default <code>robbyrussell</code> is clean and informative. Change with <code>ZSH_THEME="..."</code> in <code>.zshrc</code>.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128268;</div>
+                        <div class="feature-title">Plugin System</div>
+                        <div class="feature-desc">300+ plugins for Git, Docker, Node, Python, and more. Enable them in the <code>plugins=(...)</code> array in <code>.zshrc</code>.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#9889;</div>
+                        <div class="feature-title">Smart Defaults</div>
+                        <div class="feature-desc">Better tab completion, automatic cd (just type a directory name), spelling correction, and shared command history.</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Useful built-in plugins</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Plugin</th>
+                                    <th>What It Does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>git</code></td>
+                                    <td>Aliases like <code>gst</code> (status), <code>gco</code> (checkout), <code>gp</code> (push). Dozens of shortcuts.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>sudo</code></td>
+                                    <td>Press <code>Esc</code> twice to prepend <code>sudo</code> to the current or previous command.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>z</code></td>
+                                    <td>Jump to frequently-used directories by partial name. Like <code>cd</code> with memory.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>copypath</code></td>
+                                    <td>Copy the current directory path to the clipboard.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>web-search</code></td>
+                                    <td>Search Google from the terminal: <code>google "how to rebase"</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Essential Plugins -->
+            <div class="subsection">
+                <h3 class="subsection-title">Essential Plugins</h3>
+                <p>These two third-party plugins are the most impactful upgrades you can make to your shell. They need to be installed separately, then enabled in <code>.zshrc</code>.</p>
+
+                <div class="compare-grid">
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#128172; zsh-autosuggestions</div>
+                        <div class="card-text">
+                            <p>Fish-like autosuggestions. As you type, it shows a dimmed suggestion from your history. Press <code>&rarr;</code> to accept.</p>
+                            <pre style="margin-bottom: 0;"><code><span class="comment"># Install</span>
+git clone https://github.com/zsh-users/zsh-autosuggestions \
+  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions</code></pre>
+                        </div>
+                    </div>
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#127912; zsh-syntax-highlighting</div>
+                        <div class="card-text">
+                            <p>Real-time command coloring. Valid commands turn green, errors turn red, strings are highlighted &mdash; all as you type.</p>
+                            <pre style="margin-bottom: 0;"><code><span class="comment"># Install</span>
+git clone https://github.com/zsh-users/zsh-syntax-highlighting \
+  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting</code></pre>
+                        </div>
+                    </div>
+                </div>
+
+                <p>After installing both, enable them in your <code>.zshrc</code> plugins array:</p>
+
+                <pre><code><span class="comment"># In ~/.zshrc, find the plugins=(...) line and update it:</span>
+plugins=(
+  git
+  sudo
+  z
+  zsh-autosuggestions
+  zsh-syntax-highlighting   <span class="comment"># Must be LAST in the list</span>
+)</code></pre>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Order matters!</strong>
+                        <code>zsh-syntax-highlighting</code> must be the <strong>last plugin</strong> in the <code>plugins=(...)</code> list. If it's not last, it may not work correctly or could interfere with other plugins. This is documented in its official README.
+                    </div>
+                </div>
+
+                <pre><code><span class="comment"># Reload your config to activate</span>
+source ~/.zshrc</code></pre>
+            </div>
+
+            <!-- Starship Prompt -->
+            <div class="subsection">
+                <h3 class="subsection-title">Starship Prompt</h3>
+                <p><strong>Starship</strong> is a modern, cross-shell prompt that's fast, highly customizable, and looks great out of the box. It shows useful info like Git branch, Node version, Python virtualenv, and command duration &mdash; all without slowing down your terminal.</p>
+
+                <pre><code><span class="comment"># Install Starship</span>
+curl -sS https://starship.rs/install.sh | sh
+
+<span class="comment"># Add to the END of ~/.zshrc</span>
+eval "$(starship init zsh)"
+
+<span class="comment"># Reload</span>
+source ~/.zshrc</code></pre>
+
+                <p>Starship works immediately with zero configuration, but you can customize it by creating a config file:</p>
+
+                <pre><code><span class="comment"># Create Starship config directory and file</span>
+mkdir -p ~/.config
+touch ~/.config/starship.toml</code></pre>
+
+                <div class="card">
+                    <div class="card-label">Example starship.toml</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># Minimal, clean prompt config</span>
+format = """
+$directory\
+$git_branch\
+$git_status\
+$nodejs\
+$python\
+$cmd_duration\
+$line_break\
+$character"""
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+symbol = " "
+
+[git_status]
+ahead = "+"
+behind = "-"
+diverged = "+-"
+
+[nodejs]
+symbol = " "
+detect_files = ["package.json"]
+
+[python]
+symbol = " "
+
+[cmd_duration]
+min_time = 2000   <span class="comment"># Only show for commands taking 2+ seconds</span>
+format = " took [$duration]($style)"
+
+[character]
+success_symbol = "[>](bold green)"
+error_symbol = "[>](bold red)"</code></pre>
+                </div>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">&#9889;</div>
+                        <div class="feature-title">Blazing Fast</div>
+                        <div class="feature-desc">Written in Rust. Renders in under 10ms. You'll never notice it's there.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#127760;</div>
+                        <div class="feature-title">Cross-Shell</div>
+                        <div class="feature-desc">Works with Bash, Zsh, Fish, PowerShell, and more. One config, every shell.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128230;</div>
+                        <div class="feature-title">Context-Aware</div>
+                        <div class="feature-desc">Only shows relevant info. Node version appears in JS projects, Python version in Python projects. Clean when idle.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- .zshrc Tips -->
+            <div class="subsection">
+                <h3 class="subsection-title"><code>.zshrc</code> Tips</h3>
+                <p>Your <code>~/.zshrc</code> is your shell's configuration file. It runs every time you open a terminal. Here are some useful additions:</p>
+
+                <div class="card">
+                    <div class="card-label">Useful Aliases</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># Modern replacements for classic tools</span>
+alias cat="batcat --style=plain"    <span class="comment"># bat: cat with syntax highlighting</span>
+alias ls="eza --icons --group-directories-first"  <span class="comment"># eza: modern ls</span>
+alias ll="eza -la --icons --group-directories-first --git"
+alias find="fdfind"                 <span class="comment"># fd: intuitive find replacement</span>
+alias grep="rg"                     <span class="comment"># ripgrep: fast grep</span>
+
+<span class="comment"># Quick navigation</span>
+alias ..="cd .."
+alias ...="cd ../.."
+alias proj="cd ~/projects"
+
+<span class="comment"># Git shortcuts (beyond what oh-my-zsh provides)</span>
+alias gs="git status"
+alias gl="git log --oneline -20"
+alias gd="git diff"</code></pre>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">History Configuration</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># History settings — add to ~/.zshrc</span>
+HISTSIZE=50000              <span class="comment"># Commands to keep in memory</span>
+SAVEHIST=50000              <span class="comment"># Commands to save to file</span>
+HISTFILE=~/.zsh_history
+
+setopt HIST_IGNORE_DUPS     <span class="comment"># Don't store duplicate commands</span>
+setopt HIST_IGNORE_SPACE    <span class="comment"># Don't store commands starting with space</span>
+setopt SHARE_HISTORY        <span class="comment"># Share history between terminals</span>
+setopt HIST_REDUCE_BLANKS   <span class="comment"># Remove extra blanks from commands</span>
+setopt INC_APPEND_HISTORY   <span class="comment"># Write immediately, don't wait for exit</span></code></pre>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">nvm Lazy Loading (Faster Startup)</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># nvm is slow to load (~200-400ms). Lazy-load it instead.</span>
+<span class="comment"># Replace the default nvm init block with:</span>
+
+export NVM_DIR="$HOME/.nvm"
+<span class="comment"># This loads nvm only when you first call node, npm, npx, or nvm</span>
+lazy_load_nvm() {
+  unset -f node npm npx nvm
+  [ -s "$NVM_DIR/nvm.sh" ] &amp;&amp; . "$NVM_DIR/nvm.sh"
+}
+node()  { lazy_load_nvm; node  "$@"; }
+npm()   { lazy_load_nvm; npm   "$@"; }
+npx()   { lazy_load_nvm; npx   "$@"; }
+nvm()   { lazy_load_nvm; nvm   "$@"; }</code></pre>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Benchmark your shell startup</strong>
+                        Run <code>time zsh -i -c exit</code> to see how long your shell takes to start. Under 200ms is great. If it's over 500ms, nvm lazy loading and reducing plugins will help. A fast shell makes every new terminal feel instant.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nerd Fonts -->
+            <div class="subsection">
+                <h3 class="subsection-title">Nerd Fonts</h3>
+                <p>Starship, Powerlevel10k, and many CLI tools use special icons (glyphs) that aren't in standard fonts. <strong>Nerd Fonts</strong> are patched fonts that include thousands of these icons alongside normal characters.</p>
+
+                <div class="card">
+                    <div class="card-label">Setup on Windows (for WSL users)</div>
+                    <div class="card-text">
+                        <p>Since your terminal runs on the <strong>Windows side</strong>, the Nerd Font must be installed on Windows, not inside WSL.</p>
+                    </div>
+                    <ol class="step-list">
+                        <li>
+                            <strong>Download a Nerd Font</strong>
+                            <p>Visit <a href="https://www.nerdfonts.com/font-downloads" target="_blank" rel="noopener">nerdfonts.com/font-downloads</a>. Popular choices: <strong>FiraCode Nerd Font</strong>, <strong>JetBrainsMono Nerd Font</strong>, or <strong>MesloLGS NF</strong>.</p>
+                        </li>
+                        <li>
+                            <strong>Install on Windows</strong>
+                            <p>Extract the zip, select all <code>.ttf</code> files, right-click, and choose "Install for all users".</p>
+                        </li>
+                        <li>
+                            <strong>Configure Windows Terminal</strong>
+                            <p>Open Windows Terminal &rarr; Settings &rarr; your Ubuntu profile &rarr; Appearance &rarr; Font face. Select the Nerd Font you installed (e.g., "FiraCode Nerd Font").</p>
+                        </li>
+                    </ol>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Why install on Windows, not WSL?</strong>
+                        Windows Terminal renders text using Windows-side fonts. WSL provides the shell and commands, but the terminal emulator on the Windows side does the actual font rendering. That's why the Nerd Font goes on Windows.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 09: CLI POWER TOOLS
+             ============================================ -->
+
+        <section id="cli-tools" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 09</span>
+                <h2 class="section-title">CLI Power Tools</h2>
+                <p class="section-description">Essential TUI and CLI tools that make terminal life better. These modern replacements are faster, friendlier, and more beautiful than the classics.</p>
+            </div>
+
+            <!-- Tool Grid -->
+            <div class="subsection">
+                <h3 class="subsection-title">The Essential Toolkit</h3>
+                <p>Each of these tools is a drop-in upgrade for a common task. Install them all or pick the ones that fit your workflow. They're sorted from "install this first" to "nice to have".</p>
+
+                <div class="command-grid">
+
+                    <div class="command-card">
+                        <div class="step-number">&#128296;</div>
+                        <div class="command-label">lazygit</div>
+                        <div class="command-desc">TUI git client. Visual staging, commits, branch management, interactive rebase &mdash; all without memorizing git commands.</div>
+                        <pre><code><span class="comment"># Install lazygit</span>
+sudo add-apt-repository ppa:lazygit-team/daily
+sudo apt update
+sudo apt install -y lazygit</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Git TUI</span>
+                            <span class="pill">Must-have</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128269;</div>
+                        <div class="command-label">fzf</div>
+                        <div class="command-desc">Fuzzy finder for files, history, processes &mdash; everything. Press <code>Ctrl+R</code> for fuzzy history search. Pipe any list into it.</div>
+                        <pre><code><span class="comment"># Install fzf</span>
+sudo apt install -y fzf
+
+<span class="comment"># Example: fuzzy-find a file</span>
+vim $(fzf)</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Fuzzy Finder</span>
+                            <span class="pill">Must-have</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#9889;</div>
+                        <div class="command-label">ripgrep (rg)</div>
+                        <div class="command-desc">Blazing fast grep replacement. Respects <code>.gitignore</code>, searches recursively by default, and highlights matches.</div>
+                        <pre><code><span class="comment"># Install ripgrep</span>
+sudo apt install -y ripgrep
+
+<span class="comment"># Example: search for a function</span>
+rg "function handleClick" --type js</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Search</span>
+                            <span class="pill">Must-have</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128193;</div>
+                        <div class="command-label">fd</div>
+                        <div class="command-desc">Intuitive <code>find</code> replacement. Simple syntax, colorized output, respects <code>.gitignore</code>, and 5x faster than find.</div>
+                        <pre><code><span class="comment"># Install fd</span>
+sudo apt install -y fd-find
+
+<span class="comment"># The binary is 'fdfind' — alias it</span>
+alias fd="fdfind"
+
+<span class="comment"># Example: find all .ts files</span>
+fd -e ts</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">File Finder</span>
+                            <span class="pill">Replaces find</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128049;</div>
+                        <div class="command-label">bat</div>
+                        <div class="command-desc">Cat with syntax highlighting, line numbers, and Git integration. Shows file changes inline. Beautiful output.</div>
+                        <pre><code><span class="comment"># Install bat</span>
+sudo apt install -y bat
+
+<span class="comment"># The binary is 'batcat' — alias it</span>
+alias bat="batcat"
+
+<span class="comment"># Example: view a file with highlighting</span>
+bat src/index.ts</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">File Viewer</span>
+                            <span class="pill">Replaces cat</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128194;</div>
+                        <div class="command-label">eza</div>
+                        <div class="command-desc">Modern <code>ls</code> replacement with icons, colors, Git status, and tree view. Makes directory listings beautiful and informative.</div>
+                        <pre><code><span class="comment"># Install eza</span>
+sudo apt install -y eza
+
+<span class="comment"># Example: list with icons and git info</span>
+eza -la --icons --git</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Directory Listing</span>
+                            <span class="pill">Replaces ls</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128640;</div>
+                        <div class="command-label">zoxide</div>
+                        <div class="command-desc">Smarter <code>cd</code> that learns your most-used directories. Type <code>z proj</code> instead of <code>cd ~/projects/my-project</code>.</div>
+                        <pre><code><span class="comment"># Install via install script</span>
+curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+
+<span class="comment"># Add to ~/.zshrc</span>
+eval "$(zoxide init zsh)"
+
+<span class="comment"># Usage: jump by partial name</span>
+z proj        <span class="comment"># Jumps to ~/projects</span>
+z my-app      <span class="comment"># Jumps to ~/projects/my-app</span></code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Navigation</span>
+                            <span class="pill">Replaces cd</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128300;</div>
+                        <div class="command-label">mcfly</div>
+                        <div class="command-desc">AI-powered shell history search. Replaces <code>Ctrl+R</code> with context-aware suggestions based on your directory and recent commands.</div>
+                        <pre><code><span class="comment"># Install via cargo (requires Rust)</span>
+cargo install mcfly
+
+<span class="comment"># Add to ~/.zshrc</span>
+eval "$(mcfly init zsh)"</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">History Search</span>
+                            <span class="pill">Replaces Ctrl+R</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128449;</div>
+                        <div class="command-label">Midnight Commander (mc)</div>
+                        <div class="command-desc">Dual-pane file manager in the terminal. Navigate, copy, move, and edit files visually. Great for exploring unfamiliar directory structures.</div>
+                        <pre><code><span class="comment"># Install mc</span>
+sudo apt install -y mc
+
+<span class="comment"># Launch it</span>
+mc</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">File Manager</span>
+                            <span class="pill">TUI Classic</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128200;</div>
+                        <div class="command-label">btop</div>
+                        <div class="command-desc">Beautiful resource monitor. CPU, memory, disk, network &mdash; all in a stunning TUI. Makes <code>htop</code> look dated.</div>
+                        <pre><code><span class="comment"># Install btop</span>
+sudo apt install -y btop
+
+<span class="comment"># Launch it</span>
+btop</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">System Monitor</span>
+                            <span class="pill">Replaces htop</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#128214;</div>
+                        <div class="command-label">tldr</div>
+                        <div class="command-desc">Simplified, practical man pages. Shows the most common use cases for a command, not a 500-line specification.</div>
+                        <pre><code><span class="comment"># Install tldr</span>
+sudo apt install -y tldr
+
+<span class="comment"># Update the page cache</span>
+tldr --update
+
+<span class="comment"># Example: quick help for tar</span>
+tldr tar</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Help Pages</span>
+                            <span class="pill">Replaces man</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#127912;</div>
+                        <div class="command-label">delta</div>
+                        <div class="command-desc">Better git diffs with syntax highlighting, line numbers, and side-by-side view. Makes code review in the terminal beautiful.</div>
+                        <pre><code><span class="comment"># Install delta</span>
+sudo apt install -y git-delta
+
+<span class="comment"># Configure git to use delta</span>
+git config --global core.pager delta
+git config --global interactive.diffFilter "delta --color-only"
+git config --global delta.navigate true
+git config --global delta.side-by-side true</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">Git Diffs</span>
+                            <span class="pill">Must-have</span>
+                        </div>
+                    </div>
+
+                    <div class="command-card">
+                        <div class="step-number">&#127760;</div>
+                        <div class="command-label">httpie</div>
+                        <div class="command-desc">Human-friendly HTTP client. Colorized output, intuitive syntax, JSON support built in. Makes API testing a pleasure.</div>
+                        <pre><code><span class="comment"># Install httpie</span>
+sudo apt install -y httpie
+
+<span class="comment"># Example: GET request</span>
+http httpbin.org/get
+
+<span class="comment"># Example: POST JSON</span>
+http POST api.example.com/users name=John</code></pre>
+                        <div class="pill-group">
+                            <span class="pill pill-accent">HTTP Client</span>
+                            <span class="pill">Replaces curl</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Quick Install -->
+            <div class="subsection">
+                <h3 class="subsection-title">Quick Install</h3>
+                <p>Install all the apt-based tools in a single command:</p>
+
+                <pre><code><span class="comment"># Install all apt-based CLI power tools at once</span>
+sudo apt install -y \
+  fzf \
+  ripgrep \
+  fd-find \
+  bat \
+  eza \
+  mc \
+  btop \
+  tldr \
+  git-delta \
+  httpie</code></pre>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Note about lazygit</strong>
+                        Lazygit requires adding a PPA first: <code>sudo add-apt-repository ppa:lazygit-team/daily</code>, then <code>sudo apt install lazygit</code>. It's not in the default Ubuntu repos.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Cargo-based tools (require Rust)</div>
+                    <div class="card-text">
+                        <p><strong>mcfly</strong> and <strong>zoxide</strong> can be installed via <code>cargo</code> (Rust's package manager). If you don't have Rust installed:</p>
+                    </div>
+                    <pre style="margin-bottom: var(--space-3);"><code><span class="comment"># Install Rust (if not already installed)</span>
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source ~/.cargo/env
+
+<span class="comment"># Then install cargo-based tools</span>
+cargo install mcfly zoxide</code></pre>
+                    <div class="card-text">
+                        <p style="margin-bottom: 0;">Alternatively, zoxide has an <a href="https://github.com/ajeetdsouza/zoxide#installation" target="_blank" rel="noopener">install script</a> that doesn't require Rust. Check each tool's GitHub repo for alternative install methods.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shell Integration -->
+            <div class="subsection">
+                <h3 class="subsection-title">Shell Integration Cheat Sheet</h3>
+                <p>After installing the tools, add these lines to your <code>~/.zshrc</code> to wire everything together:</p>
+
+                <div class="card">
+                    <div class="card-label">Add to ~/.zshrc</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># ===== Aliases for tools with different binary names =====</span>
+alias bat="batcat"
+alias fd="fdfind"
+
+<span class="comment"># ===== Modern tool aliases =====</span>
+alias cat="batcat --style=plain"
+alias ls="eza --icons --group-directories-first"
+alias ll="eza -la --icons --group-directories-first --git"
+
+<span class="comment"># ===== Tool initialization =====</span>
+eval "$(zoxide init zsh)"         <span class="comment"># Smarter cd</span>
+eval "$(mcfly init zsh)"          <span class="comment"># AI-powered history</span>
+eval "$(starship init zsh)"       <span class="comment"># Starship prompt (keep this last)</span></code></pre>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Order of operations</strong>
+                        In your <code>.zshrc</code>, tool initializations (<code>eval "$(...)"</code>) should come <strong>after</strong> Oh My Zsh is sourced and after your aliases. Starship's <code>eval</code> should be the very last line. This ensures everything plays nicely together.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 10: COMMON PITFALLS
+             ============================================ -->
+
+        <section id="pitfalls" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 10</span>
+                <h2 class="section-title">Common Pitfalls</h2>
+                <p class="section-description">Save yourself hours of debugging. These are the gotchas that trip up every WSL2 developer at least once.</p>
+            </div>
+
+            <!-- /mnt/c Performance Penalty -->
+            <div class="subsection">
+                <h3 class="subsection-title">/mnt/c Performance Penalty</h3>
+
+                <div class="alert alert-danger">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Critical: Never store projects on the Windows filesystem</strong>
+                        Accessing files through <code>/mnt/c/</code> from WSL2 is <strong>10-15x slower</strong> than using the native Linux filesystem. This affects everything: <code>npm install</code>, <code>git status</code>, file watchers, builds, and AI CLI tools that scan your codebase.
+                    </div>
+                </div>
+
+                <div class="compare-grid">
+                    <div class="compare-card bad">
+                        <div class="compare-heading">&#10060; Slow &mdash; Windows filesystem</div>
+                        <div class="card-text">
+                            <pre style="margin-bottom: var(--space-3);"><code><span class="comment"># DON'T do this</span>
+cd /mnt/c/Users/YourName/Documents/projects
+npm install   <span class="comment"># Takes 2-3 minutes</span>
+git status    <span class="comment"># Takes 5-10 seconds</span></code></pre>
+                            <p style="margin-bottom: 0; font-size: 0.85rem;">Files cross a 9P protocol bridge between the Linux kernel and Windows NTFS. Every single file operation pays this penalty.</p>
+                        </div>
+                    </div>
+                    <div class="compare-card good">
+                        <div class="compare-heading">&#9989; Fast &mdash; Linux filesystem</div>
+                        <div class="card-text">
+                            <pre style="margin-bottom: var(--space-3);"><code><span class="comment"># DO this instead</span>
+cd ~/projects/my-app
+npm install   <span class="comment"># Takes 15-20 seconds</span>
+git status    <span class="comment"># Instant</span></code></pre>
+                            <p style="margin-bottom: 0; font-size: 0.85rem;">Native ext4 filesystem inside the WSL2 VM. Full Linux I/O performance. This is where all your code should live.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Timing comparison</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># Test it yourself &mdash; create a test project in both locations</span>
+
+<span class="comment"># On /mnt/c (Windows filesystem)</span>
+cd /mnt/c/Users/YourName/Desktop
+mkdir test-speed &amp;&amp; cd test-speed
+time npm init -y &amp;&amp; time npm install express
+<span class="comment"># Real time: ~45 seconds</span>
+
+<span class="comment"># On ~ (Linux filesystem)</span>
+cd ~
+mkdir test-speed &amp;&amp; cd test-speed
+time npm init -y &amp;&amp; time npm install express
+<span class="comment"># Real time: ~4 seconds</span></code></pre>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Access Linux files from Windows</strong>
+                        You can browse your WSL2 files from Windows Explorer at <code>\\wsl$\Ubuntu\home\yourname</code>. You can also pin this path to Quick Access for easy drag-and-drop.
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Permissions -->
+            <div class="subsection">
+                <h3 class="subsection-title">File Permissions</h3>
+                <p>By default, <code>chmod</code> has no effect on files stored in <code>/mnt/c/</code> because NTFS doesn't understand Unix permissions. This breaks SSH keys, scripts, and any tool that checks file modes.</p>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Problem: chmod doesn't work on /mnt/c/</strong>
+                        Running <code>chmod 600 ~/.ssh/id_rsa</code> on a file stored at <code>/mnt/c/</code> does nothing. SSH will refuse to use keys with "too open" permissions, and scripts won't be executable.
+                    </div>
+                </div>
+
+                <p><strong>Solution:</strong> Enable metadata support in <code>/etc/wsl.conf</code> so WSL can store Unix permissions alongside NTFS files:</p>
+
+                <div class="card">
+                    <div class="card-label">/etc/wsl.conf</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># Create or edit /etc/wsl.conf</span>
+sudo nano /etc/wsl.conf
+
+<span class="comment"># Add these lines:</span>
+[automount]
+enabled = true
+options = "metadata,umask=22,fmask=11"
+mountFsTab = false</code></pre>
+                </div>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Best practice: Keep SSH keys in Linux</strong>
+                        Always store SSH keys in <code>~/.ssh/</code> on the Linux filesystem, never on <code>/mnt/c/</code>. Copy them from Windows if needed: <code>cp /mnt/c/Users/YourName/.ssh/id_rsa ~/.ssh/ &amp;&amp; chmod 600 ~/.ssh/id_rsa</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Memory Limits -->
+            <div class="subsection">
+                <h3 class="subsection-title">Memory Limits</h3>
+                <p>WSL2 is hungry. By default, it claims <strong>50% of your total RAM</strong> or 8 GB (whichever is less on newer builds). If you have 16 GB of RAM, WSL2 may take 8 GB and leave Windows starving.</p>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Problem: WSL2 eats all your RAM</strong>
+                        You notice Windows slowing down, fans spinning up, or Task Manager showing "Vmmem" using massive amounts of memory. This is the WSL2 VM growing unchecked.
+                    </div>
+                </div>
+
+                <p><strong>Solution:</strong> Create a <code>.wslconfig</code> file on the Windows side to set memory limits:</p>
+
+                <div class="card">
+                    <div class="card-label">C:\Users\YourName\.wslconfig</div>
+                    <pre style="margin-bottom: var(--space-3);"><code><span class="comment"># Create this file at: C:\Users\YourName\.wslconfig</span>
+<span class="comment"># (Use Notepad or VS Code on Windows)</span>
+
+[wsl2]
+memory=8GB
+swap=8GB
+processors=4</code></pre>
+                    <div class="card-text">
+                        <p style="margin-bottom: 0;"><strong>Adjust to your machine:</strong> If you have 16 GB RAM, <code>memory=8GB</code> is a good balance. For 32 GB machines, try <code>memory=12GB</code>. The <code>processors</code> value limits CPU cores visible to WSL.</p>
+                    </div>
+                </div>
+
+                <div class="alert alert-danger">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>You must restart WSL for .wslconfig changes to take effect</strong>
+                        Open PowerShell and run <code>wsl --shutdown</code>, then reopen your terminal. See the "Forgetting wsl --shutdown" pitfall below.
+                    </div>
+                </div>
+            </div>
+
+            <!-- DNS Resolution -->
+            <div class="subsection">
+                <h3 class="subsection-title">DNS Resolution</h3>
+                <p>DNS failures are one of the most frustrating WSL2 issues. Symptoms: <code>apt update</code> fails, <code>curl</code> can't resolve hosts, <code>npm install</code> times out &mdash; but your Windows browser works fine.</p>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Problem: DNS fails behind VPN or corporate proxy</strong>
+                        WSL2 auto-generates <code>/etc/resolv.conf</code> using Windows DNS settings. VPNs and corporate proxies often break this auto-detection, leaving WSL with no working DNS.
+                    </div>
+                </div>
+
+                <p><strong>Solution A (Windows 11 22H2+):</strong> Enable DNS tunneling in <code>.wslconfig</code>:</p>
+
+                <div class="card">
+                    <div class="card-label">C:\Users\YourName\.wslconfig</div>
+                    <pre style="margin-bottom: 0;"><code>[wsl2]
+dnsTunneling=true</code></pre>
+                </div>
+
+                <p><strong>Solution B (manual fix for older versions):</strong> Disable auto-generation and set DNS manually:</p>
+
+                <div class="card">
+                    <div class="card-label">Step 1: /etc/wsl.conf</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># Prevent WSL from overwriting resolv.conf</span>
+sudo nano /etc/wsl.conf
+
+<span class="comment"># Add these lines:</span>
+[network]
+generateResolvConf = false</code></pre>
+                </div>
+
+                <div class="card" style="margin-top: var(--space-4);">
+                    <div class="card-label">Step 2: /etc/resolv.conf</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># Remove the auto-generated symlink and create a real file</span>
+sudo rm /etc/resolv.conf
+sudo nano /etc/resolv.conf
+
+<span class="comment"># Add reliable public DNS servers:</span>
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+nameserver 1.1.1.1</code></pre>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>After any DNS fix</strong>
+                        Restart WSL with <code>wsl --shutdown</code> from PowerShell. Then test with <code>ping google.com</code> to confirm DNS is working.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Networking / localhost -->
+            <div class="subsection">
+                <h3 class="subsection-title">Networking / localhost</h3>
+                <p>You start a dev server in WSL (like <code>npm run dev</code> on port 3000), open <code>localhost:3000</code> in your Windows browser, and... nothing loads.</p>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Problem: WSL services not accessible from Windows browser</strong>
+                        WSL2 runs in its own network namespace with a separate IP address. On older Windows builds, <code>localhost</code> forwarding can be unreliable or broken entirely.
+                    </div>
+                </div>
+
+                <p><strong>Solution A (Windows 11 22H2+ recommended):</strong> Enable mirrored networking mode:</p>
+
+                <div class="card">
+                    <div class="card-label">C:\Users\YourName\.wslconfig</div>
+                    <pre style="margin-bottom: var(--space-3);"><code>[wsl2]
+networkingMode=mirrored</code></pre>
+                    <div class="card-text">
+                        <p style="margin-bottom: 0;">Mirrored mode makes WSL2 share the host's network interfaces. <code>localhost</code> works exactly as expected in both directions.</p>
+                    </div>
+                </div>
+
+                <p><strong>Solution B (find WSL IP manually):</strong></p>
+
+                <pre><code><span class="comment"># Find your WSL2 IP address</span>
+ip addr show eth0 | grep -oP '(?&lt;=inet\s)\d+(\.\d+){3}'
+
+<span class="comment"># Example output: 172.28.160.1</span>
+<span class="comment"># Use this IP in your Windows browser instead of localhost</span>
+<span class="comment"># e.g., http://172.28.160.1:3000</span></code></pre>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Pro tip: Combine .wslconfig settings</strong>
+                        You can put all your fixes in one <code>.wslconfig</code> file. Memory limits, DNS tunneling, and mirrored networking all go under the <code>[wsl2]</code> header.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Recommended .wslconfig (all fixes combined)</div>
+                    <pre style="margin-bottom: 0;"><code><span class="comment"># C:\Users\YourName\.wslconfig</span>
+[wsl2]
+memory=8GB
+swap=8GB
+processors=4
+dnsTunneling=true
+networkingMode=mirrored</code></pre>
+                </div>
+            </div>
+
+            <!-- Forgetting wsl --shutdown -->
+            <div class="subsection">
+                <h3 class="subsection-title">Forgetting <code>wsl --shutdown</code></h3>
+                <p>You edit <code>.wslconfig</code> or <code>/etc/wsl.conf</code>, restart your terminal, and nothing changed. That's because config changes require a <strong>full WSL restart</strong>, not just closing the terminal window.</p>
+
+                <div class="alert alert-danger">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Problem: Config changes not taking effect</strong>
+                        Closing and reopening Ubuntu does NOT restart WSL. The VM keeps running in the background. Changes to <code>.wslconfig</code> and <code>/etc/wsl.conf</code> are only read at VM boot time.
+                    </div>
+                </div>
+
+                <p><strong>Solution:</strong> Always run this from <strong>PowerShell</strong> (not from inside WSL) after changing any config:</p>
+
+                <pre><code><span class="comment"># Run this in PowerShell (not WSL!)</span>
+wsl --shutdown
+
+<span class="comment"># Wait a few seconds, then reopen your Ubuntu terminal</span>
+<span class="comment"># The VM will boot fresh with your new settings</span></code></pre>
+
+                <div class="card">
+                    <div class="card-label">Which config goes where?</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>Location</th>
+                                    <th>Controls</th>
+                                    <th>Restart Needed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>.wslconfig</code></td>
+                                    <td>Windows: <code>C:\Users\YourName\</code></td>
+                                    <td>VM-level settings: memory, CPU, networking, DNS</td>
+                                    <td><span class="badge badge-danger">wsl --shutdown</span></td>
+                                </tr>
+                                <tr>
+                                    <td><code>wsl.conf</code></td>
+                                    <td>Linux: <code>/etc/wsl.conf</code></td>
+                                    <td>Per-distro settings: automount, network, interop</td>
+                                    <td><span class="badge badge-danger">wsl --shutdown</span></td>
+                                </tr>
+                                <tr>
+                                    <td><code>.zshrc</code></td>
+                                    <td>Linux: <code>~/.zshrc</code></td>
+                                    <td>Shell config: aliases, plugins, PATH</td>
+                                    <td><span class="badge badge-success">source ~/.zshrc</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 11: TIPS & WORKFLOW
+             ============================================ -->
+
+        <section id="tips" class="section">
+            <div class="section-header">
+                <span class="section-number">Section 11</span>
+                <h2 class="section-title">Tips &amp; Workflow</h2>
+                <p class="section-description">Bringing it all together &mdash; your daily workflow, best practices, and where to go from here.</p>
+            </div>
+
+            <!-- VS Code + WSL Remote -->
+            <div class="subsection">
+                <h3 class="subsection-title">VS Code + WSL Remote</h3>
+                <p>VS Code is the best editor for WSL development. Install it on the <strong>Windows side</strong>, and it transparently connects to your Linux environment via the WSL extension.</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Install VS Code on Windows</strong>
+                        <p>Download from <a href="https://code.visualstudio.com/" target="_blank" rel="noopener">code.visualstudio.com</a>. Run the Windows installer normally.</p>
+                    </li>
+                    <li>
+                        <strong>Install the WSL extension</strong>
+                        <p>Open VS Code, go to Extensions (<code>Ctrl+Shift+X</code>), search for "WSL" by Microsoft, and install it. This lets VS Code run a server inside WSL.</p>
+                    </li>
+                    <li>
+                        <strong>Open projects from WSL</strong>
+                        <p>In your WSL terminal, navigate to any project and type <code>code .</code> to open it in VS Code. The bottom-left corner will show "WSL: Ubuntu" confirming the connection.</p>
+                        <pre><code><span class="comment"># From your WSL terminal</span>
+cd ~/projects/my-app
+code .</code></pre>
+                    </li>
+                </ol>
+
+                <div class="card">
+                    <div class="card-label">Essential VS Code extensions for AI coding</div>
+                    <div class="table-wrapper" style="box-shadow: none; margin-bottom: 0;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Extension</th>
+                                    <th>What It Does</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>GitHub Copilot</strong></td>
+                                    <td>AI autocomplete in the editor. Complements CLI tools by handling inline suggestions.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>GitLens</strong></td>
+                                    <td>See who changed each line, browse file history, compare branches &mdash; all inline.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Prettier</strong></td>
+                                    <td>Auto-format code on save. Keeps AI-generated code consistent with your style.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>ESLint</strong></td>
+                                    <td>Catch errors and enforce code quality rules as you type.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Error Lens</strong></td>
+                                    <td>Highlights errors and warnings inline, right next to the problematic code.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="alert alert-info">
+                    <span class="alert-icon">&#8505;</span>
+                    <div class="alert-content">
+                        <strong>Cursor as an alternative</strong>
+                        <a href="https://cursor.sh/" target="_blank" rel="noopener">Cursor</a> is a VS Code fork with deeper AI integration (chat, inline edits, codebase-aware completions). It also supports WSL via the same Remote extension. Worth trying if you want AI built into the editor itself, but VS Code + CLI tools is the more flexible setup.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Organization -->
+            <div class="subsection">
+                <h3 class="subsection-title">Project Organization</h3>
+                <p>A clean directory structure saves time and prevents confusion. Keep everything on the Linux filesystem.</p>
+
+                <div class="card">
+                    <div class="card-label">Recommended directory structure</div>
+                    <pre style="margin-bottom: 0;"><code><span class="variable">~</span>                          <span class="comment"># /home/yourname (Linux home)</span>
+<span class="variable">|</span>
+<span class="variable">+-- projects/</span>               <span class="comment"># All your code lives here</span>
+<span class="variable">|   +-- my-app/</span>             <span class="comment"># Individual project repos</span>
+<span class="variable">|   +-- portfolio/</span>
+<span class="variable">|   +-- api-server/</span>
+<span class="variable">|</span>
+<span class="variable">+-- learning/</span>               <span class="comment"># Tutorials, experiments, scratch</span>
+<span class="variable">|   +-- javascript-30/</span>
+<span class="variable">|   +-- python-basics/</span>
+<span class="variable">|</span>
+<span class="variable">+-- dotfiles/</span>               <span class="comment"># Your config files (version controlled)</span>
+<span class="variable">|   +-- .zshrc</span>
+<span class="variable">|   +-- .gitconfig</span>
+<span class="variable">|   +-- setup.sh</span>            <span class="comment"># Script to set up a fresh machine</span>
+<span class="variable">|</span>
+<span class="variable">+-- .ssh/</span>                   <span class="comment"># SSH keys (Linux filesystem only!)</span></code></pre>
+                </div>
+
+                <div class="alert alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong>Everything in the Linux filesystem</strong>
+                        As covered in the Pitfalls section, never use <code>/mnt/c/</code> for projects. If you have existing projects on the Windows side, move them: <code>cp -r /mnt/c/Users/YourName/projects/my-app ~/projects/</code>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Workflow Example -->
+            <div class="subsection">
+                <h3 class="subsection-title">Daily Workflow Example</h3>
+                <p>Here's what a typical AI-assisted development session looks like once everything is set up:</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Open your terminal</strong>
+                        <p>Launch Windows Terminal. It opens directly into your WSL Ubuntu shell with Zsh, Oh My Zsh, and Starship prompt ready to go.</p>
+                    </li>
+                    <li>
+                        <strong>Navigate to your project</strong>
+                        <pre><code>cd ~/projects/my-app</code></pre>
+                    </li>
+                    <li>
+                        <strong>Open VS Code</strong>
+                        <pre><code>code .</code></pre>
+                        <p>VS Code connects to WSL automatically. Your integrated terminal inside VS Code is also running in WSL.</p>
+                    </li>
+                    <li>
+                        <strong>Start an AI coding session</strong>
+                        <p>Open the VS Code integrated terminal (or a separate terminal tab) and launch your AI tool:</p>
+                        <pre><code><span class="comment"># For deep, multi-file work</span>
+claude
+
+<span class="comment"># For quick, focused tasks</span>
+codex "add input validation to the signup form"</code></pre>
+                    </li>
+                    <li>
+                        <strong>Work with the AI</strong>
+                        <p>Describe what you want in natural language. Review the changes the AI proposes. Accept, reject, or refine. Iterate until it's right.</p>
+                    </li>
+                    <li>
+                        <strong>Commit and push</strong>
+                        <pre><code><span class="comment"># Stage and commit your changes</span>
+git add -A
+git commit -m "Add input validation to signup form"
+
+<span class="comment"># Push to GitHub as backup</span>
+git push origin main</code></pre>
+                    </li>
+                </ol>
+
+                <div class="alert alert-tip">
+                    <span class="alert-icon">&#128161;</span>
+                    <div class="alert-content">
+                        <strong>Let Claude Code handle Git for you</strong>
+                        You can ask Claude Code to commit and push your changes directly: just say "commit these changes with a descriptive message" in the Claude Code session. It understands Git workflows natively.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Git Best Practices for Beginners -->
+            <div class="subsection">
+                <h3 class="subsection-title">Git Best Practices for Beginners</h3>
+                <p>Good Git habits make collaboration easier, AI tools more effective, and your future self grateful.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">&#128190;</div>
+                        <div class="feature-title">Commit Often</div>
+                        <div class="feature-desc">Small, frequent commits are better than one giant commit. Each commit should represent one logical change. Makes it easy to undo mistakes.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128221;</div>
+                        <div class="feature-title">Write Good Messages</div>
+                        <div class="feature-desc">Use imperative mood: "Add login form" not "Added login form". The first line should be under 50 characters. Add detail in the body if needed.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#127796;</div>
+                        <div class="feature-title">Use Branches</div>
+                        <div class="feature-desc">Work on features in branches: <code>git checkout -b feature/signup</code>. Merge to main when done. Keeps main stable and your experiments safe.</div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#9729;</div>
+                        <div class="feature-title">Push Daily</div>
+                        <div class="feature-desc">Push to GitHub at least once a day. It's your backup. If your laptop dies, your code survives. <code>git push origin main</code> takes two seconds.</div>
+                    </div>
+                </div>
+
+                <pre><code><span class="comment"># A good daily Git workflow</span>
+git status                        <span class="comment"># See what changed</span>
+git diff                          <span class="comment"># Review the actual changes</span>
+git add -A                        <span class="comment"># Stage everything</span>
+git commit -m "Add user avatar upload"  <span class="comment"># Descriptive message</span>
+git push origin main              <span class="comment"># Back up to GitHub</span></code></pre>
+            </div>
+
+            <!-- Learning Path -->
+            <div class="subsection">
+                <h3 class="subsection-title">Learning Path</h3>
+                <p>You've got your environment set up. Now what? Here's a roadmap for building real skills:</p>
+
+                <ol class="step-list">
+                    <li>
+                        <strong>Build a small project</strong>
+                        <p>Don't just follow tutorials &mdash; build something real. A personal website, a CLI tool, a simple API. Use Claude Code or Codex to help, but make sure you understand the code they generate.</p>
+                    </li>
+                    <li>
+                        <strong>Learn Git branching</strong>
+                        <p>Move beyond <code>git add/commit/push</code>. Learn <code>git branch</code>, <code>git merge</code>, <code>git rebase</code>, and how to resolve merge conflicts. Try <a href="https://learngitbranching.js.org/" target="_blank" rel="noopener">learngitbranching.js.org</a> for interactive practice.</p>
+                    </li>
+                    <li>
+                        <strong>Explore MCP integrations</strong>
+                        <p>Claude Code's MCP (Model Context Protocol) lets it connect to databases, APIs, and external tools. Try connecting it to a SQLite database or a REST API to see how it handles real-world data.</p>
+                    </li>
+                    <li>
+                        <strong>Compare Claude Code and Codex on the same task</strong>
+                        <p>Give both tools the same prompt on the same project. Compare their approaches, code quality, and speed. You'll develop intuition for when to reach for each tool.</p>
+                    </li>
+                    <li>
+                        <strong>Version-control your dotfiles</strong>
+                        <p>Create a <code>~/dotfiles</code> repo with your <code>.zshrc</code>, <code>.gitconfig</code>, and a setup script. When you get a new machine or reinstall WSL, you can be productive in minutes instead of hours.</p>
+                    </li>
+                </ol>
+            </div>
+
+            <!-- Resources -->
+            <div class="subsection">
+                <h3 class="subsection-title">Resources</h3>
+                <p>Official documentation, essential repos, and community resources to bookmark.</p>
+
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <div class="icon">&#128218;</div>
+                        <div class="feature-title">Official Docs</div>
+                        <div class="feature-desc">
+                            <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" rel="noopener">Claude Code Docs</a><br>
+                            <a href="https://github.com/openai/codex" target="_blank" rel="noopener">Codex CLI GitHub</a><br>
+                            <a href="https://learn.microsoft.com/en-us/windows/wsl/" target="_blank" rel="noopener">WSL Documentation</a><br>
+                            <a href="https://ohmyz.sh/" target="_blank" rel="noopener">Oh My Zsh</a>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128736;</div>
+                        <div class="feature-title">Key Tools</div>
+                        <div class="feature-desc">
+                            <a href="https://github.com/nvm-sh/nvm" target="_blank" rel="noopener">nvm (Node Version Manager)</a><br>
+                            <a href="https://starship.rs/" target="_blank" rel="noopener">Starship Prompt</a><br>
+                            <a href="https://github.com/junegunn/fzf" target="_blank" rel="noopener">fzf (Fuzzy Finder)</a><br>
+                            <a href="https://github.com/BurntSushi/ripgrep" target="_blank" rel="noopener">ripgrep</a>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#127891;</div>
+                        <div class="feature-title">Learning</div>
+                        <div class="feature-desc">
+                            <a href="https://learngitbranching.js.org/" target="_blank" rel="noopener">Learn Git Branching</a><br>
+                            <a href="https://missing.csail.mit.edu/" target="_blank" rel="noopener">MIT Missing Semester</a><br>
+                            <a href="https://www.joshwcomeau.com/css/interactive-guide-to-flexbox/" target="_blank" rel="noopener">Interactive CSS Guides</a><br>
+                            <a href="https://javascript.info/" target="_blank" rel="noopener">javascript.info</a>
+                        </div>
+                    </div>
+                    <div class="feature-card">
+                        <div class="icon">&#128101;</div>
+                        <div class="feature-title">Community</div>
+                        <div class="feature-desc">
+                            <a href="https://github.com/anthropics/claude-code" target="_blank" rel="noopener">Claude Code GitHub</a><br>
+                            <a href="https://community.openai.com/" target="_blank" rel="noopener">OpenAI Community</a><br>
+                            <a href="https://www.reddit.com/r/wsl/" target="_blank" rel="noopener">r/wsl subreddit</a><br>
+                            <a href="https://discord.gg/anthropic" target="_blank" rel="noopener">Anthropic Discord</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================
+         FOOTER
+         ============================================ -->
+
+    <footer class="site-footer">
+        <div style="margin-bottom: var(--space-4);">
+            <a href="index.html" style="display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 700; padding: var(--space-3) var(--space-5); background: var(--bg); box-shadow: var(--neu-raised-sm); border-radius: var(--radius-full); color: var(--accent); text-decoration: none; transition: box-shadow 0.3s, transform 0.3s;" onmouseover="this.style.boxShadow='var(--neu-raised)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='var(--neu-raised-sm)';this.style.transform='none'">&larr; Back to Tech Guides</a>
+        </div>
+        <div style="margin-bottom: var(--space-4);">
+            <a href="#" style="display: inline-flex; align-items: center; gap: var(--space-2); font-weight: 700; padding: var(--space-3) var(--space-5); background: var(--bg); box-shadow: var(--neu-raised-sm); border-radius: var(--radius-full); color: var(--text-muted); text-decoration: none; font-size: 0.85rem; transition: box-shadow 0.3s, transform 0.3s;" onmouseover="this.style.boxShadow='var(--neu-raised)';this.style.transform='translateY(-2px)';this.style.color='var(--accent)'" onmouseout="this.style.boxShadow='var(--neu-raised-sm)';this.style.transform='none';this.style.color='var(--text-muted)'">&uarr; Back to Top</a>
+        </div>
+        <p class="footer-note">AI CLI Developer Setup &mdash; Neumorphism Style</p>
+    </footer>
+
+</body>
+</html>

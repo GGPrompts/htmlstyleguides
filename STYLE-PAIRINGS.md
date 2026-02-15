@@ -72,7 +72,7 @@ Master mapping of all 105 style guides and their usage across tech guides and st
 | mughal | | |
 | neo-void | | |
 | neon-brutal | | The Strip |
-| neumorphism | | |
+| neumorphism | AI CLI Developer Setup | |
 | newspaper | Security Fundamentals | |
 | noir | SSH | The Morrison Case |
 | nordic | | The Long Winter |
