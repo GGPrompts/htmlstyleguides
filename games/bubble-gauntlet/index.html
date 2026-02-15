@@ -831,7 +831,6 @@
             const type = POWERUP_TYPES[Math.floor(Math.random() * POWERUP_TYPES.length)];
             powerups.push({
                 x, y, type,
-                vy: -30,
                 phase: 0,
                 life: 6
             });
@@ -1338,9 +1337,10 @@
             // Power-ups
             for (let i = powerups.length - 1; i >= 0; i--) {
                 const p = powerups[i];
-                p.x -= scrollSpeed * dt * 0.5;
-                p.y += p.vy * dt;
-                p.vy *= 0.95;
+                // Float toward player's x, bob vertically
+                const dx = player.x - p.x;
+                p.x += dx * 1.5 * dt;
+                p.y += Math.sin(p.phase * 3) * 40 * dt;
                 p.phase += dt;
                 p.life -= dt;
 
