@@ -285,7 +285,7 @@
         <div class="title-start">Tap or Press Space to Swim</div>
         <div class="title-highscore" id="title-highscore"></div>
         <div class="title-controls">
-            SPACE / TAP = Swim Up &bull; P = Pause<br>
+            SPACE / TAP = Swim Up &bull; Aim shots with momentum &bull; P = Pause<br>
             Bubbles auto-fire. Survive the gauntlet!
         </div>
     </div>
@@ -334,6 +334,10 @@
         let columnTimer = 0;
         let columnsSpawned = 0;
         let columnsPassed = 0;
+
+        // Coral vines
+        let vines = [];
+        let vineSpawnCounter = 0;
 
         // Bubbles
         let bubbles = [];
@@ -462,6 +466,11 @@
             swim() {
                 playTone(350, 0.06, 'sine', 0.04);
                 playTone(420, 0.04, 'sine', 0.03);
+            },
+            vineBreak() {
+                playTone(300, 0.12, 'triangle', 0.08);
+                playTone(150, 0.15, 'sine', 0.06);
+                playNoise(0.08, 0.06);
             }
         };
 
@@ -541,6 +550,8 @@
             particles = [];
             enemyProjectiles = [];
             powerups = [];
+            vines = [];
+            vineSpawnCounter = 0;
             activePowerup = null;
             powerupTimer = 0;
             hasShield = false;
@@ -811,6 +822,61 @@
             columnsSpawned++;
         }
 
+        // ===================== CORAL VINE SPAWNING =====================
+        function spawnVine() {
+            const margin = 60;
+            const segmentH = 40;
+            const numSegments = 8 + Math.floor(Math.random() * 6);
+            const startY = margin + Math.random() * (H - margin * 2 - numSegments * segmentH);
+
+            // Determine node count and HP based on game time
+            let nodeCount, nodeHp;
+            if (gameTime < 45) {
+                nodeCount = 1;
+                nodeHp = 1;
+            } else if (gameTime < 75) {
+                nodeCount = 2;
+                nodeHp = Math.random() < 0.4 ? 2 : 1;
+            } else {
+                nodeCount = 3;
+                nodeHp = Math.random() < 0.5 ? 2 : 1;
+            }
+
+            // Place nodes at positions that reward angled shots (not centered)
+            const segments = [];
+            const nodeIndices = new Set();
+            while (nodeIndices.size < Math.min(nodeCount, numSegments)) {
+                // Bias toward top and bottom thirds
+                let idx;
+                if (Math.random() < 0.7) {
+                    idx = Math.random() < 0.5
+                        ? Math.floor(Math.random() * Math.floor(numSegments / 3))
+                        : numSegments - 1 - Math.floor(Math.random() * Math.floor(numSegments / 3));
+                } else {
+                    idx = Math.floor(Math.random() * numSegments);
+                }
+                nodeIndices.add(idx);
+            }
+
+            for (let i = 0; i < numSegments; i++) {
+                const isNode = nodeIndices.has(i);
+                segments.push({
+                    y: startY + i * segmentH,
+                    isNode: isNode,
+                    hp: isNode ? nodeHp : 0,
+                    maxHp: isNode ? nodeHp : 0,
+                    alive: true
+                });
+            }
+
+            vines.push({
+                x: W + 50,
+                segments: segments,
+                destroyed: false,
+                breakPhase: 0
+            });
+        }
+
         // ===================== POWER-UP SPAWNING =====================
         const POWERUP_TYPES = ['spread', 'rapid', 'shield', 'big'];
         const POWERUP_COLORS = {
@@ -1065,6 +1131,28 @@
         function drawBubble(b) {
             const size = b.big ? 10 : 5;
             ctx.save();
+
+            // Motion trail behind bubble
+            const speed = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+            if (speed > 10) {
+                const nx = -b.vx / speed;
+                const ny = -b.vy / speed;
+                const trailLen = b.big ? 18 : 12;
+                const grad = ctx.createLinearGradient(
+                    b.x, b.y,
+                    b.x + nx * trailLen, b.y + ny * trailLen
+                );
+                grad.addColorStop(0, 'rgba(77,232,194,0.35)');
+                grad.addColorStop(1, 'rgba(77,232,194,0)');
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = size * 1.2;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(b.x, b.y);
+                ctx.lineTo(b.x + nx * trailLen, b.y + ny * trailLen);
+                ctx.stroke();
+            }
+
             ctx.shadowColor = 'rgba(77,232,194,0.6)';
             ctx.shadowBlur = b.big ? 12 : 6;
             ctx.fillStyle = b.big ? 'rgba(77,232,194,0.6)' : 'rgba(77,232,194,0.7)';
@@ -1145,6 +1233,100 @@
             ctx.globalAlpha = 1;
         }
 
+        // Coral vine drawing
+        function drawVine(vine) {
+            if (vine.destroyed) return;
+            vine.breakPhase += 0.03;
+
+            for (const seg of vine.segments) {
+                if (!seg.alive) continue;
+
+                if (seg.isNode) {
+                    // Glowing weak node
+                    const pulse = 0.6 + Math.sin(vine.breakPhase * 4 + seg.y * 0.1) * 0.3;
+                    const hpRatio = seg.hp / seg.maxHp;
+
+                    ctx.save();
+                    // Outer glow
+                    ctx.shadowColor = `rgba(77,232,194,${pulse * 0.8})`;
+                    ctx.shadowBlur = 15;
+                    ctx.fillStyle = hpRatio > 0.5
+                        ? `rgba(77,232,194,${pulse})`
+                        : `rgba(255,107,138,${pulse})`;
+                    ctx.beginPath();
+                    ctx.arc(vine.x, seg.y, 10, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Inner core
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = hpRatio > 0.5
+                        ? `rgba(200,255,240,${0.5 + pulse * 0.3})`
+                        : `rgba(255,180,180,${0.5 + pulse * 0.3})`;
+                    ctx.beginPath();
+                    ctx.arc(vine.x, seg.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // HP pips
+                    if (seg.maxHp > 1) {
+                        for (let h = 0; h < seg.maxHp; h++) {
+                            ctx.fillStyle = h < seg.hp ? '#fff' : 'rgba(255,255,255,0.2)';
+                            ctx.beginPath();
+                            ctx.arc(vine.x - (seg.maxHp - 1) * 4 + h * 8, seg.y + 14, 2, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                    }
+                    ctx.restore();
+                } else {
+                    // Indestructible vine segment
+                    ctx.save();
+                    const sway = Math.sin(vine.breakPhase + seg.y * 0.05) * 3;
+                    ctx.strokeStyle = 'rgba(60,120,80,0.7)';
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(vine.x + sway, seg.y - 18);
+                    ctx.lineTo(vine.x - sway, seg.y + 18);
+                    ctx.stroke();
+
+                    // Tiny leaf/thorn
+                    if (Math.sin(seg.y * 0.3) > 0) {
+                        ctx.fillStyle = 'rgba(80,160,100,0.5)';
+                        ctx.beginPath();
+                        ctx.ellipse(vine.x + sway + 6, seg.y, 5, 3, 0.4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+            }
+        }
+
+        // Aim direction indicator
+        function drawAimIndicator() {
+            if (!player.alive) return;
+            const aimAngle = (player.vy / 800) * 0.5;
+            const len = 35;
+            const startX = player.x + 24;
+            const startY = player.y;
+            const endX = startX + Math.cos(aimAngle) * len;
+            const endY = startY + Math.sin(aimAngle) * len;
+
+            ctx.save();
+            ctx.setLineDash([3, 4]);
+            ctx.strokeStyle = 'rgba(77,232,194,0.3)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            // Small dot at end
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(77,232,194,0.4)';
+            ctx.beginPath();
+            ctx.arc(endX, endY, 2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
         // Sand/floor
         function drawFloor() {
             ctx.fillStyle = 'rgba(245,214,168,0.08)';
@@ -1196,6 +1378,15 @@
             if (columnTimer <= 0) {
                 columnTimer = columnSpacing / scrollSpeed;
                 spawnColumn();
+
+                // Vine spawning: after 20s, every 3rd-4th column
+                if (gameTime > 20) {
+                    vineSpawnCounter++;
+                    if (vineSpawnCounter >= 3 + Math.floor(Math.random() * 2)) {
+                        vineSpawnCounter = 0;
+                        spawnVine();
+                    }
+                }
             }
 
             // Update columns & enemies
@@ -1264,7 +1455,7 @@
                 b.x += b.vx * dt;
                 b.y += b.vy * dt;
 
-                if (b.x > W + 20) {
+                if (b.x > W + 20 || b.y < -20 || b.y > H + 20) {
                     bubbles.splice(i, 1);
                     continue;
                 }
@@ -1330,6 +1521,82 @@
                     } else {
                         killPlayer();
                         return;
+                    }
+                }
+            }
+
+            // Update vines
+            for (let vi = vines.length - 1; vi >= 0; vi--) {
+                const vine = vines[vi];
+                vine.x -= scrollSpeed * dt;
+
+                if (vine.x < -60) {
+                    vines.splice(vi, 1);
+                    continue;
+                }
+
+                if (vine.destroyed) continue;
+
+                // Check if all nodes broken
+                const nodesLeft = vine.segments.filter(s => s.isNode && s.alive).length;
+                if (nodesLeft === 0) {
+                    vine.destroyed = true;
+                    // Break apart effect
+                    for (const seg of vine.segments) {
+                        if (seg.alive) {
+                            spawnBubblePop(vine.x, seg.y, 'rgba(80,160,100,0.6)');
+                            seg.alive = false;
+                        }
+                    }
+                    score += 100;
+                    spawnScorePopup(vine.x, vine.segments[Math.floor(vine.segments.length / 2)].y, '+100');
+                    sfx.vineBreak();
+                    continue;
+                }
+
+                // Player collision with vine segments
+                for (const seg of vine.segments) {
+                    if (!seg.alive) continue;
+                    if (Math.abs(vine.x - player.x) < 16 && Math.abs(seg.y - player.y) < 20) {
+                        if (hasShield) {
+                            hasShield = false;
+                            sfx.pop();
+                            spawnBubblePop(player.x, player.y, 'rgba(125,223,255,0.8)');
+                            // Knock segment out
+                            if (seg.isNode) {
+                                seg.hp = 0;
+                                seg.alive = false;
+                                spawnDeathParticles(vine.x, seg.y, '#4DE8C2');
+                            }
+                        } else {
+                            killPlayer();
+                            return;
+                        }
+                        break;
+                    }
+                }
+
+                // Bubble hits on vine nodes
+                for (let bi = bubbles.length - 1; bi >= 0; bi--) {
+                    const b = bubbles[bi];
+                    for (const seg of vine.segments) {
+                        if (!seg.alive || !seg.isNode) continue;
+                        if (Math.abs(b.x - vine.x) < 14 && Math.abs(b.y - seg.y) < 14) {
+                            seg.hp--;
+                            sfx.pop();
+                            spawnBubblePop(b.x, b.y, 'rgba(77,232,194,0.8)');
+                            if (seg.hp <= 0) {
+                                seg.alive = false;
+                                spawnDeathParticles(vine.x, seg.y, '#4DE8C2');
+                                sfx.enemyDeath();
+                                score += 25;
+                                spawnScorePopup(vine.x, seg.y - 15, '+25');
+                            }
+                            if (!b.big) {
+                                bubbles.splice(bi, 1);
+                            }
+                            break;
+                        }
                     }
                 }
             }
@@ -1415,14 +1682,17 @@
         }
 
         function shootBubble() {
-            const baseVx = 450;
+            const baseSpeed = 450;
+            const aimAngle = (player.vy / 800) * 0.5; // maps vy to roughly -0.19..+0.31 rad
+
             if (activePowerup === 'spread') {
                 for (let a = -0.2; a <= 0.2; a += 0.2) {
+                    const angle = a + aimAngle;
                     bubbles.push({
                         x: player.x + 20,
                         y: player.y,
-                        vx: Math.cos(a) * baseVx,
-                        vy: Math.sin(a) * baseVx,
+                        vx: Math.cos(angle) * baseSpeed,
+                        vy: Math.sin(angle) * baseSpeed,
                         big: false
                     });
                 }
@@ -1430,16 +1700,16 @@
                 bubbles.push({
                     x: player.x + 20,
                     y: player.y,
-                    vx: baseVx,
-                    vy: 0,
+                    vx: Math.cos(aimAngle) * baseSpeed,
+                    vy: Math.sin(aimAngle) * baseSpeed,
                     big: true
                 });
             } else {
                 bubbles.push({
                     x: player.x + 20,
                     y: player.y,
-                    vx: baseVx,
-                    vy: 0,
+                    vx: Math.cos(aimAngle) * baseSpeed,
+                    vy: Math.sin(aimAngle) * baseSpeed,
                     big: false
                 });
             }
@@ -1630,6 +1900,9 @@
                     }
                 }
 
+                // Draw vines
+                for (const v of vines) drawVine(v);
+
                 // Draw bubbles
                 for (const b of bubbles) drawBubble(b);
 
@@ -1641,6 +1914,9 @@
 
                 // Draw player
                 drawPlayer(ctx);
+
+                // Aim indicator
+                drawAimIndicator();
 
                 // Draw particles
                 drawParticles();
