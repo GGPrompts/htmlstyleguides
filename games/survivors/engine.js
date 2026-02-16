@@ -792,6 +792,11 @@ WEAPON_HANDLERS.chain = function(w, stats) {
       const d = Math.hypot(e.x-player.x, e.y-player.y);
       if(d<minD) {minD=d; first=e;}
     }
+    // Visual arc from player to first target
+    activeEffects.push({
+      type:'chainLine', x1:player.x, y1:player.y, x2:first.x, y2:first.y,
+      life: 0.15, maxLife: 0.15
+    });
     chainHit(first, stats.damage, stats.bounces, stats.range, new Set());
   }
 };
