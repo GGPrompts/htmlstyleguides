@@ -155,7 +155,18 @@ const Audio = (() => {
     return muted;
   }
 
-  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute };
+  function victoryFanfare() {
+    [523, 659, 784, 1047, 1318, 1568].forEach((f, i) => {
+      setTimeout(() => note(f, 0.5, 'sine', 0.12), i*120);
+    });
+    setTimeout(() => {
+      [1047, 1318, 1568, 2093].forEach((f, i) => {
+        setTimeout(() => note(f, 0.8, 'sine', 0.1), i*150);
+      });
+    }, 800);
+  }
+
+  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute, victoryFanfare };
 })();
 
 // ============================================================
@@ -481,6 +492,8 @@ let damageFlash = 0;
 let screenShake = 0;
 let runGold = 0;
 let goldTimerAccum = 0;
+let victoryAchieved = false;
+let killedBossNames = [];
 
 const player = {
   x: 0, y: 0,
@@ -1041,6 +1054,10 @@ function killEnemy(e) {
   spawnParticles(e.x, e.y, 8, e.type.color, 3);
   gems.get(e.x, e.y, e.xpValue);
   kills++;
+  // Track boss kills for victory condition
+  if(e.isBoss && e.type && e.type.name) {
+    killedBossNames.push(e.type.name);
+  }
   // Gold from kills: 1g base, scaled by enemy tier (xpValue), 50g for bosses
   if(e.isBoss) {
     runGold += 50;
@@ -1236,7 +1253,7 @@ function gameLoop(timestamp) {
   const dt = Math.min((timestamp - lastTime) / 1000, 0.05);
   lastTime = timestamp;
 
-  if(state === 'title' || state === 'gameover') return;
+  if(state === 'title' || state === 'gameover' || state === 'victory') return;
   if(state === 'paused' || state === 'levelup') return;
 
   gameTime += dt;
@@ -1546,6 +1563,12 @@ function gameLoop(timestamp) {
       }
     }
   });
+
+  // Victory condition check
+  if(checkVictoryCondition()) {
+    triggerVictory();
+    return;
+  }
 
   // Low health heartbeat
   if(player.hp < player.maxHp * 0.3) {
@@ -2020,6 +2043,73 @@ function renderGoldHUD(ctx) {
 }
 
 // ============================================================
+// VICTORY SYSTEM
+// ============================================================
+function checkVictoryCondition() {
+  if(victoryAchieved) return false;
+  if(!THEME.victoryCondition) return false;
+  const vc = THEME.victoryCondition;
+
+  // Check time-based victory
+  if(vc.timeSeconds && gameTime >= vc.timeSeconds) {
+    return true;
+  }
+
+  // Check boss-kill victory
+  if(vc.bossName && killedBossNames.includes(vc.bossName)) {
+    return true;
+  }
+
+  return false;
+}
+
+function triggerVictory() {
+  if(victoryAchieved) return;
+  victoryAchieved = true;
+  state = 'victory';
+
+  Audio.victoryFanfare();
+
+  // Record run stats and update world progression
+  SaveManager.recordRun(kills, gameTime, runGold);
+  const saveData = SaveManager.load();
+  // Advance currentWorld if this world is the current one
+  if(THEME.worldOrder && typeof THEME.worldOrder.current === 'number') {
+    if(saveData.currentWorld <= THEME.worldOrder.current) {
+      saveData.currentWorld = THEME.worldOrder.current + 1;
+    }
+  }
+  SaveManager.save(saveData);
+
+  // Show victory overlay
+  const mins = Math.floor(gameTime/60);
+  const secs = Math.floor(gameTime%60);
+  const victoryScreen = document.getElementById('victory-screen');
+  const victoryStats = document.getElementById('victory-stats');
+  if(victoryStats) {
+    victoryStats.innerHTML = `
+      <div class="stats-line">Time Survived: ${mins}:${secs.toString().padStart(2,'0')}</div>
+      <div class="stats-line">Level Reached: ${playerLevel}</div>
+      <div class="stats-line">Enemies Slain: ${kills}</div>
+      <div class="stats-line">Gold Earned: ${runGold}g</div>
+      <div class="stats-line">Weapons: ${player.weapons.length}</div>
+      <div class="stats-line" style="margin-top:8px;opacity:0.7">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills} | Bank: ${saveData.gold}g</div>
+    `;
+  }
+  if(victoryScreen) {
+    victoryScreen.style.display = 'flex';
+  }
+
+  // Redirect to next world after delay
+  const nextUrl = THEME.worldOrder ? THEME.worldOrder.next : null;
+  if(nextUrl) {
+    setTimeout(() => {
+      window.location.href = nextUrl;
+    }, 4000);
+  }
+}
+
+// ============================================================
 // STATE MANAGEMENT
 // ============================================================
 function startGame() {
@@ -2059,9 +2149,13 @@ function startGame() {
   spawnTimer = 0;
   runGold = 0;
   goldTimerAccum = 0;
+  victoryAchieved = false;
+  killedBossNames = [];
   updateWeaponBar();
   document.getElementById('title-screen').style.display = 'none';
   document.getElementById('game-over-screen').style.display = 'none';
+  const vs = document.getElementById('victory-screen');
+  if(vs) vs.style.display = 'none';
   lastTime = performance.now();
 }
 

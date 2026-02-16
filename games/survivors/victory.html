@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Victory - Survivors</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;700;900&family=Orbitron:wght@400;700;900&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#050510;font-family:'Space Mono',monospace;color:#d0d8f0}
+canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+#overlay{position:fixed;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;background:transparent}
+.victory-title{font-family:'Exo 2',sans-serif;font-size:clamp(2rem,6vw,4rem);font-weight:900;text-align:center;background:linear-gradient(135deg,#ff0080,#00ffff,#ffd700,#9933ff,#33ff88);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;margin-bottom:8px;animation:glow 3s ease-in-out infinite alternate;filter:drop-shadow(0 0 20px rgba(153,51,255,0.5))}
+.victory-subtitle{font-family:'Orbitron',sans-serif;font-size:clamp(1rem,3vw,1.6rem);color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,0.5);margin-bottom:40px;text-align:center;letter-spacing:0.15em}
+.stats-box{background:rgba(10,10,30,0.85);border:2px solid #9933ff;border-radius:8px;padding:24px 36px;max-width:500px;width:90%;margin-bottom:32px;box-shadow:0 0 30px rgba(153,51,255,0.3)}
+.stats-title{font-family:'Exo 2',sans-serif;font-size:1.2rem;font-weight:700;color:#ffd700;margin-bottom:16px;text-align:center;letter-spacing:0.1em}
+.stats-line{font-size:1rem;color:#b0b8d0;margin:6px 0;display:flex;justify-content:space-between}
+.stats-line .label{color:#8088a0}
+.stats-line .value{color:#d0d8f0;font-weight:700}
+.stats-divider{border:none;border-top:1px solid rgba(153,51,255,0.3);margin:12px 0}
+.world-badges{display:flex;gap:12px;justify-content:center;margin-bottom:32px;flex-wrap:wrap}
+.world-badge{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;border:2px solid;opacity:0;animation:badgeIn 0.5s ease-out forwards}
+.world-badge:nth-child(1){background:rgba(0,255,255,0.15);border-color:#00ffff;animation-delay:0.5s}
+.world-badge:nth-child(2){background:rgba(139,0,0,0.15);border-color:#8b0000;animation-delay:1s}
+.world-badge:nth-child(3){background:rgba(34,139,34,0.15);border-color:#228b22;animation-delay:1.5s}
+.world-badge:nth-child(4){background:rgba(153,51,255,0.15);border-color:#9933ff;animation-delay:2s}
+.btn-row{display:flex;gap:16px;flex-wrap:wrap;justify-content:center}
+.btn{font-family:'Exo 2',sans-serif;font-size:1rem;font-weight:700;padding:14px 32px;border:2px solid #ffd700;background:rgba(153,51,255,0.3);color:#d0d8f0;cursor:pointer;letter-spacing:0.1em;text-transform:uppercase;transition:all 0.2s;text-decoration:none;display:inline-block}
+.btn:hover{background:rgba(153,51,255,0.6);box-shadow:0 0 20px rgba(255,215,0,0.4);transform:scale(1.05)}
+.btn-danger{border-color:#ff3366;background:rgba(255,51,102,0.2)}
+.btn-danger:hover{background:rgba(255,51,102,0.5);box-shadow:0 0 20px rgba(255,51,102,0.4)}
+@keyframes glow{
+  0%{filter:drop-shadow(0 0 20px rgba(153,51,255,0.5))}
+  50%{filter:drop-shadow(0 0 40px rgba(255,215,0,0.6))}
+  100%{filter:drop-shadow(0 0 20px rgba(0,255,255,0.5))}
+}
+@keyframes badgeIn{
+  0%{opacity:0;transform:scale(0.3)}
+  100%{opacity:1;transform:scale(1)}
+}
+@media(max-width:600px){.stats-box{padding:16px 20px}.btn{padding:12px 24px;font-size:0.9rem}}
+</style>
+</head>
+<body>
+<canvas id="bg-canvas"></canvas>
+<div id="overlay">
+  <div class="victory-title">You Survived the Multiverse</div>
+  <div class="victory-subtitle">All worlds conquered</div>
+
+  <div class="world-badges">
+    <div class="world-badge" title="Cyberpunk">&#x26A1;</div>
+    <div class="world-badge" title="Gothic">&#x2620;</div>
+    <div class="world-badge" title="Forest">&#x2618;</div>
+    <div class="world-badge" title="Cosmic">&#x2604;</div>
+  </div>
+
+  <div class="stats-box">
+    <div class="stats-title">Multiverse Stats</div>
+    <div id="total-stats"></div>
+  </div>
+
+  <div class="btn-row">
+    <a class="btn" href="cyberpunk.html">Play Again</a>
+    <button class="btn btn-danger" id="btn-reset">Reset Save</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// SAVE MANAGER (minimal copy for reading stats)
+// ============================================================
+const STORAGE_KEY = 'survivors-save';
+
+function loadSave() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch(e) {
+    return null;
+  }
+}
+
+function resetSave() {
+  localStorage.removeItem(STORAGE_KEY);
+  window.location.reload();
+}
+
+// Populate stats
+const save = loadSave();
+const statsEl = document.getElementById('total-stats');
+if(save && save.stats) {
+  const bestMins = Math.floor((save.stats.bestTime || 0) / 60);
+  const bestSecs = Math.floor((save.stats.bestTime || 0) % 60);
+  statsEl.innerHTML = `
+    <div class="stats-line"><span class="label">Total Kills</span><span class="value">${save.stats.totalKills.toLocaleString()}</span></div>
+    <div class="stats-line"><span class="label">Best Time</span><span class="value">${bestMins}:${bestSecs.toString().padStart(2,'0')}</span></div>
+    <div class="stats-line"><span class="label">Runs Completed</span><span class="value">${save.stats.runsCompleted}</span></div>
+    <hr class="stats-divider">
+    <div class="stats-line"><span class="label">Gold Banked</span><span class="value">${(save.gold || 0).toLocaleString()}g</span></div>
+    <div class="stats-line"><span class="label">Worlds Cleared</span><span class="value">${Math.min(save.currentWorld || 0, 4)} / 4</span></div>
+  `;
+} else {
+  statsEl.innerHTML = '<div class="stats-line"><span class="label">No save data found</span></div>';
+}
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if(confirm('This will erase all progress. Are you sure?')) {
+    resetSave();
+  }
+});
+
+// ============================================================
+// STARFIELD BACKGROUND
+// ============================================================
+const canvas = document.getElementById('bg-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// Generate stars
+const stars = [];
+for(let i = 0; i < 200; i++) {
+  stars.push({
+    x: Math.random() * 2000 - 500,
+    y: Math.random() * 2000 - 500,
+    z: Math.random() * 3 + 0.5,
+    size: Math.random() * 2 + 0.5,
+    hue: Math.random() * 360
+  });
+}
+
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.016;
+  ctx.fillStyle = '#050510';
+  ctx.fillRect(0, 0, W, H);
+
+  // Nebula
+  const grd = ctx.createRadialGradient(W*0.5, H*0.5, 0, W*0.5, H*0.5, W*0.5);
+  grd.addColorStop(0, 'rgba(80,20,120,0.06)');
+  grd.addColorStop(0.5, 'rgba(20,40,100,0.04)');
+  grd.addColorStop(1, 'transparent');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  // Stars
+  for(const s of stars) {
+    const twinkle = 0.4 + 0.6 * Math.sin(time * s.z + s.x);
+    const sx = ((s.x + time * s.z * 8) % (W + 200)) - 100;
+    const sy = ((s.y + time * s.z * 3) % (H + 200)) - 100;
+    ctx.fillStyle = `hsla(${s.hue},60%,80%,${twinkle * 0.7})`;
+    ctx.beginPath();
+    ctx.arc(sx, sy, s.size * twinkle, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Occasional shooting star
+  if(Math.sin(time * 1.7) > 0.98) {
+    const sx = Math.random() * W;
+    const sy = Math.random() * H * 0.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + 80, sy + 40);
+    ctx.stroke();
+  }
+}
+animate();
+
+// ============================================================
+// VICTORY FANFARE AUDIO
+// ============================================================
+document.addEventListener('click', function initAudio() {
+  document.removeEventListener('click', initAudio);
+  try {
+    const actx = new (window.AudioContext || window.webkitAudioContext)();
+    const masterGain = actx.createGain();
+    masterGain.gain.value = 0.3;
+    masterGain.connect(actx.destination);
+    function note(freq, dur, delay) {
+      const t = actx.currentTime + delay;
+      const o = actx.createOscillator();
+      const g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.value = freq;
+      g.gain.setValueAtTime(0.1, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t+dur);
+      o.connect(g); g.connect(masterGain);
+      o.start(t); o.stop(t+dur);
+    }
+    [523,659,784,1047,1318,1568,2093].forEach((f,i) => note(f, 0.6, i*0.15));
+  } catch(e) {}
+}, { once: true });
+</script>
+</body>
+</html>
