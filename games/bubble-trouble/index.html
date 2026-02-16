@@ -897,23 +897,41 @@
             ctx.roundRect(-10, -10, 20, 20, 4);
             ctx.fill();
 
-            // Head
+            // Head (tilted up)
             ctx.fillStyle = `hsl(${bodyHue + 60}, 80%, 70%)`;
             ctx.beginPath();
-            ctx.arc(0, -16, 8, 0, Math.PI * 2);
+            ctx.arc(0, -18, 8, 0, Math.PI * 2);
             ctx.fill();
 
-            // Eyes (two dots)
+            // Cyclops eye (looking up)
+            const eyeY = -21;
             ctx.fillStyle = '#fff';
             ctx.beginPath();
-            ctx.arc(-3, -17, 2.5, 0, Math.PI * 2);
-            ctx.arc(3, -17, 2.5, 0, Math.PI * 2);
+            ctx.arc(0, eyeY, 4, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = COLORS.deepViolet;
+            // Iris with trippy hue cycling
+            const irisGrad = ctx.createRadialGradient(0, eyeY, 0.5, 0, eyeY, 3);
+            irisGrad.addColorStop(0, `hsl(${bodyHue + 120}, 100%, 80%)`);
+            irisGrad.addColorStop(0.6, `hsl(${bodyHue + 200}, 100%, 50%)`);
+            irisGrad.addColorStop(1, `hsl(${bodyHue + 280}, 80%, 30%)`);
+            ctx.fillStyle = irisGrad;
             ctx.beginPath();
-            ctx.arc(-3, -17, 1.2, 0, Math.PI * 2);
-            ctx.arc(3, -17, 1.2, 0, Math.PI * 2);
+            ctx.arc(0, eyeY - 0.5, 2.5, 0, Math.PI * 2);
             ctx.fill();
+            // Pupil
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(0, eyeY - 0.8, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            // Eye glow
+            ctx.shadowColor = `hsl(${bodyHue + 200}, 100%, 60%)`;
+            ctx.shadowBlur = 6;
+            ctx.strokeStyle = `hsla(${bodyHue + 200}, 100%, 70%, 0.4)`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.arc(0, eyeY, 4, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
 
             ctx.restore();
         }
@@ -978,26 +996,57 @@
         }
 
         function drawHarpoon(h) {
-            // Trippy rainbow line
             const hue = (tripPhase * 60 + h.y) % 360;
             ctx.save();
-            ctx.shadowColor = `hsla(${hue}, 100%, 60%, 0.6)`;
-            ctx.shadowBlur = 8;
-            ctx.strokeStyle = `hsl(${hue}, 100%, 65%)`;
-            ctx.lineWidth = HARPOON_WIDTH;
+
+            // Outer glow beam (wide, faint)
+            ctx.globalAlpha = 0.15;
+            ctx.strokeStyle = `hsl(${hue}, 100%, 70%)`;
+            ctx.lineWidth = 10;
+            ctx.shadowColor = `hsl(${hue}, 100%, 60%)`;
+            ctx.shadowBlur = 16;
             ctx.beginPath();
             ctx.moveTo(h.x, h.base);
             ctx.lineTo(h.x, h.y);
             ctx.stroke();
 
-            // Tip
-            ctx.fillStyle = COLORS.cream;
+            // Core beam (tapered via gradient)
+            ctx.globalAlpha = 0.7;
+            const beamGrad = ctx.createLinearGradient(h.x, h.base, h.x, h.y);
+            beamGrad.addColorStop(0, `hsla(${hue}, 100%, 75%, 0.3)`);
+            beamGrad.addColorStop(0.5, `hsla(${(hue + 30) % 360}, 100%, 65%, 0.8)`);
+            beamGrad.addColorStop(1, `hsla(${(hue + 60) % 360}, 100%, 80%, 1)`);
+            ctx.strokeStyle = beamGrad;
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10;
             ctx.beginPath();
-            ctx.moveTo(h.x, h.y - 6);
-            ctx.lineTo(h.x - 4, h.y + 2);
-            ctx.lineTo(h.x + 4, h.y + 2);
-            ctx.closePath();
+            ctx.moveTo(h.x, h.base);
+            ctx.lineTo(h.x, h.y);
+            ctx.stroke();
+
+            // Inner bright core
+            ctx.globalAlpha = 1;
+            ctx.strokeStyle = `hsla(${hue}, 60%, 95%, 0.9)`;
+            ctx.lineWidth = 1.5;
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = '#fff';
+            ctx.beginPath();
+            ctx.moveTo(h.x, h.base);
+            ctx.lineTo(h.x, h.y);
+            ctx.stroke();
+
+            // Impact flare at tip
+            ctx.shadowColor = `hsl(${hue}, 100%, 70%)`;
+            ctx.shadowBlur = 20;
+            const flareGrad = ctx.createRadialGradient(h.x, h.y, 0, h.x, h.y, 8);
+            flareGrad.addColorStop(0, `hsla(${hue}, 80%, 95%, 0.9)`);
+            flareGrad.addColorStop(0.4, `hsla(${hue}, 100%, 65%, 0.5)`);
+            flareGrad.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+            ctx.fillStyle = flareGrad;
+            ctx.beginPath();
+            ctx.arc(h.x, h.y, 8, 0, Math.PI * 2);
             ctx.fill();
+
             ctx.restore();
         }
 
@@ -1027,16 +1076,17 @@
             ctx.lineCap = 'round';
 
             if (p.type === 'double') {
-                // Two harpoon lines
+                // Two beam lines
+                ctx.lineWidth = 2;
                 ctx.beginPath();
-                ctx.moveTo(-3, 5); ctx.lineTo(-3, -4);
-                ctx.moveTo(3, 5); ctx.lineTo(3, -4);
+                ctx.moveTo(-3, 5); ctx.lineTo(-3, -3);
+                ctx.moveTo(3, 5); ctx.lineTo(3, -3);
                 ctx.stroke();
-                // Arrowheads
+                // Beam flares at tips
                 ctx.beginPath();
-                ctx.moveTo(-5, -2); ctx.lineTo(-3, -6); ctx.lineTo(-1, -2);
-                ctx.moveTo(1, -2); ctx.lineTo(3, -6); ctx.lineTo(5, -2);
-                ctx.stroke();
+                ctx.arc(-3, -4.5, 2, 0, Math.PI * 2);
+                ctx.arc(3, -4.5, 2, 0, Math.PI * 2);
+                ctx.fill();
             } else if (p.type === 'freeze') {
                 // Stopwatch
                 ctx.beginPath();
@@ -1188,10 +1238,11 @@
 
         function shoot() {
             if (harpoons.length >= maxHarpoons) return;
+            const eyeBase = player.y - 21;
             harpoons.push({
                 x: player.x,
-                y: ARENA_H - FLOOR_H,
-                base: ARENA_H - FLOOR_H
+                y: eyeBase,
+                base: eyeBase
             });
             sfx.shoot();
         }
