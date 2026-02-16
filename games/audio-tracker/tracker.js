@@ -260,6 +260,7 @@ var Tracker = (function () {
           if (cell.note !== null && cell.note >= 0) {
             var dur = toInt((ev.d !== undefined) ? ev.d : ev.dur, 0);
             if (dur > 0) {
+              cell._dur = dur;
               var offRow = row + dur;
               if (offRow >= 0 && offRow < len && rows[offRow].note === null) {
                 rows[offRow] = { note: -1, inst: cell.inst, vol: null, fx: null };
@@ -615,6 +616,18 @@ var Tracker = (function () {
             voice = Synth.noteOn(ch, cell.note, inst, time);
           }
           activeVoices[ch] = voice;
+
+          // Cross-boundary duration: if note-off falls at or past the
+          // pattern boundary, schedule a precise future note-off via
+          // Web Audio timing instead of relying on a row event.
+          if (voice && cell._dur) {
+            var offRow = currentRow + cell._dur;
+            var patLen = pat.length;
+            if (offRow >= patLen) {
+              var offTime = time + cell._dur * secondsPerRow();
+              Synth.noteOff(voice, offTime);
+            }
+          }
         }
       }
     }
