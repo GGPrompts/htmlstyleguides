@@ -1,0 +1,128 @@
+---
+name: chiptune-composer
+description: Compose full-length (3-4 minute) chiptune songs in the audio tracker's compact JSON format. Supports RPG battle themes, town music, overworld adventures, classical arrangements, ambient dungeon tracks, and more. This skill should be used when creating songs for the audio tracker, composing game music, or generating .json song files.
+argument-hint: <style> [key] [bpm] [description]
+allow-model-invocation: true
+---
+
+# Chiptune Composer
+
+Compose a full-length chiptune song using **$ARGUMENTS**.
+
+Output a complete `.json` song file in the compact event format defined by `games/audio-tracker/AI-SONG-FORMAT.md`. The song should be 3-4 minutes long with full structural development — not a short loop.
+
+## Phase 0 — Parse Request & Plan
+
+1. Parse the argument for style, key, BPM, and description hints.
+2. Read `games/audio-tracker/AI-SONG-FORMAT.md` for the compact event format spec.
+3. Read `games/audio-tracker/songs/index.json` to see existing songs and avoid duplicates.
+4. Read one existing song JSON (e.g., `boss-battle.json` or `canon-in-d.json`) to calibrate output density and formatting.
+5. Select the appropriate style profile from the **Style Profiles** section below.
+6. Plan the song structure:
+   - Key, mode, BPM, time feel
+   - Song form (e.g., AABA, ABACBA, Intro-Verse-Chorus-Bridge-Chorus-Outro)
+   - Number of unique patterns needed (typically 8-20 for a 3-4 min track)
+   - Instrument palette (4 channels: melody, harmony/countermelody, bass, percussion)
+   - Harmonic plan: chord progression per section, modulation points
+   - Melodic motif(s): the 3-6 note seed that unifies the track
+7. Present the plan and discuss before composing.
+
+## Phase 1 — Compose
+
+Build the song JSON section by section. For each section:
+
+1. **Establish the harmonic foundation** — write bass channel events first (chord roots, walking bass, ostinato, or pedal point depending on style).
+2. **Add percussion** — lay down the rhythmic backbone appropriate to the style and tempo.
+3. **Write the melody** — compose the lead channel using the motif, developing it through repetition, sequence, inversion, augmentation, or diminution.
+4. **Add countermelody/harmony** — fill the second pitched channel with supporting material (arpeggiated chords, counter-lines, echo effects, or pad sustains).
+
+### Composition Rules
+
+- **Motif-first**: Define a 3-6 note melodic cell. Every section should derive from or relate to this motif.
+- **Vary repeats**: Never copy a section identically more than twice in the sequence. Add ornaments, octave shifts, or rhythmic variations.
+- **Voice independence**: Melody and harmony channels should have contrary or oblique motion most of the time. Avoid parallel octaves/fifths between channels.
+- **Register separation**: Keep bass in MIDI 36-55, melody in 60-84, harmony flexible but avoid crossing the melody.
+- **Phrase structure**: Use 4-bar or 8-bar phrases (16 or 32 rows at rpb=4). End phrases with clear cadences.
+- **Dynamic arc**: Build intensity across the song. Use sparser textures for intros and bridges, denser for climaxes.
+
+### Pattern & Sequence Math
+
+For a 3-4 minute song:
+- At 120 BPM, rpb=4, 32-row patterns: each pattern = 4 bars = 8 seconds. Need ~22-30 sequence entries.
+- At 80 BPM, rpb=4, 32-row patterns: each pattern = 4 bars = 12 seconds. Need ~15-20 sequence entries.
+- At 160 BPM, rpb=4, 32-row patterns: each pattern = 4 bars = 6 seconds. Need ~30-40 sequence entries.
+
+Reuse patterns via the sequence array — compose 8-20 unique patterns, arrange them into a full song via sequencing.
+
+## Phase 2 — Output
+
+1. Write the complete JSON to `games/audio-tracker/songs/{kebab-case-title}.json`.
+2. Update `games/audio-tracker/songs/index.json` to add the new song entry.
+3. Verify the JSON is valid and all pattern IDs referenced in the sequence exist.
+
+## Available Wave Types
+
+The synth engine supports these wave types for instruments:
+- `square` — 50% duty cycle pulse (NES Pulse 50%), warm and full
+- `pulse25` — 25% duty cycle pulse (NES Pulse 25%), reedy and bright
+- `pulse12` — 12.5% duty cycle pulse, thin and nasal
+- `triangle` — triangle wave (NES-style bass), no volume envelope, thumpy
+- `sawtooth` — sawtooth wave (SNES-style lead), rich harmonics
+- `sine` — pure sine, good for pads and sub-bass
+- `noise` — white noise for percussion
+
+### Instrument Parameters
+
+```json
+{
+  "name": "Display Name",
+  "wave": "square|pulse25|pulse12|triangle|sawtooth|sine|noise",
+  "a": 0.01,          // attack time (seconds)
+  "d": 0.1,           // decay time
+  "s": 0.6,           // sustain level (0-1)
+  "r": 0.1,           // release time
+  "vol": 0.7,         // master volume (0-1)
+  "detune": 0,         // cents detune (optional)
+  "detuneOsc": false,  // enable 2nd detuned oscillator (optional)
+  "detuneAmount": 7,   // detune amount for 2nd osc (optional)
+  "filterType": "none|lowpass|highpass|bandpass",  // optional
+  "filterFreq": 2000,  // filter cutoff Hz (optional)
+  "filterQ": 1         // filter resonance (optional)
+}
+```
+
+### Percussion Conventions
+
+Noise instruments ignore pitch, but use these MIDI note conventions for readability:
+- **48** = kick drum (lowpass filter, filterFreq ~150-200, short decay)
+- **60** = snare (bandpass filter, filterFreq ~1000-1500, medium decay)
+- **72** = hi-hat (highpass filter, filterFreq ~6000, very short decay)
+- **64** = open hi-hat (highpass, longer decay)
+- **56** = tom (can use triangle wave with short decay instead)
+
+## Style Profiles
+
+Read `references/style-profiles.md` for detailed harmonic, melodic, and structural conventions for each style:
+
+- **RPG Battle** — fast, minor, chromatic, driving
+- **RPG Boss** — intense, complex meter possible, chromaticism + syncopation
+- **Overworld/Adventure** — Lydian/major, memorable melody, moderate-fast
+- **Town/Village** — gentle, waltz or 4/4, pentatonic or jazz voicings
+- **Dungeon/Cave** — sparse, dissonant, tritones, drones
+- **Shop/Inn** — light, major, short loops, cozy
+- **Victory Fanfare** — Mixolydian, brass-like, triumphant
+- **Classical Arrangement** — adapt a known classical piece to 4 channels
+- **Ambient/Atmospheric** — slow, evolving textures, pedal points
+- **Synthwave/Neon** — driving 4-on-floor, detuned sawtooth, 120-130 BPM
+
+## MIDI Note Reference
+
+```
+C2=36  D2=38  E2=40  F2=41  G2=43  A2=45  B2=47
+C3=48  D3=50  E3=52  F3=53  G3=55  A3=57  B3=59
+C4=60  D4=62  E4=64  F4=65  G4=67  A4=69  B4=71
+C5=72  D5=74  E5=76  F5=77  G5=79  A5=81  B5=83
+C6=84
+```
+
+Sharps/flats: add 1 for sharp, subtract 1 for flat (e.g., F#3=54, Bb4=70, Eb4=63).
