@@ -53,6 +53,8 @@ Master mapping of all 105 style guides and their usage across tech guides and st
 | gaming-esports | | |
 | glassmorphism | GitHub Copilot CLI | The Glassblower's Legacy |
 | gradient-mesh | | |
+| gothic | | |
+| gothic-cathedral | | |
 | holographic | OpenAI Codex CLI | The Spectrum |
 | honeycomb | | |
 | impressionism | | |
