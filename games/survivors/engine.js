@@ -192,6 +192,10 @@ const SaveManager = (() => {
   const STORAGE_KEY = 'survivors-save';
   const CURRENT_VERSION = 1;
 
+  function defaultClassStats() {
+    return { bestTime: 0, bestKills: 0, bestWave: 0, totalRuns: 0, totalKills: 0 };
+  }
+
   function defaultState() {
     return {
       version: CURRENT_VERSION,
@@ -207,6 +211,12 @@ const SaveManager = (() => {
         totalKills: 0,
         bestTime: 0,
         runsCompleted: 0
+      },
+      classStats: {
+        gunner: defaultClassStats(),
+        darkknight: defaultClassStats(),
+        ranger: defaultClassStats(),
+        warlock: defaultClassStats()
       }
     };
   }
@@ -237,10 +247,49 @@ const SaveManager = (() => {
     }
   }
 
+  function migrateClassStats(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const result = {};
+    const classIds = ['gunner', 'darkknight', 'ranger', 'warlock'];
+    for (const cid of classIds) {
+      const src = raw[cid];
+      const def = defaultClassStats();
+      if (src && typeof src === 'object') {
+        result[cid] = {
+          bestTime: typeof src.bestTime === 'number' ? src.bestTime : def.bestTime,
+          bestKills: typeof src.bestKills === 'number' ? src.bestKills : def.bestKills,
+          bestWave: typeof src.bestWave === 'number' ? src.bestWave : def.bestWave,
+          totalRuns: typeof src.totalRuns === 'number' ? src.totalRuns : def.totalRuns,
+          totalKills: typeof src.totalKills === 'number' ? src.totalKills : def.totalKills
+        };
+      } else {
+        result[cid] = def;
+      }
+    }
+    return result;
+  }
+
   function migrate(data) {
-    // Version 1 is current; future migrations go here
-    // e.g. if (data.version < 2) { /* migrate v1 -> v2 */ }
     const base = defaultState();
+
+    // Migrate classStats: if missing, seed gunner with existing global stats
+    let classStats = migrateClassStats(data.classStats);
+    if (!classStats) {
+      classStats = {
+        gunner: defaultClassStats(),
+        darkknight: defaultClassStats(),
+        ranger: defaultClassStats(),
+        warlock: defaultClassStats()
+      };
+    }
+    // If old save had global stats but no classStats, copy into gunner as default
+    if (!data.classStats && data.stats) {
+      const gs = classStats.gunner;
+      if (data.stats.bestTime && data.stats.bestTime > gs.bestTime) gs.bestTime = data.stats.bestTime;
+      if (data.stats.totalKills && data.stats.totalKills > gs.totalKills) gs.totalKills = data.stats.totalKills;
+      if (data.stats.runsCompleted && data.stats.runsCompleted > gs.totalRuns) gs.totalRuns = data.stats.runsCompleted;
+    }
+
     return {
       version: CURRENT_VERSION,
       gold: typeof data.gold === 'number' ? data.gold : base.gold,
@@ -255,7 +304,8 @@ const SaveManager = (() => {
         totalKills: (data.stats && typeof data.stats.totalKills === 'number') ? data.stats.totalKills : base.stats.totalKills,
         bestTime: (data.stats && typeof data.stats.bestTime === 'number') ? data.stats.bestTime : base.stats.bestTime,
         runsCompleted: (data.stats && typeof data.stats.runsCompleted === 'number') ? data.stats.runsCompleted : base.stats.runsCompleted
-      }
+      },
+      classStats: classStats
     };
   }
 
@@ -305,7 +355,7 @@ const SaveManager = (() => {
   }
 
   // Record end-of-run stats into the persistent save
-  function recordRun(runKills, runTime, earnedGold) {
+  function recordRun(runKills, runTime, earnedGold, classId, runWave) {
     const data = load();
     data.stats.totalKills += runKills;
     data.stats.runsCompleted += 1;
@@ -315,11 +365,28 @@ const SaveManager = (() => {
     if (typeof earnedGold === 'number' && earnedGold > 0) {
       data.gold += earnedGold;
     }
+    // Per-class stats tracking
+    if (classId && data.classStats && data.classStats[classId]) {
+      const cs = data.classStats[classId];
+      cs.totalRuns += 1;
+      cs.totalKills += runKills;
+      if (runTime > cs.bestTime) cs.bestTime = runTime;
+      if (runKills > cs.bestKills) cs.bestKills = runKills;
+      const wave = typeof runWave === 'number' ? runWave : 0;
+      if (wave > cs.bestWave) cs.bestWave = wave;
+    }
     save(data);
     return data;
   }
 
-  return { save, load, exportJSON, importJSON, encodeURL, decodeURL, reset, recordRun, defaultState };
+  const CLASS_NAMES = {
+    gunner: 'Gunner',
+    darkknight: 'Dark Knight',
+    ranger: 'Ranger',
+    warlock: 'Warlock'
+  };
+
+  return { save, load, exportJSON, importJSON, encodeURL, decodeURL, reset, recordRun, defaultState, CLASS_NAMES };
 })();
 
 // On page load, check for URL hash save and import if present
@@ -729,6 +796,15 @@ const WEAPON_DEFS = {
   }
 };
 
+// Returns 'primary', 'secondary', or 'offclass' for a weapon type
+function getWeaponAffinityTier(type) {
+  const affinities = THEME.classConfig && THEME.classConfig.weaponAffinities;
+  if (!affinities) return 'primary'; // No affinity data = treat all as primary
+  if (affinities.primary && affinities.primary.includes(type)) return 'primary';
+  if (affinities.secondary && affinities.secondary.includes(type)) return 'secondary';
+  return 'offclass';
+}
+
 function getWeaponStats(type, level) {
   const def = WEAPON_DEFS[type];
   if (!def) return {};
@@ -765,6 +841,16 @@ function getWeaponStats(type, level) {
   }
   if (player.cooldownMult && player.cooldownMult !== 1 && stats.cooldown) {
     stats.cooldown *= player.cooldownMult;
+  }
+  // Apply weapon affinity damage scaling
+  const tier = getWeaponAffinityTier(type);
+  if (stats.damage) {
+    if (tier === 'primary') {
+      stats.damage *= 1.25;
+    } else if (tier === 'offclass') {
+      stats.damage *= 0.75;
+    }
+    // secondary = 1.0x, no change
   }
   return stats;
 }
@@ -1506,7 +1592,16 @@ function showLevelUp() {
   options.forEach((opt, i) => {
     const card = document.createElement('div');
     card.className = 'upgrade-card';
-    card.innerHTML = `<div class="upgrade-hotkey">${i+1}</div><div class="upgrade-icon">${opt.icon}</div><div class="upgrade-name">${opt.name}</div><div class="upgrade-desc">${opt.desc}</div>`;
+    // Apply affinity tier styling if present
+    if (opt.affinityTier) {
+      card.classList.add('affinity-' + opt.affinityTier);
+    }
+    let tierHTML = '';
+    if (opt.tierTag) {
+      const tierClass = opt.affinityTier === 'primary' ? 'affinity-tag-primary' : opt.affinityTier === 'secondary' ? 'affinity-tag-secondary' : 'affinity-tag-offclass';
+      tierHTML = `<div class="affinity-tag ${tierClass}">${opt.tierTag}</div>`;
+    }
+    card.innerHTML = `<div class="upgrade-hotkey">${i+1}</div>${tierHTML}<div class="upgrade-icon">${opt.icon}</div><div class="upgrade-name">${opt.name}</div><div class="upgrade-desc">${opt.desc}</div>`;
     card.addEventListener('click', () => {
       opt.apply();
       levelUpCards = [];
@@ -1521,6 +1616,24 @@ function showLevelUp() {
   document.getElementById('level-up-screen').style.display = 'flex';
 }
 
+// Weighted random pick from weapon array based on affinity tier
+function weightedWeaponPick(weaponList) {
+  const AFFINITY_WEIGHTS = { primary: 3, secondary: 1.5, offclass: 0.5 };
+  let totalWeight = 0;
+  const weights = weaponList.map(w => {
+    const tier = getWeaponAffinityTier(w.type);
+    const weight = AFFINITY_WEIGHTS[tier] || 1;
+    totalWeight += weight;
+    return weight;
+  });
+  let roll = Math.random() * totalWeight;
+  for (let i = 0; i < weaponList.length; i++) {
+    roll -= weights[i];
+    if (roll <= 0) return weaponList[i];
+  }
+  return weaponList[weaponList.length - 1];
+}
+
 function generateUpgradeOptions() {
   const options = [];
   const allWeapons = THEME.weapons;
@@ -1531,20 +1644,30 @@ function generateUpgradeOptions() {
   if(upgradeable.length > 0) {
     const w = upgradeable[Math.random()*upgradeable.length|0];
     const def = allWeapons.find(d => d.type === w.type);
+    const tier = getWeaponAffinityTier(w.type);
+    const tierTag = tier === 'primary' ? '\u2605 Primary' : tier === 'secondary' ? 'Secondary' : 'Off-class';
+    const tierBonus = tier === 'primary' ? ' (+25% class bonus)' : tier === 'offclass' ? ' (-25% off-class)' : '';
     options.push({
       icon: def.icon, name: `${def.name} Lv${w.level+1}`,
-      desc: `Upgrade ${def.name}`,
+      desc: `Upgrade ${def.name}${tierBonus}`,
+      affinityTier: tier,
+      tierTag: tierTag,
       apply: () => { w.level++; }
     });
   }
 
-  // Option: new weapon
+  // Option: new weapon (weighted by affinity tier)
   const unowned = allWeapons.filter(w => !ownedTypes.includes(w.type));
   if(unowned.length > 0 && player.weapons.length < 6) {
-    const w = unowned[Math.random()*unowned.length|0];
+    const w = weightedWeaponPick(unowned);
+    const tier = getWeaponAffinityTier(w.type);
+    const tierTag = tier === 'primary' ? '\u2605 Primary' : tier === 'secondary' ? 'Secondary' : 'Off-class';
+    const tierBonus = tier === 'primary' ? ' (+25% class bonus)' : tier === 'offclass' ? ' (-25% off-class)' : '';
     options.push({
       icon: w.icon, name: w.name,
-      desc: w.desc,
+      desc: w.desc + tierBonus,
+      affinityTier: tier,
+      tierTag: tierTag,
       apply: () => { player.weapons.push({ type: w.type, level: 1 }); updateWeaponBar(); }
     });
   }
@@ -1613,8 +1736,12 @@ function updateWeaponBar() {
     const def = allW.find(d => d.type === w.type);
     const slot = document.createElement('div');
     slot.className = 'weapon-slot active';
+    // Add affinity tier indicator
+    const tier = getWeaponAffinityTier(w.type);
+    slot.classList.add('weapon-affinity-' + tier);
     slot.textContent = def ? def.icon : '?';
-    slot.title = def ? `${def.name} Lv${w.level}` : '';
+    const tierLabel = tier === 'primary' ? 'Primary (+25%)' : tier === 'secondary' ? 'Secondary' : 'Off-class (-25%)';
+    slot.title = def ? `${def.name} Lv${w.level} [${tierLabel}]` : '';
     bar.appendChild(slot);
   });
 }
@@ -2842,7 +2969,8 @@ function finalizeVictory() {
   state = 'victory';
 
   // Record run stats and update world progression
-  SaveManager.recordRun(kills, gameTime, runGold);
+  const cid = player.classId || 'gunner';
+  SaveManager.recordRun(kills, gameTime, runGold, cid, waveNum);
   const saveData = SaveManager.load();
   // Award 1 skill point per world completed
   saveData.skillPoints = (saveData.skillPoints || 0) + 1;
@@ -2860,13 +2988,22 @@ function finalizeVictory() {
   const victoryScreen = document.getElementById('victory-screen');
   const victoryStats = document.getElementById('victory-stats');
   if(victoryStats) {
+    const className = SaveManager.CLASS_NAMES[cid] || cid;
+    const cs = (saveData.classStats && saveData.classStats[cid]) || {};
+    const bestMins = Math.floor((cs.bestTime || 0) / 60);
+    const bestSecs = Math.floor((cs.bestTime || 0) % 60);
+    const isNewBestTime = gameTime >= (cs.bestTime || 0);
+    const isNewBestKills = kills >= (cs.bestKills || 0);
+    const newBestHtml = (isNewBestTime || isNewBestKills) ? '<div class="stats-line" style="color:#ffd700;font-weight:bold;margin-top:6px">NEW BEST!</div>' : '';
     victoryStats.innerHTML = `
       <div class="stats-line">Time Survived: ${mins}:${secs.toString().padStart(2,'0')}</div>
       <div class="stats-line">Level Reached: ${playerLevel}</div>
       <div class="stats-line">Enemies Slain: ${kills}</div>
       <div class="stats-line">Gold Earned: ${runGold}g</div>
       <div class="stats-line">Weapons: ${player.weapons.length}</div>
-      <div class="stats-line" style="margin-top:8px;opacity:0.7">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills} | Bank: ${saveData.gold}g</div>
+      ${newBestHtml}
+      <div class="stats-line" style="margin-top:8px;opacity:0.7">Best as ${className}: ${bestMins}:${bestSecs.toString().padStart(2,'0')} | ${cs.bestKills || 0} kills | ${cs.totalRuns || 0} runs</div>
+      <div class="stats-line" style="opacity:0.5">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills} | Bank: ${saveData.gold}g</div>
     `;
   }
   if(victoryScreen) {
@@ -2911,7 +3048,11 @@ function startGame() {
   player.dashCooldown = 0;
   player.dashDirX = 0; player.dashDirY = 0;
   player.lastDirX = 0; player.lastDirY = 1;
-  player.weapons = [{ type: 'projectile', level: 1 }];
+  // Starting weapon: first primary affinity weapon, or first weapon in theme list, or projectile fallback
+  const _startType = (THEME.classConfig && THEME.classConfig.weaponAffinities && THEME.classConfig.weaponAffinities.primary && THEME.classConfig.weaponAffinities.primary[0])
+    || (THEME.weapons && THEME.weapons[0] && THEME.weapons[0].type)
+    || 'projectile';
+  player.weapons = [{ type: _startType, level: 1 }];
   player.passives = [];
 
   // Class identity
@@ -2957,7 +3098,7 @@ function startGame() {
       }
     }
     // Starting weapons: add if not already the default weapon
-    if (upg.weaponType && upg.weaponType !== 'projectile') {
+    if (upg.weaponType && upg.weaponType !== _startType) {
       if (!player.weapons.find(w => w.type === upg.weaponType)) {
         player.weapons.push({ type: upg.weaponType, level: 1 });
       }
@@ -3479,6 +3620,25 @@ function reapplyEquippedItems() {
   player.permLifesteal = baseLifesteal;
   player.permXpMult = baseXpMult;
 }
+
+// Inject weapon affinity CSS styles
+(function injectAffinityStyles() {
+  const s = document.createElement('style');
+  s.textContent = [
+    '.upgrade-card.affinity-primary{border-color:#ffd700;box-shadow:0 0 12px rgba(255,215,0,0.3)}',
+    '.upgrade-card.affinity-secondary{border-color:#aabbcc;box-shadow:0 0 8px rgba(170,187,204,0.2)}',
+    '.upgrade-card.affinity-offclass{border-color:#555;opacity:0.8}',
+    '.upgrade-card.affinity-offclass:hover{opacity:1}',
+    '.affinity-tag{position:absolute;top:8px;left:10px;font-size:0.65rem;font-weight:700;padding:2px 6px;border-radius:3px;letter-spacing:0.5px;text-transform:uppercase}',
+    '.affinity-tag-primary{background:rgba(255,215,0,0.25);color:#ffd700;border:1px solid rgba(255,215,0,0.4)}',
+    '.affinity-tag-secondary{background:rgba(170,187,204,0.2);color:#aabbcc;border:1px solid rgba(170,187,204,0.3)}',
+    '.affinity-tag-offclass{background:rgba(100,100,100,0.2);color:#888;border:1px solid rgba(100,100,100,0.3)}',
+    '.weapon-slot.weapon-affinity-primary{border-color:#ffd700;box-shadow:0 0 8px rgba(255,215,0,0.5)}',
+    '.weapon-slot.weapon-affinity-secondary{border-color:#aabbcc;box-shadow:0 0 6px rgba(170,187,204,0.3)}',
+    '.weapon-slot.weapon-affinity-offclass{border-color:#666;box-shadow:none;opacity:0.75}'
+  ].join('\n');
+  document.head.appendChild(s);
+})();
 
 // Button handlers
 document.getElementById('btn-start').addEventListener('click', startGame);
