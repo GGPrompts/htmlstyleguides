@@ -182,7 +182,46 @@ const Audio = (() => {
     }
   }
 
-  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute, victoryFanfare, lootSound };
+  function overclockSound() {
+    // Charging whine then rapid clicks
+    note(800, 0.3, 'sawtooth', 0.08);
+    note(1200, 0.2, 'sawtooth', 0.06);
+    setTimeout(() => { note(1600, 0.15, 'square', 0.07); noise(0.05, 0.06); }, 200);
+    setTimeout(() => { note(2000, 0.1, 'square', 0.05); }, 350);
+  }
+
+  function bloodRitualSound() {
+    // Deep boom + splattering
+    note(50, 0.6, 'sawtooth', 0.15);
+    note(80, 0.4, 'sine', 0.12);
+    noise(0.3, 0.12);
+    setTimeout(() => { noise(0.2, 0.08); note(100, 0.3, 'square', 0.06); }, 150);
+  }
+
+  function naturesVeilSound() {
+    // Rustling leaves → soft chime
+    noise(0.15, 0.06);
+    note(1200, 0.2, 'sine', 0.05);
+    note(1500, 0.15, 'sine', 0.04);
+    setTimeout(() => note(900, 0.3, 'sine', 0.03), 100);
+  }
+
+  function singularityRiftSound() {
+    // Deep warping drone
+    note(60, 1.5, 'sawtooth', 0.1);
+    note(90, 1.2, 'sawtooth', 0.08, 50);
+    noise(0.3, 0.06);
+  }
+
+  function singularityCollapseSound() {
+    // Explosive release
+    note(40, 0.5, 'sawtooth', 0.15);
+    noise(0.4, 0.15);
+    note(200, 0.3, 'sine', 0.1);
+    setTimeout(() => { note(100, 0.4, 'sawtooth', 0.08); noise(0.2, 0.1); }, 100);
+  }
+
+  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute, victoryFanfare, lootSound, overclockSound, bloodRitualSound, naturesVeilSound, singularityRiftSound, singularityCollapseSound };
 })();
 
 // ============================================================
@@ -505,10 +544,14 @@ function confirmLevelUpSelection() {
 }
 
 let dashRequested = false;
+let signatureAbilityRequested = false;
 window.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if(e.key === 'Escape') togglePause();
   if(e.key.toLowerCase() === 'm') Audio.toggleMute();
+  if(e.key.toLowerCase() === 'q' && state === 'playing') {
+    signatureAbilityRequested = true;
+  }
   if(e.key === ' ' && state === 'playing') {
     e.preventDefault();
     dashRequested = true;
@@ -880,6 +923,10 @@ WEAPON_HANDLERS.projectile = function(w, stats) {
       stats.damage, stats.life, 'projectile', w.level
     );
     p.pierce += getEffectivePiercing();
+    // Overclock: +2 extra pierce during signature ability
+    if(player.sigAbility && player.sigAbility.active && player.classId === 'gunner') {
+      p.pierce += 2;
+    }
   }
 };
 
@@ -1404,6 +1451,19 @@ function getEffectivePiercing() {
 // ============================================================
 function damageEnemy(e, dmg) {
   if(e._dead) return;
+  // Stealth ambush bonus: first attack from Nature's Veil deals 3x damage
+  if(player.stealthActive && player.stealthAmbush) {
+    dmg *= 3;
+    player.stealthAmbush = false;
+    spawnParticles(e.x, e.y, 10, '#ffff00', 4);
+    lootPickupTexts.push({ text: 'AMBUSH! x3', rarity: 'legendary', x: e.x, y: e.y - 20, life: 1.0, maxLife: 1.0 });
+    endStealth();
+    // End the signature ability early
+    if(player.sigAbility) {
+      player.sigAbility.active = false;
+      player.sigAbility.duration = 0;
+    }
+  }
   // Berserker bonus: extra damage when below HP threshold
   if(player.permBerserker && player.hp < player.maxHp * player.permBerserker.threshold) {
     dmg *= player.permBerserker.mult;
@@ -1915,6 +1975,14 @@ function gameLoop(timestamp) {
   }
   dashRequested = false;
 
+  // ---- SIGNATURE CLASS ABILITY ----
+  if(signatureAbilityRequested && player.sigAbility.cooldown <= 0 && !player.sigAbility.active) {
+    activateSignatureAbility();
+  }
+  signatureAbilityRequested = false;
+  updateSignatureAbility(dt);
+  // ---- END SIGNATURE CLASS ABILITY ----
+
   if(player.dashTimer > 0) {
     player.x += player.dashDirX * player.speed * DASH_SPEED_MULT * dt;
     player.y += player.dashDirY * player.speed * DASH_SPEED_MULT * dt;
@@ -2297,6 +2365,8 @@ function gameLoop(timestamp) {
   // Compute fire rate multipliers from class skills
   const overdriveFireMult = (player.permOverdrive && player.overdriveTimer > 0) ? 0.5 : 1.0;
   const frenzyFireMult = (player.permBloodFrenzy && player.bloodFrenzyTimer > 0) ? 0.85 : 1.0;
+  // Signature ability: Overclock gives 2x fire rate (0.5 cooldown mult)
+  const overclockFireMult = (player.sigAbility && player.sigAbility.active && player.classId === 'gunner') ? 0.5 : 1.0;
   for(const w of player.weapons) {
     if(w.type === 'orbit') continue; // continuous
     if(!weaponTimers[w.type]) weaponTimers[w.type] = 0;
@@ -2304,7 +2374,7 @@ function gameLoop(timestamp) {
     weaponTimers[w.type] -= dt;
     if(weaponTimers[w.type] <= 0) {
       const stats = getWeaponStats(w.type, w.level);
-      let cd = stats.cooldown * overdriveFireMult * frenzyFireMult * (player.cooldownMult || 1);
+      let cd = stats.cooldown * overdriveFireMult * frenzyFireMult * overclockFireMult * (player.cooldownMult || 1);
       // Warlock: Temporal Loop — 15% chance to not consume cooldown
       if(player.permTemporalLoop && Math.random() < 0.15) cd = 0.05;
       weaponTimers[w.type] = cd;
@@ -2555,8 +2625,18 @@ function gameLoop(timestamp) {
     // Movement dispatch (with speed modifier for root/slow)
     const origSpeed = e.speed;
     e.speed *= rootSpeedMult;
-    const handler = MOVEMENT_HANDLERS[e.movementType] || MOVEMENT_HANDLERS.chase;
-    handler(e, dt, player);
+    // Stealth: enemies wander randomly when player is invisible
+    if(player.stealthActive && !e.isBoss) {
+      // Random wander
+      if(!e._wanderAngle || Math.random() < 0.02) {
+        e._wanderAngle = Math.random() * Math.PI * 2;
+      }
+      e.x += Math.cos(e._wanderAngle) * e.speed * 0.4 * dt;
+      e.y += Math.sin(e._wanderAngle) * e.speed * 0.4 * dt;
+    } else {
+      const handler = MOVEMENT_HANDLERS[e.movementType] || MOVEMENT_HANDLERS.chase;
+      handler(e, dt, player);
+    }
     e.speed = origSpeed;
 
     const dx = player.x - e.x;
@@ -2796,6 +2876,29 @@ EFFECT_RENDERERS.divebomberImpact = function(ctx, ef) {
   ctx.fillStyle = `rgba(255,80,20,${alpha * 0.25})`;
   ctx.fill();
   ctx.shadowBlur = 0;
+  ctx.restore();
+};
+
+EFFECT_RENDERERS.bloodRitualRing = function(ctx, ef) {
+  const progress = 1 - ef.life / ef.maxLife;
+  const alpha = ef.life / ef.maxLife;
+  const r = ef.maxRadius * progress;
+  ctx.save();
+  // Multiple expanding rings
+  for(let ring = 0; ring < 3; ring++) {
+    const ringR = r * (0.5 + ring * 0.25);
+    const ringAlpha = alpha * (1 - ring * 0.3);
+    ctx.strokeStyle = `rgba(139,0,0,${ringAlpha * 0.8})`;
+    ctx.lineWidth = 3 - ring;
+    ctx.beginPath();
+    ctx.arc(ef.x, ef.y, ringR, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  // Inner fill
+  ctx.fillStyle = `rgba(100,0,0,${alpha * 0.15})`;
+  ctx.beginPath();
+  ctx.arc(ef.x, ef.y, r, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 };
 
@@ -3260,7 +3363,69 @@ function render(dt) {
 
   // Player
   const pr = 16;
+  // Stealth: semi-transparent player
+  if(player.stealthActive) {
+    ctx.save();
+    ctx.globalAlpha = 0.3 + 0.1 * Math.sin(gameTime * 6);
+  }
+  // Overclock: cyan glow around player
+  if(player.sigAbility && player.sigAbility.active && player.classId === 'gunner') {
+    ctx.save();
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 20 + 10 * Math.sin(gameTime * 10);
+  }
   THEME.drawPlayer(ctx, player.x, player.y, pr, gameTime);
+  if(player.sigAbility && player.sigAbility.active && player.classId === 'gunner') {
+    ctx.restore();
+  }
+  if(player.stealthActive) {
+    ctx.restore();
+  }
+
+  // Singularity Rift visual (world space)
+  if(player.riftActive) {
+    ctx.save();
+    const riftAlpha = Math.min(1, player.riftTimer * 2);
+    const riftPulse = 0.7 + 0.3 * Math.sin(gameTime * 8);
+    const riftRadius = 250;
+    // Outer distortion ring
+    ctx.strokeStyle = `rgba(106,13,173,${riftAlpha * 0.6 * riftPulse})`;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.arc(player.riftX, player.riftY, riftRadius * riftPulse, 0, Math.PI * 2);
+    ctx.stroke();
+    // Inner vortex
+    ctx.fillStyle = `rgba(20,0,40,${riftAlpha * 0.4})`;
+    ctx.beginPath();
+    ctx.arc(player.riftX, player.riftY, riftRadius * 0.5 * riftPulse, 0, Math.PI * 2);
+    ctx.fill();
+    // Spiraling arms
+    for(let arm = 0; arm < 4; arm++) {
+      const armAngle = gameTime * 3 + (arm / 4) * Math.PI * 2;
+      ctx.strokeStyle = `rgba(150,50,255,${riftAlpha * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for(let s = 0; s < 30; s++) {
+        const t = s / 30;
+        const r = riftRadius * t * riftPulse;
+        const a = armAngle + t * 3;
+        const sx = player.riftX + Math.cos(a) * r;
+        const sy = player.riftY + Math.sin(a) * r;
+        if(s === 0) ctx.moveTo(sx, sy);
+        else ctx.lineTo(sx, sy);
+      }
+      ctx.stroke();
+    }
+    // Center glow
+    ctx.fillStyle = `rgba(106,13,173,${riftAlpha * 0.7})`;
+    ctx.shadowColor = '#6a0dad';
+    ctx.shadowBlur = 30;
+    ctx.beginPath();
+    ctx.arc(player.riftX, player.riftY, 15 + 5 * Math.sin(gameTime * 12), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
 
   // Orbit visual
   const orbitW = player.weapons.find(w => w.type === 'orbit');
@@ -3358,8 +3523,102 @@ function render(dt) {
     ctx.restore();
   }
 
+  // Signature ability HUD
+  renderSignatureAbilityHUD(ctx);
+
   // Gold HUD — canvas-rendered, top-right area
   renderGoldHUD(ctx);
+}
+
+function renderSignatureAbilityHUD(ctx) {
+  const sigConfig = (THEME.classConfig && THEME.classConfig.signatureAbility) || null;
+  if(!sigConfig) return;
+  const sa = player.sigAbility;
+  if(!sa) return;
+
+  const x = 70;
+  const y = H - 50;
+  const size = 22;
+
+  ctx.save();
+
+  // Background circle
+  const isReady = sa.cooldown <= 0 && !sa.active;
+  const isActive = sa.active;
+  const isOnCooldown = sa.cooldown > 0 && !sa.active;
+
+  if(isActive) {
+    // Pulsing bright glow
+    const pulse = 0.7 + 0.3 * Math.sin(gameTime * 10);
+    ctx.fillStyle = `rgba(255,215,0,${0.3 * pulse})`;
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 15 + 10 * pulse;
+    ctx.beginPath();
+    ctx.arc(x, y, size + 4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Duration bar (arc)
+    const durPct = sa.duration / sa.maxDuration;
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(x, y, size + 2, -Math.PI / 2, -Math.PI / 2 + durPct * Math.PI * 2);
+    ctx.stroke();
+  } else if(isOnCooldown) {
+    // Grey background with cooldown sweep
+    ctx.fillStyle = 'rgba(50,50,50,0.7)';
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    // Cooldown sweep
+    const cdPct = 1 - sa.cooldown / sa.maxCooldown;
+    ctx.fillStyle = 'rgba(100,100,100,0.5)';
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.arc(x, y, size, -Math.PI / 2, -Math.PI / 2 + cdPct * Math.PI * 2);
+    ctx.closePath();
+    ctx.fill();
+    // Cooldown seconds text
+    ctx.fillStyle = '#aaa';
+    ctx.font = 'bold 12px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(Math.ceil(sa.cooldown) + 's', x, y + size + 14);
+  } else if(isReady) {
+    // Ready: glowing border
+    const pulse = 0.6 + 0.4 * Math.sin(gameTime * 4);
+    ctx.fillStyle = `rgba(80,80,80,0.6)`;
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 8 + 6 * pulse;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = `rgba(255,215,0,${0.5 + 0.5 * pulse})`;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Icon
+  ctx.font = (isOnCooldown ? '16px' : '20px') + ' sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = isOnCooldown ? '#666' : '#fff';
+  ctx.fillText(sigConfig.icon || '?', x, y);
+
+  // Keybind label
+  if(isReady) {
+    ctx.font = 'bold 10px monospace';
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText('Q', x, y - size - 8);
+  }
+
+  // Name label
+  ctx.font = '9px sans-serif';
+  ctx.fillStyle = isActive ? '#ffd700' : isReady ? '#ccc' : '#666';
+  ctx.fillText(sigConfig.name || '', x, y + size + (isOnCooldown ? 26 : 14));
+
+  ctx.restore();
 }
 
 function renderGoldHUD(ctx) {
@@ -3403,6 +3662,214 @@ function renderGoldHUD(ctx) {
   ctx.fillText('G', coinX, coinY + 1);
 
   ctx.restore();
+}
+
+// ============================================================
+// SIGNATURE CLASS ABILITIES
+// ============================================================
+function activateSignatureAbility() {
+  const classId = player.classId || 'gunner';
+  const sigConfig = (THEME.classConfig && THEME.classConfig.signatureAbility) || {};
+  const sa = player.sigAbility;
+
+  sa.cooldown = sa.maxCooldown;
+
+  if(classId === 'gunner') {
+    // OVERCLOCK: 5s of 2x attack speed, +2 pierce
+    sa.active = true;
+    sa.duration = sigConfig.duration || 5;
+    Audio.overclockSound();
+    spawnParticles(player.x, player.y, 15, '#00ffff', 4);
+    lootPickupTexts.push({ text: 'OVERCLOCK!', rarity: 'legendary', x: player.x, y: player.y - 30, life: 1.5, maxLife: 1.5 });
+  } else if(classId === 'darkknight') {
+    // BLOOD RITUAL: instant, sacrifice 20% HP, 6 explosions
+    sa.active = false; // instant ability
+    const sacrifice = Math.floor(player.hp * 0.20);
+    player.hp = Math.max(1, player.hp - sacrifice);
+    damageFlash = 0.1;
+    Audio.bloodRitualSound();
+    const explodeDmg = 50 * player.damage * (player.abilityPowerMult || 1);
+    const explodeRadius = 80;
+    for(let i = 0; i < 6; i++) {
+      const angle = (i / 6) * Math.PI * 2;
+      const ex = player.x + Math.cos(angle) * 100;
+      const ey = player.y + Math.sin(angle) * 100;
+      // Delayed explosions for visual effect
+      setTimeout(() => {
+        if(state !== 'playing' && state !== 'victory_vacuum') return;
+        activeEffects.push({
+          type: 'area', x: ex, y: ey,
+          radius: 0, maxRadius: explodeRadius,
+          damage: explodeDmg, life: 0.4, maxLife: 0.4,
+          hit: new Set(), isBloodRitual: true
+        });
+        spawnParticles(ex, ey, 10, '#8b0000', 4);
+        spawnParticles(ex, ey, 6, '#ff0000', 3);
+        // Heal 5% of damage dealt per explosion (estimated from nearby enemies)
+        const hits = enemyHash.query(ex, ey, explodeRadius + 20);
+        let expDmg = 0;
+        for(const en of hits) {
+          if(!en._dead) expDmg += Math.min(en.hp, explodeDmg);
+        }
+        const heal = Math.floor(expDmg * 0.05);
+        if(heal > 0) {
+          player.hp = Math.min(player.hp + heal, player.maxHp);
+        }
+      }, i * 80);
+    }
+    // Show total heal summary after all explosions
+    setTimeout(() => {
+      if(player.hp < player.maxHp) {
+        lootPickupTexts.push({ text: 'Blood Healed', rarity: 'rare', x: player.x, y: player.y - 20, life: 1.0, maxLife: 1.0 });
+      }
+    }, 6 * 80 + 50);
+    screenShake = 0.3;
+    // Dark red expanding ring visual
+    activeEffects.push({
+      type: 'bloodRitualRing', x: player.x, y: player.y,
+      radius: 0, maxRadius: 140,
+      life: 0.8, maxLife: 0.8
+    });
+    lootPickupTexts.push({ text: 'BLOOD RITUAL!', rarity: 'legendary', x: player.x, y: player.y - 30, life: 1.5, maxLife: 1.5 });
+  } else if(classId === 'ranger') {
+    // NATURE'S VEIL: 6s stealth
+    sa.active = true;
+    sa.duration = sigConfig.duration || 6;
+    player.stealthActive = true;
+    player.stealthAmbush = true;
+    player.stealthSpeedBonus = player.speed * 0.30;
+    player.speed += player.stealthSpeedBonus;
+    Audio.naturesVeilSound();
+    spawnParticles(player.x, player.y, 12, '#228B22', 3);
+    spawnParticles(player.x, player.y, 8, '#90EE90', 2);
+    lootPickupTexts.push({ text: "NATURE'S VEIL!", rarity: 'legendary', x: player.x, y: player.y - 30, life: 1.5, maxLife: 1.5 });
+  } else if(classId === 'warlock') {
+    // SINGULARITY RIFT: 4s pull + DoT at player position
+    sa.active = true;
+    sa.duration = sigConfig.duration || 4;
+    player.riftActive = true;
+    player.riftX = player.x;
+    player.riftY = player.y;
+    player.riftTimer = 0;
+    Audio.singularityRiftSound();
+    spawnParticles(player.x, player.y, 20, '#6a0dad', 5);
+    spawnParticles(player.x, player.y, 10, '#000000', 4);
+    lootPickupTexts.push({ text: 'SINGULARITY RIFT!', rarity: 'legendary', x: player.x, y: player.y - 30, life: 1.5, maxLife: 1.5 });
+  }
+}
+
+function updateSignatureAbility(dt) {
+  const sa = player.sigAbility;
+  const classId = player.classId || 'gunner';
+
+  // Cooldown tick
+  if(sa.cooldown > 0) sa.cooldown -= dt;
+
+  if(!sa.active) return;
+
+  sa.duration -= dt;
+
+  if(classId === 'gunner') {
+    // Overclock: visual particles while active
+    if(Math.random() < 0.3) {
+      const angle = Math.random() * Math.PI * 2;
+      spawnParticles(
+        player.x + Math.cos(angle) * 15, player.y + Math.sin(angle) * 15,
+        1, '#00ffff', 2
+      );
+    }
+    // Speed lines effect
+    if(Math.random() < 0.15) {
+      const behind = Math.atan2(-player.lastDirY, -player.lastDirX);
+      const spread = (Math.random() - 0.5) * 1.5;
+      particles.get(
+        player.x + Math.cos(behind + spread) * 20,
+        player.y + Math.sin(behind + spread) * 20,
+        Math.cos(behind) * 200, Math.sin(behind) * 200,
+        0.2, '#00e5ff', 1
+      );
+    }
+    if(sa.duration <= 0) {
+      sa.active = false;
+    }
+  } else if(classId === 'ranger') {
+    // Nature's Veil: leaf particles while stealthed
+    if(Math.random() < 0.2) {
+      const angle = Math.random() * Math.PI * 2;
+      particles.get(
+        player.x + Math.cos(angle) * 20,
+        player.y + Math.sin(angle) * 20,
+        Math.cos(angle) * 30 + (Math.random() - 0.5) * 20,
+        Math.sin(angle) * 30 - 20,
+        0.5 + Math.random() * 0.3, '#228B22', 2
+      );
+    }
+    if(sa.duration <= 0) {
+      endStealth();
+      sa.active = false;
+    }
+  } else if(classId === 'warlock') {
+    // Singularity Rift: pull enemies + DoT
+    player.riftTimer += dt;
+    const riftRadius = 250;
+    const pullStr = 200;
+    const dps = 15 * player.damage * (player.abilityPowerMult || 1);
+    const nearby = enemyHash.query(player.riftX, player.riftY, riftRadius + 50);
+    for(const e of nearby) {
+      const dx = player.riftX - e.x;
+      const dy = player.riftY - e.y;
+      const d = Math.hypot(dx, dy);
+      if(d < riftRadius && d > 10) {
+        // Pull toward center
+        const pullForce = pullStr * (1 - d / riftRadius);
+        e.x += (dx / d) * pullForce * dt;
+        e.y += (dy / d) * pullForce * dt;
+        e._pulled = true;
+        // DoT
+        damageEnemy(e, dps * dt);
+      }
+    }
+    // Swirling particles
+    if(Math.random() < 0.4) {
+      const pAngle = Math.random() * Math.PI * 2;
+      const pDist = 50 + Math.random() * riftRadius;
+      const px = player.riftX + Math.cos(pAngle) * pDist;
+      const py = player.riftY + Math.sin(pAngle) * pDist;
+      const toCenterX = player.riftX - px;
+      const toCenterY = player.riftY - py;
+      const tcLen = Math.hypot(toCenterX, toCenterY);
+      particles.get(px, py, (toCenterX / tcLen) * 150, (toCenterY / tcLen) * 150, 0.4, Math.random() < 0.5 ? '#6a0dad' : '#1a0030', 2);
+    }
+
+    if(sa.duration <= 0) {
+      // Collapse burst damage
+      const burstDmg = 80 * player.damage * (player.abilityPowerMult || 1);
+      const burstNearby = enemyHash.query(player.riftX, player.riftY, riftRadius);
+      for(const e of burstNearby) {
+        const d = Math.hypot(e.x - player.riftX, e.y - player.riftY);
+        if(d < riftRadius) {
+          damageEnemy(e, burstDmg);
+        }
+      }
+      Audio.singularityCollapseSound();
+      spawnParticles(player.riftX, player.riftY, 30, '#6a0dad', 6);
+      spawnParticles(player.riftX, player.riftY, 15, '#ffffff', 3);
+      screenShake = 0.3;
+      player.riftActive = false;
+      sa.active = false;
+    }
+  }
+}
+
+function endStealth() {
+  if(!player.stealthActive) return;
+  player.stealthActive = false;
+  player.stealthAmbush = false;
+  if(player.stealthSpeedBonus > 0) {
+    player.speed -= player.stealthSpeedBonus;
+    player.stealthSpeedBonus = 0;
+  }
+  spawnParticles(player.x, player.y, 8, '#90EE90', 3);
 }
 
 // ============================================================
@@ -3675,6 +4142,26 @@ function startGame() {
   player.permSingularity = false; player.singularityTimer = 0;
   // Runtime entity arrays for summons/traps/turrets/decoys
   player.skeletons = []; player.traps = []; player.turrets = []; player.decoys = [];
+
+  // Signature class ability state
+  const sigConfig = (THEME.classConfig && THEME.classConfig.signatureAbility) || {};
+  player.sigAbility = {
+    cooldown: 0,
+    maxCooldown: sigConfig.cooldown || 45,
+    active: false,
+    duration: 0,
+    maxDuration: sigConfig.duration || 0,
+    timer: 0 // generic timer for ability-specific state
+  };
+  // Ranger stealth: ambush flag
+  player.stealthActive = false;
+  player.stealthAmbush = false;
+  player.stealthSpeedBonus = 0;
+  // Warlock rift state
+  player.riftActive = false;
+  player.riftX = 0;
+  player.riftY = 0;
+  player.riftTimer = 0;
 
   // --- Apply permanent upgrades from save state ---
   const permSave = SaveManager.load();
