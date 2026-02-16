@@ -1480,10 +1480,12 @@ function gameLoop(timestamp) {
   enemyHash.clear();
   enemies.forEach(e => enemyHash.insert(e));
 
-  // Weapon firing
+  // Weapon firing — don't fire until enemies exist (avoids phantom explosions at round start)
+  const hasEnemies = enemies.count > 0;
   for(const w of player.weapons) {
     if(w.type === 'orbit') continue; // continuous
     if(!weaponTimers[w.type]) weaponTimers[w.type] = 0;
+    if(!hasEnemies) continue; // hold cooldowns until first spawn
     weaponTimers[w.type] -= dt;
     if(weaponTimers[w.type] <= 0) {
       const stats = getWeaponStats(w.type, w.level);
@@ -2348,7 +2350,7 @@ function updateVictoryVacuum(dt) {
       g.y += (dy/d) * pull * dt;
     }
     if(d < 25) {
-      addXp(g.value);
+      xp += g.value; // collect silently — no level-up during vacuum
       runGold += 2;
       Audio.gemSound();
       gems.release(g);
