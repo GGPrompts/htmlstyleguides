@@ -620,7 +620,10 @@ var Tracker = (function () {
     }
   }
 
-  function advanceRow() {
+  // Internal row advancement — pure state update, no UI callback.
+  // Used by schedulerTick to batch-schedule rows without triggering
+  // expensive DOM work between each row.
+  function advanceRow_internal() {
     currentRow++;
 
     // Determine current pattern length (use channel 0 as reference)
@@ -642,7 +645,10 @@ var Tracker = (function () {
         if (onPlaybackEnd) onPlaybackEnd();
       }
     }
+  }
 
+  function advanceRow() {
+    advanceRow_internal();
     if (onRowChange) onRowChange(currentRow, currentSeqRow);
   }
 
@@ -653,10 +659,25 @@ var Tracker = (function () {
     if (!ctx) return;
     var now = ctx.currentTime;
 
+    // Schedule all rows within the lookahead window first, deferring
+    // UI callbacks until after the scheduling batch completes.  This
+    // prevents expensive DOM work inside the tight scheduling loop
+    // from delaying subsequent row scheduling and causing audible gaps
+    // at pattern boundaries (especially at higher tempos).
+    var lastRow = currentRow;
+    var lastSeqRow = currentSeqRow;
+    var scheduled = false;
+
     while (nextRowTime < now + SCHEDULE_AHEAD) {
       scheduleRow(nextRowTime);
       nextRowTime += secondsPerRow();
-      advanceRow();
+      advanceRow_internal();
+      scheduled = true;
+    }
+
+    // Notify UI once with the final position after the batch
+    if (scheduled && (lastRow !== currentRow || lastSeqRow !== currentSeqRow)) {
+      if (onRowChange) onRowChange(currentRow, currentSeqRow);
     }
   }
 

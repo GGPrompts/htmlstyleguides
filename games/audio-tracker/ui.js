@@ -1192,6 +1192,8 @@ var UI = (function () {
   // Playback row tracking
   // ---------------------------------------------------------------------------
 
+  var pendingAnimFrame = null;
+
   function onRowChange(row, seqRow) {
     playingRow = row;
     playingSeqRow = seqRow;
@@ -1202,8 +1204,15 @@ var UI = (function () {
       scrollOffset = Math.max(0, playingRow - Math.floor(vis / 2));
     }
 
-    renderCanvas();
-    renderArrangement();
+    // Defer rendering to the next animation frame so that DOM work
+    // never blocks the audio scheduler's tight scheduling loop.
+    if (!pendingAnimFrame) {
+      pendingAnimFrame = requestAnimationFrame(function () {
+        pendingAnimFrame = null;
+        renderCanvas();
+        renderArrangement();
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------
