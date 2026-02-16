@@ -1701,6 +1701,12 @@ function addXp(amount) {
     xp -= xpToNext;
     playerLevel++;
     xpToNext = Math.floor(5 * Math.pow(1.4, playerLevel-1));
+    // Award 1 skill point every 5 in-run levels
+    if (playerLevel % 5 === 0) {
+      const sd = SaveManager.load();
+      sd.skillPoints = (sd.skillPoints || 0) + 1;
+      SaveManager.save(sd);
+    }
     showLevelUp();
   }
 }
@@ -4005,8 +4011,8 @@ function finalizeVictory() {
   const cid = player.classId || 'gunner';
   SaveManager.recordRun(kills, gameTime, runGold, cid, waveNum);
   const saveData = SaveManager.load();
-  // Award 1 skill point per world completed
-  saveData.skillPoints = (saveData.skillPoints || 0) + 1;
+  // Award 2 skill points per world completed
+  saveData.skillPoints = (saveData.skillPoints || 0) + 2;
   // Advance currentWorld if this world is the current one
   if(THEME.worldOrder && typeof THEME.worldOrder.current === 'number') {
     if(saveData.currentWorld <= THEME.worldOrder.current) {
