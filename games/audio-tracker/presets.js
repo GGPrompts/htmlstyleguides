@@ -49,9 +49,9 @@ const Presets = {
       detune: 0,
       detuneOsc: false,
       detuneAmount: 0,
-      attack: 0.002, decay: 0.05, sustain: 0.0, release: 0.02,
+      attack: 0.002, decay: 0.12, sustain: 0.0, release: 0.04,
       filterType: "lowpass",
-      filterFreq: 200, filterQ: 1,
+      filterFreq: 350, filterQ: 5,
       volume: 0.95
     },
     { // 4
@@ -71,10 +71,10 @@ const Presets = {
       detune: 0,
       detuneOsc: false,
       detuneAmount: 0,
-      attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.01,
+      attack: 0.001, decay: 0.06, sustain: 0.0, release: 0.03,
       filterType: "highpass",
-      filterFreq: 6000, filterQ: 1,
-      volume: 0.45
+      filterFreq: 5000, filterQ: 2,
+      volume: 0.7
     },
 
     // --- 16-bit (SNES-style) ---------------------------------------------
@@ -162,8 +162,8 @@ const Presets = {
         name: "NES Noise Kick",
         wave: "noise",
         detune: 0, detuneOsc: false, detuneAmount: 0,
-        attack: 0.002, decay: 0.05, sustain: 0.0, release: 0.02,
-        filterType: "lowpass", filterFreq: 200, filterQ: 1,
+        attack: 0.002, decay: 0.12, sustain: 0.0, release: 0.04,
+        filterType: "lowpass", filterFreq: 350, filterQ: 5,
         volume: 0.95
       },
       { // 4 - snare
@@ -178,9 +178,9 @@ const Presets = {
         name: "NES Noise Hi-Hat",
         wave: "noise",
         detune: 0, detuneOsc: false, detuneAmount: 0,
-        attack: 0.001, decay: 0.03, sustain: 0.0, release: 0.01,
-        filterType: "highpass", filterFreq: 6000, filterQ: 1,
-        volume: 0.45
+        attack: 0.001, decay: 0.06, sustain: 0.0, release: 0.03,
+        filterType: "highpass", filterFreq: 5000, filterQ: 2,
+        volume: 0.7
       }
     ],
 
