@@ -159,6 +159,147 @@ const Audio = (() => {
 })();
 
 // ============================================================
+// SAVE MANAGER (localStorage + JSON export/import)
+// ============================================================
+const SaveManager = (() => {
+  const STORAGE_KEY = 'survivors-save';
+  const CURRENT_VERSION = 1;
+
+  function defaultState() {
+    return {
+      version: CURRENT_VERSION,
+      gold: 0,
+      currentWorld: 0,
+      inventory: [],
+      skillTree: {},
+      upgrades: {},
+      stats: {
+        totalKills: 0,
+        bestTime: 0,
+        runsCompleted: 0
+      }
+    };
+  }
+
+  function save(data) {
+    try {
+      const merged = Object.assign(defaultState(), data);
+      merged.version = CURRENT_VERSION;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+      return true;
+    } catch(e) {
+      console.warn('SaveManager: failed to save', e);
+      return false;
+    }
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object') return defaultState();
+      // Migrate if needed (future-proof)
+      return migrate(parsed);
+    } catch(e) {
+      console.warn('SaveManager: failed to load', e);
+      return defaultState();
+    }
+  }
+
+  function migrate(data) {
+    // Version 1 is current; future migrations go here
+    // e.g. if (data.version < 2) { /* migrate v1 -> v2 */ }
+    const base = defaultState();
+    return {
+      version: CURRENT_VERSION,
+      gold: typeof data.gold === 'number' ? data.gold : base.gold,
+      currentWorld: typeof data.currentWorld === 'number' ? data.currentWorld : base.currentWorld,
+      inventory: Array.isArray(data.inventory) ? data.inventory : base.inventory,
+      skillTree: data.skillTree && typeof data.skillTree === 'object' ? data.skillTree : base.skillTree,
+      upgrades: data.upgrades && typeof data.upgrades === 'object' ? data.upgrades : base.upgrades,
+      stats: {
+        totalKills: (data.stats && typeof data.stats.totalKills === 'number') ? data.stats.totalKills : base.stats.totalKills,
+        bestTime: (data.stats && typeof data.stats.bestTime === 'number') ? data.stats.bestTime : base.stats.bestTime,
+        runsCompleted: (data.stats && typeof data.stats.runsCompleted === 'number') ? data.stats.runsCompleted : base.stats.runsCompleted
+      }
+    };
+  }
+
+  function exportJSON() {
+    const data = load();
+    return JSON.stringify(data, null, 2);
+  }
+
+  function importJSON(str) {
+    try {
+      const parsed = JSON.parse(str);
+      if (!parsed || typeof parsed !== 'object') return false;
+      if (typeof parsed.version !== 'number') return false;
+      const migrated = migrate(parsed);
+      return save(migrated);
+    } catch(e) {
+      console.warn('SaveManager: invalid JSON import', e);
+      return false;
+    }
+  }
+
+  function encodeURL() {
+    const data = load();
+    const json = JSON.stringify(data);
+    const encoded = btoa(unescape(encodeURIComponent(json)));
+    return '#save=' + encoded;
+  }
+
+  function decodeURL(hash) {
+    try {
+      if (!hash || !hash.startsWith('#save=')) return null;
+      const encoded = hash.slice(6);
+      const json = decodeURIComponent(escape(atob(encoded)));
+      const parsed = JSON.parse(json);
+      if (!parsed || typeof parsed !== 'object') return null;
+      return migrate(parsed);
+    } catch(e) {
+      console.warn('SaveManager: failed to decode URL hash', e);
+      return null;
+    }
+  }
+
+  function reset() {
+    const data = defaultState();
+    save(data);
+    return data;
+  }
+
+  // Record end-of-run stats into the persistent save
+  function recordRun(runKills, runTime) {
+    const data = load();
+    data.stats.totalKills += runKills;
+    data.stats.runsCompleted += 1;
+    if (runTime > data.stats.bestTime) {
+      data.stats.bestTime = runTime;
+    }
+    save(data);
+    return data;
+  }
+
+  return { save, load, exportJSON, importJSON, encodeURL, decodeURL, reset, recordRun, defaultState };
+})();
+
+// On page load, check for URL hash save and import if present
+(function() {
+  if (window.location.hash && window.location.hash.startsWith('#save=')) {
+    const imported = SaveManager.decodeURL(window.location.hash);
+    if (imported) {
+      SaveManager.save(imported);
+      // Clean the hash so it does not persist in the URL bar
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+      console.log('SaveManager: imported save from URL');
+    }
+  }
+})();
+
+// ============================================================
 // SPATIAL HASH GRID
 // ============================================================
 class SpatialHash {
@@ -1858,13 +1999,17 @@ function startGame() {
 
 function gameOver() {
   state = 'gameover';
+  // Auto-save run stats to persistent save
+  SaveManager.recordRun(kills, gameTime);
   const mins = Math.floor(gameTime/60);
   const secs = Math.floor(gameTime%60);
+  const saveData = SaveManager.load();
   document.getElementById('go-stats').innerHTML = `
     <div class="stats-line">Time Survived: ${mins}:${secs.toString().padStart(2,'0')}</div>
     <div class="stats-line">Level Reached: ${playerLevel}</div>
     <div class="stats-line">Enemies Slain: ${kills}</div>
     <div class="stats-line">Weapons: ${player.weapons.length}</div>
+    <div class="stats-line" style="margin-top:8px;opacity:0.7">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills}</div>
   `;
   document.getElementById('game-over-screen').style.display = 'flex';
 }
