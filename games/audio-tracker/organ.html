@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cathedral Organ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=Cormorant+Garamond:wght@400;600;700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --nave-stone: #1a1520;
+      --cloister: #2a2233;
+      --vestment-purple: #5c3d6e;
+      --stained-rose: #8b3a5c;
+      --tarnished-gold: #b8954a;
+      --votive-amber: #d4a054;
+      --parchment: #d8cfc0;
+      --deep-crypt: #110e18;
+      --chapel: #352a42;
+      --incense: #6b5878;
+      --moonstone: #a89db0;
+      --parchment-dim: rgba(216, 207, 192, 0.6);
+      --vestment-hover: #6d4d80;
+      --font-display: 'UnifrakturMaguntia', cursive;
+      --font-heading: 'Cormorant Garamond', 'Garamond', serif;
+      --font-body: 'Crimson Pro', 'Georgia', serif;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--nave-stone);
+      color: var(--parchment);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0.35;
+      mix-blend-mode: overlay;
+      pointer-events: none;
+      z-index: 100;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E");
+    }
+
+    /* ── Header ── */
+    .organ-header {
+      text-align: center;
+      padding: 32px 16px 20px;
+    }
+
+    .organ-title {
+      font-family: var(--font-display);
+      font-size: 52px;
+      color: var(--tarnished-gold);
+      font-weight: 400;
+      line-height: 1.2;
+    }
+
+    .organ-subtitle {
+      font-family: var(--font-heading);
+      font-style: italic;
+      font-size: 17px;
+      color: var(--moonstone);
+      margin-top: 6px;
+    }
+
+    /* ── Organ Body ── */
+    .organ-body {
+      position: relative;
+      background: var(--deep-crypt);
+      border: 1px solid rgba(184, 149, 74, 0.2);
+      border-top: 2px solid var(--tarnished-gold);
+      padding: 20px 24px 0;
+      margin: 0 16px;
+    }
+
+    /* ── Decorative arch above pipes ── */
+    .organ-arch {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .organ-arch .rose-window {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--vestment-purple) 0deg,
+        var(--stained-rose) 60deg,
+        var(--tarnished-gold) 120deg,
+        var(--vestment-purple) 180deg,
+        var(--stained-rose) 240deg,
+        var(--tarnished-gold) 300deg,
+        var(--vestment-purple) 360deg
+      );
+      box-shadow: 0 0 14px rgba(184, 149, 74, 0.25);
+      position: relative;
+    }
+    .organ-arch .rose-window::after {
+      content: '';
+      position: absolute;
+      top: 6px; left: 6px; right: 6px; bottom: 6px;
+      border-radius: 50%;
+      background: var(--deep-crypt);
+      border: 1px solid rgba(184, 149, 74, 0.3);
+    }
+
+    /* ── Organ Pipes ── */
+    .pipes {
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 0;
+      margin-bottom: 2px;
+    }
+
+    .pipe {
+      border-radius: 20px 20px 2px 2px;
+      background: linear-gradient(90deg,
+        #58505a 0%, #78707a 15%, #98909a 35%,
+        #b0a8b0 50%,
+        #98909a 65%, #78707a 85%, #58505a 100%
+      );
+      position: relative;
+      transition: box-shadow 0.15s ease, filter 0.15s ease;
+    }
+
+    /* Pipe lip / mouth */
+    .pipe::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 4px; right: 4px;
+      height: 8px;
+      background: linear-gradient(180deg, #48404a, #38303a);
+      border-radius: 0 0 2px 2px;
+    }
+
+    .pipe.pipe-active {
+      box-shadow: 0 0 18px rgba(212, 160, 84, 0.5), 0 0 40px rgba(212, 160, 84, 0.2);
+      filter: brightness(1.3);
+    }
+
+    .pipe.pipe-active[data-channel="0"] { box-shadow: 0 0 18px rgba(184, 149, 74, 0.7), 0 0 40px rgba(184, 149, 74, 0.3); }
+    .pipe.pipe-active[data-channel="1"] { box-shadow: 0 0 18px rgba(192, 96, 128, 0.7), 0 0 40px rgba(192, 96, 128, 0.3); }
+    .pipe.pipe-active[data-channel="2"] { box-shadow: 0 0 18px rgba(155, 122, 184, 0.7), 0 0 40px rgba(155, 122, 184, 0.3); }
+    .pipe.pipe-active[data-channel="3"] { box-shadow: 0 0 18px rgba(255, 255, 255, 0.5), 0 0 40px rgba(255, 255, 255, 0.2); }
+
+    /* ── Keyboard ── */
+    .keyboard {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      margin: 0 auto;
+      padding-bottom: 12px;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .key {
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      transition: transform 0.06s ease, box-shadow 0.1s ease;
+    }
+
+    .key-white {
+      width: 50px;
+      height: 200px;
+      background: linear-gradient(180deg, #f5f0e8 0%, #e8e0d0 60%, #ddd5c5 100%);
+      border: 1px solid #a09888;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+      z-index: 1;
+    }
+
+    .key-white:hover {
+      background: linear-gradient(180deg, #faf5ee 0%, #eee8d8 60%, #e2dace 100%);
+    }
+
+    .key-white.pressed {
+      transform: translateY(3px);
+      background: linear-gradient(180deg, #ddd5c5 0%, #d0c8b8 60%, #c8c0b0 100%);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.15);
+    }
+
+    .key-white.active {
+      transform: translateY(2px);
+      box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .key-white.active[data-channel="0"] { background: linear-gradient(180deg, #f0e0b0 0%, #e8d4a0 100%); box-shadow: 0 0 16px rgba(184, 149, 74, 0.6); }
+    .key-white.active[data-channel="1"] { background: linear-gradient(180deg, #f0d0d8 0%, #e8c0c8 100%); box-shadow: 0 0 16px rgba(192, 96, 128, 0.6); }
+    .key-white.active[data-channel="2"] { background: linear-gradient(180deg, #e0d0f0 0%, #d8c4e8 100%); box-shadow: 0 0 16px rgba(155, 122, 184, 0.6); }
+    .key-white.active[data-channel="3"] { background: linear-gradient(180deg, #f8f0f0 0%, #f0e8e8 100%); box-shadow: 0 0 12px rgba(255, 255, 255, 0.4); }
+
+    .key-black {
+      position: absolute;
+      width: 32px;
+      height: 130px;
+      background: linear-gradient(180deg, #2a2030 0%, #1e1828 40%, #181420 100%);
+      border: 1px solid #100e18;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      z-index: 2;
+      top: 0;
+    }
+
+    .key-black:hover {
+      background: linear-gradient(180deg, #342838 0%, #281e30 40%, #201828 100%);
+    }
+
+    .key-black.pressed {
+      transform: translateY(3px);
+      background: linear-gradient(180deg, #181420 0%, #141018 40%, #100e14 100%);
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.4);
+    }
+
+    .key-black.active[data-channel="0"] { background: linear-gradient(180deg, #504020 0%, #403018 100%); box-shadow: 0 0 14px rgba(184, 149, 74, 0.7); }
+    .key-black.active[data-channel="1"] { background: linear-gradient(180deg, #502030 0%, #401828 100%); box-shadow: 0 0 14px rgba(192, 96, 128, 0.7); }
+    .key-black.active[data-channel="2"] { background: linear-gradient(180deg, #302040 0%, #281838 100%); box-shadow: 0 0 14px rgba(155, 122, 184, 0.7); }
+    .key-black.active[data-channel="3"] { background: linear-gradient(180deg, #404040 0%, #383838 100%); box-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+
+    .key-label {
+      font-family: var(--font-heading);
+      font-size: 11px;
+      font-weight: 600;
+      text-align: center;
+      line-height: 1.3;
+      pointer-events: none;
+      padding-bottom: 8px;
+    }
+
+    .key-white .key-label {
+      color: #706858;
+    }
+
+    .key-black .key-label {
+      color: #807080;
+      font-size: 10px;
+      padding-bottom: 6px;
+    }
+
+    .key-label .shortcut {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .key-white .key-label .shortcut { color: #504838; }
+    .key-black .key-label .shortcut { color: #a090a0; }
+
+    .key-label .note-name {
+      display: block;
+      font-size: 10px;
+      opacity: 0.7;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 16px 24px;
+      background: var(--cloister);
+      border: 1px solid rgba(184, 149, 74, 0.15);
+      border-top: 1px solid rgba(184, 149, 74, 0.25);
+      margin: 0 16px 24px;
+    }
+
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .controls-group label {
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--moonstone);
+    }
+
+    .ctrl-btn {
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 8px 18px;
+      border: 1px solid rgba(184, 149, 74, 0.3);
+      background: var(--vestment-purple);
+      color: var(--parchment);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: var(--vestment-hover);
+      box-shadow: 0 0 14px rgba(92, 61, 110, 0.4);
+    }
+
+    .ctrl-btn:active {
+      transform: translateY(1px);
+    }
+
+    .ctrl-btn.active {
+      background: var(--stained-rose);
+      border-color: rgba(139, 58, 92, 0.5);
+    }
+
+    .ctrl-btn-small {
+      padding: 6px 12px;
+      font-size: 14px;
+      min-width: 32px;
+      text-align: center;
+    }
+
+    .ctrl-select {
+      font-family: var(--font-body);
+      font-size: 14px;
+      background: var(--chapel);
+      color: var(--parchment);
+      border: 1px solid var(--incense);
+      padding: 7px 32px 7px 12px;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23b8954a' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      max-width: 200px;
+    }
+
+    .ctrl-select:focus {
+      border-color: var(--tarnished-gold);
+      box-shadow: 0 0 8px rgba(184, 149, 74, 0.15);
+    }
+
+    .oct-display {
+      font-family: var(--font-heading);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--tarnished-gold);
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .bpm-display {
+      font-family: var(--font-heading);
+      font-size: 13px;
+      color: var(--incense);
+      letter-spacing: 1px;
+    }
+
+    .tracker-link {
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--tarnished-gold);
+      text-decoration: none;
+      margin-left: auto;
+      transition: color 0.2s;
+    }
+
+    .tracker-link:hover {
+      color: var(--votive-amber);
+    }
+
+    /* ── Candles ── */
+    .candle {
+      position: fixed;
+      z-index: 50;
+      pointer-events: none;
+      transform: scale(0.72);
+    }
+    .candle--left { left: 18px; }
+    .candle--right { right: 18px; }
+    .candle--upper { top: 18%; }
+    .candle--lower { bottom: 18%; }
+
+    .candle-wax {
+      width: 18px;
+      height: 90px;
+      background: linear-gradient(180deg, #e8d9b0 0%, #c4a860 30%, #a08040 100%);
+      border-radius: 3px 3px 4px 4px;
+      margin: 0 auto;
+      position: relative;
+      box-shadow: 0 0 8px rgba(212, 160, 84, 0.15);
+    }
+    .candle-wax::before {
+      content: '';
+      position: absolute;
+      top: -4px; left: 50%;
+      transform: translateX(-50%);
+      width: 22px; height: 6px;
+      background: radial-gradient(ellipse, #d4a054 30%, #a08040 100%);
+      border-radius: 50%;
+    }
+
+    .candle-wick {
+      width: 2px;
+      height: 10px;
+      background: #3a2a1a;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .candle-flame {
+      width: 14px;
+      height: 28px;
+      background: radial-gradient(ellipse at 50% 70%,
+        #fff8e0 0%, #ffd54f 25%, #ff9800 50%, #e65100 75%, transparent 100%
+      );
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      position: relative;
+      left: 50%;
+      transform: translateX(-50%);
+      animation: flicker 2.5s ease-in-out infinite alternate;
+    }
+    .candle--right.candle--upper .candle-flame { animation-delay: -1.2s; }
+    .candle--left.candle--lower .candle-flame { animation-delay: -0.7s; }
+    .candle--right.candle--lower .candle-flame { animation-delay: -2.0s; }
+
+    .candle-glow {
+      position: absolute;
+      bottom: 130px; left: 50%;
+      transform: translateX(-50%);
+      width: 120px; height: 200px;
+      background: radial-gradient(ellipse at center,
+        rgba(212, 160, 84, 0.12) 0%,
+        rgba(212, 160, 84, 0.05) 40%,
+        transparent 70%
+      );
+      pointer-events: none;
+    }
+
+    .sconce-cup {
+      width: 30px; height: 10px;
+      background: linear-gradient(180deg, #4a4050, #2a2230);
+      border-radius: 0 0 6px 6px;
+      margin: 0 auto;
+      position: relative;
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.5);
+    }
+    .sconce-cup::before {
+      content: '';
+      position: absolute;
+      top: -3px; left: -4px; right: -4px; height: 6px;
+      background: linear-gradient(180deg, #5a5060, #3a3040);
+      border-radius: 3px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+
+    .sconce-arm {
+      width: 4px; height: 30px;
+      background: linear-gradient(180deg, #3a3040, #2a2030);
+      margin: 0 auto;
+      position: relative;
+      box-shadow: 1px 0 2px rgba(0,0,0,0.3);
+    }
+    .sconce-arm::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 50%;
+      transform: translateX(-50%);
+      width: 10px; height: 10px;
+      border: 3px solid #3a3040;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    }
+
+    .sconce-bracket {
+      position: relative;
+      height: 24px;
+      margin: -8px auto 0;
+      display: flex;
+      align-items: center;
+    }
+    .sconce-bracket::before {
+      content: '';
+      position: absolute;
+      top: 6px; height: 4px; width: 32px;
+      background: linear-gradient(90deg, #3a3040, #4a4050, #3a3040);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+    .sconce-bracket::after {
+      content: '';
+      position: absolute;
+      top: 0; width: 14px; height: 24px;
+      background: linear-gradient(180deg, #4a4050, #2a2030);
+      border-radius: 3px 3px 7px 7px;
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.08), 0 1px 3px rgba(0,0,0,0.4);
+    }
+
+    .candle--left .sconce-bracket::before { right: 50%; margin-right: -2px; }
+    .candle--left .sconce-bracket::after { right: calc(50% + 26px); }
+    .candle--right .sconce-bracket::before { left: 50%; margin-left: -2px; }
+    .candle--right .sconce-bracket::after { left: calc(50% + 26px); }
+
+    @keyframes flicker {
+      0%   { transform: translateX(-50%) scale(1) rotate(-1deg); opacity: 1; }
+      20%  { transform: translateX(-50%) scale(1.04) rotate(1deg); opacity: 0.95; }
+      40%  { transform: translateX(-50%) scale(0.96) rotate(-0.5deg); opacity: 1; }
+      60%  { transform: translateX(-50%) scale(1.02) rotate(1.5deg); opacity: 0.92; }
+      80%  { transform: translateX(-50%) scale(0.98) rotate(-1deg); opacity: 1; }
+      100% { transform: translateX(-50%) scale(1.01) rotate(0.5deg); opacity: 0.97; }
+    }
+
+    /* ── Divider ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin: 0 16px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--tarnished-gold), transparent);
+      opacity: 0.3;
+    }
+
+    /* ── Footer ── */
+    .organ-footer {
+      text-align: center;
+      padding: 12px 16px 32px;
+    }
+    .organ-footer a {
+      font-family: var(--font-heading);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--incense);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .organ-footer a:hover { color: var(--tarnished-gold); }
+
+    /* ── Responsive ── */
+    @media (max-width: 840px) {
+      .organ-title { font-size: 38px; }
+      .key-white { width: 40px; height: 170px; }
+      .key-black { width: 26px; height: 110px; }
+      .controls { gap: 10px; padding: 12px 16px; }
+      .tracker-link { margin-left: 0; }
+    }
+
+    @media (max-width: 620px) {
+      .organ-title { font-size: 32px; }
+      .key-white { width: 32px; height: 150px; }
+      .key-black { width: 22px; height: 95px; }
+      .key-label .shortcut { font-size: 11px; }
+      .key-label .note-name { display: none; }
+      .controls { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 768px) {
+      .candle { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient candles -->
+  <div class="candle candle--left candle--upper">
+    <div class="candle-flame"></div>
+    <div class="candle-wick"></div>
+    <div class="candle-wax"></div>
+    <div class="sconce-cup"></div>
+    <div class="sconce-arm"></div>
+    <div class="sconce-bracket"></div>
+    <div class="candle-glow"></div>
+  </div>
+  <div class="candle candle--left candle--lower">
+    <div class="candle-flame"></div>
+    <div class="candle-wick"></div>
+    <div class="candle-wax"></div>
+    <div class="sconce-cup"></div>
+    <div class="sconce-arm"></div>
+    <div class="sconce-bracket"></div>
+    <div class="candle-glow"></div>
+  </div>
+  <div class="candle candle--right candle--upper">
+    <div class="candle-flame"></div>
+    <div class="candle-wick"></div>
+    <div class="candle-wax"></div>
+    <div class="sconce-cup"></div>
+    <div class="sconce-arm"></div>
+    <div class="sconce-bracket"></div>
+    <div class="candle-glow"></div>
+  </div>
+  <div class="candle candle--right candle--lower">
+    <div class="candle-flame"></div>
+    <div class="candle-wick"></div>
+    <div class="candle-wax"></div>
+    <div class="sconce-cup"></div>
+    <div class="sconce-arm"></div>
+    <div class="sconce-bracket"></div>
+    <div class="candle-glow"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="organ-header">
+    <h1 class="organ-title">Cathedral Organ</h1>
+    <p class="organ-subtitle">A virtual instrument in the gothic tradition</p>
+  </header>
+
+  <!-- Organ -->
+  <div class="organ-body">
+    <div class="organ-arch"><div class="rose-window"></div></div>
+    <div id="pipes" class="pipes"></div>
+    <div id="keyboard" class="keyboard"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="controls-group">
+      <button class="ctrl-btn" id="btn-play">Play Song</button>
+      <button class="ctrl-btn" id="btn-stop">Stop</button>
+    </div>
+    <div class="controls-group">
+      <label>Song</label>
+      <select class="ctrl-select" id="song-select">
+        <option value="">-- Select --</option>
+      </select>
+    </div>
+    <div class="controls-group">
+      <label>Octave</label>
+      <button class="ctrl-btn ctrl-btn-small" id="btn-oct-down">&minus;</button>
+      <span class="oct-display" id="oct-display">3</span>
+      <button class="ctrl-btn ctrl-btn-small" id="btn-oct-up">+</button>
+    </div>
+    <div class="controls-group">
+      <label>Voice</label>
+      <select class="ctrl-select" id="inst-select"></select>
+    </div>
+    <span class="bpm-display" id="bpm-display"></span>
+    <a href="index.html" class="tracker-link">Open in Tracker &rarr;</a>
+  </div>
+
+  <div class="divider"></div>
+
+  <footer class="organ-footer">
+    <a href="../../games/index.html">&larr; Back to Games</a>
+  </footer>
+
+  <script src="synth.js"></script>
+  <script src="tracker.js"></script>
+  <script src="presets.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Constants ──
+
+    var NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    var BLACK_SEMITONES = [1, 3, 6, 8, 10];
+    var NUM_OCTAVES = 2;
+    var WHITE_KEY_W = 50; // must match CSS .key-white width
+
+    // Keyboard key → semitone offset (0-23 across 2 octaves)
+    var KEY_MAP = {
+      'z':0,'s':1,'x':2,'d':3,'c':4,'v':5,'g':6,
+      'b':7,'h':8,'n':9,'j':10,'m':11,
+      'q':12,'2':13,'w':14,'3':15,'e':16,'r':17,'5':18,
+      't':19,'6':20,'y':21,'7':22,'u':23
+    };
+
+    // Offset → keyboard shortcut label
+    var SHORTCUT_LABELS = [
+      'Z','S','X','D','C','V','G','B','H','N','J','M',
+      'Q','2','W','3','E','R','5','T','6','Y','7','U'
+    ];
+
+    // Count of white keys before each semitone in one octave
+    var WHITES_BEFORE = [0,1,1,2,2,3,4,4,5,5,6,6];
+
+    function isBlack(semitone) {
+      return BLACK_SEMITONES.indexOf(semitone % 12) !== -1;
+    }
+
+    function midiToName(midi) {
+      return NOTE_NAMES[midi % 12] + (Math.floor(midi / 12) - 1);
+    }
+
+    // ── State ──
+
+    var currentOctave = 3;
+    var currentInst = 0;
+    var activeVoices = {};       // midi → Synth voice handle (manual play)
+    var playbackNotes = [null, null, null, null]; // per-channel active midi (song viz)
+    var synthReady = false;
+    var songs = [];
+
+    // ── DOM refs ──
+
+    var pipesEl, keyboardEl, songSelect, instSelect, octDisplay, bpmDisplay;
+    var btnPlay, btnStop, btnOctUp, btnOctDown;
+
+    // ── Helpers ──
+
+    function baseMidi() {
+      return (currentOctave + 1) * 12;
+    }
+
+    function getKeyEl(midi) {
+      return keyboardEl.querySelector('[data-midi="' + midi + '"]');
+    }
+
+    function getPipeEl(midi) {
+      return pipesEl.querySelector('[data-midi="' + midi + '"]');
+    }
+
+    function ensureSynth() {
+      if (!synthReady) {
+        Synth.init();
+        synthReady = true;
+      }
+    }
+
+    // ── Build pipes ──
+
+    function buildPipes() {
+      pipesEl.innerHTML = '';
+      var kw = getResponsiveKeyWidth();
+      var numWhite = NUM_OCTAVES * 7;
+      var center = (numWhite - 1) / 2;
+      var maxH = 170, minH = 55;
+      var pipeW = Math.round(kw * 0.88);
+      var pipeMargin = Math.round((kw - pipeW) / 2);
+
+      pipesEl.style.width = (numWhite * kw) + 'px';
+
+      for (var oct = 0; oct < NUM_OCTAVES; oct++) {
+        for (var s = 0; s < 12; s++) {
+          if (isBlack(s)) continue;
+          var whiteIdx = oct * 7 + WHITES_BEFORE[s];
+          var midi = baseMidi() + oct * 12 + s;
+          var dist = Math.abs(whiteIdx - center) / center;
+          var h = maxH - (maxH - minH) * dist * dist;
+
+          var pipe = document.createElement('div');
+          pipe.className = 'pipe';
+          pipe.dataset.midi = midi;
+          pipe.style.height = Math.round(h) + 'px';
+          pipe.style.width = pipeW + 'px';
+          pipe.style.margin = '0 ' + pipeMargin + 'px';
+          pipesEl.appendChild(pipe);
+        }
+      }
+    }
+
+    // ── Build keyboard ──
+
+    function getResponsiveKeyWidth() {
+      var w = window.innerWidth;
+      if (w <= 620) return 32;
+      if (w <= 840) return 40;
+      return 50;
+    }
+
+    function buildKeyboard() {
+      keyboardEl.innerHTML = '';
+      var kw = getResponsiveKeyWidth();
+      var totalWhite = NUM_OCTAVES * 7;
+      keyboardEl.style.width = (totalWhite * kw) + 'px';
+
+      // White keys first
+      for (var oct = 0; oct < NUM_OCTAVES; oct++) {
+        for (var s = 0; s < 12; s++) {
+          if (isBlack(s)) continue;
+          var offset = oct * 12 + s;
+          var midi = baseMidi() + offset;
+
+          var key = document.createElement('div');
+          key.className = 'key key-white';
+          key.dataset.midi = midi;
+          key.dataset.offset = offset;
+
+          var label = document.createElement('span');
+          label.className = 'key-label';
+          label.innerHTML = '<span class="shortcut">' + SHORTCUT_LABELS[offset] + '</span>'
+            + '<span class="note-name">' + midiToName(midi) + '</span>';
+          key.appendChild(label);
+
+          keyboardEl.appendChild(key);
+        }
+      }
+
+      // Black keys (absolutely positioned)
+      for (var oct2 = 0; oct2 < NUM_OCTAVES; oct2++) {
+        for (var s2 = 0; s2 < 12; s2++) {
+          if (!isBlack(s2)) continue;
+          var offset2 = oct2 * 12 + s2;
+          var midi2 = baseMidi() + offset2;
+          var whitesBefore = oct2 * 7 + WHITES_BEFORE[s2];
+          var bkw = Math.round(kw * 0.64);
+          var left = whitesBefore * kw - Math.round(bkw / 2);
+
+          var key2 = document.createElement('div');
+          key2.className = 'key key-black';
+          key2.dataset.midi = midi2;
+          key2.dataset.offset = offset2;
+          key2.style.left = left + 'px';
+          key2.style.width = bkw + 'px';
+
+          var label2 = document.createElement('span');
+          label2.className = 'key-label';
+          label2.innerHTML = '<span class="shortcut">' + SHORTCUT_LABELS[offset2] + '</span>'
+            + '<span class="note-name">' + midiToName(midi2) + '</span>';
+          key2.appendChild(label2);
+
+          keyboardEl.appendChild(key2);
+        }
+      }
+    }
+
+    // ── Highlight management ──
+
+    function highlightKey(midi, on, channel) {
+      var el = getKeyEl(midi);
+      if (!el) return;
+      if (on) {
+        el.classList.add('active');
+        if (channel !== undefined) el.dataset.channel = channel;
+      } else {
+        el.classList.remove('active');
+        delete el.dataset.channel;
+      }
+      highlightPipe(midi, on, channel);
+    }
+
+    function highlightPipe(midi, on, channel) {
+      var el = getPipeEl(midi);
+      if (!el) {
+        // Black keys: highlight nearest white key pipe
+        var below = midi - 1;
+        el = getPipeEl(below);
+      }
+      if (!el) return;
+      if (on) {
+        el.classList.add('pipe-active');
+        if (channel !== undefined) el.dataset.channel = channel;
+      } else {
+        el.classList.remove('pipe-active');
+        delete el.dataset.channel;
+      }
+    }
+
+    function clearAllHighlights() {
+      var actives = keyboardEl.querySelectorAll('.active');
+      for (var i = 0; i < actives.length; i++) {
+        actives[i].classList.remove('active');
+        delete actives[i].dataset.channel;
+      }
+      var pipeActives = pipesEl.querySelectorAll('.pipe-active');
+      for (var j = 0; j < pipeActives.length; j++) {
+        pipeActives[j].classList.remove('pipe-active');
+        delete pipeActives[j].dataset.channel;
+      }
+      playbackNotes = [null, null, null, null];
+    }
+
+    // ── Manual play (keyboard + mouse) ──
+
+    function playNote(midi) {
+      if (activeVoices[midi]) return;
+      ensureSynth();
+      var inst = Presets.instruments[currentInst] || Presets.instruments[0];
+      var voice = Synth.noteOn(0, midi, inst, 0);
+      activeVoices[midi] = voice;
+      var el = getKeyEl(midi);
+      if (el) el.classList.add('pressed');
+      highlightPipe(midi, true);
+    }
+
+    function releaseNote(midi) {
+      if (!activeVoices[midi]) return;
+      Synth.noteOff(activeVoices[midi], 0);
+      delete activeVoices[midi];
+      var el = getKeyEl(midi);
+      if (el) el.classList.remove('pressed');
+      highlightPipe(midi, false);
+    }
+
+    function onKeyDown(e) {
+      if (e.repeat) return;
+      if (e.target.tagName === 'SELECT' || e.target.tagName === 'INPUT') return;
+      var k = e.key.toLowerCase();
+      if (KEY_MAP[k] !== undefined) {
+        e.preventDefault();
+        var midi = baseMidi() + KEY_MAP[k];
+        playNote(midi);
+      }
+    }
+
+    function onKeyUp(e) {
+      var k = e.key.toLowerCase();
+      if (KEY_MAP[k] !== undefined) {
+        var midi = baseMidi() + KEY_MAP[k];
+        releaseNote(midi);
+      }
+    }
+
+    // Mouse support
+    var mouseDownMidi = null;
+
+    function onMouseDown(e) {
+      var keyEl = e.target.closest('.key');
+      if (!keyEl) return;
+      e.preventDefault();
+      var midi = parseInt(keyEl.dataset.midi, 10);
+      mouseDownMidi = midi;
+      playNote(midi);
+    }
+
+    function onMouseUp() {
+      if (mouseDownMidi !== null) {
+        releaseNote(mouseDownMidi);
+        mouseDownMidi = null;
+      }
+    }
+
+    // ── Song loading ──
+
+    function loadSongList() {
+      fetch('songs/index.json')
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          songs = data.songs || [];
+          songSelect.innerHTML = '<option value="">-- Select --</option>';
+          for (var i = 0; i < songs.length; i++) {
+            var opt = document.createElement('option');
+            opt.value = songs[i].file;
+            opt.textContent = songs[i].title;
+            songSelect.appendChild(opt);
+          }
+        })
+        .catch(function () {
+          songSelect.innerHTML = '<option value="">No songs found</option>';
+        });
+    }
+
+    function loadSong(file) {
+      if (!file) return;
+      fetch('songs/' + file)
+        .then(function (r) { return r.text(); })
+        .then(function (json) {
+          ensureSynth();
+          Tracker.importFull(json);
+          var song = Tracker.getSong();
+          bpmDisplay.textContent = song.bpm + ' BPM';
+        })
+        .catch(function (err) {
+          console.error('Failed to load song:', err);
+        });
+    }
+
+    // ── Song playback + visualization ──
+
+    function findPat(id) {
+      var song = Tracker.getSong();
+      if (!song) return null;
+      for (var i = 0; i < song.patterns.length; i++) {
+        if (song.patterns[i].id === id) return song.patterns[i];
+      }
+      return null;
+    }
+
+    function setupPlaybackViz() {
+      Tracker.setOnRowChange(function (row, seqRow) {
+        var song = Tracker.getSong();
+        if (!song) return;
+        var seq = song.sequence[seqRow];
+        if (!seq) return;
+
+        for (var ch = 0; ch < 4; ch++) {
+          var patId = seq[ch];
+          var pat = findPat(patId);
+          if (!pat) continue;
+          if (row >= pat.channels[ch].length) continue;
+
+          var cell = pat.channels[ch][row];
+          if (!cell || cell.note === null) continue;
+
+          if (cell.note === -1) {
+            // Note-off
+            if (playbackNotes[ch] !== null) {
+              highlightKey(playbackNotes[ch], false);
+              playbackNotes[ch] = null;
+            }
+          } else if (cell.note > 0) {
+            // New note — clear previous on this channel
+            if (playbackNotes[ch] !== null) {
+              highlightKey(playbackNotes[ch], false);
+            }
+            playbackNotes[ch] = cell.note;
+            highlightKey(cell.note, true, ch);
+          }
+        }
+      });
+    }
+
+    function playSong() {
+      var file = songSelect.value;
+      if (!file) {
+        // If no song selected but tracker has a song loaded, play that
+        var song = Tracker.getSong();
+        if (!song || !song.patterns || song.patterns.length === 0) return;
+      }
+
+      ensureSynth();
+
+      if (file && !Tracker.isPlaying()) {
+        // Load and play
+        fetch('songs/' + file)
+          .then(function (r) { return r.text(); })
+          .then(function (json) {
+            Tracker.importFull(json);
+            var song = Tracker.getSong();
+            bpmDisplay.textContent = song.bpm + ' BPM';
+            Tracker.play('song');
+            btnPlay.classList.add('active');
+          });
+        return;
+      }
+
+      if (!Tracker.isPlaying()) {
+        Tracker.play('song');
+        btnPlay.classList.add('active');
+      }
+    }
+
+    function stopPlayback() {
+      Tracker.stop();
+      clearAllHighlights();
+      btnPlay.classList.remove('active');
+    }
+
+    // ── Octave controls ──
+
+    function setOctave(oct) {
+      currentOctave = Math.max(1, Math.min(6, oct));
+      octDisplay.textContent = currentOctave;
+
+      // Release all manual voices before rebuilding
+      var midiKeys = Object.keys(activeVoices);
+      for (var i = 0; i < midiKeys.length; i++) {
+        releaseNote(parseInt(midiKeys[i], 10));
+      }
+
+      buildPipes();
+      buildKeyboard();
+    }
+
+    // ── Instrument selector ──
+
+    function populateInstruments() {
+      instSelect.innerHTML = '';
+      for (var i = 0; i < Presets.instruments.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = Presets.instruments[i].name;
+        instSelect.appendChild(opt);
+      }
+      instSelect.value = currentInst;
+    }
+
+    // ── Init ──
+
+    function init() {
+      pipesEl = document.getElementById('pipes');
+      keyboardEl = document.getElementById('keyboard');
+      songSelect = document.getElementById('song-select');
+      instSelect = document.getElementById('inst-select');
+      octDisplay = document.getElementById('oct-display');
+      bpmDisplay = document.getElementById('bpm-display');
+      btnPlay = document.getElementById('btn-play');
+      btnStop = document.getElementById('btn-stop');
+      btnOctUp = document.getElementById('btn-oct-up');
+      btnOctDown = document.getElementById('btn-oct-down');
+
+      // Build the visual elements
+      buildPipes();
+      buildKeyboard();
+      populateInstruments();
+      loadSongList();
+
+      // Initialize tracker with a blank song so it's ready
+      Tracker.newSong();
+      setupPlaybackViz();
+
+      // Event listeners
+      document.addEventListener('keydown', onKeyDown);
+      document.addEventListener('keyup', onKeyUp);
+
+      keyboardEl.addEventListener('mousedown', onMouseDown);
+      document.addEventListener('mouseup', onMouseUp);
+      keyboardEl.addEventListener('mouseleave', onMouseUp);
+
+      // Touch support
+      keyboardEl.addEventListener('touchstart', function (e) {
+        var touch = e.touches[0];
+        var keyEl = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (keyEl) keyEl = keyEl.closest('.key');
+        if (!keyEl) return;
+        e.preventDefault();
+        var midi = parseInt(keyEl.dataset.midi, 10);
+        mouseDownMidi = midi;
+        playNote(midi);
+      }, { passive: false });
+
+      keyboardEl.addEventListener('touchend', function () {
+        if (mouseDownMidi !== null) {
+          releaseNote(mouseDownMidi);
+          mouseDownMidi = null;
+        }
+      });
+
+      btnPlay.addEventListener('click', playSong);
+      btnStop.addEventListener('click', stopPlayback);
+
+      btnOctUp.addEventListener('click', function () { setOctave(currentOctave + 1); });
+      btnOctDown.addEventListener('click', function () { setOctave(currentOctave - 1); });
+
+      songSelect.addEventListener('change', function () {
+        var file = songSelect.value;
+        if (file) {
+          loadSong(file);
+          if (Tracker.isPlaying()) {
+            stopPlayback();
+          }
+        }
+      });
+
+      instSelect.addEventListener('change', function () {
+        currentInst = parseInt(instSelect.value, 10);
+      });
+
+      // Rebuild on resize for responsive key widths
+      var resizeTimer;
+      window.addEventListener('resize', function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          buildPipes();
+          buildKeyboard();
+        }, 150);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  })();
+  </script>
+</body>
+</html>
