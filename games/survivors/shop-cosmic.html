@@ -119,6 +119,9 @@
             border-radius: var(--radius);
             padding: 12px 20px;
             margin-bottom: 24px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
             flex-wrap: wrap;
             gap: 12px;
             box-shadow: 0 0 16px rgba(125,249,255,0.05);
@@ -716,6 +719,34 @@
             opacity: 0.7;
         }
 
+        .inv-tooltip .tt-salvage {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .inv-salvage-btn {
+            font-family: var(--font-title);
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            border-radius: 4px;
+            padding: 3px 8px;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            margin-top: 4px;
+        }
+
+        .inv-salvage-btn:hover {
+            background: var(--danger);
+            color: #fff;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .shop-title {
@@ -837,8 +868,10 @@
                 <h2 class="category-title" style="border-bottom:none;margin-bottom:0;padding-bottom:0">
                     <span class="cat-icon">&#x1F392;</span>Cargo Hold
                 </h2>
-                <div style="font-size:0.9rem;color:var(--text-dim)">
-                    Equipped: <strong id="inv-equip-count">0</strong>/3
+                <div style="font-size:0.9rem;color:var(--text-dim);display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                    <span>Equipped: <strong id="inv-equip-count">0</strong>/3</span>
+                    <span>Slots: <strong id="inv-slot-info">0/6</strong></span>
+                    <button class="btn btn-secondary" id="inv-expand-btn" onclick="buyInventorySlots()" style="font-size:0.8rem;padding:4px 12px">Expand</button>
                 </div>
             </div>
             <div class="equip-slots" id="equip-slots"></div>
@@ -947,6 +980,7 @@
             currentWorld: 0,
             inventory: [],
             equipped: [],
+            inventorySlots: 6,
             skillTree: {},
             upgrades: {},
             stats: { totalKills: 0, bestTime: 0, runsCompleted: 0 }
@@ -975,6 +1009,7 @@
             currentWorld: typeof data.currentWorld === 'number' ? data.currentWorld : base.currentWorld,
             inventory: Array.isArray(data.inventory) ? data.inventory : base.inventory,
             equipped: Array.isArray(data.equipped) ? data.equipped.slice(0, 3) : base.equipped,
+            inventorySlots: typeof data.inventorySlots === 'number' ? data.inventorySlots : base.inventorySlots,
             skillTree: data.skillTree && typeof data.skillTree === 'object' ? data.skillTree : base.skillTree,
             upgrades: data.upgrades && typeof data.upgrades === 'object' ? data.upgrades : base.upgrades,
             stats: {
@@ -1453,6 +1488,15 @@
     ];
 
     const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
+    const SALVAGE_VALUES = { common: 5, rare: 15, epic: 40, legendary: 100 };
+
+    const INV_SLOT_UPGRADES = [
+        { slots: 8,  cost: 100 },
+        { slots: 10, cost: 250 },
+        { slots: 12, cost: 500 },
+        { slots: 16, cost: 1000 },
+        { slots: 20, cost: 2000 }
+    ];
 
     function getLootById(id) {
         return LOOT_TABLE.find(function(item) { return item.id === id; }) || null;
@@ -1472,6 +1516,7 @@
         saveData.equipped.push(itemId);
         writeSave(saveData);
         renderInventory();
+        renderPlayerBar();
         showToast('Equipped!');
     }
 
@@ -1482,14 +1527,78 @@
         saveData.equipped.splice(idx, 1);
         writeSave(saveData);
         renderInventory();
+        renderPlayerBar();
         showToast('Unequipped');
+    }
+
+    function salvageItem(itemId) {
+        var loot = getLootById(itemId);
+        if (!loot) return;
+        if (isEquipped(itemId)) {
+            showToast('Unequip before salvaging');
+            return;
+        }
+        var goldValue = SALVAGE_VALUES[loot.rarity] || 5;
+        var invIdx = saveData.inventory.indexOf(itemId);
+        if (invIdx === -1) return;
+        saveData.inventory.splice(invIdx, 1);
+        saveData.gold += goldValue;
+        writeSave(saveData);
+        renderInventory();
+        renderPlayerBar();
+        showToast('Salvaged ' + loot.name + ' for ' + goldValue + 'g');
+    }
+
+    function buyInventorySlots() {
+        var currentSlots = saveData.inventorySlots || 6;
+        var upgrade = INV_SLOT_UPGRADES.find(function(u) { return u.slots > currentSlots; });
+        if (!upgrade) {
+            showToast('Inventory fully upgraded!');
+            return;
+        }
+        if (saveData.gold < upgrade.cost) {
+            showToast('Not enough gold! Need ' + upgrade.cost + 'g');
+            return;
+        }
+        saveData.gold -= upgrade.cost;
+        saveData.inventorySlots = upgrade.slots;
+        writeSave(saveData);
+        renderInventory();
+        renderPlayerBar();
+        showToast('Inventory expanded to ' + upgrade.slots + ' slots!');
     }
 
     function renderInventory() {
         var equipped = saveData.equipped || [];
         var inventory = saveData.inventory || [];
+        var maxSlots = saveData.inventorySlots || 6;
+
+        var itemCounts = {};
+        inventory.forEach(function(id) {
+            itemCounts[id] = (itemCounts[id] || 0) + 1;
+        });
+        var uniqueIds = Object.keys(itemCounts);
+        var usedSlots = uniqueIds.length;
 
         document.getElementById('inv-equip-count').textContent = equipped.length;
+        var slotInfo = document.getElementById('inv-slot-info');
+        if (slotInfo) slotInfo.textContent = usedSlots + '/' + maxSlots;
+
+        var expandBtn = document.getElementById('inv-expand-btn');
+        if (expandBtn) {
+            var nextUpgrade = INV_SLOT_UPGRADES.find(function(u) { return u.slots > maxSlots; });
+            if (nextUpgrade) {
+                expandBtn.textContent = 'Expand to ' + nextUpgrade.slots + ' (' + nextUpgrade.cost + 'g)';
+                expandBtn.style.display = 'inline-block';
+                expandBtn.disabled = saveData.gold < nextUpgrade.cost;
+                expandBtn.style.opacity = saveData.gold >= nextUpgrade.cost ? '1' : '0.5';
+            } else {
+                expandBtn.textContent = 'Max Slots';
+                expandBtn.style.display = 'inline-block';
+                expandBtn.disabled = true;
+                expandBtn.style.opacity = '0.5';
+            }
+        }
 
         var slotsContainer = document.getElementById('equip-slots');
         slotsContainer.innerHTML = '';
@@ -1506,7 +1615,7 @@
                     (function(id) {
                         slotDiv.addEventListener('click', function() { unequipItem(id); });
                         slotDiv.addEventListener('mouseenter', function(ev) {
-                            showInvTooltip(ev, getLootById(id), true);
+                            showInvTooltip(ev, getLootById(id), true, false);
                         });
                         slotDiv.addEventListener('mousemove', function(ev) { moveInvTooltip(ev); });
                         slotDiv.addEventListener('mouseleave', function() { hideInvTooltip(); });
@@ -1529,12 +1638,6 @@
             return;
         }
 
-        var itemCounts = {};
-        inventory.forEach(function(id) {
-            itemCounts[id] = (itemCounts[id] || 0) + 1;
-        });
-
-        var uniqueIds = Object.keys(itemCounts);
         uniqueIds.sort(function(a, b) {
             var la = getLootById(a);
             var lb = getLootById(b);
@@ -1547,6 +1650,7 @@
             if (!loot) return;
             var count = itemCounts[itemId];
             var eq = isEquipped(itemId);
+            var salvageGold = SALVAGE_VALUES[loot.rarity] || 5;
 
             var card = document.createElement('div');
             card.className = 'inv-item' + (eq ? ' inv-equipped' : '');
@@ -1557,19 +1661,31 @@
                 '<div class="inv-icon">' + loot.icon + '</div>' +
                 '<div class="inv-name" style="color:' + getRarityColor(loot.rarity) + '">' + loot.name + countLabel + '</div>' +
                 '<div class="inv-desc">' + loot.desc + '</div>' +
-                '<div class="inv-rarity rarity-' + loot.rarity + '">' + loot.rarity + '</div>';
+                '<div class="inv-rarity rarity-' + loot.rarity + '">' + loot.rarity + '</div>' +
+                (eq ? '' : '<button class="inv-salvage-btn" title="Salvage for ' + salvageGold + 'g">Salvage ' + salvageGold + 'g</button>');
 
             (function(id, isEq) {
-                card.addEventListener('click', function() {
+                card.addEventListener('click', function(ev) {
+                    if (ev.target.classList.contains('inv-salvage-btn')) return;
                     if (isEq) unequipItem(id);
                     else equipItem(id);
                 });
                 card.addEventListener('mouseenter', function(ev) {
-                    showInvTooltip(ev, getLootById(id), isEq);
+                    showInvTooltip(ev, getLootById(id), isEq, !isEq);
                 });
                 card.addEventListener('mousemove', function(ev) { moveInvTooltip(ev); });
                 card.addEventListener('mouseleave', function() { hideInvTooltip(); });
             })(itemId, eq);
+
+            var salvBtn = card.querySelector('.inv-salvage-btn');
+            if (salvBtn) {
+                (function(id) {
+                    salvBtn.addEventListener('click', function(ev) {
+                        ev.stopPropagation();
+                        salvageItem(id);
+                    });
+                })(itemId);
+            }
 
             grid.appendChild(card);
         });
@@ -1583,12 +1699,14 @@
     // Inventory tooltips
     var invTooltipEl = document.getElementById('inv-tooltip');
 
-    function showInvTooltip(ev, loot, isEquipped) {
+    function showInvTooltip(ev, loot, isEquipped, showSalvage) {
         if (!loot) return;
         var action = isEquipped ? 'Click to unequip' : 'Click to equip';
+        var salvageText = showSalvage ? '<div class="tt-salvage">Salvage: ' + (SALVAGE_VALUES[loot.rarity] || 5) + 'g</div>' : '';
         invTooltipEl.innerHTML =
             '<div class="tt-name" style="color:' + getRarityColor(loot.rarity) + '">' + loot.icon + ' ' + loot.name + '</div>' +
             '<div>' + loot.desc + '</div>' +
+            salvageText +
             '<div class="tt-action">' + action + '</div>';
         invTooltipEl.classList.add('visible');
         moveInvTooltip(ev);

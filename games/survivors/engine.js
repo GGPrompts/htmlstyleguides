@@ -200,6 +200,7 @@ const SaveManager = (() => {
       currentWorld: 0,
       inventory: [],
       equipped: [],
+      inventorySlots: 6,
       skillTree: {},
       upgrades: {},
       stats: {
@@ -247,6 +248,7 @@ const SaveManager = (() => {
       currentWorld: typeof data.currentWorld === 'number' ? data.currentWorld : base.currentWorld,
       inventory: Array.isArray(data.inventory) ? data.inventory : base.inventory,
       equipped: Array.isArray(data.equipped) ? data.equipped.slice(0, 3) : base.equipped,
+      inventorySlots: typeof data.inventorySlots === 'number' ? data.inventorySlots : base.inventorySlots,
       skillTree: data.skillTree && typeof data.skillTree === 'object' ? data.skillTree : base.skillTree,
       upgrades: data.upgrades && typeof data.upgrades === 'object' ? data.upgrades : base.upgrades,
       stats: {
@@ -629,6 +631,8 @@ const RARITY_CONFIG = {
   epic:      { weight: 12, color: '#aa44ff', glow: 'rgba(170,68,255,0.5)' },
   legendary: { weight: 3,  color: '#ffcc00', glow: 'rgba(255,204,0,0.6)' }
 };
+
+const SALVAGE_VALUES = { common: 5, rare: 15, epic: 40, legendary: 100 };
 
 function rollLootItem() {
   const roll = Math.random() * 100;
@@ -1776,11 +1780,28 @@ function gameLoop(timestamp) {
     if(dist < 20) {
       // Pick up loot: add to persistent inventory
       const saveData = SaveManager.load();
-      saveData.inventory.push(d.item.id);
-      // Auto-equip if fewer than 3 equipped
       if(!saveData.equipped) saveData.equipped = [];
+      const maxSlots = saveData.inventorySlots || 6;
+      // Count unique items in inventory (stacks count as 1 slot each)
+      const uniqueInv = {};
+      saveData.inventory.forEach(id => { uniqueInv[id] = true; });
+      const usedSlots = Object.keys(uniqueInv).length;
+      // Check if item already exists in inventory (stacks into existing slot)
+      const alreadyInInventory = saveData.inventory.indexOf(d.item.id) !== -1;
+
       if(saveData.equipped.length < 3) {
+        // Auto-equip if fewer than 3 equipped
+        saveData.inventory.push(d.item.id);
         saveData.equipped.push(d.item.id);
+      } else if(alreadyInInventory || usedSlots < maxSlots) {
+        // Add to inventory (stacks or new slot available)
+        saveData.inventory.push(d.item.id);
+      } else {
+        // Inventory full: auto-salvage for gold
+        const salvageGold = SALVAGE_VALUES[d.item.rarity] || 5;
+        saveData.gold += salvageGold;
+        runGold += salvageGold;
+        lootPickupTexts.push({ text: 'Salvaged +' + salvageGold + 'g', rarity: d.item.rarity, x: d.x, y: d.y - 16, life: 1.5, maxLife: 1.5 });
       }
       SaveManager.save(saveData);
       Audio.lootSound(d.item.rarity);
@@ -2375,9 +2396,24 @@ function updateVictoryVacuum(dt) {
     d.bobPhase += dt * 3;
     if(dist < 25) {
       const saveData = SaveManager.load();
-      saveData.inventory.push(d.item.id);
       if(!saveData.equipped) saveData.equipped = [];
-      if(saveData.equipped.length < 3) saveData.equipped.push(d.item.id);
+      const maxSlots = saveData.inventorySlots || 6;
+      const uniqueInv = {};
+      saveData.inventory.forEach(id => { uniqueInv[id] = true; });
+      const usedSlots = Object.keys(uniqueInv).length;
+      const alreadyInInventory = saveData.inventory.indexOf(d.item.id) !== -1;
+
+      if(saveData.equipped.length < 3) {
+        saveData.inventory.push(d.item.id);
+        saveData.equipped.push(d.item.id);
+      } else if(alreadyInInventory || usedSlots < maxSlots) {
+        saveData.inventory.push(d.item.id);
+      } else {
+        const salvageGold = SALVAGE_VALUES[d.item.rarity] || 5;
+        saveData.gold += salvageGold;
+        runGold += salvageGold;
+        lootPickupTexts.push({ text: 'Salvaged +' + salvageGold + 'g', rarity: d.item.rarity, x: d.x, y: d.y - 16, life: 1.5, maxLife: 1.5 });
+      }
       SaveManager.save(saveData);
       Audio.lootSound(d.item.rarity);
       const rc = RARITY_CONFIG[d.item.rarity];
