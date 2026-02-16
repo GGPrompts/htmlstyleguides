@@ -4,7 +4,7 @@ A browser-based virtual organ with visual keyboard that responds to keyboard inp
 
 ## Status
 
-**v1 complete.** All 7 implementation steps done and deployed. File: `organ.html` (1180 lines).
+**v2 complete.** All 7 core steps + scrolling sheet music stretch goal. Files: `organ.html` + `sheet-music.js`.
 
 Listed in the games index under a new "The Studio" section (alongside Audio Tracker).
 
@@ -29,6 +29,7 @@ Listed in the games index under a new "The Studio" section (alongside Audio Trac
 ```
 games/audio-tracker/
 ├── organ.html          # The virtual organ (complete)
+├── sheet-music.js      # Scrolling grand-staff canvas renderer
 ├── synth.js            # Reused as-is
 ├── tracker.js          # Reused for song playback + setOnRowChange
 ├── presets.js          # Reused for instruments
@@ -68,9 +69,9 @@ Upper octave (C to B):
 - [x] **Step 6**: Controls bar (play/stop, song select, octave, instrument, BPM, tracker link)
 - [x] **Step 7**: Responsive sizing, touch support, games index card + Studio section
 
-## Stretch Goals (Future)
+## Stretch Goals
 
-- **Scrolling sheet music**: Render tracker note data as standard notation on a grand staff below the keyboard, scrolling right-to-left during playback — learn-to-play mode like Synthesia. Could also import MusicXML/MIDI. Free classical sources: IMSLP, musescore.com
+- [x] **Scrolling sheet music**: Render tracker note data as standard notation on a grand staff below the keyboard, scrolling right-to-left during playback — learn-to-play mode like Synthesia. Implemented in `sheet-music.js` (canvas-based renderer). Toggle via "Sheet Music" button in controls.
 - Recording mode: play the organ and record into a tracker pattern
 - Multi-instrument: switch between organ, harpsichord, choir sounds
 - Sustain pedal (hold Shift to sustain notes)

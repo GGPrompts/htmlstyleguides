@@ -561,6 +561,22 @@
     }
     .organ-footer a:hover { color: var(--tarnished-gold); }
 
+    /* ── Sheet Music ── */
+    .sheet-music-wrap {
+      width: calc(100% - 32px);
+      max-width: 1100px;
+      margin: 0 16px 8px;
+      display: none;
+    }
+    .sheet-music-wrap.visible { display: block; }
+    .sheet-music-canvas {
+      width: 100%;
+      height: 220px;
+      display: block;
+      border: 1px solid rgba(184, 149, 74, 0.15);
+      border-radius: 0 0 4px 4px;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 840px) {
       .organ-title { font-size: 38px; }
@@ -660,7 +676,13 @@
       <select class="ctrl-select" id="inst-select"></select>
     </div>
     <span class="bpm-display" id="bpm-display"></span>
+    <button class="ctrl-btn" id="btn-sheet">Sheet Music</button>
     <a href="index.html" class="tracker-link">Open in Tracker &rarr;</a>
+  </div>
+
+  <!-- Sheet Music -->
+  <div class="sheet-music-wrap" id="sheet-music-wrap">
+    <canvas class="sheet-music-canvas" id="sheet-music-canvas"></canvas>
   </div>
 
   <div class="divider"></div>
@@ -672,6 +694,7 @@
   <script src="synth.js"></script>
   <script src="tracker.js"></script>
   <script src="presets.js"></script>
+  <script src="sheet-music.js"></script>
   <script>
   (function () {
     'use strict';
@@ -720,7 +743,7 @@
     // ── DOM refs ──
 
     var pipesEl, keyboardEl, songSelect, instSelect, octDisplay, bpmDisplay;
-    var btnPlay, btnStop, btnOctUp, btnOctDown;
+    var btnPlay, btnStop, btnOctUp, btnOctDown, btnSheet, sheetWrap;
 
     // ── Helpers ──
 
@@ -975,6 +998,9 @@
           Tracker.importFull(json);
           var song = Tracker.getSong();
           bpmDisplay.textContent = song.bpm + ' BPM';
+          if (SheetMusic.isVisible()) {
+            SheetMusic.loadSong(song);
+          }
         })
         .catch(function (err) {
           console.error('Failed to load song:', err);
@@ -1023,6 +1049,9 @@
             highlightKey(cell.note, true, ch);
           }
         }
+
+        // Feed sheet music
+        SheetMusic.onRow(row, seqRow);
       });
     }
 
@@ -1044,6 +1073,9 @@
             Tracker.importFull(json);
             var song = Tracker.getSong();
             bpmDisplay.textContent = song.bpm + ' BPM';
+            if (SheetMusic.isVisible()) {
+              SheetMusic.loadSong(song);
+            }
             Tracker.play('song');
             btnPlay.classList.add('active');
           });
@@ -1060,6 +1092,7 @@
       Tracker.stop();
       clearAllHighlights();
       btnPlay.classList.remove('active');
+      SheetMusic.stop();
     }
 
     // ── Octave controls ──
@@ -1104,6 +1137,8 @@
       btnStop = document.getElementById('btn-stop');
       btnOctUp = document.getElementById('btn-oct-up');
       btnOctDown = document.getElementById('btn-oct-down');
+      btnSheet = document.getElementById('btn-sheet');
+      sheetWrap = document.getElementById('sheet-music-wrap');
 
       // Build the visual elements
       buildPipes();
@@ -1114,6 +1149,9 @@
       // Initialize tracker with a blank song so it's ready
       Tracker.newSong();
       setupPlaybackViz();
+
+      // Sheet music
+      SheetMusic.init(document.getElementById('sheet-music-canvas'));
 
       // Event listeners
       document.addEventListener('keydown', onKeyDown);
@@ -1160,6 +1198,20 @@
 
       instSelect.addEventListener('change', function () {
         currentInst = parseInt(instSelect.value, 10);
+      });
+
+      btnSheet.addEventListener('click', function () {
+        var show = !SheetMusic.isVisible();
+        SheetMusic.setVisible(show);
+        sheetWrap.classList.toggle('visible', show);
+        btnSheet.classList.toggle('active', show);
+        // Load current song into sheet music if not already
+        if (show) {
+          var song = Tracker.getSong();
+          if (song && song.patterns && song.patterns.length > 0) {
+            SheetMusic.loadSong(song);
+          }
+        }
       });
 
       // Rebuild on resize for responsive key widths
