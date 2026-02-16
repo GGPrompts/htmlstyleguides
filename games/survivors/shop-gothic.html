@@ -1,0 +1,1643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Pale Merchant's Apothecary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Uncial+Antiqua&family=Crimson+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0a0e;
+            --bg-card: #1a1020;
+            --bg-card-hover: #251535;
+            --accent: #c4a24e;
+            --accent-dim: #7a6530;
+            --text: #e0d4c8;
+            --text-dim: #8a7a6e;
+            --success: #5a8f4a;
+            --danger: #9e2a2a;
+            --owned: #3a6635;
+            --disabled: #2a2030;
+            --border: #3a2845;
+            --crimson: #8b1a2b;
+            --deep-purple: #2d1640;
+            --bone: #d8cfc0;
+            --candle: #e8a840;
+            --radius: 6px;
+            --gap: 16px;
+            --font-title: 'Cinzel', Georgia, serif;
+            --font-display: 'Uncial Antiqua', 'Cinzel', Georgia, serif;
+            --font-body: 'Crimson Text', Georgia, serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--text);
+            background: var(--bg);
+            background-image:
+                radial-gradient(ellipse at 20% 30%, rgba(139, 26, 43, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 70%, rgba(45, 22, 64, 0.12) 0%, transparent 50%),
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(58, 40, 69, 0.06) 40px,
+                    rgba(58, 40, 69, 0.06) 41px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 40px,
+                    rgba(58, 40, 69, 0.04) 40px,
+                    rgba(58, 40, 69, 0.04) 41px
+                );
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        .shop-container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 24px var(--gap);
+        }
+
+        /* Header */
+        .shop-header {
+            text-align: center;
+            padding: 40px 0 28px;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .shop-header::before {
+            content: '\u2E3B';
+            display: block;
+            font-size: 1.5rem;
+            color: var(--crimson);
+            margin-bottom: 12px;
+            letter-spacing: 16px;
+            opacity: 0.6;
+        }
+
+        .shop-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--crimson), transparent);
+        }
+
+        .shop-title {
+            font-family: var(--font-display);
+            font-size: 2.4rem;
+            font-weight: 400;
+            color: var(--accent);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(196, 162, 78, 0.25);
+        }
+
+        .shop-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* Player info bar */
+        .player-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 20px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: inset 0 1px 0 rgba(196, 162, 78, 0.06);
+        }
+
+        .gold-display {
+            font-family: var(--font-title);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .gold-icon {
+            margin-right: 6px;
+        }
+
+        .stats-display {
+            display: flex;
+            gap: 20px;
+            font-size: 0.95rem;
+            color: var(--text-dim);
+        }
+
+        .stats-display span {
+            white-space: nowrap;
+        }
+
+        /* Category sections */
+        .category {
+            margin-bottom: 32px;
+        }
+
+        .category-title {
+            font-family: var(--font-title);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--bone);
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+            letter-spacing: 1px;
+        }
+
+        .category-title .cat-icon {
+            margin-right: 8px;
+            opacity: 0.8;
+        }
+
+        /* Item grid */
+        .item-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: var(--gap);
+        }
+
+        /* Item card */
+        .item-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .item-card:hover:not(.item-owned):not(.item-locked) {
+            background: var(--bg-card-hover);
+            border-color: var(--crimson);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(139, 26, 43, 0.2);
+        }
+
+        .item-card:active:not(.item-owned):not(.item-locked) {
+            transform: translateY(0);
+        }
+
+        .item-card.item-owned {
+            border-color: var(--owned);
+            cursor: default;
+            opacity: 0.75;
+        }
+
+        .item-card.item-locked {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .item-icon {
+            font-size: 2rem;
+            line-height: 1;
+        }
+
+        .item-name {
+            font-family: var(--font-title);
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--bone);
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: var(--text-dim);
+            flex-grow: 1;
+        }
+
+        .item-cost {
+            font-family: var(--font-title);
+            font-size: 0.95rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .item-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: 0.75rem;
+            font-family: var(--font-title);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .badge-owned {
+            background: var(--owned);
+            color: #fff;
+        }
+
+        .badge-locked {
+            background: var(--disabled);
+            color: var(--text-dim);
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--crimson);
+            border-radius: var(--radius);
+            padding: 12px 24px;
+            font-family: var(--font-title);
+            font-size: 1rem;
+            z-index: 100;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            pointer-events: none;
+            box-shadow: 0 4px 20px rgba(139, 26, 43, 0.3);
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Footer actions */
+        .shop-footer {
+            text-align: center;
+            padding: 32px 0 48px;
+            border-top: 1px solid var(--border);
+            margin-top: 16px;
+        }
+
+        .btn {
+            font-family: var(--font-title);
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: var(--radius);
+            padding: 12px 28px;
+            cursor: pointer;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: background 0.2s, transform 0.15s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--crimson), #5a1020);
+            color: var(--bone);
+            border: 1px solid rgba(139, 26, 43, 0.5);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a5222e, #6a1525);
+            box-shadow: 0 0 16px rgba(139, 26, 43, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--text-dim);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #7a2020;
+        }
+
+        .footer-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .continue-btn {
+            font-size: 1.2rem;
+            padding: 16px 40px;
+        }
+
+        /* Import modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 200;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal h3 {
+            font-family: var(--font-display);
+            margin-bottom: 12px;
+            color: var(--accent);
+        }
+
+        .modal textarea {
+            width: 100%;
+            height: 140px;
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            margin-bottom: 12px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        /* Skill Tree */
+        .skill-tree-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .skill-points-display {
+            font-family: var(--font-title);
+            font-size: 1.1rem;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .skill-tree-svg-wrap {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 16px;
+            margin-top: 12px;
+            overflow-x: auto;
+        }
+
+        .skill-tree-svg {
+            display: block;
+            margin: 0 auto;
+            max-width: 100%;
+        }
+
+        .skill-tree-svg .branch-label {
+            font-family: 'Cinzel', Georgia, serif;
+            font-size: 13px;
+            font-weight: 700;
+            fill: var(--text);
+        }
+
+        .skill-tree-svg .node-circle {
+            stroke-width: 2.5;
+            cursor: pointer;
+            transition: filter 0.2s;
+        }
+
+        .skill-tree-svg .node-circle:hover {
+            filter: brightness(1.3);
+        }
+
+        .skill-tree-svg .node-circle.locked {
+            cursor: not-allowed;
+            opacity: 0.35;
+        }
+
+        .skill-tree-svg .node-circle.locked:hover {
+            filter: none;
+        }
+
+        .skill-tree-svg .node-circle.unlocked {
+            filter: drop-shadow(0 0 6px currentColor);
+        }
+
+        .skill-tree-svg .node-label {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 11px;
+            fill: var(--text);
+            pointer-events: none;
+        }
+
+        .skill-tree-svg .node-label.dimmed {
+            opacity: 0.4;
+        }
+
+        .skill-tree-svg .connector {
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .skill-tree-svg .connector.active {
+            opacity: 1;
+        }
+
+        .skill-tree-svg .connector.inactive {
+            opacity: 0.2;
+            stroke-dasharray: 4 3;
+        }
+
+        .skill-tree-tooltip {
+            position: fixed;
+            background: #1a1020;
+            border: 1px solid var(--crimson);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            color: var(--text);
+            max-width: 220px;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            line-height: 1.4;
+        }
+
+        .skill-tree-tooltip.visible {
+            opacity: 1;
+        }
+
+        .skill-tree-tooltip .tt-name {
+            font-family: var(--font-title);
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .skill-tree-tooltip .tt-status {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+
+        /* Inventory system */
+        .inv-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .equip-slots {
+            display: flex;
+            gap: 12px;
+            margin: 12px 0 16px;
+            flex-wrap: wrap;
+        }
+
+        .equip-slot {
+            width: 80px;
+            height: 80px;
+            background: var(--bg-card);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            position: relative;
+            cursor: default;
+            transition: border-color 0.2s;
+        }
+
+        .equip-slot.filled {
+            border-style: solid;
+            cursor: pointer;
+        }
+
+        .equip-slot.filled:hover {
+            border-color: var(--danger);
+        }
+
+        .equip-slot .slot-label {
+            font-family: var(--font-title);
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .equip-slot .slot-icon {
+            font-size: 1.6rem;
+            line-height: 1;
+        }
+
+        .equip-slot .slot-name {
+            font-size: 0.65rem;
+            color: var(--text);
+            text-align: center;
+            line-height: 1.1;
+            max-width: 72px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .equip-slot.slot-empty .slot-icon {
+            font-size: 1.2rem;
+            color: var(--text-dim);
+            opacity: 0.3;
+        }
+
+        .inv-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .inv-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, transform 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            text-align: center;
+            position: relative;
+        }
+
+        .inv-item:hover {
+            background: var(--bg-card-hover);
+            transform: translateY(-1px);
+        }
+
+        .inv-item.inv-equipped {
+            border-color: var(--accent);
+        }
+
+        .inv-item .inv-icon {
+            font-size: 1.6rem;
+            line-height: 1;
+        }
+
+        .inv-item .inv-name {
+            font-family: var(--font-title);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .inv-item .inv-desc {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+        }
+
+        .inv-item .inv-rarity {
+            font-family: var(--font-title);
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 1px 6px;
+            border-radius: 3px;
+        }
+
+        .rarity-common    { color: #cccccc; border: 1px solid #666; }
+        .rarity-rare       { color: #4488ff; border: 1px solid #4488ff; }
+        .rarity-epic       { color: #aa44ff; border: 1px solid #aa44ff; }
+        .rarity-legendary  { color: #ffcc00; border: 1px solid #ffcc00; }
+
+        .inv-item .inv-equipped-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 0.65rem;
+            font-family: var(--font-title);
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .inv-empty-msg {
+            color: var(--text-dim);
+            font-style: italic;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .inv-tooltip {
+            position: fixed;
+            background: #1a1020;
+            border: 1px solid var(--crimson);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            color: var(--text);
+            max-width: 240px;
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s;
+            line-height: 1.4;
+        }
+
+        .inv-tooltip.visible {
+            opacity: 1;
+        }
+
+        .inv-tooltip .tt-name {
+            font-family: var(--font-title);
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .inv-tooltip .tt-action {
+            font-size: 0.8rem;
+            margin-top: 4px;
+            opacity: 0.7;
+        }
+
+        /* Candle flicker decoration */
+        @keyframes flicker {
+            0%, 100% { opacity: 0.8; }
+            25% { opacity: 0.6; }
+            50% { opacity: 0.9; }
+            75% { opacity: 0.5; }
+        }
+
+        .shop-header .candle-glow {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(232, 168, 64, 0.15) 0%, transparent 70%);
+            animation: flicker 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .candle-left {
+            left: 10%;
+            top: 20%;
+        }
+
+        .candle-right {
+            right: 10%;
+            top: 20%;
+            animation-delay: 1.5s;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .shop-title {
+                font-size: 1.6rem;
+            }
+
+            .player-bar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .item-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 10px;
+            }
+
+            .item-card {
+                padding: 12px;
+            }
+
+            .item-icon {
+                font-size: 1.6rem;
+            }
+
+            .footer-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .continue-btn {
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .skill-tree-svg-wrap {
+                padding: 16px 8px;
+            }
+
+            .skill-tree-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .inv-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .equip-slots {
+                justify-content: center;
+                width: 100%;
+            }
+
+            .equip-slot {
+                width: 70px;
+                height: 70px;
+            }
+
+            .inv-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+
+            .candle-left, .candle-right {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shop-container">
+        <header class="shop-header">
+            <div class="candle-glow candle-left"></div>
+            <div class="candle-glow candle-right"></div>
+            <h1 class="shop-title" id="shop-title">The Pale Merchant</h1>
+            <p class="shop-subtitle" id="shop-subtitle">Elixirs, relics, and forbidden knowledge... for a price</p>
+        </header>
+
+        <div class="player-bar">
+            <div class="gold-display">
+                <span class="gold-icon">&#x2620;</span>
+                <span id="gold-amount">0</span> Gold
+            </div>
+            <div class="stats-display">
+                <span>Runs: <strong id="stat-runs">0</strong></span>
+                <span>Total Kills: <strong id="stat-kills">0</strong></span>
+                <span>World: <strong id="stat-world">1</strong></span>
+                <span>Skill Pts: <strong id="stat-sp">0</strong></span>
+            </div>
+        </div>
+
+        <section class="category" id="cat-stats">
+            <h2 class="category-title"><span class="cat-icon">&#x2620;</span>Dark Elixirs</h2>
+            <div class="item-grid" id="grid-stats"></div>
+        </section>
+
+        <section class="category" id="cat-weapons">
+            <h2 class="category-title"><span class="cat-icon">&#x2694;</span>Cursed Armaments</h2>
+            <div class="item-grid" id="grid-weapons"></div>
+        </section>
+
+        <section class="category" id="cat-passives">
+            <h2 class="category-title"><span class="cat-icon">&#x2728;</span>Forbidden Rites</h2>
+            <div class="item-grid" id="grid-passives"></div>
+        </section>
+
+        <section class="category" id="cat-skilltree">
+            <div class="skill-tree-header">
+                <h2 class="category-title" style="border-bottom:none;margin-bottom:0;padding-bottom:0">
+                    <span class="cat-icon">&#x1F333;</span>Skill Tree
+                </h2>
+                <div class="skill-points-display">
+                    Skill Points: <span id="skill-points-count">0</span>
+                </div>
+            </div>
+            <div class="skill-tree-svg-wrap">
+                <svg id="skill-tree-svg" class="skill-tree-svg" viewBox="0 0 760 340" xmlns="http://www.w3.org/2000/svg"></svg>
+            </div>
+        </section>
+
+        <div class="skill-tree-tooltip" id="skill-tooltip"></div>
+
+        <section class="category" id="cat-inventory">
+            <div class="inv-header">
+                <h2 class="category-title" style="border-bottom:none;margin-bottom:0;padding-bottom:0">
+                    <span class="cat-icon">&#x1F392;</span>Inventory
+                </h2>
+                <div style="font-size:0.9rem;color:var(--text-dim)">
+                    Equipped: <strong id="inv-equip-count">0</strong>/3
+                </div>
+            </div>
+            <div class="equip-slots" id="equip-slots"></div>
+            <div class="inv-grid" id="inv-grid"></div>
+        </section>
+
+        <div class="inv-tooltip" id="inv-tooltip"></div>
+
+        <footer class="shop-footer">
+            <div class="footer-buttons">
+                <button class="btn btn-secondary" onclick="exportSave()">Export Save</button>
+                <button class="btn btn-secondary" onclick="openImportModal()">Import Save</button>
+                <button class="btn btn-danger" onclick="resetSave()">Reset Save</button>
+            </div>
+            <a id="continue-btn" class="btn btn-primary continue-btn" href="#">
+                Descend into Darkness &#x2192;
+            </a>
+        </footer>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <div class="modal-overlay" id="import-modal">
+        <div class="modal">
+            <h3>Import Save</h3>
+            <p style="margin-bottom:8px; color:var(--text-dim); font-size:0.9rem;">
+                Paste exported JSON below. This will overwrite your current save.
+            </p>
+            <textarea id="import-textarea" placeholder='{"version":1,"gold":0,...}'></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="doImport()">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // =========================================================================
+    // SHOP CONFIGURATION - Gothic Apothecary Theme
+    // =========================================================================
+    const SHOP_CONFIG = {
+        title: 'The Pale Merchant',
+        subtitle: 'Elixirs, relics, and forbidden knowledge... for a price',
+        nextWorld: { label: 'the Gothic Realm', url: 'gothic.html' },
+        // Cost scaling: tier 1=50g, tier 2=150g, tier 3=400g, tier 4=800g, tier 5=1500g
+        statUpgrades: [
+            // Max HP: +20 flat per tier
+            { id: 'hp1', name: 'Blood Tonic I',       desc: '+20 Max HP. Brewed from nightshade and grave moss.',  icon: '\u2665', cost: 50,   stat: 'maxHp', bonus: 20 },
+            { id: 'hp2', name: 'Blood Tonic II',      desc: '+20 Max HP. Distilled with marrow from the crypt.',  icon: '\u2665', cost: 150,  stat: 'maxHp', bonus: 20, requires: 'hp1' },
+            { id: 'hp3', name: 'Blood Tonic III',     desc: '+20 Max HP. Infused with a vampire\'s sigh.',        icon: '\u2665', cost: 400,  stat: 'maxHp', bonus: 20, requires: 'hp2' },
+            { id: 'hp4', name: 'Blood Tonic IV',      desc: '+20 Max HP. Sealed with a saint\'s bone.',           icon: '\u2665', cost: 800,  stat: 'maxHp', bonus: 20, requires: 'hp3' },
+            { id: 'hp5', name: 'Blood Tonic V',       desc: '+20 Max HP. The final draught. Do not ask the cost.', icon: '\u2665', cost: 1500, stat: 'maxHp', bonus: 20, requires: 'hp4' },
+            // Speed: +10% per tier
+            { id: 'spd1', name: 'Wraith Step I',      desc: '+10% Speed. Grave dust in the soles.',               icon: '\u27A4', cost: 50,   stat: 'speed', mult: 1.10 },
+            { id: 'spd2', name: 'Wraith Step II',     desc: '+10% Speed. Anointed with phantom oil.',             icon: '\u27A4', cost: 150,  stat: 'speed', mult: 1.10, requires: 'spd1' },
+            { id: 'spd3', name: 'Wraith Step III',    desc: '+10% Speed. Bound with spectral thread.',            icon: '\u27A4', cost: 400,  stat: 'speed', mult: 1.10, requires: 'spd2' },
+            { id: 'spd4', name: 'Wraith Step IV',     desc: '+10% Speed. A banshee\'s whisper in each stride.',   icon: '\u27A4', cost: 800,  stat: 'speed', mult: 1.10, requires: 'spd3' },
+            { id: 'spd5', name: 'Wraith Step V',      desc: '+10% Speed. You barely touch the ground now.',       icon: '\u27A4', cost: 1500, stat: 'speed', mult: 1.10, requires: 'spd4' },
+            // Damage: +15% per tier
+            { id: 'dmg1', name: 'Blight Edge I',      desc: '+15% Damage. Coated in hemlock venom.',              icon: '\u2694', cost: 50,   stat: 'damage', mult: 1.15 },
+            { id: 'dmg2', name: 'Blight Edge II',     desc: '+15% Damage. Tempered in a witch\'s cauldron.',      icon: '\u2694', cost: 150,  stat: 'damage', mult: 1.15, requires: 'dmg1' },
+            { id: 'dmg3', name: 'Blight Edge III',    desc: '+15% Damage. Quenched in black cathedral wine.',     icon: '\u2694', cost: 400,  stat: 'damage', mult: 1.15, requires: 'dmg2' },
+            { id: 'dmg4', name: 'Blight Edge IV',     desc: '+15% Damage. Etched with a dying curse.',            icon: '\u2694', cost: 800,  stat: 'damage', mult: 1.15, requires: 'dmg3' },
+            { id: 'dmg5', name: 'Blight Edge V',      desc: '+15% Damage. It hungers. You feel it too.',          icon: '\u2694', cost: 1500, stat: 'damage', mult: 1.15, requires: 'dmg4' },
+            // Pickup Radius: +15 flat per tier
+            { id: 'pick1', name: 'Grave Reach I',     desc: '+15 Pickup Range. The dead offer up their gifts.',   icon: '\u2609', cost: 50,   stat: 'pickupRadius', bonus: 15 },
+            { id: 'pick2', name: 'Grave Reach II',    desc: '+15 Pickup Range. They crawl toward you now.',       icon: '\u2609', cost: 150,  stat: 'pickupRadius', bonus: 15, requires: 'pick1' },
+            { id: 'pick3', name: 'Grave Reach III',   desc: '+15 Pickup Range. A magnetic pull from beyond.',     icon: '\u2609', cost: 400,  stat: 'pickupRadius', bonus: 15, requires: 'pick2' },
+            { id: 'pick4', name: 'Grave Reach IV',    desc: '+15 Pickup Range. Nothing escapes your grasp.',      icon: '\u2609', cost: 800,  stat: 'pickupRadius', bonus: 15, requires: 'pick3' },
+            { id: 'pick5', name: 'Grave Reach V',     desc: '+15 Pickup Range. The earth itself bows to you.',    icon: '\u2609', cost: 1500, stat: 'pickupRadius', bonus: 15, requires: 'pick4' },
+            // Defense: +10% per tier
+            { id: 'def1', name: 'Ossuary Ward I',     desc: '+10% Defense. Woven from crypt spider silk.',        icon: '\u26E8', cost: 50,   stat: 'defense', mult: 0.90 },
+            { id: 'def2', name: 'Ossuary Ward II',    desc: '+10% Defense. Reinforced with iron coffin nails.',   icon: '\u26E8', cost: 150,  stat: 'defense', mult: 0.90, requires: 'def1' },
+            { id: 'def3', name: 'Ossuary Ward III',   desc: '+10% Defense. Blessed by a defrocked priest.',       icon: '\u26E8', cost: 400,  stat: 'defense', mult: 0.90, requires: 'def2' },
+            { id: 'def4', name: 'Ossuary Ward IV',    desc: '+10% Defense. Carved from a gargoyle\'s rib.',       icon: '\u26E8', cost: 800,  stat: 'defense', mult: 0.90, requires: 'def3' },
+            { id: 'def5', name: 'Ossuary Ward V',     desc: '+10% Defense. You are become the cathedral wall.',   icon: '\u26E8', cost: 1500, stat: 'defense', mult: 0.90, requires: 'def4' }
+        ],
+        // Starting weapons: 200g each
+        startingWeapons: [
+            { id: 'w_projectile', name: 'Bone Shard',        desc: 'Start with a hurled splinter of ancient bone',      icon: '\u2726', cost: 200, weaponType: 'projectile' },
+            { id: 'w_orbit',      name: 'Spectral Chains',   desc: 'Start with orbiting phantom shackles',              icon: '\u2B21', cost: 200, weaponType: 'orbit' },
+            { id: 'w_area',       name: 'Crypt Burst',       desc: 'Start with an eruption of sepulchral energy',       icon: '\u29BF', cost: 200, weaponType: 'area' },
+            { id: 'w_chain',      name: 'Soul Tether',       desc: 'Start with a chain of stolen spirits',              icon: '\u2301', cost: 200, weaponType: 'chain' },
+            { id: 'w_beam',       name: 'Deathgaze',         desc: 'Start with a withering beam from the abyss',        icon: '\u2588', cost: 200, weaponType: 'beam' },
+            { id: 'w_rain',       name: 'Gargoyle\'s Tears', desc: 'Start with stone tears falling from above',         icon: '\u2663', cost: 200, weaponType: 'rain' },
+            { id: 'w_boomerang',  name: 'Bat Fang Disc',     desc: 'Start with a returning disc of razor fangs',        icon: '\u25C9', cost: 200, weaponType: 'boomerang' },
+            { id: 'w_field',      name: 'Hallowed Ground',   desc: 'Start with a persistent zone of consecrated agony', icon: '\u2742', cost: 200, weaponType: 'field' }
+        ],
+        passives: [
+            { id: 'p_regen',      name: 'Sanguine Pact',     desc: 'Recover 1 HP every 5 seconds. The wound closes itself.', icon: '\u2661', cost: 150 },
+            { id: 'p_critchance', name: 'Executioner\'s Eye', desc: '+5% critical hit chance. You see where to cut.',          icon: '\u25C8', cost: 200 },
+            { id: 'p_lifesteal',  name: 'Vampiric Hunger',   desc: 'Heal 1% of damage dealt. Drink deep.',                   icon: '\u2764', cost: 250 },
+            { id: 'p_xpboost',    name: 'Memento Mori',      desc: '+10% XP from all sources. Remember what you learned.',    icon: '\u2605', cost: 150 }
+        ]
+    };
+
+    // =========================================================================
+    // SAVE MANAGER (mirrors engine.js SaveManager, standalone for the shop)
+    // =========================================================================
+    const STORAGE_KEY = 'survivors-save';
+    const SAVE_VERSION = 1;
+
+    function defaultSave() {
+        return {
+            version: SAVE_VERSION,
+            gold: 0,
+            skillPoints: 0,
+            currentWorld: 0,
+            inventory: [],
+            equipped: [],
+            skillTree: {},
+            upgrades: {},
+            stats: { totalKills: 0, bestTime: 0, runsCompleted: 0 }
+        };
+    }
+
+    function loadSave() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return defaultSave();
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object') return defaultSave();
+            return migrateSave(parsed);
+        } catch (e) {
+            console.warn('Shop: failed to load save', e);
+            return defaultSave();
+        }
+    }
+
+    function migrateSave(data) {
+        const base = defaultSave();
+        return {
+            version: SAVE_VERSION,
+            gold: typeof data.gold === 'number' ? data.gold : base.gold,
+            skillPoints: typeof data.skillPoints === 'number' ? data.skillPoints : base.skillPoints,
+            currentWorld: typeof data.currentWorld === 'number' ? data.currentWorld : base.currentWorld,
+            inventory: Array.isArray(data.inventory) ? data.inventory : base.inventory,
+            equipped: Array.isArray(data.equipped) ? data.equipped.slice(0, 3) : base.equipped,
+            skillTree: data.skillTree && typeof data.skillTree === 'object' ? data.skillTree : base.skillTree,
+            upgrades: data.upgrades && typeof data.upgrades === 'object' ? data.upgrades : base.upgrades,
+            stats: {
+                totalKills: (data.stats && typeof data.stats.totalKills === 'number') ? data.stats.totalKills : base.stats.totalKills,
+                bestTime: (data.stats && typeof data.stats.bestTime === 'number') ? data.stats.bestTime : base.stats.bestTime,
+                runsCompleted: (data.stats && typeof data.stats.runsCompleted === 'number') ? data.stats.runsCompleted : base.stats.runsCompleted
+            }
+        };
+    }
+
+    function writeSave(data) {
+        try {
+            const merged = Object.assign(defaultSave(), data);
+            merged.version = SAVE_VERSION;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+            return true;
+        } catch (e) {
+            console.warn('Shop: failed to write save', e);
+            return false;
+        }
+    }
+
+    // =========================================================================
+    // STATE
+    // =========================================================================
+    let saveData = loadSave();
+
+    function isOwned(itemId) {
+        return !!(saveData.upgrades && saveData.upgrades[itemId]);
+    }
+
+    function canAfford(cost) {
+        return saveData.gold >= cost;
+    }
+
+    function requirementMet(item) {
+        if (!item.requires) return true;
+        return isOwned(item.requires);
+    }
+
+    // =========================================================================
+    // RENDERING
+    // =========================================================================
+    function renderHeader() {
+        document.getElementById('shop-title').textContent = SHOP_CONFIG.title;
+        document.getElementById('shop-subtitle').textContent = SHOP_CONFIG.subtitle;
+        document.title = SHOP_CONFIG.title;
+
+        const continueBtn = document.getElementById('continue-btn');
+        continueBtn.href = SHOP_CONFIG.nextWorld.url;
+        continueBtn.innerHTML = 'Descend into ' + SHOP_CONFIG.nextWorld.label + ' &#x2192;';
+    }
+
+    function renderPlayerBar() {
+        document.getElementById('gold-amount').textContent = saveData.gold;
+        document.getElementById('stat-runs').textContent = saveData.stats.runsCompleted;
+        document.getElementById('stat-kills').textContent = saveData.stats.totalKills;
+        document.getElementById('stat-world').textContent = (saveData.currentWorld || 0) + 1;
+        var spEl = document.getElementById('stat-sp');
+        if (spEl) spEl.textContent = saveData.skillPoints || 0;
+    }
+
+    function createCard(item, category) {
+        const owned = isOwned(item.id);
+        const affordable = canAfford(item.cost);
+        const reqMet = requirementMet(item);
+        const locked = !affordable || !reqMet;
+
+        const card = document.createElement('div');
+        card.className = 'item-card' + (owned ? ' item-owned' : '') + (!owned && locked ? ' item-locked' : '');
+
+        let badgeHTML = '';
+        if (owned) {
+            badgeHTML = '<span class="item-badge badge-owned">Owned</span>';
+        } else if (!reqMet) {
+            badgeHTML = '<span class="item-badge badge-locked">Locked</span>';
+        }
+
+        card.innerHTML =
+            badgeHTML +
+            '<div class="item-icon">' + item.icon + '</div>' +
+            '<div class="item-name">' + item.name + '</div>' +
+            '<div class="item-desc">' + item.desc + '</div>' +
+            '<div class="item-cost">' + (owned ? 'Purchased' : item.cost + ' Gold') + '</div>';
+
+        if (!owned) {
+            card.addEventListener('click', function () {
+                buyItem(item, category);
+            });
+        }
+
+        return card;
+    }
+
+    function renderGrid(gridId, items, category) {
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = '';
+        items.forEach(function (item) {
+            grid.appendChild(createCard(item, category));
+        });
+    }
+
+    function renderAll() {
+        renderHeader();
+        renderPlayerBar();
+        renderGrid('grid-stats', SHOP_CONFIG.statUpgrades, 'stat');
+        renderGrid('grid-weapons', SHOP_CONFIG.startingWeapons, 'weapon');
+        renderGrid('grid-passives', SHOP_CONFIG.passives, 'passive');
+        if (typeof renderSkillTree === 'function') renderSkillTree();
+        renderInventory();
+    }
+
+    // =========================================================================
+    // PURCHASE LOGIC
+    // =========================================================================
+    function buyItem(item, category) {
+        if (isOwned(item.id)) return;
+        if (!canAfford(item.cost)) {
+            showToast('Not enough gold!');
+            return;
+        }
+        if (!requirementMet(item)) {
+            showToast('Requires: ' + item.requires);
+            return;
+        }
+
+        saveData.gold -= item.cost;
+        if (!saveData.upgrades) saveData.upgrades = {};
+        saveData.upgrades[item.id] = {
+            category: category,
+            purchasedAt: Date.now()
+        };
+
+        // Store additional metadata depending on category
+        if (item.stat) {
+            saveData.upgrades[item.id].stat = item.stat;
+            if (item.mult !== undefined) saveData.upgrades[item.id].mult = item.mult;
+            if (item.bonus !== undefined) saveData.upgrades[item.id].bonus = item.bonus;
+        }
+        if (item.weaponType) {
+            saveData.upgrades[item.id].weaponType = item.weaponType;
+        }
+
+        writeSave(saveData);
+        renderAll();
+        showToast('Purchased: ' + item.name);
+    }
+
+    // =========================================================================
+    // EXPORT / IMPORT / RESET
+    // =========================================================================
+    function exportSave() {
+        const json = JSON.stringify(saveData, null, 2);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(json).then(function () {
+                showToast('Save copied to clipboard!');
+            }).catch(function () {
+                fallbackExport(json);
+            });
+        } else {
+            fallbackExport(json);
+        }
+    }
+
+    function fallbackExport(json) {
+        const ta = document.getElementById('import-textarea');
+        ta.value = json;
+        openImportModal();
+        ta.select();
+        showToast('Save JSON shown in text box. Copy it manually.');
+    }
+
+    function openImportModal() {
+        document.getElementById('import-modal').classList.add('active');
+    }
+
+    function closeImportModal() {
+        document.getElementById('import-modal').classList.remove('active');
+    }
+
+    function doImport() {
+        const raw = document.getElementById('import-textarea').value.trim();
+        if (!raw) {
+            showToast('Paste a save JSON first.');
+            return;
+        }
+        try {
+            const parsed = JSON.parse(raw);
+            if (!parsed || typeof parsed !== 'object' || typeof parsed.version !== 'number') {
+                showToast('Invalid save format.');
+                return;
+            }
+            saveData = migrateSave(parsed);
+            writeSave(saveData);
+            closeImportModal();
+            renderAll();
+            showToast('Save imported successfully!');
+        } catch (e) {
+            showToast('Failed to parse JSON.');
+        }
+    }
+
+    function resetSave() {
+        if (!confirm('Reset all progress? This cannot be undone.')) return;
+        saveData = defaultSave();
+        writeSave(saveData);
+        renderAll();
+        showToast('Save reset.');
+    }
+
+    // =========================================================================
+    // TOAST
+    // =========================================================================
+    let toastTimer = null;
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+            el.classList.remove('show');
+        }, 2200);
+    }
+
+    // Close import modal on overlay click
+    document.getElementById('import-modal').addEventListener('click', function (e) {
+        if (e.target === this) closeImportModal();
+    });
+
+    // =========================================================================
+    // SKILL TREE
+    // =========================================================================
+    const SKILL_TREE_DEF = {
+        offense: {
+            label: 'Offense',
+            color: '#e74c3c',
+            icon: '\u2694',
+            nodes: [
+                { id: 'offense_1', name: 'Critical Eye',       desc: '+8% critical hit chance' },
+                { id: 'offense_2', name: 'Lethal Strikes',     desc: '+50% critical damage multiplier' },
+                { id: 'offense_3', name: 'Multi-Projectile',   desc: '+2 extra projectiles per volley' },
+                { id: 'offense_4', name: 'Piercing Shots',     desc: 'Projectiles pierce +3 enemies' }
+            ]
+        },
+        defense: {
+            label: 'Defense',
+            color: '#3498db',
+            icon: '\u26E8',
+            nodes: [
+                { id: 'defense_1', name: 'Regeneration',       desc: 'Recover 1 HP every 5 seconds' },
+                { id: 'defense_2', name: 'Dash Shield',        desc: 'Extended invulnerability after dashing' },
+                { id: 'defense_3', name: 'Damage Reduction',   desc: '15% less damage taken' },
+                { id: 'defense_4', name: 'Second Life',        desc: 'Revive once per run at 30% HP' }
+            ]
+        },
+        utility: {
+            label: 'Utility',
+            color: '#2ecc71',
+            icon: '\u2728',
+            nodes: [
+                { id: 'utility_1', name: 'Long Dash',          desc: '+40% dash distance' },
+                { id: 'utility_2', name: 'Quick Recovery',     desc: '-30% dash cooldown' },
+                { id: 'utility_3', name: 'Magnet Range',       desc: '+40 pickup radius' },
+                { id: 'utility_4', name: 'XP Multiplier',      desc: '+25% XP from all sources' }
+            ]
+        }
+    };
+
+    function getSpentPoints() {
+        const st = saveData.skillTree || {};
+        return Object.keys(st).filter(function(k) { return st[k]; }).length;
+    }
+
+    function getAvailablePoints() {
+        return (saveData.skillPoints || 0) - getSpentPoints();
+    }
+
+    function isSkillUnlocked(skillId) {
+        return !!(saveData.skillTree && saveData.skillTree[skillId]);
+    }
+
+    function canUnlockSkill(skillId) {
+        if (isSkillUnlocked(skillId)) return false;
+        if (getAvailablePoints() <= 0) return false;
+        for (var bk in SKILL_TREE_DEF) {
+            var nodes = SKILL_TREE_DEF[bk].nodes;
+            for (var i = 0; i < nodes.length; i++) {
+                if (nodes[i].id === skillId) {
+                    if (i === 0) return true;
+                    return isSkillUnlocked(nodes[i - 1].id);
+                }
+            }
+        }
+        return false;
+    }
+
+    function unlockSkill(skillId) {
+        if (!canUnlockSkill(skillId)) return;
+        if (!saveData.skillTree) saveData.skillTree = {};
+        saveData.skillTree[skillId] = true;
+        writeSave(saveData);
+        renderSkillTree();
+        showToast('Skill unlocked!');
+    }
+
+    function renderSkillTree() {
+        var svg = document.getElementById('skill-tree-svg');
+        svg.innerHTML = '';
+
+        document.getElementById('skill-points-count').textContent = getAvailablePoints();
+
+        var branches = Object.keys(SKILL_TREE_DEF);
+        var rowHeight = 90;
+        var startY = 50;
+        var nodeStartX = 180;
+        var nodeSpacingX = 150;
+        var nodeRadius = 22;
+
+        for (var bi = 0; bi < branches.length; bi++) {
+            var branch = SKILL_TREE_DEF[branches[bi]];
+            var cy = startY + bi * rowHeight;
+
+            var labelEl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            labelEl.setAttribute('x', 16);
+            labelEl.setAttribute('y', cy + 5);
+            labelEl.setAttribute('class', 'branch-label');
+            labelEl.setAttribute('fill', branch.color);
+            labelEl.textContent = branch.icon + ' ' + branch.label;
+            svg.appendChild(labelEl);
+
+            for (var ni = 0; ni < branch.nodes.length; ni++) {
+                var nx = nodeStartX + ni * nodeSpacingX;
+                var prevUnlocked = ni === 0 ? true : isSkillUnlocked(branch.nodes[ni - 1].id);
+                var thisUnlocked = isSkillUnlocked(branch.nodes[ni].id);
+
+                if (ni === 0) {
+                    var line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', 110);
+                    line.setAttribute('y1', cy);
+                    line.setAttribute('x2', nx - nodeRadius);
+                    line.setAttribute('y2', cy);
+                    line.setAttribute('stroke', branch.color);
+                    line.setAttribute('class', 'connector ' + (thisUnlocked ? 'active' : 'inactive'));
+                    svg.appendChild(line);
+                } else {
+                    var prevX = nodeStartX + (ni - 1) * nodeSpacingX;
+                    var lineConn = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    lineConn.setAttribute('x1', prevX + nodeRadius);
+                    lineConn.setAttribute('y1', cy);
+                    lineConn.setAttribute('x2', nx - nodeRadius);
+                    lineConn.setAttribute('y2', cy);
+                    lineConn.setAttribute('stroke', branch.color);
+                    lineConn.setAttribute('class', 'connector ' + (thisUnlocked ? 'active' : 'inactive'));
+                    svg.appendChild(lineConn);
+                }
+
+                var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circle.setAttribute('cx', nx);
+                circle.setAttribute('cy', cy);
+                circle.setAttribute('r', nodeRadius);
+                circle.setAttribute('stroke', branch.color);
+
+                var canUnlock = canUnlockSkill(branch.nodes[ni].id);
+                if (thisUnlocked) {
+                    circle.setAttribute('fill', branch.color);
+                    circle.setAttribute('class', 'node-circle unlocked');
+                } else if (canUnlock) {
+                    circle.setAttribute('fill', 'rgba(' + hexToRgb(branch.color) + ', 0.15)');
+                    circle.setAttribute('class', 'node-circle');
+                    circle.setAttribute('stroke-dasharray', '4 3');
+                } else {
+                    circle.setAttribute('fill', 'rgba(40,40,60,0.6)');
+                    circle.setAttribute('class', 'node-circle locked');
+                }
+
+                (function(node, branchDef, canU) {
+                    circle.addEventListener('click', function() {
+                        if (canU) unlockSkill(node.id);
+                        else if (isSkillUnlocked(node.id)) showToast('Already unlocked');
+                        else if (getAvailablePoints() <= 0) showToast('No skill points available');
+                        else showToast('Unlock previous skills first');
+                    });
+                    circle.addEventListener('mouseenter', function(ev) {
+                        showSkillTooltip(ev, node, branchDef, canU);
+                    });
+                    circle.addEventListener('mousemove', function(ev) {
+                        moveSkillTooltip(ev);
+                    });
+                    circle.addEventListener('mouseleave', function() {
+                        hideSkillTooltip();
+                    });
+                })(branch.nodes[ni], branch, canUnlock);
+
+                svg.appendChild(circle);
+
+                var iconText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                iconText.setAttribute('x', nx);
+                iconText.setAttribute('y', cy + 1);
+                iconText.setAttribute('text-anchor', 'middle');
+                iconText.setAttribute('dominant-baseline', 'middle');
+                iconText.setAttribute('font-size', '14');
+                iconText.setAttribute('fill', thisUnlocked ? '#fff' : (canUnlock ? branch.color : '#555'));
+                iconText.setAttribute('pointer-events', 'none');
+                iconText.textContent = (ni + 1);
+                svg.appendChild(iconText);
+
+                var nameLabel = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                nameLabel.setAttribute('x', nx);
+                nameLabel.setAttribute('y', cy + nodeRadius + 16);
+                nameLabel.setAttribute('text-anchor', 'middle');
+                nameLabel.setAttribute('class', 'node-label' + (!thisUnlocked && !canUnlock ? ' dimmed' : ''));
+                nameLabel.textContent = branch.nodes[ni].name;
+                svg.appendChild(nameLabel);
+            }
+        }
+    }
+
+    function hexToRgb(hex) {
+        var r = parseInt(hex.slice(1, 3), 16);
+        var g = parseInt(hex.slice(3, 5), 16);
+        var b = parseInt(hex.slice(5, 7), 16);
+        return r + ',' + g + ',' + b;
+    }
+
+    var tooltipEl = document.getElementById('skill-tooltip');
+
+    function showSkillTooltip(ev, node, branch, canUnlock) {
+        var unlocked = isSkillUnlocked(node.id);
+        var statusText = unlocked ? 'Unlocked' :
+            (canUnlock ? 'Click to unlock (1 point)' :
+            (getAvailablePoints() <= 0 ? 'No skill points' : 'Unlock previous first'));
+        tooltipEl.innerHTML =
+            '<div class="tt-name" style="color:' + branch.color + '">' + node.name + '</div>' +
+            '<div>' + node.desc + '</div>' +
+            '<div class="tt-status">' + statusText + '</div>';
+        tooltipEl.classList.add('visible');
+        moveSkillTooltip(ev);
+    }
+
+    function moveSkillTooltip(ev) {
+        tooltipEl.style.left = (ev.clientX + 14) + 'px';
+        tooltipEl.style.top = (ev.clientY + 14) + 'px';
+    }
+
+    function hideSkillTooltip() {
+        tooltipEl.classList.remove('visible');
+    }
+
+    // =========================================================================
+    // LOOT TABLE (must match engine.js LOOT_TABLE)
+    // =========================================================================
+    const LOOT_TABLE = [
+        { id: 'loot_rusty_shield',    name: 'Rusty Shield',      rarity: 'common',    icon: '\u26E8', desc: '+5 Max HP' },
+        { id: 'loot_old_boots',       name: 'Old Boots',         rarity: 'common',    icon: '\u{1F462}', desc: '+5% Speed' },
+        { id: 'loot_cracked_lens',    name: 'Cracked Lens',      rarity: 'common',    icon: '\u{1F50D}', desc: '+10 Pickup Radius' },
+        { id: 'loot_torn_gloves',     name: 'Torn Gloves',       rarity: 'common',    icon: '\u{1F9E4}', desc: '+5% Damage' },
+        { id: 'loot_dull_whetstone',  name: 'Dull Whetstone',    rarity: 'common',    icon: '\u25C8', desc: '+5% Attack Speed' },
+        { id: 'loot_vampiric_ring',   name: 'Vampiric Ring',     rarity: 'rare',      icon: '\u{1F48D}', desc: '2% Lifesteal' },
+        { id: 'loot_scope',           name: 'Marksman Scope',    rarity: 'rare',      icon: '\u{1F3AF}', desc: '+10% Crit Chance' },
+        { id: 'loot_iron_plate',      name: 'Iron Plate',        rarity: 'rare',      icon: '\u2694', desc: '+10% Defense' },
+        { id: 'loot_swift_cloak',     name: 'Swift Cloak',       rarity: 'rare',      icon: '\u{1F9E3}', desc: '+15% Speed' },
+        { id: 'loot_emerald_charm',   name: 'Emerald Charm',     rarity: 'rare',      icon: '\u{1F48E}', desc: '+20% XP Gain' },
+        { id: 'loot_berserker_gauntlet', name: 'Berserker Gauntlet', rarity: 'epic',  icon: '\u{1F94A}', desc: '+30% Damage below 50% HP' },
+        { id: 'loot_magnet_core',     name: 'Magnet Core',       rarity: 'epic',      icon: '\u{1F9F2}', desc: '+50 Pickup Radius' },
+        { id: 'loot_crimson_heart',   name: 'Crimson Heart',     rarity: 'epic',      icon: '\u2764', desc: '+40 Max HP, +Regen' },
+        { id: 'loot_quicksilver',     name: 'Quicksilver Vial',  rarity: 'epic',      icon: '\u{1F4A7}', desc: '-25% Dash Cooldown' },
+        { id: 'loot_war_drum',        name: 'War Drum',          rarity: 'epic',      icon: '\u{1F941}', desc: '+25% Attack Speed' },
+        { id: 'loot_phoenix_feather', name: 'Phoenix Feather',   rarity: 'legendary', icon: '\u{1F525}', desc: 'Auto-revive once per run' },
+        { id: 'loot_crown_of_thorns', name: 'Crown of Thorns',   rarity: 'legendary', icon: '\u{1F451}', desc: 'Reflect 20% damage taken' },
+        { id: 'loot_void_orb',        name: 'Void Orb',          rarity: 'legendary', icon: '\u{1F311}', desc: '+50% Damage, -20% Max HP' }
+    ];
+
+    const RARITY_ORDER = { legendary: 0, epic: 1, rare: 2, common: 3 };
+
+    function getLootById(id) {
+        return LOOT_TABLE.find(function(item) { return item.id === id; }) || null;
+    }
+
+    function isEquipped(itemId) {
+        return saveData.equipped && saveData.equipped.indexOf(itemId) !== -1;
+    }
+
+    function equipItem(itemId) {
+        if (!saveData.equipped) saveData.equipped = [];
+        if (saveData.equipped.length >= 3) {
+            showToast('Unequip an item first (max 3)');
+            return;
+        }
+        if (saveData.equipped.indexOf(itemId) !== -1) return;
+        saveData.equipped.push(itemId);
+        writeSave(saveData);
+        renderInventory();
+        showToast('Equipped!');
+    }
+
+    function unequipItem(itemId) {
+        if (!saveData.equipped) return;
+        var idx = saveData.equipped.indexOf(itemId);
+        if (idx === -1) return;
+        saveData.equipped.splice(idx, 1);
+        writeSave(saveData);
+        renderInventory();
+        showToast('Unequipped');
+    }
+
+    function renderInventory() {
+        var equipped = saveData.equipped || [];
+        var inventory = saveData.inventory || [];
+
+        document.getElementById('inv-equip-count').textContent = equipped.length;
+
+        var slotsContainer = document.getElementById('equip-slots');
+        slotsContainer.innerHTML = '';
+        for (var s = 0; s < 3; s++) {
+            var slotDiv = document.createElement('div');
+            if (s < equipped.length) {
+                var loot = getLootById(equipped[s]);
+                if (loot) {
+                    slotDiv.className = 'equip-slot filled rarity-' + loot.rarity;
+                    slotDiv.style.borderColor = getRarityColor(loot.rarity);
+                    slotDiv.innerHTML =
+                        '<div class="slot-icon">' + loot.icon + '</div>' +
+                        '<div class="slot-name">' + loot.name + '</div>';
+                    (function(id) {
+                        slotDiv.addEventListener('click', function() { unequipItem(id); });
+                        slotDiv.addEventListener('mouseenter', function(ev) {
+                            showInvTooltip(ev, getLootById(id), true);
+                        });
+                        slotDiv.addEventListener('mousemove', function(ev) { moveInvTooltip(ev); });
+                        slotDiv.addEventListener('mouseleave', function() { hideInvTooltip(); });
+                    })(equipped[s]);
+                }
+            } else {
+                slotDiv.className = 'equip-slot slot-empty';
+                slotDiv.innerHTML =
+                    '<div class="slot-icon">+</div>' +
+                    '<div class="slot-label">Empty</div>';
+            }
+            slotsContainer.appendChild(slotDiv);
+        }
+
+        var grid = document.getElementById('inv-grid');
+        grid.innerHTML = '';
+
+        if (inventory.length === 0) {
+            grid.innerHTML = '<div class="inv-empty-msg">No relics yet. Slay the darkness to claim its treasures.</div>';
+            return;
+        }
+
+        var itemCounts = {};
+        inventory.forEach(function(id) {
+            itemCounts[id] = (itemCounts[id] || 0) + 1;
+        });
+
+        var uniqueIds = Object.keys(itemCounts);
+        uniqueIds.sort(function(a, b) {
+            var la = getLootById(a);
+            var lb = getLootById(b);
+            if (!la || !lb) return 0;
+            return (RARITY_ORDER[la.rarity] || 99) - (RARITY_ORDER[lb.rarity] || 99);
+        });
+
+        uniqueIds.forEach(function(itemId) {
+            var loot = getLootById(itemId);
+            if (!loot) return;
+            var count = itemCounts[itemId];
+            var eq = isEquipped(itemId);
+
+            var card = document.createElement('div');
+            card.className = 'inv-item' + (eq ? ' inv-equipped' : '');
+
+            var countLabel = count > 1 ? ' x' + count : '';
+            card.innerHTML =
+                (eq ? '<div class="inv-equipped-badge">Equipped</div>' : '') +
+                '<div class="inv-icon">' + loot.icon + '</div>' +
+                '<div class="inv-name" style="color:' + getRarityColor(loot.rarity) + '">' + loot.name + countLabel + '</div>' +
+                '<div class="inv-desc">' + loot.desc + '</div>' +
+                '<div class="inv-rarity rarity-' + loot.rarity + '">' + loot.rarity + '</div>';
+
+            (function(id, isEq) {
+                card.addEventListener('click', function() {
+                    if (isEq) unequipItem(id);
+                    else equipItem(id);
+                });
+                card.addEventListener('mouseenter', function(ev) {
+                    showInvTooltip(ev, getLootById(id), isEq);
+                });
+                card.addEventListener('mousemove', function(ev) { moveInvTooltip(ev); });
+                card.addEventListener('mouseleave', function() { hideInvTooltip(); });
+            })(itemId, eq);
+
+            grid.appendChild(card);
+        });
+    }
+
+    function getRarityColor(rarity) {
+        var colors = { common: '#cccccc', rare: '#4488ff', epic: '#aa44ff', legendary: '#ffcc00' };
+        return colors[rarity] || '#cccccc';
+    }
+
+    // Inventory tooltips
+    var invTooltipEl = document.getElementById('inv-tooltip');
+
+    function showInvTooltip(ev, loot, isEquipped) {
+        if (!loot) return;
+        var action = isEquipped ? 'Click to unequip' : 'Click to equip';
+        invTooltipEl.innerHTML =
+            '<div class="tt-name" style="color:' + getRarityColor(loot.rarity) + '">' + loot.icon + ' ' + loot.name + '</div>' +
+            '<div>' + loot.desc + '</div>' +
+            '<div class="tt-action">' + action + '</div>';
+        invTooltipEl.classList.add('visible');
+        moveInvTooltip(ev);
+    }
+
+    function moveInvTooltip(ev) {
+        invTooltipEl.style.left = (ev.clientX + 14) + 'px';
+        invTooltipEl.style.top = (ev.clientY + 14) + 'px';
+    }
+
+    function hideInvTooltip() {
+        invTooltipEl.classList.remove('visible');
+    }
+
+    // =========================================================================
+    // INIT
+    // =========================================================================
+    renderAll();
+    renderSkillTree();
+    </script>
+</body>
+</html>
