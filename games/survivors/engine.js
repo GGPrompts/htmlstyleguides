@@ -548,6 +548,14 @@ let signatureAbilityRequested = false;
 window.addEventListener('keydown', e => {
   keys[e.key.toLowerCase()] = true;
   if(e.key === 'Escape') togglePause();
+  if(e.key.toLowerCase() === 'i' && (state === 'playing' || state === 'paused')) {
+    if(state === 'playing') togglePause();
+    switchPauseTab('inventory');
+  }
+  if(e.key.toLowerCase() === 'k' && (state === 'playing' || state === 'paused')) {
+    if(state === 'playing') togglePause();
+    switchPauseTab('skills');
+  }
   if(e.key.toLowerCase() === 'm') Audio.toggleMute();
   if(e.key.toLowerCase() === 'q' && state === 'playing') {
     signatureAbilityRequested = true;
