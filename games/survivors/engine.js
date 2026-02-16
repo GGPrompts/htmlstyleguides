@@ -753,6 +753,19 @@ function getWeaponStats(type, level) {
       }
     }
   }
+  // Apply class passive modifiers
+  if (player.projSpeedMult && player.projSpeedMult !== 1 && stats.speed && (type === 'projectile' || type === 'boomerang')) {
+    stats.speed *= player.projSpeedMult;
+  }
+  if (player.aoeSizeMult && player.aoeSizeMult !== 1 && stats.radius && (type === 'area' || type === 'field')) {
+    stats.radius *= player.aoeSizeMult;
+  }
+  if (player.abilityPowerMult && player.abilityPowerMult !== 1 && stats.damage) {
+    stats.damage *= player.abilityPowerMult;
+  }
+  if (player.cooldownMult && player.cooldownMult !== 1 && stats.cooldown) {
+    stats.cooldown *= player.cooldownMult;
+  }
   return stats;
 }
 
@@ -1280,6 +1293,16 @@ function getEffectiveCritChance() {
 
 function getEffectiveLifesteal() {
   return Math.min(player.permLifesteal || 0, STAT_CAPS.lifesteal);
+}
+
+function tryEvadeHit() {
+  if (player.evasionChance > 0 && Math.random() < player.evasionChance) {
+    // Show DODGE floating text and white particles
+    spawnParticles(player.x, player.y - 15, 4, '#ffffff', 2);
+    lootPickupTexts.push({ text: 'DODGE', rarity: 'rare', x: player.x, y: player.y - 20, life: 1.0, maxLife: 1.0 });
+    return true; // hit was evaded
+  }
+  return false;
 }
 
 function getEffectiveMultiProjectile() {
@@ -1847,6 +1870,7 @@ function gameLoop(timestamp) {
       const pd = Math.hypot(player.x - ef.x, player.y - ef.y);
       if(pd <= ef.radius && player.invulnTime <= 0 && !ef.hit.has('player')) {
         ef.hit.add('player');
+        if (tryEvadeHit()) { player.invulnTime = 0.2; } else {
         const dmg = ef.damage * player.defense;
         player.hp -= dmg;
         player.invulnTime = 0.5;
@@ -1854,6 +1878,7 @@ function gameLoop(timestamp) {
         screenShake = 0.1;
         Audio.damageTaken();
         if(player.hp <= 0) gameOver();
+        }
       }
     } else if(ef.type === 'bossShockwave') {
       ef.radius = ef.maxRadius * (1 - ef.life/ef.maxLife);
@@ -1862,6 +1887,7 @@ function gameLoop(timestamp) {
       const ringInner = Math.max(0, ef.radius - 30);
       if(pd >= ringInner && pd <= ef.radius && player.invulnTime <= 0 && !ef.hit.has('player')) {
         ef.hit.add('player');
+        if (tryEvadeHit()) { player.invulnTime = 0.2; } else {
         const dmg = ef.damage * player.defense;
         player.hp -= dmg;
         player.invulnTime = 0.5;
@@ -1869,6 +1895,7 @@ function gameLoop(timestamp) {
         screenShake = 0.15;
         Audio.damageTaken();
         if(player.hp <= 0) gameOver();
+        }
       }
     } else if(ef.type === 'bossChargeLine') {
       if(ef.phase === 'telegraph' && ef.life < ef.maxLife * 0.5) {
@@ -1887,6 +1914,7 @@ function gameLoop(timestamp) {
             const pd = Math.hypot(player.x - cx, player.y - cy);
             if(pd < ef.width + 12 && player.invulnTime <= 0 && !ef.hit.has('player')) {
               ef.hit.add('player');
+              if (tryEvadeHit()) { player.invulnTime = 0.2; } else {
               const dmg = ef.damage * player.defense;
               player.hp -= dmg;
               player.invulnTime = 0.5;
@@ -1894,6 +1922,7 @@ function gameLoop(timestamp) {
               screenShake = 0.2;
               Audio.damageTaken();
               if(player.hp <= 0) gameOver();
+              }
               break;
             }
           }
@@ -1914,6 +1943,7 @@ function gameLoop(timestamp) {
           const by = ef.y + sin * d;
           const pd = Math.hypot(player.x - bx, player.y - by);
           if(pd < ef.width + 12 && player.invulnTime <= 0) {
+            if (tryEvadeHit()) { player.invulnTime = 0.2; } else {
             const dmg = ef.damage * player.defense;
             player.hp -= dmg;
             player.invulnTime = 0.5;
@@ -1921,6 +1951,7 @@ function gameLoop(timestamp) {
             screenShake = 0.1;
             Audio.damageTaken();
             if(player.hp <= 0) gameOver();
+            }
             break;
           }
         }
@@ -1961,6 +1992,7 @@ function gameLoop(timestamp) {
 
     // Hit player
     if(d < e.size + 12 && player.invulnTime <= 0) {
+      if (tryEvadeHit()) { player.invulnTime = 0.2; } else {
       const contactWorldMult = getWorldDifficultyMult();
       const dmg = (e.isBoss ? 15 + gameTime * 0.05 : 5 + gameTime*0.02) * player.defense * contactWorldMult;
       player.hp -= dmg;
@@ -1979,6 +2011,7 @@ function gameLoop(timestamp) {
         gameOver();
         return;
       }
+      } // end evasion else
     }
   });
 
@@ -2864,12 +2897,15 @@ function startGame() {
   bossIdx = 0;
   lastBossTime = -999;
   player.x = 0; player.y = 0;
-  player.hp = 100; player.maxHp = 100;
-  player.speed = 150;
-  player.damage = 1;
+  // Apply class starting stats if available, otherwise use defaults
+  const classStats = (THEME.classConfig && THEME.classConfig.startingStats) || {};
+  player.hp = classStats.hp || 100;
+  player.maxHp = classStats.hp || 100;
+  player.speed = classStats.speed || 150;
+  player.damage = classStats.damage || 1;
   player.attackSpeed = 1;
   player.pickupRadius = 60;
-  player.defense = 1;
+  player.defense = classStats.defense || 1;
   player.invulnTime = 0;
   player.dashTimer = 0;
   player.dashCooldown = 0;
@@ -2877,6 +2913,16 @@ function startGame() {
   player.lastDirX = 0; player.lastDirY = 1;
   player.weapons = [{ type: 'projectile', level: 1 }];
   player.passives = [];
+
+  // Class identity
+  player.classId = (THEME.classConfig && THEME.classConfig.classId) || null;
+
+  // Class passive stats (defaults for all classes)
+  player.evasionChance = 0;
+  player.aoeSizeMult = 1;
+  player.abilityPowerMult = 1;
+  player.cooldownMult = 1;
+  player.projSpeedMult = 1;
 
   // Clear permanent passive flags (reset before re-applying from save)
   player.permRegen = false;
@@ -2987,6 +3033,20 @@ function startGame() {
     }
   }
   // --- End equipped loot effects ---
+
+  // --- Apply class passive effects from THEME ---
+  if (THEME.classConfig && THEME.classConfig.classPassive && THEME.classConfig.classPassive.effect) {
+    const fx = THEME.classConfig.classPassive.effect;
+    if (fx.critBonus) player.permCritChance = (player.permCritChance || 0) + fx.critBonus;
+    if (fx.projSpeedMult) player.projSpeedMult = fx.projSpeedMult;
+    if (fx.lifestealBonus) player.permLifesteal = (player.permLifesteal || 0) + fx.lifestealBonus;
+    if (fx.aoeSizeMult) player.aoeSizeMult = fx.aoeSizeMult;
+    if (fx.speedMult) player.speed *= fx.speedMult;
+    if (fx.evasionChance) player.evasionChance = fx.evasionChance;
+    if (fx.abilityPowerMult) player.abilityPowerMult = fx.abilityPowerMult;
+    if (fx.cooldownMult) player.cooldownMult = fx.cooldownMult;
+  }
+  // --- End class passive effects ---
 
   // Refresh difficulty cache at run start
   _diffCacheDirty = true;
