@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chiptune Audio Tracker</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-body: #0d0d1a;
+      --bg-panel: #1a1a2e;
+      --bg-toolbar: #12122a;
+      --bg-help: #0a0a15;
+      --accent: #e94560;
+      --text: #e0e0e0;
+      --text-dim: #888;
+      --green: #00ff88;
+      --amber: #ffc107;
+      --blue: #29b6f6;
+      --btn-bg: #2a2a4a;
+      --btn-border: #444;
+      --input-bg: #1a1a2e;
+      --input-border: #333;
+      --scrollbar-thumb: #2a2a4a;
+      --scrollbar-track: #0d0d1a;
+    }
+
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--bg-body);
+      color: var(--text);
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3a3a5a;
+    }
+
+    /* ── Toolbar ── */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 44px;
+      min-height: 44px;
+      background: var(--bg-toolbar);
+      border-bottom: 2px solid var(--accent);
+      padding: 0 10px;
+      gap: 8px;
+      z-index: 10;
+    }
+
+    .toolbar-left,
+    .toolbar-center,
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .toolbar-left {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .toolbar-center {
+      flex-shrink: 0;
+    }
+
+    .toolbar-right {
+      flex: 1;
+      justify-content: flex-end;
+      min-width: 0;
+    }
+
+    .back-btn {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-size: 13px;
+      white-space: nowrap;
+      padding: 4px 8px;
+      border-radius: 3px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .back-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* ── Shared input/button styles ── */
+    button {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 1px solid var(--btn-border);
+      padding: 4px 10px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+
+    button:hover {
+      background: var(--accent);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--input-bg);
+      color: var(--text);
+      border: 1px solid var(--input-border);
+      padding: 3px 6px;
+      font-size: 12px;
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="text"]:focus,
+    input[type="number"]:focus,
+    select:focus {
+      border-color: var(--accent);
+    }
+
+    select {
+      cursor: pointer;
+    }
+
+    select option {
+      background: var(--bg-panel);
+      color: var(--text);
+    }
+
+    label {
+      font-size: 12px;
+      color: var(--text-dim);
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+    }
+
+    /* Toolbar-specific input sizing */
+    #song-title {
+      width: 130px;
+    }
+
+    #bpm {
+      width: 52px;
+    }
+
+    #octave-display {
+      color: var(--green);
+      font-weight: bold;
+      min-width: 14px;
+      text-align: center;
+    }
+
+    /* Play/stop buttons color variants */
+    #btn-play-song,
+    #btn-play-pattern {
+      color: var(--green);
+      border-color: #1a6b3a;
+    }
+
+    #btn-stop {
+      color: var(--accent);
+      border-color: #6b1a2a;
+    }
+
+    /* ── Main Area ── */
+    #main-area {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Pattern list sidebar */
+    #pattern-list {
+      width: 120px;
+      min-width: 120px;
+      background: var(--bg-toolbar);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #222;
+    }
+
+    #pattern-list h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      padding: 8px 10px 4px;
+      border-bottom: 1px solid #222;
+    }
+
+    #pattern-list-items {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+    }
+
+    #pattern-list-items .pattern-item {
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      margin-bottom: 2px;
+      color: var(--text-dim);
+      transition: background 0.1s, color 0.1s;
+    }
+
+    #pattern-list-items .pattern-item:hover {
+      background: rgba(233, 69, 96, 0.15);
+      color: var(--text);
+    }
+
+    #pattern-list-items .pattern-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    #btn-add-pattern {
+      margin: 4px;
+      font-size: 11px;
+    }
+
+    /* Grid container (canvas area) */
+    #grid-container {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+      background: var(--bg-body);
+    }
+
+    #grid-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* ── Arrangement ── */
+    #arrangement {
+      background: var(--bg-toolbar);
+      border-top: 1px solid #222;
+      padding: 6px 10px 8px;
+    }
+
+    #arrangement h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    #arrangement-grid {
+      display: flex;
+      gap: 2px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    #arrangement-grid .seq-column {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    #arrangement-grid .seq-column .seq-header {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 2px 4px;
+    }
+
+    #arrangement-grid .seq-cell {
+      width: 40px;
+      height: 22px;
+      background: var(--bg-panel);
+      border: 1px solid #222;
+      border-radius: 2px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--amber);
+      cursor: pointer;
+      transition: border-color 0.1s;
+    }
+
+    #arrangement-grid .seq-cell:hover {
+      border-color: var(--accent);
+    }
+
+    #arrangement-grid .seq-cell.playing {
+      border-color: var(--green);
+      box-shadow: 0 0 6px rgba(0, 255, 136, 0.3);
+    }
+
+    #arrangement-grid .seq-row-num {
+      width: 28px;
+      height: 22px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .arrangement-buttons {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .arrangement-buttons button {
+      font-size: 11px;
+      padding: 3px 8px;
+    }
+
+    /* ── Instrument Editor ── */
+    #instrument-editor {
+      background: var(--bg-toolbar);
+      border-top: 2px solid var(--accent);
+      padding: 6px 10px 8px;
+    }
+
+    #instrument-editor h3 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+
+    .inst-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+      flex-wrap: wrap;
+    }
+
+    .inst-row:last-child {
+      margin-bottom: 0;
+    }
+
+    #inst-select {
+      width: 140px;
+    }
+
+    #inst-name {
+      width: 120px;
+    }
+
+    /* Range slider styling */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: #333;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+      width: 80px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: none;
+    }
+
+    .inst-row span[id$="-val"] {
+      font-size: 11px;
+      color: var(--blue);
+      min-width: 30px;
+    }
+
+    /* Checkbox styling */
+    input[type="checkbox"] {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    /* ── Dynamic UI elements (rendered by ui.js) ── */
+    .pat-item {
+      padding: 5px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      margin-bottom: 2px;
+      color: var(--text-dim);
+      transition: background 0.1s, color 0.1s;
+    }
+
+    .pat-item:hover {
+      background: rgba(233, 69, 96, 0.15);
+      color: var(--text);
+    }
+
+    .pat-item.active {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .pat-id { color: var(--amber); }
+    .pat-name { color: var(--text); }
+
+    .panel-btn {
+      font-family: 'Share Tech Mono', monospace;
+      background: var(--btn-bg);
+      color: var(--text);
+      border: 1px solid var(--btn-border);
+      padding: 4px 10px;
+      font-size: 11px;
+      cursor: pointer;
+      border-radius: 3px;
+      width: 100%;
+      margin-top: 4px;
+      transition: background 0.15s;
+    }
+
+    .panel-btn:hover { background: var(--accent); }
+
+    .arr-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .arr-table th {
+      font-size: 10px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      padding: 2px 4px;
+      text-align: center;
+      border-bottom: 1px solid #333;
+    }
+
+    .arr-table td {
+      text-align: center;
+      padding: 3px 4px;
+      border-bottom: 1px solid #1a1a2e;
+    }
+
+    .arr-idx { color: var(--text-dim); }
+
+    .arr-cell {
+      color: var(--amber);
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .arr-cell:hover { background: rgba(233, 69, 96, 0.15); }
+
+    .arr-row.playing td {
+      background: rgba(0, 255, 136, 0.1);
+    }
+
+    .arr-del {
+      font-size: 10px;
+      padding: 1px 6px;
+      background: transparent;
+      border: 1px solid #444;
+      color: var(--text-dim);
+    }
+
+    .arr-del:hover { background: var(--accent); color: #fff; }
+
+    .tb-flash {
+      color: var(--green);
+      font-size: 12px;
+      animation: flash-fade 2s ease-out;
+    }
+
+    @keyframes flash-fade {
+      0% { opacity: 1; }
+      70% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ── Help Bar ── */
+    #help-bar {
+      background: var(--bg-help);
+      color: var(--text-dim);
+      font-size: 11px;
+      padding: 4px 12px;
+      min-height: 24px;
+      display: flex;
+      align-items: center;
+      border-top: 1px solid #1a1a2e;
+      white-space: nowrap;
+      overflow-x: auto;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1024px) {
+      #pattern-list {
+        width: 90px;
+        min-width: 90px;
+      }
+
+      .toolbar-left {
+        gap: 4px;
+      }
+
+      #song-title {
+        width: 100px;
+      }
+
+      input[type="range"] {
+        width: 60px;
+      }
+
+      .inst-row {
+        gap: 6px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #pattern-list {
+        width: 70px;
+        min-width: 70px;
+      }
+
+      #toolbar {
+        flex-wrap: wrap;
+        height: auto;
+        min-height: 44px;
+        padding: 4px 8px;
+        gap: 4px;
+      }
+
+      .toolbar-left,
+      .toolbar-center,
+      .toolbar-right {
+        gap: 4px;
+      }
+
+      .back-btn {
+        font-size: 12px;
+        padding: 2px 4px;
+      }
+
+      #song-title {
+        width: 80px;
+      }
+
+      .inst-row {
+        gap: 4px;
+      }
+
+      input[type="range"] {
+        width: 50px;
+      }
+
+      #help-bar {
+        font-size: 10px;
+        padding: 3px 8px;
+      }
+    }
+
+    @media (max-width: 600px) {
+      #pattern-list {
+        display: none;
+      }
+
+      #arrangement {
+        padding: 4px 6px;
+      }
+
+      #instrument-editor {
+        padding: 4px 6px;
+      }
+
+      .toolbar-right button:not(#btn-demo):not(#btn-play-song):not(#btn-stop) {
+        display: none;
+      }
+    }
+    /* ── Help Modal ── */
+    #help-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.8);
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    #help-modal.visible { display: flex; }
+
+    #help-modal .help-content {
+      background: var(--bg-panel);
+      border: 2px solid var(--accent);
+      border-radius: 8px;
+      max-width: 640px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 24px 28px;
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    #help-modal h2 {
+      color: var(--accent);
+      font-size: 20px;
+      margin-bottom: 12px;
+    }
+
+    #help-modal h3 {
+      color: var(--green);
+      font-size: 14px;
+      margin: 14px 0 6px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    #help-modal kbd {
+      background: #2a2a4a;
+      border: 1px solid #555;
+      border-radius: 3px;
+      padding: 1px 6px;
+      font-size: 12px;
+      color: var(--amber);
+    }
+
+    #help-modal .help-close {
+      float: right;
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 16px;
+      padding: 2px 10px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+
+    #help-modal .help-close:hover { background: var(--accent); color: #fff; }
+
+    #help-modal ul {
+      margin: 4px 0 4px 18px;
+      padding: 0;
+    }
+
+    #help-modal li { margin-bottom: 3px; }
+
+    #btn-help {
+      font-weight: bold;
+      font-size: 14px;
+      width: 28px;
+      padding: 4px;
+      text-align: center;
+      color: var(--amber);
+      border-color: var(--amber);
+    }
+  </style>
+</head>
+<body>
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <div class="toolbar-left">
+      <a href="../index.html" class="back-btn">&larr; Games</a>
+      <input type="text" id="song-title" placeholder="Song Title" value="Untitled">
+      <label>BPM <input type="number" id="bpm" min="40" max="300" value="140"></label>
+      <label>Oct <span id="octave-display">4</span></label>
+    </div>
+    <div class="toolbar-center">
+      <button id="btn-play-song" title="Play Song (F5)">&#9654; Song</button>
+      <button id="btn-play-pattern" title="Play Pattern (F6)">&#9654; Pat</button>
+      <button id="btn-stop" title="Stop (F8)">&#9632; Stop</button>
+    </div>
+    <div class="toolbar-right">
+      <button id="btn-new">New</button>
+      <button id="btn-demo">Demo</button>
+      <button id="btn-save">Save</button>
+      <button id="btn-load">Load</button>
+      <button id="btn-export">Export</button>
+      <button id="btn-help" title="Quick Start Guide">?</button>
+    </div>
+  </div>
+
+  <!-- Main Area -->
+  <div id="main-area">
+    <div id="pattern-list">
+      <h3>Patterns</h3>
+      <div id="pattern-list-items"></div>
+      <button id="btn-add-pattern">+ New</button>
+    </div>
+    <div id="grid-container">
+      <canvas id="grid-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Arrangement -->
+  <div id="arrangement">
+    <h3>Song Arrangement</h3>
+    <div id="arrangement-grid"></div>
+    <div class="arrangement-buttons">
+      <button id="btn-add-seq-row">+ Row</button>
+      <button id="btn-del-seq-row">- Row</button>
+    </div>
+  </div>
+
+  <!-- Instrument Editor -->
+  <div id="instrument-editor">
+    <h3>Instrument</h3>
+    <div class="inst-row">
+      <select id="inst-select"></select>
+      <input type="text" id="inst-name" placeholder="Name">
+      <button id="btn-add-inst">+ New</button>
+      <button id="btn-del-inst">Delete</button>
+    </div>
+    <div class="inst-row">
+      <label>Wave <select id="inst-wave">
+        <option value="square">Square</option>
+        <option value="triangle">Triangle</option>
+        <option value="sawtooth">Sawtooth</option>
+        <option value="sine">Sine</option>
+        <option value="noise">Noise</option>
+        <option value="pulse25">Pulse 25%</option>
+        <option value="pulse12">Pulse 12.5%</option>
+      </select></label>
+      <label>Vol <input type="range" id="inst-volume" min="0" max="1" step="0.05" value="0.8"><span id="inst-volume-val">0.80</span></label>
+    </div>
+    <div class="inst-row">
+      <label>A <input type="range" id="inst-attack" min="0" max="1" step="0.01" value="0.01"><span id="inst-attack-val">0.01</span></label>
+      <label>D <input type="range" id="inst-decay" min="0" max="1" step="0.01" value="0.10"><span id="inst-decay-val">0.10</span></label>
+      <label>S <input type="range" id="inst-sustain" min="0" max="1" step="0.01" value="0.60"><span id="inst-sustain-val">0.60</span></label>
+      <label>R <input type="range" id="inst-release" min="0" max="1" step="0.01" value="0.10"><span id="inst-release-val">0.10</span></label>
+    </div>
+    <div class="inst-row">
+      <label><input type="checkbox" id="inst-detune-osc"> Detune 2nd Osc</label>
+      <label>Amount <input type="number" id="inst-detune-amount" min="0" max="50" value="7" style="width:50px">c</label>
+      <label>Filter <select id="inst-filter-type">
+        <option value="none">None</option>
+        <option value="lowpass">Lowpass</option>
+        <option value="highpass">Highpass</option>
+        <option value="bandpass">Bandpass</option>
+      </select></label>
+      <label>Freq <input type="number" id="inst-filter-freq" min="20" max="20000" value="2000" style="width:70px"></label>
+      <label>Q <input type="number" id="inst-filter-q" min="0.1" max="20" step="0.1" value="1" style="width:50px"></label>
+    </div>
+  </div>
+
+  <!-- Keyboard Help -->
+  <div id="help-bar">
+    Piano: Z-M / Q-U | Arrows: Navigate | Space: Play/Stop | F5: Song | F6: Pattern | Del: Clear | `: Note-off | +/-: Octave | Ctrl+Z/Y: Undo/Redo
+  </div>
+
+  <!-- Help Modal -->
+  <div id="help-modal">
+    <div class="help-content">
+      <button class="help-close" id="help-close-btn">&times;</button>
+      <h2>Quick Start Guide</h2>
+
+      <h3>1. Try the Demo First</h3>
+      <p>Click <kbd>Demo</kbd> in the toolbar to load a sample song, then hit <kbd>Space</kbd> to play it. This is the fastest way to hear what the tracker can do.</p>
+
+      <h3>2. How the Grid Works</h3>
+      <p>The grid has <strong>4 channels</strong> (columns) and <strong>16 rows</strong> per pattern. Each cell shows: <span style="color:#00ff88">Note</span> <span style="color:#ffc107">Instrument</span> <span style="color:#29b6f6">Volume</span></p>
+      <p>Click a cell to select it. Use <kbd>&uarr;</kbd> <kbd>&darr;</kbd> <kbd>&larr;</kbd> <kbd>&rarr;</kbd> to navigate. <kbd>Tab</kbd> jumps between channels.</p>
+
+      <h3>3. Entering Notes</h3>
+      <p>Your keyboard is a piano! With a cell selected:</p>
+      <ul>
+        <li><kbd>Z</kbd> <kbd>X</kbd> <kbd>C</kbd> <kbd>V</kbd> <kbd>B</kbd> <kbd>N</kbd> <kbd>M</kbd> = C D E F G A B (lower octave)</li>
+        <li><kbd>S</kbd> <kbd>D</kbd> <kbd>G</kbd> <kbd>H</kbd> <kbd>J</kbd> = sharps/flats (black keys)</li>
+        <li><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> = C D E F G A B (upper octave)</li>
+      </ul>
+      <p>Each note you type is previewed instantly. The cursor moves down automatically.</p>
+      <p>Change octave with <kbd>+</kbd> / <kbd>-</kbd>. Current octave shows in the toolbar.</p>
+
+      <h3>4. Playback</h3>
+      <ul>
+        <li><kbd>Space</kbd> &mdash; Play / Stop current pattern</li>
+        <li><kbd>F5</kbd> &mdash; Play full song (all patterns in sequence)</li>
+        <li><kbd>F6</kbd> &mdash; Play current pattern from start</li>
+        <li><kbd>F8</kbd> &mdash; Stop</li>
+      </ul>
+
+      <h3>5. Editing</h3>
+      <ul>
+        <li><kbd>Delete</kbd> &mdash; Clear a cell</li>
+        <li><kbd>`</kbd> (backtick) &mdash; Insert note-off (silences the channel)</li>
+        <li><kbd>Ctrl+Z</kbd> / <kbd>Ctrl+Y</kbd> &mdash; Undo / Redo</li>
+        <li><kbd>Ctrl+C</kbd> / <kbd>Ctrl+V</kbd> &mdash; Copy / Paste a cell</li>
+      </ul>
+
+      <h3>6. Instruments</h3>
+      <p>The bottom panel lets you tweak the current instrument: wave shape, ADSR envelope, filter, detune. Select different instruments from the dropdown. The instrument number is auto-assigned when you enter a note.</p>
+
+      <h3>7. Song Structure</h3>
+      <ul>
+        <li><strong>Patterns</strong> (left sidebar) &mdash; Create multiple patterns and click to switch between them</li>
+        <li><strong>Arrangement</strong> (below grid) &mdash; Click cells to cycle which pattern plays in each slot. Add rows to make the song longer</li>
+        <li><kbd>F5</kbd> plays through the arrangement top-to-bottom, then loops</li>
+      </ul>
+
+      <h3>8. Save &amp; Export</h3>
+      <ul>
+        <li><kbd>Save</kbd> / <kbd>Load</kbd> &mdash; Browser localStorage (persists between sessions)</li>
+        <li><kbd>Export</kbd> &mdash; Downloads a .json file you can share or embed in games</li>
+      </ul>
+    </div>
+  </div>
+
+  <script src="synth.js"></script>
+  <script src="tracker.js"></script>
+  <script src="presets.js"></script>
+  <script src="ui.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      Synth.init();
+      Tracker.newSong();
+      UI.init();
+
+      // Help modal
+      var modal = document.getElementById('help-modal');
+      var openHelp = function () { modal.classList.add('visible'); };
+      var closeHelp = function () {
+        modal.classList.remove('visible');
+        localStorage.setItem('chiptracker-seen-help', '1');
+      };
+      document.getElementById('btn-help').addEventListener('click', openHelp);
+      document.getElementById('help-close-btn').addEventListener('click', closeHelp);
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeHelp();
+      });
+      // Show on first visit
+      if (!localStorage.getItem('chiptracker-seen-help')) openHelp();
+    });
+  </script>
+</body>
+</html>
