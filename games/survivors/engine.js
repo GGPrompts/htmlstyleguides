@@ -3080,6 +3080,36 @@ function startGame() {
   player.dashDistance = 1;
   player.dashCooldownReduction = 0;
 
+  // Class skill flags (reset all, will be set by applyAllSkills)
+  player.permHeadshot = false;
+  player.permOverdrive = false; player.overdriveTimer = 0; player.overdriveKills = 0;
+  player.permExplosiveRounds = false;
+  player.permAutoTurret = false; player.turretTimer = 0;
+  player.permDrone = false; player.droneAngle = 0; player.droneFireTimer = 0;
+  player.permEmpBurst = false;
+  player.permBloodFrenzy = false; player.bloodFrenzyTimer = 0;
+  player.permDeathAura = false;
+  player.permSkeletons = 0; player.permSkeletonMage = false;
+  player.permArmyOfDarkness = false; player.armyTimer = 0;
+  player.permFortify = false; player.fortifyStillTimer = 0; player.fortifyActive = false;
+  player.permVampiricNova = false; player.vampiricNovaUsed = false;
+  player.permPoison = false; player.permVirulent = false;
+  player.permRootSnare = false; player.permOvergrowth = false;
+  player.permDoubleDash = false; player.permPhantomStep = false;
+  player.permTraps = 0; player.permTrapMastery = false; player.trapTimer = 0;
+  player.permNetLauncher = false; player.netTimer = 0;
+  player.permPullAura = false;
+  player.permGravityWell = false; player.gravityWellTimer = 0;
+  player.permMassIncrease = false;
+  player.permBlackHole = false; player.blackHoleTimer = 0;
+  player.permTimeBubble = false;
+  player.permRewind = false; player.rewindUsed = false; player.rewindHpLog = [];
+  player.permTemporalLoop = false;
+  player.permVoidBolt = false; player.voidBoltTimer = 0;
+  player.permSingularity = false; player.singularityTimer = 0;
+  // Runtime entity arrays for summons/traps/turrets/decoys
+  player.skeletons = []; player.traps = []; player.turrets = []; player.decoys = [];
+
   // --- Apply permanent upgrades from save state ---
   const permSave = SaveManager.load();
   const permUpgrades = permSave.upgrades || {};
@@ -3243,17 +3273,27 @@ function gameOver() {
   if(player.hp <= 0 && checkSecondLife()) return;
   state = 'gameover';
   // Auto-save run stats + gold to persistent save
-  SaveManager.recordRun(kills, gameTime, runGold);
+  const cid = player.classId || 'gunner';
+  SaveManager.recordRun(kills, gameTime, runGold, cid, waveNum);
   const mins = Math.floor(gameTime/60);
   const secs = Math.floor(gameTime%60);
   const saveData = SaveManager.load();
+  const className = SaveManager.CLASS_NAMES[cid] || cid;
+  const cs = (saveData.classStats && saveData.classStats[cid]) || {};
+  const bestMins = Math.floor((cs.bestTime || 0) / 60);
+  const bestSecs = Math.floor((cs.bestTime || 0) % 60);
+  const isNewBestTime = gameTime >= (cs.bestTime || 0);
+  const isNewBestKills = kills >= (cs.bestKills || 0);
+  const newBestHtml = (isNewBestTime || isNewBestKills) ? '<div class="stats-line" style="color:#ffd700;font-weight:bold;margin-top:6px">NEW BEST!</div>' : '';
   document.getElementById('go-stats').innerHTML = `
     <div class="stats-line">Time Survived: ${mins}:${secs.toString().padStart(2,'0')}</div>
     <div class="stats-line">Level Reached: ${playerLevel}</div>
     <div class="stats-line">Enemies Slain: ${kills}</div>
     <div class="stats-line">Gold Earned: ${runGold}g</div>
     <div class="stats-line">Weapons: ${player.weapons.length}</div>
-    <div class="stats-line" style="margin-top:8px;opacity:0.7">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills} | Bank: ${saveData.gold}g</div>
+    ${newBestHtml}
+    <div class="stats-line" style="margin-top:8px;opacity:0.7">Best as ${className}: ${bestMins}:${bestSecs.toString().padStart(2,'0')} | ${cs.bestKills || 0} kills | ${cs.totalRuns || 0} runs</div>
+    <div class="stats-line" style="opacity:0.5">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills} | Bank: ${saveData.gold}g</div>
   `;
   document.getElementById('game-over-screen').style.display = 'flex';
 }
@@ -3261,36 +3301,238 @@ function gameOver() {
 // ============================================================
 // PAUSE MENU — TABBED (Resume / Inventory / Skills)
 // ============================================================
-const SKILL_TREE_DEF = {
-  offense: {
-    label: 'Offense', color: '#e74c3c', icon: '\u2694',
-    nodes: [
-      { id: 'offense_1', name: 'Critical Eye',     desc: '+8% critical hit chance' },
-      { id: 'offense_2', name: 'Lethal Strikes',   desc: '+50% critical damage multiplier' },
-      { id: 'offense_3', name: 'Multi-Projectile', desc: '+2 extra projectiles per volley' },
-      { id: 'offense_4', name: 'Piercing Shots',   desc: 'Projectiles pierce +3 enemies' }
-    ]
+// ============================================================
+// CLASS SKILL TREES — unique per class, dynamic application
+// ============================================================
+const CLASS_SKILL_TREES = {
+  // ---- GUNNER (Cyberpunk) ----
+  gunner: {
+    precision: {
+      label: 'Precision', color: '#e74c3c', icon: '\u2694',
+      nodes: [
+        { id: 'gunner_precision_1', name: 'Crit Eye',       desc: '+10% critical hit chance',
+          apply(p) { p.permCritChance = (p.permCritChance || 0) + 0.10; } },
+        { id: 'gunner_precision_2', name: 'Lethal Strikes', desc: '+50% critical damage multiplier',
+          apply(p) { p.permCritDamage = (p.permCritDamage || 0) + 0.50; } },
+        { id: 'gunner_precision_3', name: 'Headshot',       desc: 'Kills enemies below 15% HP instantly',
+          apply(p) { p.permHeadshot = true; } },
+        { id: 'gunner_precision_4', name: 'Overdrive',      desc: 'Kill streaks grant 2x fire rate for 3s',
+          apply(p) { p.permOverdrive = true; } }
+      ]
+    },
+    arsenal: {
+      label: 'Arsenal', color: '#f39c12', icon: '\uD83D\uDD2B',
+      nodes: [
+        { id: 'gunner_arsenal_1', name: 'Multi-Shot',       desc: '+1 extra projectile per volley',
+          apply(p) { p.permMultiProjectile = true; } },
+        { id: 'gunner_arsenal_2', name: 'Piercing Rounds',  desc: '+2 pierce on projectiles',
+          apply(p) { p.permPiercing = true; } },
+        { id: 'gunner_arsenal_3', name: 'Explosive Rounds', desc: 'Projectiles explode on final hit (small AoE)',
+          apply(p) { p.permExplosiveRounds = true; } },
+        { id: 'gunner_arsenal_4', name: 'Auto-Turret',      desc: 'Deploy a stationary turret every 30s',
+          apply(p) { p.permAutoTurret = true; } }
+      ]
+    },
+    tech: {
+      label: 'Tech', color: '#3498db', icon: '\u2699',
+      nodes: [
+        { id: 'gunner_tech_1', name: 'Shield Regen',  desc: 'Regenerate 1 HP every 5s',
+          apply(p) { p.permRegen = true; p.permRegenTimer = 0; } },
+        { id: 'gunner_tech_2', name: 'Energy Shield',  desc: 'Dash grants 2s invulnerability shield',
+          apply(p) { p.permShieldOnDash = true; } },
+        { id: 'gunner_tech_3', name: 'Drone',           desc: 'Orbiting drone that shoots enemies',
+          apply(p) { p.permDrone = true; } },
+        { id: 'gunner_tech_4', name: 'EMP Burst',       desc: '10% chance on hit to stun all nearby enemies 1s',
+          apply(p) { p.permEmpBurst = true; } }
+      ]
+    }
   },
-  defense: {
-    label: 'Defense', color: '#3498db', icon: '\u26E8',
-    nodes: [
-      { id: 'defense_1', name: 'Regeneration',     desc: 'Recover 1 HP every 5 seconds' },
-      { id: 'defense_2', name: 'Dash Shield',      desc: 'Extended invulnerability after dashing' },
-      { id: 'defense_3', name: 'Damage Reduction', desc: '15% less damage taken' },
-      { id: 'defense_4', name: 'Second Life',      desc: 'Revive once per run at 30% HP' }
-    ]
+
+  // ---- DARK KNIGHT (Gothic) ----
+  darkknight: {
+    blood: {
+      label: 'Blood', color: '#c0392b', icon: '\uD83E\uDE78',
+      nodes: [
+        { id: 'dk_blood_1', name: 'Lifesteal',     desc: '+8% lifesteal on damage dealt',
+          apply(p) { p.permLifesteal = (p.permLifesteal || 0) + 0.08; } },
+        { id: 'dk_blood_2', name: 'Blood Frenzy',  desc: '+15% attack speed on kill for 3s',
+          apply(p) { p.permBloodFrenzy = true; } },
+        { id: 'dk_blood_3', name: 'Thorns',        desc: 'Reflect 20% damage back to attackers',
+          apply(p) { p.permThorns = (p.permThorns || 0) + 0.20; } },
+        { id: 'dk_blood_4', name: 'Death Aura',    desc: 'Constant 3/s AoE damage around player',
+          apply(p) { p.permDeathAura = true; } }
+      ]
+    },
+    shadow: {
+      label: 'Shadow', color: '#8e44ad', icon: '\uD83D\uDC80',
+      nodes: [
+        { id: 'dk_shadow_1', name: 'Summon Skeleton', desc: 'Spawn 1 skeleton ally that fights',
+          apply(p) { p.permSkeletons = Math.max(p.permSkeletons || 0, 1); } },
+        { id: 'dk_shadow_2', name: 'Pack',             desc: 'Summon up to 3 skeleton allies',
+          apply(p) { p.permSkeletons = Math.max(p.permSkeletons || 0, 3); } },
+        { id: 'dk_shadow_3', name: 'Skeleton Mage',    desc: 'Skeletons shoot ranged projectiles',
+          apply(p) { p.permSkeletonMage = true; } },
+        { id: 'dk_shadow_4', name: 'Army of Darkness', desc: 'Every 45s, mass summon 8 skeletons for 10s',
+          apply(p) { p.permArmyOfDarkness = true; } }
+      ]
+    },
+    undying: {
+      label: 'Undying', color: '#2c3e50', icon: '\u26E8',
+      nodes: [
+        { id: 'dk_undying_1', name: 'Damage Reduction', desc: '-15% damage taken',
+          apply(p) { p.defense *= 0.85; } },
+        { id: 'dk_undying_2', name: 'Fortify',          desc: 'Standing still 2s grants +25% defense',
+          apply(p) { p.permFortify = true; } },
+        { id: 'dk_undying_3', name: 'Second Life',      desc: 'Revive once per run at 30% HP',
+          apply(p) { p.permSecondLife = true; } },
+        { id: 'dk_undying_4', name: 'Vampiric Nova',    desc: 'Dropping below 30% HP triggers heal burst + damage wave',
+          apply(p) { p.permVampiricNova = true; } }
+      ]
+    }
   },
-  utility: {
-    label: 'Utility', color: '#2ecc71', icon: '\u2728',
-    nodes: [
-      { id: 'utility_1', name: 'Long Dash',       desc: '+40% dash distance' },
-      { id: 'utility_2', name: 'Quick Recovery',   desc: '-18% dash cooldown' },
-      { id: 'utility_3', name: 'Magnet Range',     desc: '+40 pickup radius' },
-      { id: 'utility_4', name: 'XP Multiplier',    desc: '+25% XP from all sources' }
-    ]
+
+  // ---- RANGER (Forest) ----
+  ranger: {
+    nature: {
+      label: 'Nature', color: '#27ae60', icon: '\uD83C\uDF3F',
+      nodes: [
+        { id: 'ranger_nature_1', name: 'Poison',     desc: '+3/s poison DoT on hit for 3s',
+          apply(p) { p.permPoison = true; } },
+        { id: 'ranger_nature_2', name: 'Virulent',   desc: 'Poison spreads to nearby enemies on death',
+          apply(p) { p.permVirulent = true; } },
+        { id: 'ranger_nature_3', name: 'Root Snare',  desc: '25% chance to slow enemy 50% for 2s on hit',
+          apply(p) { p.permRootSnare = true; } },
+        { id: 'ranger_nature_4', name: 'Overgrowth',  desc: 'Poisoned enemies leave toxic ground on death',
+          apply(p) { p.permOvergrowth = true; } }
+      ]
+    },
+    agility: {
+      label: 'Agility', color: '#2ecc71', icon: '\u26A1',
+      nodes: [
+        { id: 'ranger_agility_1', name: 'Swift',        desc: '+12% movement speed',
+          apply(p) { p.speed *= 1.12; } },
+        { id: 'ranger_agility_2', name: 'Evasion',      desc: '+15% dodge chance',
+          apply(p) { p.evasionChance = (p.evasionChance || 0) + 0.15; } },
+        { id: 'ranger_agility_3', name: 'Double Dash',  desc: '2 dash charges (reduced cooldown)',
+          apply(p) { p.permDoubleDash = true; p.dashCooldownReduction = (p.dashCooldownReduction || 0) + 0.40; } },
+        { id: 'ranger_agility_4', name: 'Phantom Step', desc: 'Dash leaves decoy that draws enemies for 3s',
+          apply(p) { p.permPhantomStep = true; } }
+      ]
+    },
+    trapper: {
+      label: 'Trapper', color: '#d35400', icon: '\uD83E\uDE64',
+      nodes: [
+        { id: 'ranger_trapper_1', name: 'Bear Trap',    desc: 'Auto-place trap every 15s (damage + root)',
+          apply(p) { p.permTraps = Math.max(p.permTraps || 0, 1); } },
+        { id: 'ranger_trapper_2', name: 'More Traps',   desc: 'Up to 3 active traps at once',
+          apply(p) { p.permTraps = Math.max(p.permTraps || 0, 3); } },
+        { id: 'ranger_trapper_3', name: 'Trap Mastery', desc: '+50% trap damage',
+          apply(p) { p.permTrapMastery = true; } },
+        { id: 'ranger_trapper_4', name: 'Net Launcher', desc: 'Every 20s, AoE slow in large radius',
+          apply(p) { p.permNetLauncher = true; } }
+      ]
+    }
+  },
+
+  // ---- WARLOCK (Cosmic) ----
+  warlock: {
+    gravity: {
+      label: 'Gravity', color: '#9b59b6', icon: '\uD83C\uDF0C',
+      nodes: [
+        { id: 'warlock_gravity_1', name: 'Pull Aura',     desc: 'Nearby enemies slowly pulled toward player',
+          apply(p) { p.permPullAura = true; } },
+        { id: 'warlock_gravity_2', name: 'Gravity Well',   desc: 'Every 25s, vortex pulls enemies in area',
+          apply(p) { p.permGravityWell = true; } },
+        { id: 'warlock_gravity_3', name: 'Mass Increase',  desc: 'Pulled enemies take +25% damage',
+          apply(p) { p.permMassIncrease = true; } },
+        { id: 'warlock_gravity_4', name: 'Black Hole',     desc: 'Massive pull + damage every 60s',
+          apply(p) { p.permBlackHole = true; } }
+      ]
+    },
+    time: {
+      label: 'Time', color: '#3498db', icon: '\u231B',
+      nodes: [
+        { id: 'warlock_time_1', name: 'CDR',          desc: '-15% all cooldowns',
+          apply(p) { p.cooldownMult = (p.cooldownMult || 1) * 0.85; } },
+        { id: 'warlock_time_2', name: 'Time Bubble',   desc: 'On dash, leave slow field for 3s',
+          apply(p) { p.permTimeBubble = true; } },
+        { id: 'warlock_time_3', name: 'Rewind',        desc: 'Once per run, undo last 5s of damage taken',
+          apply(p) { p.permRewind = true; } },
+        { id: 'warlock_time_4', name: 'Temporal Loop',  desc: '15% chance to not consume weapon cooldown',
+          apply(p) { p.permTemporalLoop = true; } }
+      ]
+    },
+    voidBranch: {
+      label: 'Void', color: '#e74c3c', icon: '\uD83D\uDD73',
+      nodes: [
+        { id: 'warlock_void_1', name: 'Ability Power',  desc: '+20% all damage',
+          apply(p) { p.abilityPowerMult = (p.abilityPowerMult || 1) * 1.20; } },
+        { id: 'warlock_void_2', name: 'Void Bolt',      desc: 'Periodic bonus magic projectile every 3s',
+          apply(p) { p.permVoidBolt = true; } },
+        { id: 'warlock_void_3', name: 'Void Armor',     desc: '+1 defense per 10% ability power bonus',
+          apply(p) {
+            const apBonus = ((p.abilityPowerMult || 1) - 1) * 10;
+            p.defense *= Math.max(0.5, 1 - apBonus * 0.01);
+          } },
+        { id: 'warlock_void_4', name: 'Singularity',    desc: 'Every 45s, massive AoE centered on player',
+          apply(p) { p.permSingularity = true; } }
+      ]
+    }
   }
 };
 
+// Active skill tree: returns the class-specific tree or gunner as fallback
+function getActiveSkillTree() {
+  const classId = (THEME.classConfig && THEME.classConfig.classId) || 'gunner';
+  return CLASS_SKILL_TREES[classId] || CLASS_SKILL_TREES.gunner;
+}
+
+// Backwards-compatible SKILL_TREE_DEF via Proxy — delegates to active class tree
+const SKILL_TREE_DEF = new Proxy({}, {
+  get(_, prop) {
+    const tree = getActiveSkillTree();
+    if (prop === Symbol.iterator || prop === 'length') return undefined;
+    return tree[prop];
+  },
+  ownKeys() {
+    return Object.keys(getActiveSkillTree());
+  },
+  getOwnPropertyDescriptor(_, prop) {
+    const tree = getActiveSkillTree();
+    if (prop in tree) return { configurable: true, enumerable: true, value: tree[prop] };
+    return undefined;
+  },
+  has(_, prop) {
+    return prop in getActiveSkillTree();
+  }
+});
+
+// Lookup a skill node by ID across the active tree
+function findSkillNode(skillId, tree) {
+  tree = tree || getActiveSkillTree();
+  for (const branchKey of Object.keys(tree)) {
+    for (const node of tree[branchKey].nodes) {
+      if (node.id === skillId) return node;
+    }
+  }
+  return null;
+}
+
+// Generic: apply all unlocked skills from save data to player
+function applyAllSkills(p, skillTreeSave) {
+  const tree = getActiveSkillTree();
+  for (const branchKey of Object.keys(tree)) {
+    for (const node of tree[branchKey].nodes) {
+      if (skillTreeSave[node.id] && node.apply) {
+        node.apply(p);
+      }
+    }
+  }
+}
+
+// ============================================================
+// PAUSE MENU — TABBED (Resume / Inventory / Skills)
+// ============================================================
 let pauseTab = 'resume';
 
 function togglePause() {

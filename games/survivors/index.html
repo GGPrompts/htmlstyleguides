@@ -903,6 +903,113 @@
                 font-size: 1.1rem;
             }
         }
+
+        /* ==================== HALL OF FAME ==================== */
+        .hall-of-fame {
+            border: 1px solid rgba(212,175,55,0.2);
+            background: rgba(15,10,10,0.9);
+            padding: 24px 28px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .hall-of-fame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--blood), var(--gold), var(--blood));
+            opacity: 0.4;
+        }
+
+        .hof-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .hof-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .hof-class {
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(10,10,15,0.5);
+            padding: 14px 12px;
+            text-align: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .hof-class.played {
+            border-color: rgba(212,175,55,0.15);
+        }
+
+        .hof-class.unplayed {
+            opacity: 0.35;
+        }
+
+        .hof-class-name {
+            font-family: 'Cinzel', serif;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+
+        .hof-class.card-gunner .hof-class-name { color: var(--cyber-pink); }
+        .hof-class.card-darkknight .hof-class-name { color: var(--blood); }
+        .hof-class.card-ranger .hof-class-name { color: var(--forest-green); }
+        .hof-class.card-warlock .hof-class-name { color: var(--cosmic-purple); }
+
+        .hof-stars {
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+            min-height: 1.2em;
+        }
+
+        .hof-star-filled { color: var(--gold); }
+        .hof-star-empty { color: rgba(176,160,144,0.15); }
+
+        .hof-stat {
+            font-size: 0.78rem;
+            color: rgba(232,220,200,0.5);
+            line-height: 1.6;
+        }
+
+        .hof-stat strong {
+            color: var(--bone);
+            font-weight: 700;
+        }
+
+        .hof-no-data {
+            font-size: 0.72rem;
+            font-style: italic;
+            color: rgba(176,160,144,0.3);
+            margin-top: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .hof-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .hall-of-fame {
+                padding: 18px 16px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1162,6 +1269,9 @@
                 <a href="shop-cosmic.html" class="nav-link">Cosmic Shop</a>
             </div>
 
+            <!-- Hall of Fame -->
+            <div id="hall-of-fame" class="hall-of-fame" style="display:none"></div>
+
             <!-- Other Games -->
             <div class="section-divider">Other Games</div>
 
@@ -1397,7 +1507,75 @@
     });
 
     // Init
+    function renderHallOfFame() {
+        const panel = document.getElementById('hall-of-fame');
+        const save = loadSave();
+        if (!save || !save.classStats) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        const CLASS_DEFS = [
+            { id: 'gunner',     name: 'Gunner',      cardClass: 'card-gunner' },
+            { id: 'darkknight', name: 'Dark Knight',  cardClass: 'card-darkknight' },
+            { id: 'ranger',     name: 'Ranger',       cardClass: 'card-ranger' },
+            { id: 'warlock',    name: 'Warlock',      cardClass: 'card-warlock' }
+        ];
+
+        // Check if any class has been played
+        let anyPlayed = false;
+        for (const c of CLASS_DEFS) {
+            const cs = save.classStats[c.id];
+            if (cs && cs.totalRuns > 0) { anyPlayed = true; break; }
+        }
+        if (!anyPlayed) {
+            panel.style.display = 'none';
+            return;
+        }
+
+        let html = '<div class="hof-title">Hall of Fame</div>';
+        html += '<div class="hof-grid">';
+
+        for (const c of CLASS_DEFS) {
+            const cs = save.classStats[c.id] || {};
+            const played = cs.totalRuns > 0;
+            const playedClass = played ? 'played' : 'unplayed';
+
+            // Mastery stars: 1 star for first run, 2 for 5min+ survival, 3 for 10min+
+            let starCount = 0;
+            if (cs.totalRuns > 0) starCount = 1;
+            if (cs.bestTime >= 300) starCount = 2;  // 5 minutes
+            if (cs.bestTime >= 600) starCount = 3;  // 10 minutes
+
+            let starsHtml = '';
+            for (let s = 0; s < 3; s++) {
+                starsHtml += s < starCount
+                    ? '<span class="hof-star-filled">\u2605</span>'
+                    : '<span class="hof-star-empty">\u2605</span>';
+            }
+
+            html += '<div class="hof-class ' + c.cardClass + ' ' + playedClass + '">';
+            html += '<div class="hof-class-name">' + c.name + '</div>';
+            html += '<div class="hof-stars">' + starsHtml + '</div>';
+
+            if (played) {
+                html += '<div class="hof-stat"><strong>' + formatTime(cs.bestTime) + '</strong> best time</div>';
+                html += '<div class="hof-stat"><strong>' + (cs.bestKills || 0) + '</strong> best kills</div>';
+                html += '<div class="hof-stat"><strong>' + cs.totalRuns + '</strong> runs</div>';
+            } else {
+                html += '<div class="hof-no-data">Not yet played</div>';
+            }
+
+            html += '</div>';
+        }
+
+        html += '</div>';
+        panel.innerHTML = html;
+        panel.style.display = 'block';
+    }
+
     renderCampaign();
+    renderHallOfFame();
     </script>
 
 </body>
