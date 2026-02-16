@@ -58,7 +58,7 @@ var SheetMusic = (function () {
   var totalRows = 0;
   var currentRowFrac = 0;       // fractional row position for smooth scroll
   var targetRow = 0;
-  var lastFrameTime = 0;
+  var targetRowTime = 0;        // performance.now() when targetRow was set
   var animId = null;
   var playing = false;
   var bpm = 120;
@@ -499,21 +499,13 @@ var SheetMusic = (function () {
   function tick(timestamp) {
     if (!visible) return;
 
-    if (playing && lastFrameTime > 0) {
-      var dt = (timestamp - lastFrameTime) / 1000; // seconds
+    if (playing) {
+      // Extrapolate position forward from last known row at playback speed
       var rowsPerSec = (bpm / 60) * rowsPerBeat;
-      // Smooth interpolation toward target row
-      var target = targetRow;
-      var diff = target - currentRowFrac;
-      if (Math.abs(diff) > 0.01) {
-        // Ease toward target, but don't overshoot
-        currentRowFrac += diff * Math.min(1, dt * rowsPerSec * 3);
-      } else {
-        currentRowFrac = target;
-      }
+      var elapsed = (timestamp - targetRowTime) / 1000;
+      currentRowFrac = targetRow + elapsed * rowsPerSec;
     }
 
-    lastFrameTime = timestamp;
     render();
     animId = requestAnimationFrame(tick);
   }
@@ -575,6 +567,7 @@ var SheetMusic = (function () {
     }
     absRow += row;
     targetRow = absRow;
+    targetRowTime = performance.now();
     playing = true;
   }
 
