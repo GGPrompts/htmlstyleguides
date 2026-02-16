@@ -272,12 +272,15 @@ const SaveManager = (() => {
   }
 
   // Record end-of-run stats into the persistent save
-  function recordRun(runKills, runTime) {
+  function recordRun(runKills, runTime, earnedGold) {
     const data = load();
     data.stats.totalKills += runKills;
     data.stats.runsCompleted += 1;
     if (runTime > data.stats.bestTime) {
       data.stats.bestTime = runTime;
+    }
+    if (typeof earnedGold === 'number' && earnedGold > 0) {
+      data.gold += earnedGold;
     }
     save(data);
     return data;
@@ -476,6 +479,8 @@ let lastBossTime = -999;
 let heartbeatTimer = 0;
 let damageFlash = 0;
 let screenShake = 0;
+let runGold = 0;
+let goldTimerAccum = 0;
 
 const player = {
   x: 0, y: 0,
@@ -1036,6 +1041,12 @@ function killEnemy(e) {
   spawnParticles(e.x, e.y, 8, e.type.color, 3);
   gems.get(e.x, e.y, e.xpValue);
   kills++;
+  // Gold from kills: 1g base, scaled by enemy tier (xpValue), 50g for bosses
+  if(e.isBoss) {
+    runGold += 50;
+  } else {
+    runGold += Math.max(1, Math.floor(e.xpValue));
+  }
   enemies.release(e);
 }
 
@@ -1229,6 +1240,14 @@ function gameLoop(timestamp) {
   if(state === 'paused' || state === 'levelup') return;
 
   gameTime += dt;
+
+  // Gold from time survived: 1g per 10 seconds
+  goldTimerAccum += dt;
+  if(goldTimerAccum >= 10) {
+    const ticks = Math.floor(goldTimerAccum / 10);
+    runGold += ticks;
+    goldTimerAccum -= ticks * 10;
+  }
 
   // Difficulty ramp — wave system (40s cycles: 30s intense + 10s breather)
   const progress = Math.min(gameTime / 600, 1); // 10 min to max
@@ -1557,6 +1576,7 @@ function gameLoop(timestamp) {
     }
     if(d < 15) {
       addXp(g.value);
+      runGold += 2;
       Audio.gemSound();
       gems.release(g);
     }
@@ -1951,6 +1971,52 @@ function render(dt) {
     ctx.stroke();
     ctx.restore();
   }
+
+  // Gold HUD — canvas-rendered, top-right area
+  renderGoldHUD(ctx);
+}
+
+function renderGoldHUD(ctx) {
+  const padding = 16;
+  const coinRadius = 9;
+  const x = W - padding;
+  const y = 52;
+  const accentColor = THEME.palette.accent || THEME.palette.text || '#ffcc00';
+
+  // Gold number (right-aligned)
+  ctx.save();
+  ctx.font = 'bold 16px monospace';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = accentColor;
+  ctx.shadowColor = accentColor;
+  ctx.shadowBlur = 6;
+  const text = `${runGold}`;
+  ctx.fillText(text, x, y);
+  ctx.shadowBlur = 0;
+
+  // Coin icon to the left of the number
+  const textWidth = ctx.measureText(text).width;
+  const coinX = x - textWidth - coinRadius - 6;
+  const coinY = y;
+
+  // Coin circle
+  ctx.fillStyle = '#ffd700';
+  ctx.shadowColor = '#ffd700';
+  ctx.shadowBlur = 4;
+  ctx.beginPath();
+  ctx.arc(coinX, coinY, coinRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  // Coin inner detail — "G" letter
+  ctx.fillStyle = '#b8860b';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('G', coinX, coinY + 1);
+
+  ctx.restore();
 }
 
 // ============================================================
@@ -1991,6 +2057,8 @@ function startGame() {
   damageFlash = 0;
   screenShake = 0;
   spawnTimer = 0;
+  runGold = 0;
+  goldTimerAccum = 0;
   updateWeaponBar();
   document.getElementById('title-screen').style.display = 'none';
   document.getElementById('game-over-screen').style.display = 'none';
@@ -1999,8 +2067,8 @@ function startGame() {
 
 function gameOver() {
   state = 'gameover';
-  // Auto-save run stats to persistent save
-  SaveManager.recordRun(kills, gameTime);
+  // Auto-save run stats + gold to persistent save
+  SaveManager.recordRun(kills, gameTime, runGold);
   const mins = Math.floor(gameTime/60);
   const secs = Math.floor(gameTime%60);
   const saveData = SaveManager.load();
@@ -2008,8 +2076,9 @@ function gameOver() {
     <div class="stats-line">Time Survived: ${mins}:${secs.toString().padStart(2,'0')}</div>
     <div class="stats-line">Level Reached: ${playerLevel}</div>
     <div class="stats-line">Enemies Slain: ${kills}</div>
+    <div class="stats-line">Gold Earned: ${runGold}g</div>
     <div class="stats-line">Weapons: ${player.weapons.length}</div>
-    <div class="stats-line" style="margin-top:8px;opacity:0.7">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills}</div>
+    <div class="stats-line" style="margin-top:8px;opacity:0.7">Total Runs: ${saveData.stats.runsCompleted} | All-time Kills: ${saveData.stats.totalKills} | Bank: ${saveData.gold}g</div>
   `;
   document.getElementById('game-over-screen').style.display = 'flex';
 }
