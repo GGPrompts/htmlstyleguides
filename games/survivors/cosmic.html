@@ -44,6 +44,51 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
 #touch-zone{position:fixed;bottom:0;left:0;width:200px;height:200px;z-index:15;pointer-events:auto;display:none}
 @media(hover:none)and(pointer:coarse){#touch-zone{display:block}}
 @media(max-width:600px){.upgrade-cards{flex-direction:column;align-items:center}.upgrade-card{width:85%}.weapon-slot{width:28px;height:28px;font-size:14px}}
+.pause-header{display:flex;gap:24px;justify-content:center;align-items:center;padding:12px 20px;background:rgba(255,255,255,0.05);border-bottom:1px solid rgba(255,255,255,0.1);width:100%;max-width:700px;border-radius:8px 8px 0 0;font-family:inherit;font-size:0.95rem;color:#ccc}
+.pause-stat{display:flex;align-items:center;gap:6px}
+.pause-stat-icon{font-weight:bold;font-size:1.1rem}
+.pause-tabs{display:flex;gap:0;width:100%;max-width:700px;border-bottom:2px solid rgba(255,255,255,0.1)}
+.pause-tab{flex:1;padding:12px 16px;border:none;background:rgba(255,255,255,0.03);color:#888;font-family:inherit;font-size:0.95rem;font-weight:600;cursor:pointer;transition:all 0.2s;text-transform:uppercase;letter-spacing:0.05em;pointer-events:auto}
+.pause-tab:hover{background:rgba(255,255,255,0.08);color:#ccc}
+.pause-tab.active{background:rgba(255,255,255,0.1);color:#ffd700;border-bottom:2px solid #ffd700}
+.tab-badge{display:inline-block;background:#e74c3c;color:#fff;border-radius:10px;padding:1px 7px;font-size:0.75rem;margin-left:4px;vertical-align:middle}
+.pause-content{width:100%;max-width:700px;padding:20px;min-height:200px;pointer-events:auto}
+.pause-resume-panel{display:flex;flex-direction:column;align-items:center;gap:16px;padding:40px 0}
+.inv-section-label{font-family:inherit;font-size:0.85rem;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.1em;margin:12px 0 8px}
+.inv-equipped-row{display:flex;gap:10px;flex-wrap:wrap}
+.inv-slot{border:2px solid #333;background:rgba(10,10,25,0.8);border-radius:6px;padding:10px;text-align:center;transition:all 0.2s}
+.inv-slot.equipped{width:140px;min-height:80px;cursor:pointer}
+.inv-slot.equipped.filled:hover{border-color:#ff6666;box-shadow:0 0 12px rgba(255,100,100,0.3)}
+.inv-slot.empty{opacity:0.4}
+.inv-slot-icon{font-size:1.8rem;margin-bottom:4px}
+.inv-slot-name{font-family:inherit;font-size:0.8rem;font-weight:700;margin-bottom:2px}
+.inv-slot-desc{font-size:0.7rem;color:#888;line-height:1.3}
+.inv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.inv-slot.grid-slot{min-height:90px}
+.inv-slot.grid-slot.filled{border-color:#555}
+.inv-count{font-size:0.7rem;color:#aaa;margin-left:2px}
+.inv-slot-actions{display:flex;gap:4px;margin-top:6px;justify-content:center;flex-wrap:wrap}
+.inv-btn{font-family:inherit;font-size:0.7rem;padding:4px 10px;border:1px solid;border-radius:3px;cursor:pointer;transition:all 0.15s;pointer-events:auto}
+.inv-btn.equip{border-color:#2ecc71;background:rgba(46,204,113,0.15);color:#2ecc71}
+.inv-btn.equip:hover{background:rgba(46,204,113,0.3)}
+.inv-btn.salvage{border-color:#e67e22;background:rgba(230,126,34,0.1);color:#e67e22}
+.inv-btn.salvage:hover{background:rgba(230,126,34,0.25)}
+.inv-equipped-badge{font-size:0.65rem;color:#2ecc71;border:1px solid #2ecc71;border-radius:3px;padding:2px 6px}
+.skills-header{font-family:inherit;font-size:1rem;color:#ccc;margin-bottom:16px;text-align:center}
+.skill-branch{margin-bottom:16px}
+.skill-branch-label{font-family:inherit;font-size:0.9rem;font-weight:700;margin-bottom:8px;padding-left:4px}
+.skill-branch-nodes{display:flex;align-items:center;gap:0;flex-wrap:wrap}
+.skill-node{border:2px solid #333;background:rgba(10,10,25,0.8);border-radius:6px;padding:10px 14px;min-width:120px;text-align:center;position:relative;transition:all 0.2s}
+.skill-node.unlocked{border-color:var(--branch-color);background:rgba(255,255,255,0.05);box-shadow:0 0 10px rgba(255,255,255,0.05)}
+.skill-node.available{border-color:var(--branch-color);cursor:pointer;animation:skillPulse 1.5s ease-in-out infinite}
+.skill-node.available:hover{transform:translateY(-2px);box-shadow:0 0 16px rgba(255,215,0,0.3)}
+.skill-node.locked{opacity:0.35}
+.skill-node-name{font-family:inherit;font-size:0.8rem;font-weight:700;color:#ddd;margin-bottom:2px}
+.skill-node-desc{font-size:0.65rem;color:#888;line-height:1.3}
+.skill-node-badge{position:absolute;top:4px;right:6px;color:#2ecc71;font-weight:bold;font-size:0.9rem}
+.skill-connector{width:20px;height:3px;flex-shrink:0}
+@keyframes skillPulse{0%,100%{box-shadow:0 0 6px rgba(255,215,0,0.1)}50%{box-shadow:0 0 16px rgba(255,215,0,0.3)}}
+@media(max-width:600px){.inv-grid{grid-template-columns:repeat(2,1fr)}.inv-equipped-row{justify-content:center}.skill-branch-nodes{flex-direction:column;align-items:stretch}.skill-connector{width:3px;height:12px;align-self:center}.pause-header{flex-wrap:wrap;gap:12px}}
 </style>
 </head>
 <body>
@@ -84,10 +129,7 @@ canvas{display:block;width:100%;height:100%;touch-action:none}
   <div class="upgrade-cards" id="upgrade-cards"></div>
 </div>
 
-<div id="pause-screen">
-  <div class="screen-title" style="font-size:clamp(1.5rem,5vw,2.5rem)">Paused</div>
-  <button class="btn" id="btn-resume">Resume</button>
-</div>
+<div id="pause-screen"></div>
 
 <div id="victory-screen" style="display:none">
   <div class="screen-title" style="color:#ffd700">World Complete!</div>
