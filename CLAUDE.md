@@ -1,12 +1,12 @@
 # HTML Style Guides Project
 
-A collection of self-contained HTML design systems, interactive educational stories, and styled tech reference guides. Everything runs on GitHub Pages with zero build tools or frameworks.
+A collection of CSS design system showcases, interactive educational stories, styled tech reference guides, and browser games. Everything runs on GitHub Pages with zero build tools or frameworks.
 
 ## Project Structure
 
 ```
 /
-├── index.html              # Master index (links to all 3 sections)
+├── index.html              # Master index (links to all sections)
 ├── styles/                 # 103 CSS design system showcases
 │   └── CLAUDE.md           # How to build style guides
 ├── stories/                # 32 interactive educational narratives
@@ -16,17 +16,25 @@ A collection of self-contained HTML design systems, interactive educational stor
 │   ├── audio/              # Optional narration MP3s
 │   └── [story-name]/       # Each story in its own folder
 │       └── index.html      # Story file (may include media assets alongside)
-└── techguides/             # 23 styled developer reference docs
-    └── CLAUDE.md           # How to build tech guides
+├── techguides/             # 23 styled developer reference docs
+│   └── CLAUDE.md           # How to build tech guides
+└── games/                  # Browser games (modular JS)
+    └── survivors/          # Survivors roguelike (arena + shop + themes)
 ```
 
 ## Core Principles
 
-- **Self-contained HTML**: Every file is a single `.html` with inline `<style>` and optional inline `<script>`. No external CSS/JS files.
-- **Google Fonts only**: The sole external dependency. Loaded via `<link>` in `<head>`.
-- **No build step**: Files open directly in a browser. Deployed via GitHub Pages.
+- **No build step**: All files work directly in a browser. Deployed via GitHub Pages.
 - **No frameworks**: Vanilla HTML/CSS/JS only.
-- **Media in stories**: Stories may embed YouTube iframes and link to external resources (Wikipedia, Know Your Meme). Style guides and tech guides remain strictly self-contained.
+- **Google Fonts**: The only external CDN dependency. Loaded via `<link>` in `<head>`.
+
+### Style guides & tech guides — single-file, self-contained
+- Each is one `.html` file with inline `<style>` and optional inline `<script>`. No external CSS/JS.
+
+### Stories & games — modular is fine
+- Stories and games can use multiple files (shared JS, theme configs, JSON data, media assets).
+- The only hard rule: it must work on GitHub Pages with no build step.
+- Stories may embed YouTube iframes and link to external resources (Wikipedia, etc.).
 
 ## Cross-Cutting Patterns
 
