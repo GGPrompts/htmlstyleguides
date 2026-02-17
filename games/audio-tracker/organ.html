@@ -598,6 +598,133 @@
     @media (max-width: 768px) {
       .candle { display: none; }
     }
+
+    /* ── Controls toggle button (landscape only) ── */
+    .controls-toggle {
+      display: none;
+    }
+
+    /* ── Landscape mobile: full-screen keyboard ── */
+    @media (max-height: 500px) and (orientation: landscape) {
+      .organ-header,
+      .pipes,
+      .organ-arch,
+      .candle,
+      .divider,
+      .organ-footer,
+      .sheet-music-wrap {
+        display: none !important;
+      }
+
+      body {
+        min-height: 100vh;
+        justify-content: center;
+        overflow: hidden;
+      }
+
+      .organ-body {
+        border: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        width: 100vw;
+        display: flex;
+        align-items: flex-end;
+        flex: 1;
+      }
+
+      .keyboard {
+        width: 100vw !important;
+        padding-bottom: 0;
+        display: flex;
+        justify-content: center;
+      }
+
+      .key-white {
+        height: calc(100vh - 10px);
+        border-radius: 0 0 3px 3px;
+      }
+
+      .key-black {
+        height: calc((100vh - 10px) * 0.65);
+      }
+
+      /* Controls become a slide-out panel */
+      .controls {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: 280px;
+        max-width: 80vw;
+        height: 100vh;
+        margin: 0;
+        padding: 48px 16px 16px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        background: var(--cloister);
+        border: none;
+        border-left: 2px solid var(--tarnished-gold);
+        z-index: 200;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
+      }
+
+      .controls.panel-open {
+        transform: translateX(0);
+      }
+
+      .controls-group {
+        flex-wrap: wrap;
+      }
+
+      .tracker-link {
+        margin-left: 0;
+        margin-top: 8px;
+      }
+
+      /* Toggle button */
+      .controls-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 8px;
+        right: 8px;
+        z-index: 210;
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        border: 1px solid rgba(184, 149, 74, 0.4);
+        background: var(--cloister);
+        color: var(--tarnished-gold);
+        font-size: 22px;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        transition: background 0.2s;
+      }
+
+      .controls-toggle:hover,
+      .controls-toggle:active {
+        background: var(--vestment-purple);
+      }
+
+      /* Backdrop overlay */
+      .controls-backdrop {
+        display: none;
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.5);
+        z-index: 190;
+      }
+
+      .controls-backdrop.visible {
+        display: block;
+      }
+    }
   </style>
 </head>
 <body>
@@ -652,6 +779,10 @@
     <div id="pipes" class="pipes"></div>
     <div id="keyboard" class="keyboard"></div>
   </div>
+
+  <!-- Landscape mobile controls toggle -->
+  <button class="controls-toggle" id="controls-toggle" aria-label="Toggle controls">&#9776;</button>
+  <div class="controls-backdrop" id="controls-backdrop"></div>
 
   <!-- Controls -->
   <div class="controls">
@@ -744,6 +875,7 @@
 
     var pipesEl, keyboardEl, songSelect, instSelect, octDisplay, bpmDisplay;
     var btnPlay, btnStop, btnOctUp, btnOctDown, btnSheet, sheetWrap;
+    var controlsToggle, controlsBackdrop, controlsEl;
 
     // ── Helpers ──
 
@@ -800,8 +932,16 @@
 
     // ── Build keyboard ──
 
+    function isLandscapeMobile() {
+      return window.innerHeight <= 500 && window.innerWidth > window.innerHeight;
+    }
+
     function getResponsiveKeyWidth() {
       var w = window.innerWidth;
+      if (isLandscapeMobile()) {
+        // Fill viewport width with all white keys
+        return Math.floor(w / (NUM_OCTAVES * 7));
+      }
       if (w <= 620) return 32;
       if (w <= 840) return 40;
       return 50;
@@ -1217,6 +1357,27 @@
         }
       });
 
+      // ── Landscape panel toggle ──
+      controlsToggle = document.getElementById('controls-toggle');
+      controlsBackdrop = document.getElementById('controls-backdrop');
+      controlsEl = document.querySelector('.controls');
+
+      function togglePanel(open) {
+        var isOpen = controlsEl.classList.contains('panel-open');
+        var shouldOpen = open !== undefined ? open : !isOpen;
+        controlsEl.classList.toggle('panel-open', shouldOpen);
+        controlsBackdrop.classList.toggle('visible', shouldOpen);
+      }
+
+      controlsToggle.addEventListener('click', function (e) {
+        e.stopPropagation();
+        togglePanel();
+      });
+
+      controlsBackdrop.addEventListener('click', function () {
+        togglePanel(false);
+      });
+
       // Rebuild on resize for responsive key widths
       var resizeTimer;
       window.addEventListener('resize', function () {
@@ -1224,6 +1385,8 @@
         resizeTimer = setTimeout(function () {
           buildPipes();
           buildKeyboard();
+          // Close panel on orientation change
+          togglePanel(false);
         }, 150);
       });
     }
