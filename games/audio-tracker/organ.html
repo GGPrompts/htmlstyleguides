@@ -1156,8 +1156,9 @@
 
     function buildPipes() {
       pipesEl.innerHTML = '';
+      var octs = getEffectiveOctaves();
       var kw = getResponsiveKeyWidth();
-      var numWhite = NUM_OCTAVES * 7;
+      var numWhite = octs * 7;
       var center = (numWhite - 1) / 2;
       var maxH = 170, minH = 55;
       var pipeW = Math.round(kw * 0.88);
@@ -1165,7 +1166,7 @@
 
       pipesEl.style.width = (numWhite * kw) + 'px';
 
-      for (var oct = 0; oct < NUM_OCTAVES; oct++) {
+      for (var oct = 0; oct < octs; oct++) {
         for (var s = 0; s < 12; s++) {
           if (isBlack(s)) continue;
           var whiteIdx = oct * 7 + WHITES_BEFORE[s];
@@ -1190,25 +1191,34 @@
       return window.innerHeight <= 500 && window.innerWidth > window.innerHeight;
     }
 
+    function isPortraitNarrow() {
+      return window.innerWidth <= 620 && window.innerHeight > window.innerWidth;
+    }
+
+    function getEffectiveOctaves() {
+      return isPortraitNarrow() ? 2 : NUM_OCTAVES;
+    }
+
     function getResponsiveKeyWidth() {
       var w = window.innerWidth;
-      if (isLandscapeMobile()) {
+      var octs = getEffectiveOctaves();
+      if (isLandscapeMobile() || isPortraitNarrow()) {
         // Fill viewport width with all white keys
-        return Math.floor(w / (NUM_OCTAVES * 7));
+        return Math.floor(w / (octs * 7));
       }
-      if (w <= 620) return 32;
       if (w <= 840) return 40;
       return 50;
     }
 
     function buildKeyboard() {
       keyboardEl.innerHTML = '';
+      var octs = getEffectiveOctaves();
       var kw = getResponsiveKeyWidth();
-      var totalWhite = NUM_OCTAVES * 7;
+      var totalWhite = octs * 7;
       keyboardEl.style.width = (totalWhite * kw) + 'px';
 
       // White keys first
-      for (var oct = 0; oct < NUM_OCTAVES; oct++) {
+      for (var oct = 0; oct < octs; oct++) {
         for (var s = 0; s < 12; s++) {
           if (isBlack(s)) continue;
           var offset = oct * 12 + s;
@@ -1231,7 +1241,7 @@
       }
 
       // Black keys (absolutely positioned)
-      for (var oct2 = 0; oct2 < NUM_OCTAVES; oct2++) {
+      for (var oct2 = 0; oct2 < octs; oct2++) {
         for (var s2 = 0; s2 < 12; s2++) {
           if (!isBlack(s2)) continue;
           var offset2 = oct2 * 12 + s2;
