@@ -188,6 +188,26 @@ The synth engine supports these wave types for instruments:
 }
 ```
 
+### Organ Stop Presets
+
+For cathedral, church, gothic, or organ-style compositions, use these proven instrument recipes (originated from Gemini's Cyber-Cathedral Requiem):
+
+```json
+// Principal — bright, reedy pipe sound (melody/harmony)
+{ "name": "Organ Principal", "wave": "pulse25", "a": 0.02, "d": 0.1, "s": 0.7, "r": 0.2, "vol": 0.6, "filterType": "lowpass", "filterFreq": 2500 }
+
+// Pedal — deep 16' bass foundation
+{ "name": "Organ Pedal", "wave": "triangle", "a": 0.05, "d": 0.2, "s": 0.9, "r": 0.3, "vol": 0.9 }
+
+// Reeds — trumpet/oboe stop, detuned for width
+{ "name": "Organ Reeds", "wave": "square", "a": 0.1, "d": 0.2, "s": 0.7, "r": 0.4, "vol": 0.5, "detuneOsc": true, "detuneAmount": 7 }
+
+// Flute — soft, ethereal 4' flute stop
+{ "name": "Organ Flute", "wave": "sine", "a": 0.4, "d": 0.5, "s": 0.6, "r": 0.8, "vol": 0.5, "detuneOsc": true, "detuneAmount": 4 }
+```
+
+Typical organ channel layout: Ch0 = Principal (melody), Ch1 = Reeds or Flute (harmony), Ch2 = Pedal (bass), Ch3 = percussion or a second Principal for counterpoint.
+
 ### Percussion Conventions
 
 Noise instruments ignore pitch, but use these MIDI note conventions for readability:

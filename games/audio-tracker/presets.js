@@ -111,6 +111,53 @@ const Presets = {
       filterType: "lowpass",
       filterFreq: 800, filterQ: 2,
       volume: 0.85
+    },
+
+    // --- Organ Stops (from Gemini's Cyber-Cathedral Requiem) ----------------
+
+    { // 9
+      name: "Organ Principal",
+      wave: "pulse25",
+      detune: 0,
+      detuneOsc: false,
+      detuneAmount: 0,
+      attack: 0.02, decay: 0.1, sustain: 0.7, release: 0.2,
+      filterType: "lowpass",
+      filterFreq: 2500, filterQ: 1,
+      volume: 0.6
+    },
+    { // 10
+      name: "Organ Pedal",
+      wave: "triangle",
+      detune: 0,
+      detuneOsc: false,
+      detuneAmount: 0,
+      attack: 0.05, decay: 0.2, sustain: 0.9, release: 0.3,
+      filterType: "none",
+      filterFreq: 2000, filterQ: 1,
+      volume: 0.9
+    },
+    { // 11
+      name: "Organ Reeds",
+      wave: "square",
+      detune: 0,
+      detuneOsc: true,
+      detuneAmount: 7,
+      attack: 0.1, decay: 0.2, sustain: 0.7, release: 0.4,
+      filterType: "none",
+      filterFreq: 2000, filterQ: 1,
+      volume: 0.5
+    },
+    { // 12
+      name: "Organ Flute",
+      wave: "sine",
+      detune: 0,
+      detuneOsc: true,
+      detuneAmount: 4,
+      attack: 0.4, decay: 0.5, sustain: 0.6, release: 0.8,
+      filterType: "none",
+      filterFreq: 2000, filterQ: 1,
+      volume: 0.5
     }
   ],
 
