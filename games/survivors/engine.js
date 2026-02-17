@@ -234,7 +234,34 @@ const Audio = (() => {
     setTimeout(() => { note(100, 0.4, 'sawtooth', 0.08); noise(0.2, 0.1); }, 100);
   }
 
-  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute, setMusicVolume, getMusicGain, victoryFanfare, lootSound, overclockSound, bloodRitualSound, naturesVeilSound, singularityRiftSound, singularityCollapseSound };
+  // ---- Background music via ChipPlayer ----
+  let musicLoaded = false;
+
+  function loadMusic(songUrl) {
+    if(!songUrl || typeof ChipPlayer === 'undefined') return;
+    fetch(songUrl)
+      .then(r => r.json())
+      .then(songJSON => {
+        if(!actx) init();
+        ChipPlayer.initExternal(actx, musicGain);
+        ChipPlayer.load(songJSON);
+        musicLoaded = true;
+      })
+      .catch(err => { console.warn('Music load failed:', err); });
+  }
+
+  function startMusic() {
+    if(!musicLoaded || typeof ChipPlayer === 'undefined') return;
+    ChipPlayer.play();
+  }
+
+  function stopMusic() {
+    if(typeof ChipPlayer === 'undefined') return;
+    ChipPlayer.stop();
+    musicLoaded = false;
+  }
+
+  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute, setMusicVolume, getMusicGain, victoryFanfare, lootSound, overclockSound, bloodRitualSound, naturesVeilSound, singularityRiftSound, singularityCollapseSound, loadMusic, startMusic, stopMusic };
 })();
 
 // ============================================================
@@ -4045,6 +4072,7 @@ function updateVictoryVacuum(dt) {
 }
 
 function finalizeVictory() {
+  Audio.stopMusic();
   state = 'victory';
 
   // Record run stats and update world progression
@@ -4103,6 +4131,7 @@ function finalizeVictory() {
 // ============================================================
 function startGame() {
   Audio.init();
+  if(THEME.song) { Audio.loadMusic(THEME.song); setTimeout(() => Audio.startMusic(), 300); }
   state = 'playing';
   gameTime = 0;
   kills = 0;
@@ -4368,6 +4397,7 @@ function checkSecondLife() {
 
 function gameOver() {
   if(player.hp <= 0 && checkSecondLife()) return;
+  Audio.stopMusic();
   state = 'gameover';
   // Auto-save run stats + gold to persistent save
   const cid = player.classId || 'gunner';

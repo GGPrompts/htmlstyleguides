@@ -157,8 +157,24 @@ var ChipPlayer = (function () {
   function scheduler() {
     while (nextNoteTime < ctx.currentTime + SCHEDULE_AHEAD) {
       scheduleRow(nextNoteTime);
-      advanceRow();
+      advanceWithLoop();
       nextNoteTime += secondsPerRow();
+    }
+  }
+
+  function advanceWithLoop() {
+    rowIndex++;
+    var seqRow = song.seq[seqIndex];
+    var patIdx = seqRow[0];
+    var patLen = song.patterns[patIdx] ? song.patterns[patIdx].len : 16;
+    if (rowIndex >= patLen) {
+      rowIndex = 0;
+      seqIndex++;
+      var loopEnd = song.loopEndSeq != null ? song.loopEndSeq : song.seq.length;
+      var loopStart = song.loopStartSeq || 0;
+      if (seqIndex >= loopEnd) {
+        seqIndex = loopStart;
+      }
     }
   }
 
@@ -169,6 +185,14 @@ var ChipPlayer = (function () {
       ctx = new (window.AudioContext || window.webkitAudioContext)();
       masterGain = ctx.createGain();
       masterGain.connect(ctx.destination);
+      noiseBuffer = createNoiseBuffer();
+      pulseWaves = {};
+    },
+
+    /** Init with an external AudioContext and gain node (for embedding in another audio engine). */
+    initExternal: function (externalCtx, externalGainNode) {
+      ctx = externalCtx;
+      masterGain = externalGainNode;
       noiseBuffer = createNoiseBuffer();
       pulseWaves = {};
     },
@@ -187,7 +211,13 @@ var ChipPlayer = (function () {
       seqIndex = 0;
       rowIndex = 0;
       nextNoteTime = ctx.currentTime + 0.05;
-      timerID = setInterval(scheduler, TIMER_INTERVAL);
+      timerID = setInterval(function () {
+        while (nextNoteTime < ctx.currentTime + SCHEDULE_AHEAD) {
+          scheduleRow(nextNoteTime);
+          advanceWithLoop();
+          nextNoteTime += secondsPerRow();
+        }
+      }, TIMER_INTERVAL);
     },
 
     stop: function () {
