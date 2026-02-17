@@ -468,6 +468,55 @@ const SaveManager = (() => {
   return { save, load, exportJSON, importJSON, encodeURL, decodeURL, reset, recordRun, defaultState, CLASS_NAMES };
 })();
 
+// ============================================================
+// CLASS CONFIG REGISTRY — all classes available regardless of world theme
+// ============================================================
+const CLASS_CONFIGS = {
+  gunner: {
+    classId: 'gunner', className: 'Gunner', classIcon: '\u{1F52B}',
+    classDesc: 'Ranged specialist. Excels with projectiles and precision damage.',
+    startingStats: { hp: 80, speed: 160, damage: 1.2, defense: 0.9 },
+    weaponAffinities: { primary: ['projectile', 'beam', 'chain'], secondary: ['rain', 'boomerang'] },
+    classPassive: { id: 'targeting_system', name: 'Targeting System', desc: '+10% crit chance, +15% projectile speed', effect: { critBonus: 0.10, projSpeedMult: 1.15 } },
+    signatureAbility: { name: 'Overclock', desc: '2x fire rate, +2 pierce for 5s', icon: '\u26A1', cooldown: 45, duration: 5 }
+  },
+  darkknight: {
+    classId: 'darkknight', className: 'Dark Knight', classIcon: '\u2694\uFE0F',
+    classDesc: 'Melee bruiser. Thrives in close combat with lifesteal and AoE.',
+    startingStats: { hp: 120, speed: 140, damage: 1.0, defense: 1.2 },
+    weaponAffinities: { primary: ['area', 'chain', 'field'], secondary: ['orbit', 'beam'] },
+    classPassive: { id: 'blood_pact', name: 'Blood Pact', desc: '+8% lifesteal, +10% AoE size', effect: { lifestealBonus: 0.08, aoeSizeMult: 1.10 } },
+    signatureAbility: { name: 'Blood Ritual', desc: 'Sacrifice 20% HP, 6 blood explosions', icon: '\uD83E\uDE78', cooldown: 60, duration: 0 }
+  },
+  ranger: {
+    classId: 'ranger', className: 'Ranger', classIcon: '\u{1F3F9}',
+    classDesc: 'Swift hunter. Masters boomerangs, traps, and damage over time.',
+    startingStats: { hp: 90, speed: 180, damage: 1.0, defense: 1.0 },
+    weaponAffinities: { primary: ['boomerang', 'rain', 'field'], secondary: ['projectile', 'chain'] },
+    classPassive: { id: 'wild_stride', name: 'Wild Stride', desc: '+15% move speed, +10% evasion', effect: { speedMult: 1.15, evasionChance: 0.10 } },
+    signatureAbility: { name: "Nature's Veil", desc: 'Stealth + 30% speed for 6s, ambush 3x dmg', icon: '\uD83C\uDF3F', cooldown: 40, duration: 6 }
+  },
+  warlock: {
+    classId: 'warlock', className: 'Warlock', classIcon: '\u{1F52E}',
+    classDesc: 'Arcane caster. Commands gravity, orbits, and devastating area spells.',
+    startingStats: { hp: 70, speed: 150, damage: 1.3, defense: 0.8 },
+    weaponAffinities: { primary: ['orbit', 'field', 'area'], secondary: ['beam', 'rain'] },
+    classPassive: { id: 'arcane_attunement', name: 'Arcane Attunement', desc: '+15% ability power, -10% cooldowns', effect: { abilityPowerMult: 1.15, cooldownMult: 0.90 } },
+    signatureAbility: { name: 'Singularity Rift', desc: 'Pull + DoT vortex for 4s, burst on collapse', icon: '\uD83C\uDF00', cooldown: 50, duration: 4 }
+  }
+};
+
+// Resolve which classConfig to use: saved campaign class (persists across worlds) or theme default
+function getActiveClassConfig() {
+  const save = SaveManager.load();
+  const savedClassId = save.campaignClass;
+  if (savedClassId && CLASS_CONFIGS[savedClassId]) {
+    return CLASS_CONFIGS[savedClassId];
+  }
+  // Fallback to theme's classConfig (first world or no campaign class set)
+  return THEME.classConfig || CLASS_CONFIGS.gunner;
+}
+
 // On page load, check for URL hash save and import if present
 (function() {
   if (window.location.hash && window.location.hash.startsWith('#save=')) {
@@ -889,7 +938,7 @@ const WEAPON_DEFS = {
 
 // Returns 'primary', 'secondary', or 'offclass' for a weapon type
 function getWeaponAffinityTier(type) {
-  const affinities = THEME.classConfig && THEME.classConfig.weaponAffinities;
+  const affinities = getActiveClassConfig().weaponAffinities;
   if (!affinities) return 'primary'; // No affinity data = treat all as primary
   if (affinities.primary && affinities.primary.includes(type)) return 'primary';
   if (affinities.secondary && affinities.secondary.includes(type)) return 'secondary';
@@ -2460,8 +2509,8 @@ function gameLoop(timestamp) {
       const dy = player.y - p.y;
       const d = Math.hypot(dx, dy);
       if(d > 5) {
-        p.vx += (dx/d) * 800 * dt;
-        p.vy += (dy/d) * 800 * dt;
+        p.vx += (dx/d) * 1500 * dt;
+        p.vy += (dy/d) * 1500 * dt;
       }
       if(d < 20) { projectiles.release(p); return; }
     }
@@ -3585,7 +3634,7 @@ function render(dt) {
 }
 
 function renderSignatureAbilityHUD(ctx) {
-  const sigConfig = (THEME.classConfig && THEME.classConfig.signatureAbility) || null;
+  const sigConfig = getActiveClassConfig().signatureAbility || null;
   if(!sigConfig) return;
   const sa = player.sigAbility;
   if(!sa) return;
@@ -3742,7 +3791,7 @@ function renderGoldHUD(ctx) {
 // ============================================================
 function activateSignatureAbility() {
   const classId = player.classId || 'gunner';
-  const sigConfig = (THEME.classConfig && THEME.classConfig.signatureAbility) || {};
+  const sigConfig = getActiveClassConfig().signatureAbility || {};
   const sa = player.sigAbility;
 
   sa.cooldown = sa.maxCooldown;
@@ -4142,8 +4191,9 @@ function startGame() {
   bossIdx = 0;
   lastBossTime = -999;
   player.x = 0; player.y = 0;
-  // Apply class starting stats if available, otherwise use defaults
-  const classStats = (THEME.classConfig && THEME.classConfig.startingStats) || {};
+  // Resolve class: use saved campaign class (persists across worlds) or theme default
+  const activeClass = getActiveClassConfig();
+  const classStats = activeClass.startingStats || {};
   player.hp = classStats.hp || 100;
   player.maxHp = classStats.hp || 100;
   player.speed = classStats.speed || 150;
@@ -4157,14 +4207,21 @@ function startGame() {
   player.dashDirX = 0; player.dashDirY = 0;
   player.lastDirX = 0; player.lastDirY = 1;
   // Starting weapon: first primary affinity weapon, or first weapon in theme list, or projectile fallback
-  const _startType = (THEME.classConfig && THEME.classConfig.weaponAffinities && THEME.classConfig.weaponAffinities.primary && THEME.classConfig.weaponAffinities.primary[0])
+  const _startType = (activeClass.weaponAffinities && activeClass.weaponAffinities.primary && activeClass.weaponAffinities.primary[0])
     || (THEME.weapons && THEME.weapons[0] && THEME.weapons[0].type)
     || 'projectile';
   player.weapons = [{ type: _startType, level: 1 }];
   player.passives = [];
 
   // Class identity
-  player.classId = (THEME.classConfig && THEME.classConfig.classId) || null;
+  player.classId = activeClass.classId || null;
+
+  // Save campaign class on first world so it persists across all worlds
+  const _initSave = SaveManager.load();
+  if (!_initSave.campaignClass || (THEME.worldOrder && THEME.worldOrder.current === 0)) {
+    _initSave.campaignClass = player.classId;
+    SaveManager.save(_initSave);
+  }
 
   // Class passive stats (defaults for all classes)
   player.evasionChance = 0;
@@ -4219,7 +4276,7 @@ function startGame() {
   player.skeletons = []; player.traps = []; player.turrets = []; player.decoys = [];
 
   // Signature class ability state
-  const sigConfig = (THEME.classConfig && THEME.classConfig.signatureAbility) || {};
+  const sigConfig = getActiveClassConfig().signatureAbility || {};
   player.sigAbility = {
     cooldown: 0,
     maxCooldown: sigConfig.cooldown || 45,
@@ -4320,8 +4377,9 @@ function startGame() {
   // --- End equipped loot effects ---
 
   // --- Apply class passive effects from THEME ---
-  if (THEME.classConfig && THEME.classConfig.classPassive && THEME.classConfig.classPassive.effect) {
-    const fx = THEME.classConfig.classPassive.effect;
+  const _classPassive = getActiveClassConfig().classPassive;
+  if (_classPassive && _classPassive.effect) {
+    const fx = _classPassive.effect;
     if (fx.critBonus) player.permCritChance = (player.permCritChance || 0) + fx.critBonus;
     if (fx.projSpeedMult) player.projSpeedMult = fx.projSpeedMult;
     if (fx.lifestealBonus) player.permLifesteal = (player.permLifesteal || 0) + fx.lifestealBonus;
@@ -4610,7 +4668,7 @@ const CLASS_SKILL_TREES = {
 
 // Active skill tree: returns the class-specific tree or gunner as fallback
 function getActiveSkillTree() {
-  const classId = (THEME.classConfig && THEME.classConfig.classId) || 'gunner';
+  const classId = getActiveClassConfig().classId || 'gunner';
   return CLASS_SKILL_TREES[classId] || CLASS_SKILL_TREES.gunner;
 }
 

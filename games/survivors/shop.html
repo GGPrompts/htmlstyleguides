@@ -876,9 +876,102 @@
 
             var config = T.shopConfig;
 
-            // Set SHOP_CONFIG and SKILL_TREE_DEF globals
+            // Set SHOP_CONFIG global
             window.SHOP_CONFIG = config;
-            window.SKILL_TREE_DEF = config.skillTree;
+
+            // Class-specific skill trees (must match engine.js CLASS_SKILL_TREES)
+            // Shop only needs display data (id, name, desc), not apply() functions
+            var CLASS_SKILL_TREES_SHOP = {
+              gunner: {
+                precision: { label: 'Precision', color: '#e74c3c', icon: '\u2694', nodes: [
+                  { id: 'gunner_precision_1', name: 'Crit Eye', desc: '+10% critical hit chance' },
+                  { id: 'gunner_precision_2', name: 'Lethal Strikes', desc: '+50% critical damage multiplier' },
+                  { id: 'gunner_precision_3', name: 'Headshot', desc: 'Kills enemies below 15% HP instantly' },
+                  { id: 'gunner_precision_4', name: 'Overdrive', desc: 'Kill streaks grant 2x fire rate for 3s' }
+                ]},
+                arsenal: { label: 'Arsenal', color: '#f39c12', icon: '\uD83D\uDD2B', nodes: [
+                  { id: 'gunner_arsenal_1', name: 'Multi-Shot', desc: '+1 extra projectile per volley' },
+                  { id: 'gunner_arsenal_2', name: 'Piercing Rounds', desc: '+2 pierce on projectiles' },
+                  { id: 'gunner_arsenal_3', name: 'Explosive Rounds', desc: 'Projectiles explode on final hit (small AoE)' },
+                  { id: 'gunner_arsenal_4', name: 'Auto-Turret', desc: 'Deploy a stationary turret every 30s' }
+                ]},
+                tech: { label: 'Tech', color: '#3498db', icon: '\u2699', nodes: [
+                  { id: 'gunner_tech_1', name: 'Shield Regen', desc: 'Regenerate 1 HP every 5s' },
+                  { id: 'gunner_tech_2', name: 'Energy Shield', desc: 'Dash grants 2s invulnerability shield' },
+                  { id: 'gunner_tech_3', name: 'Drone', desc: 'Orbiting drone that shoots enemies' },
+                  { id: 'gunner_tech_4', name: 'EMP Burst', desc: '10% chance on hit to stun all nearby enemies 1s' }
+                ]}
+              },
+              darkknight: {
+                blood: { label: 'Blood', color: '#c0392b', icon: '\uD83E\uDE78', nodes: [
+                  { id: 'dk_blood_1', name: 'Lifesteal', desc: '+8% lifesteal on damage dealt' },
+                  { id: 'dk_blood_2', name: 'Blood Frenzy', desc: '+15% attack speed on kill for 3s' },
+                  { id: 'dk_blood_3', name: 'Thorns', desc: 'Reflect 20% damage back to attackers' },
+                  { id: 'dk_blood_4', name: 'Death Aura', desc: 'Constant 3/s AoE damage around player' }
+                ]},
+                shadow: { label: 'Shadow', color: '#8e44ad', icon: '\uD83D\uDC80', nodes: [
+                  { id: 'dk_shadow_1', name: 'Summon Skeleton', desc: 'Spawn 1 skeleton ally that fights' },
+                  { id: 'dk_shadow_2', name: 'Pack', desc: 'Summon up to 3 skeleton allies' },
+                  { id: 'dk_shadow_3', name: 'Skeleton Mage', desc: 'Skeletons shoot ranged projectiles' },
+                  { id: 'dk_shadow_4', name: 'Army of Darkness', desc: 'Every 45s, mass summon 8 skeletons for 10s' }
+                ]},
+                undying: { label: 'Undying', color: '#2c3e50', icon: '\u26E8', nodes: [
+                  { id: 'dk_undying_1', name: 'Damage Reduction', desc: '-15% damage taken' },
+                  { id: 'dk_undying_2', name: 'Fortify', desc: 'Standing still 2s grants +25% defense' },
+                  { id: 'dk_undying_3', name: 'Second Life', desc: 'Revive once per run at 30% HP' },
+                  { id: 'dk_undying_4', name: 'Vampiric Nova', desc: 'Dropping below 30% HP triggers heal burst + damage wave' }
+                ]}
+              },
+              ranger: {
+                nature: { label: 'Nature', color: '#27ae60', icon: '\uD83C\uDF3F', nodes: [
+                  { id: 'ranger_nature_1', name: 'Poison', desc: '+3/s poison DoT on hit for 3s' },
+                  { id: 'ranger_nature_2', name: 'Virulent', desc: 'Poison spreads to nearby enemies on death' },
+                  { id: 'ranger_nature_3', name: 'Root Snare', desc: '25% chance to slow enemy 50% for 2s on hit' },
+                  { id: 'ranger_nature_4', name: 'Overgrowth', desc: 'Poisoned enemies leave toxic ground on death' }
+                ]},
+                agility: { label: 'Agility', color: '#2ecc71', icon: '\u26A1', nodes: [
+                  { id: 'ranger_agility_1', name: 'Swift', desc: '+12% movement speed' },
+                  { id: 'ranger_agility_2', name: 'Evasion', desc: '+15% dodge chance' },
+                  { id: 'ranger_agility_3', name: 'Double Dash', desc: '2 dash charges (reduced cooldown)' },
+                  { id: 'ranger_agility_4', name: 'Phantom Step', desc: 'Dash leaves decoy that draws enemies for 3s' }
+                ]},
+                trapper: { label: 'Trapper', color: '#d35400', icon: '\uD83E\uDE64', nodes: [
+                  { id: 'ranger_trapper_1', name: 'Bear Trap', desc: 'Auto-place trap every 15s (damage + root)' },
+                  { id: 'ranger_trapper_2', name: 'More Traps', desc: 'Up to 3 active traps at once' },
+                  { id: 'ranger_trapper_3', name: 'Trap Mastery', desc: '+50% trap damage' },
+                  { id: 'ranger_trapper_4', name: 'Net Launcher', desc: 'Every 20s, AoE slow in large radius' }
+                ]}
+              },
+              warlock: {
+                gravity: { label: 'Gravity', color: '#9b59b6', icon: '\uD83C\uDF0C', nodes: [
+                  { id: 'warlock_gravity_1', name: 'Pull Aura', desc: 'Nearby enemies slowly pulled toward player' },
+                  { id: 'warlock_gravity_2', name: 'Gravity Well', desc: 'Every 25s, vortex pulls enemies in area' },
+                  { id: 'warlock_gravity_3', name: 'Mass Increase', desc: 'Pulled enemies take +25% damage' },
+                  { id: 'warlock_gravity_4', name: 'Black Hole', desc: 'Massive pull + damage every 60s' }
+                ]},
+                time: { label: 'Time', color: '#3498db', icon: '\u231B', nodes: [
+                  { id: 'warlock_time_1', name: 'CDR', desc: '-15% all cooldowns' },
+                  { id: 'warlock_time_2', name: 'Time Bubble', desc: 'On dash, leave slow field for 3s' },
+                  { id: 'warlock_time_3', name: 'Rewind', desc: 'Once per run, undo last 5s of damage taken' },
+                  { id: 'warlock_time_4', name: 'Temporal Loop', desc: '15% chance to not consume weapon cooldown' }
+                ]},
+                voidBranch: { label: 'Void', color: '#e74c3c', icon: '\uD83D\uDD73', nodes: [
+                  { id: 'warlock_void_1', name: 'Ability Power', desc: '+20% all damage' },
+                  { id: 'warlock_void_2', name: 'Void Bolt', desc: 'Periodic bonus magic projectile every 3s' },
+                  { id: 'warlock_void_3', name: 'Void Armor', desc: '+1 defense per 10% ability power bonus' },
+                  { id: 'warlock_void_4', name: 'Singularity', desc: 'Every 45s, massive AoE centered on player' }
+                ]}
+              }
+            };
+
+            // Use class-specific skill tree based on campaign class from save
+            var saveRaw = localStorage.getItem('survivors-save');
+            var campaignClass = null;
+            if (saveRaw) {
+              try { campaignClass = JSON.parse(saveRaw).campaignClass; } catch(e) {}
+            }
+            var classTree = campaignClass && CLASS_SKILL_TREES_SHOP[campaignClass];
+            window.SKILL_TREE_DEF = classTree || config.skillTree || CLASS_SKILL_TREES_SHOP.gunner;
 
             // Apply CSS vars
             var root = document.documentElement;
