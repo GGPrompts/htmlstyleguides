@@ -22,6 +22,7 @@ var Tracker = (function () {
   var activeVoices = [null, null, null, null]; // per-channel voice refs
 
   var onRowChange = null;
+  var onRowChangeListeners = [];
   var onPlaybackEnd = null;
 
   // Undo / redo stacks (cell-level diffs)
@@ -36,6 +37,13 @@ var Tracker = (function () {
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------
+
+  function fireRowChange(row, seqRow) {
+    if (onRowChange) onRowChange(row, seqRow);
+    for (var i = 0; i < onRowChangeListeners.length; i++) {
+      onRowChangeListeners[i](row, seqRow);
+    }
+  }
 
   function emptyCell() {
     return { note: null, inst: 0, vol: null, fx: null };
@@ -662,7 +670,7 @@ var Tracker = (function () {
 
   function advanceRow() {
     advanceRow_internal();
-    if (onRowChange) onRowChange(currentRow, currentSeqRow);
+    fireRowChange(currentRow, currentSeqRow);
   }
 
   function schedulerTick() {
@@ -690,7 +698,7 @@ var Tracker = (function () {
 
     // Notify UI once with the final position after the batch
     if (scheduled && (lastRow !== currentRow || lastSeqRow !== currentSeqRow)) {
-      if (onRowChange) onRowChange(currentRow, currentSeqRow);
+      fireRowChange(currentRow, currentSeqRow);
     }
   }
 
@@ -719,7 +727,7 @@ var Tracker = (function () {
 
     schedulerHandle = setInterval(schedulerTick, TICK_MS);
 
-    if (onRowChange) onRowChange(currentRow, currentSeqRow);
+    fireRowChange(currentRow, currentSeqRow);
   }
 
   function stop() {
@@ -744,6 +752,43 @@ var Tracker = (function () {
 
     currentRow = 0;
     currentSeqRow = 0;
+  }
+
+  function seekTo(seqRow) {
+    if (!song) return;
+    var maxSeq = song.sequence.length - 1;
+    var target = Math.max(0, Math.min(seqRow, maxSeq));
+
+    // Release all active voices immediately
+    if (typeof Synth !== 'undefined' && Synth.noteOff) {
+      var now = (Synth.getContext && Synth.getContext())
+        ? Synth.getContext().currentTime
+        : 0;
+      for (var ch = 0; ch < 4; ch++) {
+        if (activeVoices[ch] !== null) {
+          Synth.noteOff(activeVoices[ch], now);
+          activeVoices[ch] = null;
+        }
+      }
+    }
+
+    currentSeqRow = target;
+    currentRow = 0;
+
+    if (playing) {
+      // Reset the scheduler timing so it picks up from the new position
+      if (typeof Synth !== 'undefined' && Synth.getContext) {
+        var ctx = Synth.getContext();
+        if (ctx) nextRowTime = ctx.currentTime + 0.05;
+      }
+    }
+
+    fireRowChange(currentRow, currentSeqRow);
+  }
+
+  function getTotalSequenceRows() {
+    if (!song || !song.sequence) return 0;
+    return song.sequence.length;
   }
 
   // ---------------------------------------------------------------------------
@@ -870,10 +915,13 @@ var Tracker = (function () {
     // Sequencer transport
     play: play,
     stop: stop,
+    seekTo: seekTo,
     isPlaying: function () { return playing; },
     getCurrentRow: function () { return currentRow; },
     getCurrentSequenceRow: function () { return currentSeqRow; },
+    getTotalSequenceRows: getTotalSequenceRows,
     setOnRowChange: function (cb) { onRowChange = cb; },
+    addOnRowChange: function (cb) { onRowChangeListeners.push(cb); },
     setOnPlaybackEnd: function (cb) { onPlaybackEnd = cb; },
 
     // Export / import

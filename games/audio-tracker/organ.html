@@ -405,6 +405,113 @@
       letter-spacing: 1px;
     }
 
+    /* ── Volume Slider ── */
+    .vol-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 80px;
+      height: 4px;
+      background: var(--chapel);
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--tarnished-gold);
+      border: 2px solid var(--vestment-purple);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(184, 149, 74, 0.3);
+    }
+
+    .vol-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--tarnished-gold);
+      border: 2px solid var(--vestment-purple);
+      cursor: pointer;
+      box-shadow: 0 0 6px rgba(184, 149, 74, 0.3);
+    }
+
+    .vol-display {
+      font-family: var(--font-heading);
+      font-size: 12px;
+      color: var(--moonstone);
+      min-width: 28px;
+      text-align: center;
+    }
+
+    /* ── Seek Bar ── */
+    .seek-bar-wrap {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 24px;
+      margin: 0 16px;
+      background: var(--deep-crypt);
+      border-left: 1px solid rgba(184, 149, 74, 0.15);
+      border-right: 1px solid rgba(184, 149, 74, 0.15);
+      border-bottom: 1px solid rgba(184, 149, 74, 0.2);
+    }
+
+    .seek-bar-wrap.visible {
+      display: flex;
+    }
+
+    .seek-track {
+      flex: 1;
+      height: 12px;
+      background: var(--chapel);
+      border-radius: 6px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      border: 1px solid rgba(184, 149, 74, 0.15);
+    }
+
+    .seek-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--vestment-purple), var(--stained-rose));
+      border-radius: 6px 0 0 6px;
+      width: 0%;
+      transition: width 0.15s ease;
+      pointer-events: none;
+    }
+
+    .seek-markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      pointer-events: none;
+    }
+
+    .seek-marker {
+      flex: 1;
+      border-right: 1px solid rgba(184, 149, 74, 0.12);
+    }
+
+    .seek-marker:last-child {
+      border-right: none;
+    }
+
+    .seek-label {
+      font-family: var(--font-heading);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--incense);
+      white-space: nowrap;
+      letter-spacing: 1px;
+    }
+
     .tracker-link {
       font-family: var(--font-heading);
       font-size: 12px;
@@ -618,6 +725,8 @@
       .key-black { width: 26px; height: 110px; }
       .controls { gap: 10px; padding: 12px 16px; }
       .tracker-link { margin-left: 0; }
+      .seek-bar-wrap { padding: 6px 16px; }
+      .vol-slider { width: 60px; }
     }
 
     @media (max-width: 620px) {
@@ -627,6 +736,7 @@
       .key-label .shortcut { font-size: 11px; }
       .key-label .note-name { display: none; }
       .controls { flex-direction: column; align-items: flex-start; }
+      .seek-bar-wrap { padding: 6px 12px; }
     }
 
     @media (max-width: 768px) {
@@ -647,7 +757,8 @@
       .divider,
       .organ-footer,
       .sheet-music-wrap,
-      .controls-collapse-btn {
+      .controls-collapse-btn,
+      .seek-bar-wrap {
         display: none !important;
       }
 
@@ -834,10 +945,25 @@
       <label>Voice</label>
       <select class="ctrl-select" id="inst-select"></select>
     </div>
+    <div class="controls-group">
+      <label>Vol</label>
+      <input type="range" class="vol-slider" id="vol-slider" min="0" max="100" value="70">
+      <span class="vol-display" id="vol-display">70</span>
+    </div>
     <span class="bpm-display" id="bpm-display"></span>
     <button class="ctrl-btn" id="btn-sheet">Sheet Music</button>
     <a href="index.html" class="tracker-link" id="tracker-link">Open in Tracker &rarr;</a>
   </div>
+
+  <!-- Seek Bar -->
+  <div class="seek-bar-wrap" id="seek-bar-wrap">
+    <span class="seek-label" id="seek-pos-label">0 / 0</span>
+    <div class="seek-track" id="seek-track">
+      <div class="seek-fill" id="seek-fill"></div>
+      <div class="seek-markers" id="seek-markers"></div>
+    </div>
+  </div>
+
   <button class="controls-collapse-btn" id="controls-collapse-btn" aria-label="Toggle controls visibility">&#9650;</button>
 
   <!-- Organ -->
@@ -912,6 +1038,7 @@
     var pipesEl, keyboardEl, songSelect, instSelect, octDisplay, bpmDisplay;
     var btnPlay, btnStop, btnOctUp, btnOctDown, btnSheet, sheetWrap;
     var controlsToggle, controlsBackdrop, controlsEl, trackerLink;
+    var volSlider, volDisplay, seekBarWrap, seekTrack, seekFill, seekMarkers, seekPosLabel;
 
     // ── Helpers ──
 
@@ -1177,6 +1304,7 @@
           Tracker.importFull(json);
           var song = Tracker.getSong();
           bpmDisplay.textContent = song.bpm + ' BPM';
+          showSeekBar();
           if (SheetMusic.isVisible()) {
             SheetMusic.loadSong(song);
           }
@@ -1197,12 +1325,54 @@
       return null;
     }
 
+    // ── Seek bar helpers ──
+
+    function updateSeekBar(seqRow) {
+      var total = Tracker.getTotalSequenceRows();
+      if (total <= 0) return;
+      var pct = ((seqRow + 1) / total) * 100;
+      seekFill.style.width = pct + '%';
+      seekPosLabel.textContent = (seqRow + 1) + ' / ' + total;
+    }
+
+    function buildSeekMarkers() {
+      seekMarkers.innerHTML = '';
+      var total = Tracker.getTotalSequenceRows();
+      for (var i = 0; i < total; i++) {
+        var m = document.createElement('div');
+        m.className = 'seek-marker';
+        seekMarkers.appendChild(m);
+      }
+    }
+
+    function showSeekBar() {
+      var total = Tracker.getTotalSequenceRows();
+      if (total > 1) {
+        seekBarWrap.classList.add('visible');
+        buildSeekMarkers();
+        updateSeekBar(0);
+      }
+    }
+
+    function hideSeekBar() {
+      seekBarWrap.classList.remove('visible');
+    }
+
+    function resetSeekBar() {
+      seekFill.style.width = '0%';
+      var total = Tracker.getTotalSequenceRows();
+      seekPosLabel.textContent = '0 / ' + (total || 0);
+    }
+
     function setupPlaybackViz() {
       Tracker.setOnRowChange(function (row, seqRow) {
         var song = Tracker.getSong();
         if (!song) return;
         var seq = song.sequence[seqRow];
         if (!seq) return;
+
+        // Update seek bar position
+        updateSeekBar(seqRow);
 
         for (var ch = 0; ch < 4; ch++) {
           var patId = seq[ch];
@@ -1252,6 +1422,7 @@
             Tracker.importFull(json);
             var song = Tracker.getSong();
             bpmDisplay.textContent = song.bpm + ' BPM';
+            showSeekBar();
             if (SheetMusic.isVisible()) {
               SheetMusic.loadSong(song);
             }
@@ -1262,6 +1433,7 @@
       }
 
       if (!Tracker.isPlaying()) {
+        showSeekBar();
         Tracker.play('song');
         btnPlay.classList.add('active');
       }
@@ -1272,6 +1444,7 @@
       clearAllHighlights();
       btnPlay.classList.remove('active');
       SheetMusic.stop();
+      resetSeekBar();
     }
 
     // ── Octave controls ──
@@ -1319,6 +1492,13 @@
       btnSheet = document.getElementById('btn-sheet');
       sheetWrap = document.getElementById('sheet-music-wrap');
       trackerLink = document.getElementById('tracker-link');
+      volSlider = document.getElementById('vol-slider');
+      volDisplay = document.getElementById('vol-display');
+      seekBarWrap = document.getElementById('seek-bar-wrap');
+      seekTrack = document.getElementById('seek-track');
+      seekFill = document.getElementById('seek-fill');
+      seekMarkers = document.getElementById('seek-markers');
+      seekPosLabel = document.getElementById('seek-pos-label');
 
       // Build the visual elements
       buildPipes();
@@ -1362,6 +1542,26 @@
 
       btnPlay.addEventListener('click', playSong);
       btnStop.addEventListener('click', stopPlayback);
+
+      // Volume slider
+      volSlider.addEventListener('input', function () {
+        var v = parseInt(volSlider.value, 10) / 100;
+        ensureSynth();
+        Synth.setMasterVolume(v);
+        volDisplay.textContent = volSlider.value;
+      });
+
+      // Seek bar click
+      seekTrack.addEventListener('click', function (e) {
+        var total = Tracker.getTotalSequenceRows();
+        if (total <= 0) return;
+        var rect = seekTrack.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        var targetSeq = Math.floor(pct * total);
+        targetSeq = Math.max(0, Math.min(targetSeq, total - 1));
+        clearAllHighlights();
+        Tracker.seekTo(targetSeq);
+      });
 
       btnOctUp.addEventListener('click', function () { setOctave(currentOctave + 1); });
       btnOctDown.addEventListener('click', function () { setOctave(currentOctave - 1); });

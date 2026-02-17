@@ -542,6 +542,82 @@
       overflow-x: auto;
     }
 
+    /* ── Volume + Seek Bar ── */
+    .vol-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .vol-group input[type="range"] {
+      width: 60px;
+    }
+
+    .vol-val {
+      font-size: 11px;
+      color: var(--blue);
+      min-width: 24px;
+    }
+
+    #seek-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 3px 10px;
+      background: var(--bg-help);
+      border-top: 1px solid #1a1a2e;
+    }
+
+    #seek-bar.visible {
+      display: flex;
+    }
+
+    .seek-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      min-width: 48px;
+    }
+
+    .seek-track {
+      flex: 1;
+      height: 10px;
+      background: #1a1a2e;
+      border-radius: 5px;
+      position: relative;
+      cursor: pointer;
+      overflow: hidden;
+      border: 1px solid #222;
+    }
+
+    .seek-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #ff6b81);
+      border-radius: 5px 0 0 5px;
+      width: 0%;
+      transition: width 0.15s ease;
+      pointer-events: none;
+    }
+
+    .seek-markers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      pointer-events: none;
+    }
+
+    .seek-marker {
+      flex: 1;
+      border-right: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .seek-marker:last-child {
+      border-right: none;
+    }
+
     /* ── Responsive ── */
     @media (max-width: 1024px) {
       #pattern-list {
@@ -623,6 +699,10 @@
       }
 
       .toolbar-right button:not(#btn-demo):not(#btn-songs):not(#btn-play-song):not(#btn-stop) {
+        display: none;
+      }
+
+      .vol-group {
         display: none;
       }
     }
@@ -823,6 +903,11 @@
       <input type="text" id="song-title" placeholder="Song Title" value="Untitled">
       <label>BPM <input type="number" id="bpm" min="40" max="300" value="140"></label>
       <label>Oct <span id="octave-display">4</span></label>
+      <div class="vol-group">
+        <label>Vol</label>
+        <input type="range" id="master-vol" min="0" max="100" value="70">
+        <span class="vol-val" id="master-vol-val">70</span>
+      </div>
     </div>
     <div class="toolbar-center">
       <button id="btn-play-song" title="Play Song (F5)">&#9654; Song</button>
@@ -900,6 +985,15 @@
       </select></label>
       <label>Freq <input type="number" id="inst-filter-freq" min="20" max="20000" value="2000" style="width:70px"></label>
       <label>Q <input type="number" id="inst-filter-q" min="0.1" max="20" step="0.1" value="1" style="width:50px"></label>
+    </div>
+  </div>
+
+  <!-- Song Seek Bar -->
+  <div id="seek-bar">
+    <span class="seek-label" id="seek-pos-label">0 / 0</span>
+    <div class="seek-track" id="seek-track">
+      <div class="seek-fill" id="seek-fill"></div>
+      <div class="seek-markers" id="seek-markers"></div>
     </div>
   </div>
 
@@ -993,6 +1087,7 @@
           .then(function (json) {
             Tracker.importFull(json);
             UI.resetAndRender();
+            showSeekBar();
           })
           .catch(function (err) {
             console.error('Failed to auto-load song:', err);
@@ -1063,6 +1158,7 @@
           .then(function (json) {
             Tracker.importFull(json);
             UI.resetAndRender();
+            showSeekBar();
             closeSongs();
             songsLoaded = false;
           })
@@ -1076,6 +1172,72 @@
       document.getElementById('songs-close-btn').addEventListener('click', closeSongs);
       songsModal.addEventListener('click', function (e) {
         if (e.target === songsModal) closeSongs();
+      });
+
+      // ── Master Volume ──
+      var masterVol = document.getElementById('master-vol');
+      var masterVolVal = document.getElementById('master-vol-val');
+      masterVol.addEventListener('input', function () {
+        var v = parseInt(masterVol.value, 10) / 100;
+        Synth.setMasterVolume(v);
+        masterVolVal.textContent = masterVol.value;
+      });
+
+      // ── Seek Bar ──
+      var seekBar = document.getElementById('seek-bar');
+      var seekFill = document.getElementById('seek-fill');
+      var seekTrack = document.getElementById('seek-track');
+      var seekMarkers = document.getElementById('seek-markers');
+      var seekPosLabel = document.getElementById('seek-pos-label');
+
+      function updateSeekBar(seqRow) {
+        var total = Tracker.getTotalSequenceRows();
+        if (total <= 0) return;
+        var pct = ((seqRow + 1) / total) * 100;
+        seekFill.style.width = pct + '%';
+        seekPosLabel.textContent = (seqRow + 1) + ' / ' + total;
+      }
+
+      function buildSeekMarkers() {
+        seekMarkers.innerHTML = '';
+        var total = Tracker.getTotalSequenceRows();
+        for (var i = 0; i < total; i++) {
+          var m = document.createElement('div');
+          m.className = 'seek-marker';
+          seekMarkers.appendChild(m);
+        }
+      }
+
+      function showSeekBar() {
+        var total = Tracker.getTotalSequenceRows();
+        if (total > 1) {
+          seekBar.classList.add('visible');
+          buildSeekMarkers();
+          updateSeekBar(0);
+        }
+      }
+
+      // Hook into row changes for seek bar updates
+      Tracker.addOnRowChange(function (row, seqRow) {
+        updateSeekBar(seqRow);
+        if (!seekBar.classList.contains('visible')) {
+          var total = Tracker.getTotalSequenceRows();
+          if (total > 1) {
+            seekBar.classList.add('visible');
+            buildSeekMarkers();
+          }
+        }
+      });
+
+      // Click to seek
+      seekTrack.addEventListener('click', function (e) {
+        var total = Tracker.getTotalSequenceRows();
+        if (total <= 0) return;
+        var rect = seekTrack.getBoundingClientRect();
+        var pct = (e.clientX - rect.left) / rect.width;
+        var targetSeq = Math.floor(pct * total);
+        targetSeq = Math.max(0, Math.min(targetSeq, total - 1));
+        Tracker.seekTo(targetSeq);
       });
     });
   </script>
