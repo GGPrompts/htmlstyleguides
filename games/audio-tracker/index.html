@@ -819,6 +819,7 @@
   <div id="toolbar">
     <div class="toolbar-left">
       <a href="../index.html" class="back-btn">&larr; Games</a>
+      <a href="organ.html" class="back-btn">&#9836; Organ</a>
       <input type="text" id="song-title" placeholder="Song Title" value="Untitled">
       <label>BPM <input type="number" id="bpm" min="40" max="300" value="140"></label>
       <label>Oct <span id="octave-display">4</span></label>
@@ -982,6 +983,21 @@
       Synth.init();
       Tracker.newSong();
       UI.init();
+
+      // Auto-load song from URL param (e.g. ?song=crystal-caves.json)
+      var urlParams = new URLSearchParams(window.location.search);
+      var autoSong = urlParams.get('song');
+      if (autoSong) {
+        fetch('songs/' + autoSong)
+          .then(function (r) { return r.text(); })
+          .then(function (json) {
+            Tracker.importFull(json);
+            UI.resetAndRender();
+          })
+          .catch(function (err) {
+            console.error('Failed to auto-load song:', err);
+          });
+      }
 
       // Help modal
       var modal = document.getElementById('help-modal');
