@@ -280,8 +280,42 @@
       padding: 16px 24px;
       background: var(--cloister);
       border: 1px solid rgba(184, 149, 74, 0.15);
-      border-top: 1px solid rgba(184, 149, 74, 0.25);
-      margin: 0 16px 24px;
+      border-bottom: 1px solid rgba(184, 149, 74, 0.25);
+      margin: 0 16px;
+      overflow: hidden;
+      max-height: 200px;
+      transition: max-height 0.3s ease, padding 0.3s ease, border-color 0.3s ease;
+    }
+
+    .controls.collapsed {
+      max-height: 0;
+      padding-top: 0;
+      padding-bottom: 0;
+      border-color: transparent;
+    }
+
+    /* ── Controls collapse toggle (desktop) ── */
+    .controls-collapse-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 16px;
+      padding: 3px 0;
+      background: var(--cloister);
+      border: none;
+      border-left: 1px solid rgba(184, 149, 74, 0.15);
+      border-right: 1px solid rgba(184, 149, 74, 0.15);
+      border-bottom: 1px solid rgba(184, 149, 74, 0.15);
+      cursor: pointer;
+      color: var(--incense);
+      font-size: 14px;
+      transition: color 0.2s, background 0.2s;
+      line-height: 1;
+    }
+
+    .controls-collapse-btn:hover {
+      color: var(--tarnished-gold);
+      background: var(--chapel);
     }
 
     .controls-group {
@@ -612,7 +646,8 @@
       .candle,
       .divider,
       .organ-footer,
-      .sheet-music-wrap {
+      .sheet-music-wrap,
+      .controls-collapse-btn {
         display: none !important;
       }
 
@@ -773,19 +808,12 @@
     <p class="organ-subtitle">A virtual instrument in the gothic tradition</p>
   </header>
 
-  <!-- Organ -->
-  <div class="organ-body">
-    <div class="organ-arch"><div class="rose-window"></div></div>
-    <div id="pipes" class="pipes"></div>
-    <div id="keyboard" class="keyboard"></div>
-  </div>
-
   <!-- Landscape mobile controls toggle -->
   <button class="controls-toggle" id="controls-toggle" aria-label="Toggle controls">&#9776;</button>
   <div class="controls-backdrop" id="controls-backdrop"></div>
 
   <!-- Controls -->
-  <div class="controls">
+  <div class="controls" id="controls-bar">
     <div class="controls-group">
       <button class="ctrl-btn" id="btn-play">Play Song</button>
       <button class="ctrl-btn" id="btn-stop">Stop</button>
@@ -809,6 +837,14 @@
     <span class="bpm-display" id="bpm-display"></span>
     <button class="ctrl-btn" id="btn-sheet">Sheet Music</button>
     <a href="index.html" class="tracker-link" id="tracker-link">Open in Tracker &rarr;</a>
+  </div>
+  <button class="controls-collapse-btn" id="controls-collapse-btn" aria-label="Toggle controls visibility">&#9650;</button>
+
+  <!-- Organ -->
+  <div class="organ-body">
+    <div class="organ-arch"><div class="rose-window"></div></div>
+    <div id="pipes" class="pipes"></div>
+    <div id="keyboard" class="keyboard"></div>
   </div>
 
   <!-- Sheet Music -->
@@ -1359,10 +1395,32 @@
         }
       });
 
+      // ── Desktop controls collapse toggle ──
+      var collapseBtn = document.getElementById('controls-collapse-btn');
+      var controlsBar = document.getElementById('controls-bar');
+
+      function setCollapsed(collapsed) {
+        controlsBar.classList.toggle('collapsed', collapsed);
+        collapseBtn.innerHTML = collapsed ? '&#9660;' : '&#9650;';
+        collapseBtn.setAttribute('aria-label', collapsed ? 'Show controls' : 'Hide controls');
+        try { localStorage.setItem('organ-controls-collapsed', collapsed ? '1' : ''); } catch (e) {}
+      }
+
+      collapseBtn.addEventListener('click', function () {
+        setCollapsed(!controlsBar.classList.contains('collapsed'));
+      });
+
+      // Restore saved state
+      try {
+        if (localStorage.getItem('organ-controls-collapsed') === '1') {
+          setCollapsed(true);
+        }
+      } catch (e) {}
+
       // ── Landscape panel toggle ──
       controlsToggle = document.getElementById('controls-toggle');
       controlsBackdrop = document.getElementById('controls-backdrop');
-      controlsEl = document.querySelector('.controls');
+      controlsEl = controlsBar;
 
       function togglePanel(open) {
         var isOpen = controlsEl.classList.contains('panel-open');
