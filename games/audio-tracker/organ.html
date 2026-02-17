@@ -1622,22 +1622,62 @@
       document.addEventListener('mouseup', onMouseUp);
       keyboardEl.addEventListener('mouseleave', onMouseUp);
 
-      // Touch support
+      // Touch support — multi-touch + swipe across keys
+      var activeTouches = {}; // touch.identifier → midi
+
+      function getTouchMidi(touch) {
+        var el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (el) el = el.closest('.key');
+        return el ? parseInt(el.dataset.midi, 10) : null;
+      }
+
       keyboardEl.addEventListener('touchstart', function (e) {
-        var touch = e.touches[0];
-        var keyEl = document.elementFromPoint(touch.clientX, touch.clientY);
-        if (keyEl) keyEl = keyEl.closest('.key');
-        if (!keyEl) return;
         e.preventDefault();
-        var midi = parseInt(keyEl.dataset.midi, 10);
-        mouseDownMidi = midi;
-        playNote(midi);
+        for (var i = 0; i < e.changedTouches.length; i++) {
+          var touch = e.changedTouches[i];
+          var midi = getTouchMidi(touch);
+          if (midi !== null) {
+            activeTouches[touch.identifier] = midi;
+            playNote(midi);
+          }
+        }
       }, { passive: false });
 
-      keyboardEl.addEventListener('touchend', function () {
-        if (mouseDownMidi !== null) {
-          releaseNote(mouseDownMidi);
-          mouseDownMidi = null;
+      keyboardEl.addEventListener('touchmove', function (e) {
+        e.preventDefault();
+        for (var i = 0; i < e.changedTouches.length; i++) {
+          var touch = e.changedTouches[i];
+          var midi = getTouchMidi(touch);
+          var prev = activeTouches[touch.identifier];
+          if (midi !== prev) {
+            if (prev !== undefined) releaseNote(prev);
+            if (midi !== null) {
+              activeTouches[touch.identifier] = midi;
+              playNote(midi);
+            } else {
+              delete activeTouches[touch.identifier];
+            }
+          }
+        }
+      }, { passive: false });
+
+      keyboardEl.addEventListener('touchend', function (e) {
+        for (var i = 0; i < e.changedTouches.length; i++) {
+          var id = e.changedTouches[i].identifier;
+          if (activeTouches[id] !== undefined) {
+            releaseNote(activeTouches[id]);
+            delete activeTouches[id];
+          }
+        }
+      });
+
+      keyboardEl.addEventListener('touchcancel', function (e) {
+        for (var i = 0; i < e.changedTouches.length; i++) {
+          var id = e.changedTouches[i].identifier;
+          if (activeTouches[id] !== undefined) {
+            releaseNote(activeTouches[id]);
+            delete activeTouches[id];
+          }
         }
       });
 
