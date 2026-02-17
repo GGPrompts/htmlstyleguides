@@ -9,6 +9,7 @@
 const Audio = (() => {
   let actx = null;
   let masterGain = null;
+  let musicGain = null;
   let ambientOsc = null;
   let ambientFilter = null;
   let muted = false;
@@ -19,6 +20,9 @@ const Audio = (() => {
     masterGain = actx.createGain();
     masterGain.gain.value = 0.4;
     masterGain.connect(actx.destination);
+    musicGain = actx.createGain();
+    musicGain.gain.value = 0.12;
+    musicGain.connect(actx.destination);
     startAmbient();
   }
 
@@ -152,7 +156,16 @@ const Audio = (() => {
   function toggleMute() {
     muted = !muted;
     if(masterGain) masterGain.gain.value = muted ? 0 : 0.4;
+    if(musicGain) musicGain.gain.value = muted ? 0 : 0.12;
     return muted;
+  }
+
+  function setMusicVolume(v) {
+    if(musicGain && !muted) musicGain.gain.value = v;
+  }
+
+  function getMusicGain() {
+    return musicGain;
   }
 
   function victoryFanfare() {
@@ -221,7 +234,7 @@ const Audio = (() => {
     setTimeout(() => { note(100, 0.4, 'sawtooth', 0.08); noise(0.2, 0.1); }, 100);
   }
 
-  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute, victoryFanfare, lootSound, overclockSound, bloodRitualSound, naturesVeilSound, singularityRiftSound, singularityCollapseSound };
+  return { init, note, noise, weaponSound, hitSound, deathSound, gemSound, levelUpSound, bossWarning, heartbeat, damageTaken, dashSound, updateAmbient, toggleMute, setMusicVolume, getMusicGain, victoryFanfare, lootSound, overclockSound, bloodRitualSound, naturesVeilSound, singularityRiftSound, singularityCollapseSound };
 })();
 
 // ============================================================
