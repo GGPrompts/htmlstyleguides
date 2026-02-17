@@ -1,6 +1,16 @@
 # Agent Instructions
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+This repo contains many self-contained HTML pages and small assets. Use **bd** (beads) when it adds real value, not as a hard requirement.
+
+## When To Use bd
+
+Use bd for:
+- Multi-step work that spans sessions
+- Changes that touch shared/global assets (site-wide CSS, shared JS, indexes like `games/audio-tracker/songs/index.json`)
+- Bugs/features with follow-ups, QA notes, or dependencies
+
+Skip bd for:
+- Single, contained pages or one-off assets that are unlikely to need follow-up
 
 ## Quick Reference
 
@@ -12,29 +22,22 @@ bd close <id>         # Complete work
 bd sync               # Sync with git
 ```
 
-## Landing the Plane (Session Completion)
+## Landing The Plane (When Shipping)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+Only do this workflow when you (the user) ask to land changes (commit/push), or when we're finishing a change that should clearly be published.
 
-**MANDATORY WORKFLOW:**
+Workflow:
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+1. File bd issues for follow-ups (only if needed)
+2. Run relevant quality gates (tests/linters/build) if applicable
+3. Update/close bd issue(s) if used
+4. Publish:
    ```bash
    git pull --rebase
-   bd sync
+   bd sync   # only if bd was used this session
    git push
-   git status  # MUST show "up to date with origin"
+   git status  # should show "up to date with origin"
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. Hand off: brief context for next session
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
-
+If we are not shipping in this session, it's fine to stop without committing/pushing. In that case, leave a clear handoff summary (what changed, where, and what remains).
