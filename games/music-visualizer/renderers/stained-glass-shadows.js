@@ -20,6 +20,7 @@ window.Renderers["stained-glass-shadows"] = (function () {
   var bassGlow = 0;
   var harmonyFlow = 0;
   var leadLift = 0;
+  var rayPhase = 0;
 
   var roleMap = { lead: 0, harmony: 1, bass: 2, percussion: 3 };
   var styleByChannel = [];
@@ -114,18 +115,33 @@ window.Renderers["stained-glass-shadows"] = (function () {
     }
   }
 
-  function spawnRay(note) {
+  function spawnRay(note, beat, energy) {
     var vol = note && note.vol ? note.vol : 0.3;
     var n = note && typeof note.normalized === "number" ? note.normalized : 0.5;
-    var x = w * (0.2 + n * 0.6) + (Math.random() - 0.5) * 20;
+    var phasePos = 0.5 + Math.sin(rayPhase) * (0.28 + energy * 0.12);
+    var lanePos = 0.5;
+    var lane;
+    var mix;
+    var xNorm;
+    var x;
     var len = h * (0.15 + vol * 0.35);
+
+    if (windows.length > 0) {
+      lane = windows[((beat | 0) + ((rayPhase * 2.2) | 0)) % windows.length];
+      lanePos = lane.cx / (w || 1);
+    }
+
+    mix = (Math.random() - 0.5) * (0.16 + energy * 0.08);
+    xNorm = n * 0.22 + phasePos * 0.43 + lanePos * 0.35 + mix;
+    xNorm = clamp(xNorm, 0.08, 0.92);
+    x = w * xNorm;
 
     cappedPush(rays, {
       x: x,
       y: h * 0.06 + Math.random() * h * 0.14,
       len: len,
       w: 0.8 + vol * 2.2,
-      drift: (Math.random() - 0.5) * 18,
+      drift: (Math.random() - 0.5) * (26 + energy * 20) + (lanePos - 0.5) * 14,
       life: 0,
       maxLife: 0.9 + Math.random() * 1.2
     }, MAX_RAYS);
@@ -174,10 +190,12 @@ window.Renderers["stained-glass-shadows"] = (function () {
     var harmony = notes[roleMap.harmony];
     var bass = notes[roleMap.bass];
     var perc = notes[roleMap.percussion];
+    var beat = fd.cursor ? fd.cursor.beat : 0;
 
     if (lead) {
       leadLift = Math.max(leadLift, 0.25 + (lead.vol || 0.3) * 0.7);
-      spawnRay(lead);
+      rayPhase += 0.45 + (lead.normalized || 0.5) * 0.35;
+      spawnRay(lead, beat, energy);
     }
 
     if (harmony) {
@@ -411,6 +429,7 @@ window.Renderers["stained-glass-shadows"] = (function () {
       bassGlow = 0;
       harmonyFlow = 0;
       leadLift = 0;
+      rayPhase = 0;
       rays = [];
       motes = [];
       pulseRings = [];
