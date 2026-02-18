@@ -442,12 +442,20 @@ window.Visualizer = (function () {
 
     play: function () {
       if (playing || !song) return;
-      if (ctx.state === "suspended") ctx.resume();
       playing = true;
-      startTime = ctx.currentTime + 0.05;
       lastFrameTime = 0;
-      if (window.ChipPlayer) ChipPlayer.play();
-      rafID = requestAnimationFrame(frame);
+
+      var startPlayback = function () {
+        startTime = ctx.currentTime + 0.05;
+        if (window.ChipPlayer) ChipPlayer.play();
+        rafID = requestAnimationFrame(frame);
+      };
+
+      if (ctx.state === "suspended") {
+        ctx.resume().then(startPlayback);
+      } else {
+        startPlayback();
+      }
     },
 
     stop: function () {
