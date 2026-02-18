@@ -19,12 +19,14 @@ A collection of CSS design system showcases, interactive educational stories, st
 ├── techguides/             # 23 styled developer reference docs
 │   └── CLAUDE.md           # How to build tech guides
 ├── slides/                 # HTML presentation viewer & editor
+│   ├── CLAUDE.md           # How to build slide decks
 │   ├── index.html          # Hub page — lists presentations
 │   ├── view.html           # Presentation viewer (?deck=name)
 │   ├── edit.html           # Visual slide editor
 │   ├── engine.js           # Viewer engine (nav, transitions, rendering)
 │   ├── editor.js           # Editor engine (drag, resize, text editing)
 │   ├── themes/             # Theme JS modules (default, graffiti, cyberpunk)
+│   ├── assets/             # Deck images (prefix with deck name)
 │   └── decks/              # JSON presentation files
 └── games/                  # Browser games (modular JS)
     └── survivors/          # Survivors roguelike (arena + shop + themes)
