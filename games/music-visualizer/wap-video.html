@@ -176,7 +176,9 @@
                 windmill: 0,     // 0 to 1, arms spinning
                 windmillAngle: 0,
                 splits: 0,       // 0 to 1, legs split wide
-                freeze: false
+                freeze: false,
+                hairWhip: 0,     // 0 to 1, hair flying out dramatically
+                hairWhipDir: 1   // 1 or -1, direction of whip
             };
         }
 
@@ -226,10 +228,10 @@
         var MOVES = {
             BasicBounce: function(t, e) { t.bounce = 0.3 + e * 0.3; },
             ArmPump: function(t, e) { t.bounce = 0.2; t.armPump = 0.8 + e * 0.2; t.armPumpSide = Math.random() > 0.5 ? 1 : -1; },
-            HipThrust: function(t, e) { t.hipThrust = 0.6 + e * 0.4; t.bounce = 0.15; t.lean = (Math.random() - 0.5) * 0.3; },
-            Windmill: function(t, e) { t.windmill = 0.7 + e * 0.3; t.bounce = 0.1; },
+            HipThrust: function(t, e) { t.hipThrust = 0.6 + e * 0.4; t.bounce = 0.15; t.lean = (Math.random() - 0.5) * 0.3; t.hairWhip = 0.4; t.hairWhipDir = t.lean > 0 ? -1 : 1; },
+            Windmill: function(t, e) { t.windmill = 0.7 + e * 0.3; t.bounce = 0.1; t.hairWhip = 0.6; t.hairWhipDir = 1; },
             RunningMan: function(t, e) { t.kick = 0.5 + e * 0.3; t.kickSide = Math.random() > 0.5 ? 1 : -1; t.armPump = 0.4; t.armPumpSide = -t.kickSide; },
-            HeadBang: function(t, e) { t.headBang = 0.7 + e * 0.3; t.bounce = 0.25; },
+            HeadBang: function(t, e) { t.headBang = 0.7 + e * 0.3; t.bounce = 0.25; t.hairWhip = 0.9; t.hairWhipDir = Math.random() > 0.5 ? 1 : -1; },
             Splits: function(t, e) { t.splits = 0.9; t.bounce = -0.1; },
             FreezeFrame: function(t, e) { t.armRaise = 1; t.lean = (Math.random() - 0.5) * 0.6; t.kick = 0.3; }
         };
@@ -276,6 +278,7 @@
             p.armPump = lerpParam(p.armPump, t.armPump, speed, dt);
             p.windmill = lerpParam(p.windmill, t.windmill, speed, dt);
             p.splits = lerpParam(p.splits, t.splits, speed, dt);
+            p.hairWhip = lerpParam(p.hairWhip, t.hairWhip, 6, dt);
             // Continuous windmill angle
             p.windmillAngle += p.windmill * dt * 8;
         }
@@ -381,9 +384,13 @@
         }
 
         // ── Draw a stick figure ──
-        function drawFigure(ctx, joints, color, alpha, scaleX) {
+        function drawFigure(ctx, joints, color, alpha, scaleX, params) {
             scaleX = scaleX || 1;
+            params = params || {};
             var lw = Math.max(3, W * 0.004);
+            var hx = joints.head.x * scaleX;
+            var hy = joints.head.y;
+            var hr = joints.headR;
 
             ctx.save();
             ctx.globalAlpha = alpha;
@@ -422,13 +429,83 @@
 
             // Head
             ctx.beginPath();
-            ctx.arc(joints.head.x * scaleX, joints.head.y, joints.headR, 0, Math.PI * 2);
+            ctx.arc(hx, hy, hr, 0, Math.PI * 2);
             ctx.stroke();
 
             // Inner glow fill for head
             ctx.fillStyle = color;
             ctx.globalAlpha = alpha * 0.3;
             ctx.fill();
+            ctx.globalAlpha = alpha;
+
+            // ── Face (confident smirk + eyebrows) ──
+            var faceScale = hr / 8; // scale features to head size
+            ctx.lineWidth = Math.max(1, faceScale * 1.2);
+            ctx.shadowBlur = 4;
+
+            // Eyebrows — one raised for attitude
+            ctx.beginPath();
+            ctx.moveTo(hx - hr * 0.45, hy - hr * 0.25);
+            ctx.lineTo(hx - hr * 0.1, hy - hr * 0.35);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(hx + hr * 0.1, hy - hr * 0.4);  // raised brow
+            ctx.lineTo(hx + hr * 0.45, hy - hr * 0.2);
+            ctx.stroke();
+
+            // Eyes — dots
+            ctx.fillStyle = color;
+            ctx.globalAlpha = alpha * 0.9;
+            ctx.beginPath();
+            ctx.arc(hx - hr * 0.25, hy - hr * 0.05, faceScale * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(hx + hr * 0.25, hy - hr * 0.05, faceScale * 0.8, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Smirk
+            ctx.globalAlpha = alpha;
+            ctx.lineWidth = Math.max(1, faceScale * 1);
+            ctx.beginPath();
+            ctx.moveTo(hx - hr * 0.15, hy + hr * 0.3);
+            ctx.quadraticCurveTo(hx + hr * 0.15, hy + hr * 0.35, hx + hr * 0.35, hy + hr * 0.15);
+            ctx.stroke();
+
+            // ── Hair ──
+            ctx.lineWidth = Math.max(2, lw * 0.8);
+            ctx.shadowBlur = 8;
+
+            // Hair direction: lean + headbang influence the base angle
+            var hairBaseAngle = -Math.PI * 0.5; // straight up
+            var lean = params.lean || 0;
+            var headBang = params.headBang || 0;
+            var whip = params.hairWhip || 0;
+            var whipDir = params.hairWhipDir || 1;
+            // Hair flows opposite to lean/movement
+            var hairAngle = hairBaseAngle - lean * 0.6 - headBang * 0.8 + whip * whipDir * 1.8;
+
+            var numStrands = 5;
+            var hairLen = hr * (1.6 + whip * 1.2);  // longer during whips
+
+            for (var si = 0; si < numStrands; si++) {
+                var spread = (si / (numStrands - 1) - 0.5) * 1.2;  // -0.6 to 0.6
+                var strandAngle = hairAngle + spread * 0.8;
+                var strandLen = hairLen * (0.7 + Math.abs(spread) * 0.6);
+
+                // Wavy strand using quadratic curve
+                var startX = hx + Math.cos(strandAngle + Math.PI * 0.5) * hr * 0.4 * spread;
+                var startY = hy - hr * 0.6;
+                var endX = startX + Math.cos(strandAngle) * strandLen;
+                var endY = startY + Math.sin(strandAngle) * strandLen;
+                var cpX = (startX + endX) / 2 + Math.sin(strandAngle) * strandLen * 0.3;
+                var cpY = (startY + endY) / 2 - Math.cos(strandAngle) * strandLen * 0.3;
+
+                ctx.globalAlpha = alpha * (0.5 + (1 - Math.abs(spread)) * 0.5);
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.quadraticCurveTo(cpX, cpY, endX, endY);
+                ctx.stroke();
+            }
 
             ctx.restore();
         }
@@ -469,10 +546,15 @@
             t.kick = fig.kickSpin * 0.6;
             t.kickSide = Math.sin(fig.orbitAngle) > 0 ? 1 : -1;
 
+            // Hair whip on spins and upside-down
+            t.hairWhip = fig.kickSpin > 0.3 ? 0.7 : 0;
+            t.hairWhipDir = Math.sin(fig.orbitAngle) > 0 ? 1 : -1;
+
             if (fig.upsideDown) {
                 t.armRaise = 0;
                 t.kick = 0.8;
                 t.splits = 0.3;
+                t.hairWhip = 1.0;  // maximum drama upside down
             } else {
                 t.splits = 0;
             }
@@ -511,9 +593,9 @@
 
             if (behind) {
                 // Draw pole in front (draw figure first, then pole over it)
-                drawFigure(ctx, joints, fig.color, 0.5, scaleX);
+                drawFigure(ctx, joints, fig.color, 0.5, scaleX, fig.params);
             } else {
-                drawFigure(ctx, joints, fig.color, 1.0, scaleX);
+                drawFigure(ctx, joints, fig.color, 1.0, scaleX, fig.params);
             }
 
             ctx.restore();
@@ -551,7 +633,7 @@
                 // Reset
                 t.bounce = 0; t.armRaise = 0; t.lean = 0; t.kick = 0;
                 t.hipThrust = 0; t.headBang = 0; t.armPump = 0;
-                t.windmill = 0; t.splits = 0;
+                t.windmill = 0; t.splits = 0; t.hairWhip = 0;
 
                 if (freezeTimer <= 0) {
                     MOVES[fig.currentMove](t, energy);
@@ -569,7 +651,7 @@
 
             ctx.save();
             ctx.translate(fig.x, floorY);
-            drawFigure(ctx, joints, fig.color, 1.0, 1.0);
+            drawFigure(ctx, joints, fig.color, 1.0, 1.0, fig.params);
             ctx.restore();
         }
 
@@ -618,26 +700,64 @@
         }
 
         // ── Title Text ──
+        // "WIRELESS ACCESS PROTOCOL" with W, A, P bolded/scaled
+        var TITLE_WORDS = ['WIRELESS', ' ', 'ACCESS', ' ', 'PROTOCOL'];
+        var BOLD_LETTERS = { W: true, A: true, P: true };
+
         function drawTitle(ctx) {
             if (titleAlpha < 0.01) return;
 
-            var fontSize = Math.max(16, Math.min(W * 0.045, 56));
+            var baseFontSize = Math.max(14, Math.min(W * 0.038, 48));
+            var bigFontSize = Math.floor(baseFontSize * 1.35);
+            var y = H * 0.15;
+
             ctx.save();
-            ctx.globalAlpha = titleAlpha;
-            ctx.font = '700 ' + fontSize + 'px "JetBrains Mono", monospace';
-            ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
 
-            // Neon glow
-            ctx.shadowColor = '#ff2d95';
-            ctx.shadowBlur = 30;
-            ctx.fillStyle = '#ff2d95';
-            ctx.fillText('WIRELESS ACCESS PROTOCOL', W / 2, H * 0.15);
+            // Measure total width first to center
+            var totalW = 0;
+            var chars = 'WIRELESS ACCESS PROTOCOL'.split('');
+            for (var mi = 0; mi < chars.length; mi++) {
+                var isBold = mi === 0 || mi === 9 || mi === 16; // W, A, P
+                var fs = isBold ? bigFontSize : baseFontSize;
+                ctx.font = '700 ' + fs + 'px "JetBrains Mono", monospace';
+                totalW += ctx.measureText(chars[mi]).width;
+            }
 
-            // Second pass for extra glow
-            ctx.shadowBlur = 60;
-            ctx.globalAlpha = titleAlpha * 0.5;
-            ctx.fillText('WIRELESS ACCESS PROTOCOL', W / 2, H * 0.15);
+            var x = (W - totalW) / 2;
+
+            // Draw each character
+            for (var ci = 0; ci < chars.length; ci++) {
+                var bold = ci === 0 || ci === 9 || ci === 16; // W, A, P positions
+                var fs2 = bold ? bigFontSize : baseFontSize;
+                ctx.font = '700 ' + fs2 + 'px "JetBrains Mono", monospace';
+                var charW = ctx.measureText(chars[ci]).width;
+
+                if (bold) {
+                    // Big glowing WAP letters
+                    ctx.globalAlpha = titleAlpha;
+                    ctx.shadowColor = '#fff';
+                    ctx.shadowBlur = 40;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillText(chars[ci], x, y);
+
+                    // Pink glow layer
+                    ctx.shadowColor = '#ff2d95';
+                    ctx.shadowBlur = 60;
+                    ctx.globalAlpha = titleAlpha * 0.8;
+                    ctx.fillStyle = '#ff2d95';
+                    ctx.fillText(chars[ci], x, y);
+                } else {
+                    // Normal letters
+                    ctx.globalAlpha = titleAlpha * 0.85;
+                    ctx.shadowColor = '#ff2d95';
+                    ctx.shadowBlur = 20;
+                    ctx.fillStyle = '#ff2d95';
+                    ctx.fillText(chars[ci], x, y);
+                }
+
+                x += charW;
+            }
 
             ctx.restore();
         }
