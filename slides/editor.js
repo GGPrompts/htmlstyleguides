@@ -13,6 +13,8 @@ const SlideEditor = (() => {
   let propsPanel = null;
   let isDragging = false;
   let isResizing = false;
+  let isDraggingLineHandle = false;
+  let lineHandleProp = '';
   let dragOffset = { x: 0, y: 0 };
   let resizeDir = '';
   let draftKey = '';
@@ -248,6 +250,18 @@ const SlideEditor = (() => {
     line.style.pointerEvents = 'stroke';
     line.style.cursor = 'move';
 
+    // Invisible wider hit area for easier clicking
+    const hitArea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    hitArea.setAttribute('x1', el.x1);
+    hitArea.setAttribute('y1', el.y1);
+    hitArea.setAttribute('x2', el.x2);
+    hitArea.setAttribute('y2', el.y2);
+    hitArea.setAttribute('stroke', 'transparent');
+    hitArea.setAttribute('stroke-width', '3');
+    hitArea.style.pointerEvents = 'stroke';
+    hitArea.style.cursor = 'move';
+    svg.appendChild(hitArea);
+
     svg.appendChild(line);
     wrapper.appendChild(svg);
 
@@ -383,6 +397,14 @@ const SlideEditor = (() => {
 
     if (lineHandle) {
       e.preventDefault();
+      const wrapper = e.target.closest('.editor-element');
+      if (wrapper) {
+        selectedElement = wrapper.dataset.elementId;
+        isDraggingLineHandle = true;
+        lineHandleProp = lineHandle.dataset.prop;
+        renderCanvas();
+        renderProps();
+      }
       return;
     }
 
@@ -395,8 +417,15 @@ const SlideEditor = (() => {
       const rect = canvas.getBoundingClientRect();
       const el = getElement(elId);
       if (el) {
-        dragOffset.x = (e.clientX - rect.left) / rect.width * 100 - el.x;
-        dragOffset.y = (e.clientY - rect.top) / rect.height * 100 - el.y;
+        const clickPctX = (e.clientX - rect.left) / rect.width * 100;
+        const clickPctY = (e.clientY - rect.top) / rect.height * 100;
+        if (el.type === 'line') {
+          dragOffset.x = clickPctX - el.x1;
+          dragOffset.y = clickPctY - el.y1;
+        } else {
+          dragOffset.x = clickPctX - el.x;
+          dragOffset.y = clickPctY - el.y;
+        }
       }
 
       renderCanvas();
@@ -409,7 +438,7 @@ const SlideEditor = (() => {
   }
 
   function onCanvasMouseMove(e) {
-    if (!isDragging && !isResizing) return;
+    if (!isDragging && !isResizing && !isDraggingLineHandle) return;
     e.preventDefault();
 
     const rect = canvas.getBoundingClientRect();
@@ -435,6 +464,17 @@ const SlideEditor = (() => {
       renderCanvas();
     }
 
+    if (isDraggingLineHandle && el.type === 'line') {
+      if (lineHandleProp === 'start') {
+        el.x1 = Math.max(0, Math.min(100, pctX));
+        el.y1 = Math.max(0, Math.min(100, pctY));
+      } else {
+        el.x2 = Math.max(0, Math.min(100, pctX));
+        el.y2 = Math.max(0, Math.min(100, pctY));
+      }
+      renderCanvas();
+    }
+
     if (isResizing && el.type !== 'line') {
       if (resizeDir.includes('e')) {
         const styleDef = (el.type === 'text' && theme.textStyles[el.style]) || {};
@@ -453,9 +493,10 @@ const SlideEditor = (() => {
   }
 
   function onCanvasMouseUp() {
-    if (isDragging || isResizing) saveDraft();
+    if (isDragging || isResizing || isDraggingLineHandle) saveDraft();
     isDragging = false;
     isResizing = false;
+    isDraggingLineHandle = false;
     renderSlidePanel();
   }
 
