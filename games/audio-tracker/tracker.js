@@ -622,10 +622,11 @@ var Tracker = (function () {
           activeVoices[ch] = null;
         }
       } else if (cell.note >= 0) {
-        // Note-on: stop previous voice on this channel first
+        // Note-on: stop previous voice on this channel first.
+        // Use quickCut to avoid overlapping release tails at fast tempos.
         if (activeVoices[ch] !== null) {
           if (typeof Synth !== 'undefined' && Synth.noteOff) {
-            Synth.noteOff(activeVoices[ch], time);
+            Synth.noteOff(activeVoices[ch], time, true);
           }
           activeVoices[ch] = null;
         }

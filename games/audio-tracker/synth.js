@@ -215,13 +215,25 @@ var Synth = (function () {
 
   /**
    * noteOff — schedule release envelope, then stop oscillators.
+   * If quickCut is true, use a very short fade-out (~3ms) instead of the
+   * instrument's release time. This avoids overlapping tails when a new
+   * note retriggers on the same channel immediately.
    */
-  function noteOff(handle, time) {
+  function noteOff(handle, time, quickCut) {
     if (!handle || handle.released) return;
     handle.released = true;
 
     var t = time || ctx.currentTime;
-    var releaseDur = applyRelease(handle.envGain, handle.instrument, t);
+    var releaseDur;
+    if (quickCut) {
+      var g = handle.envGain.gain;
+      g.cancelScheduledValues(t);
+      g.setValueAtTime(g.value, t);
+      g.linearRampToValueAtTime(0, t + 0.003);
+      releaseDur = 0.003;
+    } else {
+      releaseDur = applyRelease(handle.envGain, handle.instrument, t);
+    }
     var stopTime = t + releaseDur + 0.01;
 
     handle.osc1.stop(stopTime);
