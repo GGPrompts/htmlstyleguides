@@ -9,48 +9,69 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a1a; color: #e0e0e0; font-family: system-ui, -apple-system, sans-serif; }
 
-  /* ── Layout ─────────────────────────────────────────── */
+  /* -- Layout -------------------------------------------------------- */
   .editor-layout {
     display: grid;
-    grid-template-columns: 160px 1fr 240px;
-    grid-template-rows: 48px 1fr;
+    grid-template-columns: 170px 1fr 280px;
+    grid-template-rows: 54px 1fr;
     height: 100vh;
-    gap: 0;
   }
 
-  /* ── Toolbar ────────────────────────────────────────── */
+  /* -- Toolbar ------------------------------------------------------- */
   .toolbar {
     grid-column: 1 / -1;
     background: #111;
     border-bottom: 1px solid #333;
     display: flex;
     align-items: center;
-    padding: 0 12px;
     gap: 4px;
-    z-index: 10;
+    padding: 0 10px;
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    z-index: 20;
   }
   .toolbar-group {
-    display: flex; align-items: center; gap: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     padding: 0 8px;
     border-right: 1px solid #333;
+    min-height: 34px;
   }
   .toolbar-group:last-child { border-right: none; }
   .toolbar button, .toolbar select {
-    background: transparent; border: 1px solid transparent;
-    color: #ccc; padding: 6px 10px; border-radius: 4px;
-    cursor: pointer; font-size: 0.85rem; white-space: nowrap;
+    background: #1d1d1d;
+    border: 1px solid #3a3a3a;
+    color: #d0d0d0;
+    padding: 5px 9px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
   }
-  .toolbar button:hover, .toolbar select:hover { background: #333; border-color: #555; }
-  .toolbar select { background: #222; border-color: #444; padding-right: 24px; }
+  .toolbar button:hover, .toolbar select:hover {
+    background: #303030;
+    border-color: #5a5a5a;
+  }
+  .toolbar button.active {
+    border-color: #2563eb;
+    color: #7fb4ff;
+    background: rgba(37, 99, 235, 0.18);
+  }
   .toolbar .title-input {
-    background: transparent; border: 1px solid transparent; color: #e0e0e0;
-    font-size: 0.95rem; font-weight: 600; padding: 4px 8px; border-radius: 4px;
-    width: 200px;
+    width: 190px;
+    font-size: 0.9rem;
+    background: #1b1b1b;
+    border: 1px solid #333;
+    color: #e8e8e8;
+    padding: 6px 8px;
+    border-radius: 4px;
   }
-  .toolbar .title-input:focus { border-color: #555; outline: none; background: #222; }
-  .toolbar-spacer { flex: 1; }
+  .toolbar .title-input:focus { outline: none; border-color: #2563eb; }
+  .toolbar-spacer { flex: 1; min-width: 16px; }
 
-  /* ── Slide Panel ────────────────────────────────────── */
+  /* -- Slide Panel --------------------------------------------------- */
   #slide-panel {
     background: #111;
     border-right: 1px solid #333;
@@ -71,8 +92,12 @@
   .slide-thumb:hover { border-color: #666; }
   .slide-thumb.active { border-color: #2563eb; }
   .thumb-num {
-    position: absolute; top: 2px; left: 4px;
-    font-size: 0.65rem; color: #888; z-index: 1;
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    font-size: 0.65rem;
+    color: #888;
+    z-index: 2;
   }
   .thumb-preview {
     width: 100%;
@@ -81,14 +106,21 @@
     overflow: hidden;
   }
   .slide-add-btn {
-    background: transparent; border: 2px dashed #444;
-    color: #888; padding: 8px; border-radius: 4px;
-    cursor: pointer; font-size: 0.8rem;
+    background: transparent;
+    border: 2px dashed #444;
+    color: #888;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
     transition: all 0.2s;
   }
-  .slide-add-btn:hover { border-color: #666; color: #ccc; }
+  .slide-add-btn:hover {
+    border-color: #666;
+    color: #ccc;
+  }
 
-  /* ── Canvas Area ────────────────────────────────────── */
+  /* -- Canvas -------------------------------------------------------- */
   .canvas-area {
     background: #0a0a0a;
     display: flex;
@@ -105,35 +137,78 @@
     max-height: 100%;
     overflow: hidden;
     box-shadow: 0 4px 30px rgba(0,0,0,0.5);
+    touch-action: none;
+  }
+  #slide-canvas.show-grid::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image:
+      linear-gradient(to right, rgba(255,255,255,0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: calc(var(--grid-step, 5) * 1%) calc(var(--grid-step, 5) * 1%);
   }
 
-  /* ── Editor Element Styles ──────────────────────────── */
+  /* -- Elements ------------------------------------------------------ */
   .editor-element {
     position: relative;
+    z-index: 3;
   }
   .editor-element.selected {
     outline: 2px solid #2563eb;
-    outline-offset: 2px;
+    outline-offset: 1px;
+  }
+  .editor-element.active {
+    outline-color: #60a5fa;
   }
   .editor-element.editing {
     outline: 2px solid #10b981;
-    outline-offset: 2px;
+    outline-offset: 1px;
   }
   .resize-handle {
     position: absolute;
     background: #2563eb;
     border: 1px solid #fff;
     border-radius: 2px;
-    width: 8px; height: 8px;
+    width: 8px;
+    height: 8px;
     display: none;
-    z-index: 5;
+    z-index: 8;
   }
   .selected .resize-handle { display: block; }
   .resize-se { bottom: -4px; right: -4px; cursor: se-resize; }
   .resize-e { top: 50%; right: -4px; transform: translateY(-50%); cursor: e-resize; }
   .resize-s { bottom: -4px; left: 50%; transform: translateX(-50%); cursor: s-resize; }
 
-  /* ── Properties Panel ──────────────────────────────── */
+  .guide-line {
+    position: absolute;
+    pointer-events: none;
+    z-index: 12;
+    background: rgba(37, 99, 235, 0.9);
+  }
+  .guide-v {
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    transform: translateX(-0.5px);
+  }
+  .guide-h {
+    left: 0;
+    right: 0;
+    height: 1px;
+    transform: translateY(-0.5px);
+  }
+  .marquee-box {
+    position: absolute;
+    z-index: 13;
+    border: 1px solid rgba(96, 165, 250, 0.95);
+    background: rgba(37, 99, 235, 0.14);
+    pointer-events: none;
+  }
+
+  /* -- Properties ---------------------------------------------------- */
   #props-panel {
     background: #111;
     border-left: 1px solid #333;
@@ -142,45 +217,114 @@
     font-size: 0.85rem;
   }
   .props-empty {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    height: 100%; text-align: center; color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    color: #666;
+    line-height: 1.35;
   }
   .props-section { margin-bottom: 16px; }
   .props-section h3 {
-    font-size: 0.75rem; text-transform: uppercase;
-    letter-spacing: 0.1em; color: #888;
-    margin-bottom: 10px; padding-bottom: 6px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #888;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
     border-bottom: 1px solid #333;
   }
   .props-section label {
-    display: flex; flex-direction: column; gap: 3px;
-    margin-bottom: 8px; color: #aaa; font-size: 0.8rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin-bottom: 8px;
+    color: #aaa;
+    font-size: 0.8rem;
   }
-  .props-section input, .props-section select, .props-section textarea {
-    background: #1a1a1a; border: 1px solid #333; color: #e0e0e0;
-    padding: 5px 8px; border-radius: 3px; font-size: 0.85rem;
+  .props-section input, .props-section select, .props-section textarea,
+  .props-section button {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #e0e0e0;
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-size: 0.82rem;
     font-family: inherit;
   }
   .props-section input:focus, .props-section select:focus, .props-section textarea:focus {
-    border-color: #2563eb; outline: none;
+    border-color: #2563eb;
+    outline: none;
   }
   .props-section textarea { resize: vertical; min-height: 48px; }
+  .props-inline-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-top: 2px;
+  }
+  .props-grid-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
   .props-delete {
-    background: #3a1a1a; border: 1px solid #5a2a2a; color: #ff6b6b;
-    padding: 6px 12px; border-radius: 4px; cursor: pointer;
-    font-size: 0.8rem; width: 100%; margin-top: 8px;
+    background: #3a1a1a;
+    border: 1px solid #5a2a2a;
+    color: #ff6b6b;
+    width: 100%;
+    margin-top: 8px;
   }
   .props-delete:hover { background: #4a2020; }
 
-  /* ── Responsive ─────────────────────────────────────── */
-  @media (max-width: 768px) {
+  /* -- Context Menu -------------------------------------------------- */
+  .editor-context-menu {
+    position: fixed;
+    min-width: 190px;
+    background: #101010;
+    border: 1px solid #2f2f2f;
+    border-radius: 6px;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+    padding: 6px;
+    display: none;
+    z-index: 999;
+  }
+  .editor-context-menu.open { display: block; }
+  .editor-context-menu button {
+    display: block;
+    width: 100%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #d0d0d0;
+    text-align: left;
+    padding: 6px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .editor-context-menu button:hover {
+    background: #242424;
+    border-color: #3b3b3b;
+  }
+  .editor-context-menu hr {
+    border: none;
+    border-top: 1px solid #2a2a2a;
+    margin: 5px 0;
+  }
+
+  /* -- Responsive ---------------------------------------------------- */
+  @media (max-width: 1060px) {
     .editor-layout {
       grid-template-columns: 1fr;
-      grid-template-rows: 48px 1fr 200px;
+      grid-template-rows: 54px 1fr 220px;
     }
     #slide-panel { display: none; }
-    #props-panel { border-left: none; border-top: 1px solid #333; }
+    #props-panel {
+      border-left: none;
+      border-top: 1px solid #333;
+    }
   }
 </style>
 </head>
@@ -191,13 +335,70 @@
     <div class="toolbar-group">
       <input type="text" class="title-input" id="deck-title" placeholder="Presentation title" spellcheck="false">
     </div>
+
     <div class="toolbar-group">
-      <button onclick="SlideEditor.addElement('text')" title="Add text">T Text</button>
-      <button onclick="SlideEditor.addElement('shape', {shape:'rect'})" title="Add rectangle">▬ Rect</button>
-      <button onclick="SlideEditor.addElement('shape', {shape:'circle'})" title="Add circle">● Circle</button>
-      <button onclick="SlideEditor.addElement('line')" title="Add line">╱ Line</button>
-      <button onclick="SlideEditor.addElement('mermaid')" title="Add Mermaid diagram">◈ Mermaid</button>
+      <button onclick="SlideEditor.addElement('text')" title="Add text">Text</button>
+      <button onclick="SlideEditor.addElement('shape', {shape:'rect'})" title="Add rectangle">Rect</button>
+      <button onclick="SlideEditor.addElement('shape', {shape:'circle'})" title="Add circle">Circle</button>
+      <button onclick="SlideEditor.addElement('line')" title="Add line">Line</button>
+      <button onclick="SlideEditor.addElement('mermaid')" title="Add Mermaid">Mermaid</button>
+      <button onclick="promptAddImageUrl()" title="Add image by URL">Image URL</button>
+      <button onclick="document.getElementById('image-file').click()" title="Upload image file">Image File</button>
+      <input type="file" id="image-file" accept="image/*" style="display:none">
     </div>
+
+    <div class="toolbar-group">
+      <button onclick="SlideEditor.undo()" title="Undo (Ctrl/Cmd+Z)">Undo</button>
+      <button onclick="SlideEditor.redo()" title="Redo (Ctrl/Cmd+Shift+Z)">Redo</button>
+      <button onclick="SlideEditor.copySelection()" title="Copy">Copy</button>
+      <button onclick="SlideEditor.pasteSelection()" title="Paste">Paste</button>
+      <button onclick="SlideEditor.duplicateSelection()" title="Duplicate">Duplicate</button>
+    </div>
+
+    <div class="toolbar-group">
+      <select id="align-select">
+        <option value="">Align...</option>
+        <option value="left">Left</option>
+        <option value="center">Center</option>
+        <option value="right">Right</option>
+        <option value="top">Top</option>
+        <option value="middle">Middle</option>
+        <option value="bottom">Bottom</option>
+      </select>
+      <button onclick="applyAlign()">Apply</button>
+      <button onclick="SlideEditor.distributeSelected('horizontal')" title="Distribute horizontally">Dist H</button>
+      <button onclick="SlideEditor.distributeSelected('vertical')" title="Distribute vertically">Dist V</button>
+    </div>
+
+    <div class="toolbar-group">
+      <select id="arrange-select">
+        <option value="">Arrange...</option>
+        <option value="front">Bring To Front</option>
+        <option value="forward">Bring Forward</option>
+        <option value="backward">Send Backward</option>
+        <option value="back">Send To Back</option>
+      </select>
+      <button onclick="applyArrange()">Apply</button>
+    </div>
+
+    <div class="toolbar-group">
+      <select id="layout-preset">
+        <option value="">Preset Layout...</option>
+        <option value="title-body">Title + Body</option>
+        <option value="two-column">Two Column</option>
+        <option value="comparison">Comparison</option>
+        <option value="section-break">Section Break</option>
+        <option value="blank">Blank</option>
+      </select>
+      <button onclick="applyLayoutPreset()">Use</button>
+    </div>
+
+    <div class="toolbar-group">
+      <button id="btn-snap-guides" onclick="toggleSnapGuides()">Snap: On</button>
+      <button id="btn-grid" onclick="toggleGrid()">Grid: Off</button>
+      <button id="btn-grid-snap" onclick="toggleGridSnap()">Grid Snap: Off</button>
+    </div>
+
     <div class="toolbar-group">
       <label style="color:#aaa;font-size:0.8rem;display:flex;align-items:center;gap:6px">
         Theme
@@ -208,15 +409,18 @@
         </select>
       </label>
     </div>
+
     <div class="toolbar-group">
-      <button onclick="handleDeleteSlide()" title="Delete current slide">🗑 Slide</button>
-      <button onclick="SlideEditor.duplicateSlide(SlideEditor.currentSlide)" title="Duplicate slide">⧉ Duplicate</button>
+      <button onclick="handleDeleteSlide()" title="Delete current slide">Delete Slide</button>
+      <button onclick="SlideEditor.duplicateSlide(SlideEditor.currentSlide)" title="Duplicate current slide">Duplicate Slide</button>
     </div>
+
     <div class="toolbar-spacer"></div>
+
     <div class="toolbar-group">
-      <button onclick="SlideEditor.previewInViewer()" title="Preview in viewer">▶ Preview</button>
-      <button onclick="SlideEditor.exportJSON()" title="Download JSON">↓ Export</button>
-      <button onclick="document.getElementById('import-file').click()" title="Load JSON file">↑ Import</button>
+      <button onclick="SlideEditor.previewInViewer()" title="Preview in viewer">Preview</button>
+      <button onclick="SlideEditor.exportJSON()" title="Download JSON">Export</button>
+      <button onclick="document.getElementById('import-file').click()" title="Load JSON file">Import</button>
       <input type="file" id="import-file" accept=".json" style="display:none">
     </div>
   </div>
@@ -239,53 +443,55 @@
 (async function() {
   const params = new URLSearchParams(window.location.search);
   const deckName = params.get('deck');
+  const draftStorageKey = deckName ? `slides-draft-${deckName}` : 'slides-draft';
+
   let deckData = null;
 
-  // Try to load from URL param
   if (deckName) {
     try {
-      const res = await fetch(`decks/${deckName}.json`);
-      if (res.ok) deckData = await res.json();
-    } catch (e) { /* will use draft or empty */ }
+      const response = await fetch(`decks/${deckName}.json`);
+      if (response.ok) deckData = await response.json();
+    } catch (e) {
+      // fallback below
+    }
   }
 
-  // Try draft from localStorage
   if (!deckData) {
-    deckData = SlideEditor.loadDraft();
+    deckData = SlideEditor.loadDraft(draftStorageKey);
   }
 
-  // Load initial theme
   const themeName = (deckData && deckData.theme) || 'default';
   await loadTheme(themeName);
   document.getElementById('theme-select').value = themeName;
 
-  // Initialize editor
-  const options = { theme: window.SLIDE_THEME, draftKey: deckName ? `slides-draft-${deckName}` : 'slides-draft' };
+  const options = {
+    theme: window.SLIDE_THEME,
+    draftKey: draftStorageKey,
+  };
   if (deckData) options.deck = deckData;
   SlideEditor.init(options);
 
-  // Title input
   const titleInput = document.getElementById('deck-title');
   titleInput.value = (SlideEditor.deck && SlideEditor.deck.title) || '';
   titleInput.addEventListener('input', () => {
     SlideEditor.updateDeckMeta('title', titleInput.value);
-    document.title = titleInput.value + ' — Slide Editor';
+    document.title = (titleInput.value || 'Untitled') + ' — Slide Editor';
   });
   document.title = (titleInput.value || 'Untitled') + ' — Slide Editor';
 
-  // Theme switcher
-  document.getElementById('theme-select').addEventListener('change', async (e) => {
-    await loadTheme(e.target.value);
+  document.getElementById('theme-select').addEventListener('change', async event => {
+    await loadTheme(event.target.value);
     SlideEditor.setTheme(window.SLIDE_THEME);
   });
 
-  // Import
-  document.getElementById('import-file').addEventListener('change', async (e) => {
-    const file = e.target.files[0];
+  document.getElementById('import-file').addEventListener('change', async event => {
+    const file = event.target.files[0];
     if (!file) return;
+
     try {
       await SlideEditor.importJSON(file);
       titleInput.value = SlideEditor.deck.title || '';
+
       if (SlideEditor.deck.theme) {
         await loadTheme(SlideEditor.deck.theme);
         document.getElementById('theme-select').value = SlideEditor.deck.theme;
@@ -294,36 +500,61 @@
     } catch (err) {
       alert('Failed to import: ' + err.message);
     }
-    e.target.value = '';
+
+    event.target.value = '';
   });
 
-  // Fit canvas
+  document.getElementById('image-file').addEventListener('change', async event => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      await SlideEditor.addImageFromFile(file);
+    } catch (err) {
+      alert('Failed to load image: ' + err.message);
+    }
+
+    event.target.value = '';
+  });
+
   fitCanvas();
+  refreshToggleButtons();
   window.addEventListener('resize', fitCanvas);
 
   function fitCanvas() {
     const area = document.querySelector('.canvas-area');
     const canvas = document.getElementById('slide-canvas');
     if (!area || !canvas) return;
+
     const aw = area.clientWidth - 48;
     const ah = area.clientHeight - 48;
     const ar = 16 / 9;
-    let w, h;
-    if (aw / ah > ar) { h = ah; w = h * ar; } else { w = aw; h = w / ar; }
-    canvas.style.width = w + 'px';
-    canvas.style.height = h + 'px';
+
+    let width;
+    let height;
+
+    if (aw / ah > ar) {
+      height = ah;
+      width = height * ar;
+    } else {
+      width = aw;
+      height = width / ar;
+    }
+
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
   }
 
   function loadTheme(name) {
-    return new Promise((resolve) => {
-      // Remove old theme script
+    return new Promise(resolve => {
       const old = document.getElementById('theme-script');
       if (old) old.remove();
+
       const script = document.createElement('script');
       script.id = 'theme-script';
       script.src = `themes/${name}.js`;
       script.onload = resolve;
-      script.onerror = resolve; // graceful fallback
+      script.onerror = resolve;
       document.head.appendChild(script);
     });
   }
@@ -333,6 +564,69 @@ function handleDeleteSlide() {
   if (confirm('Delete this slide?')) {
     SlideEditor.deleteSlide(SlideEditor.currentSlide);
   }
+}
+
+function promptAddImageUrl() {
+  const url = prompt('Image URL:');
+  if (!url) return;
+  SlideEditor.addImageFromUrl(url);
+}
+
+function applyLayoutPreset() {
+  const select = document.getElementById('layout-preset');
+  if (!select.value) return;
+  SlideEditor.applyLayoutPreset(select.value);
+}
+
+function applyAlign() {
+  const select = document.getElementById('align-select');
+  if (!select.value) return;
+  SlideEditor.alignSelected(select.value);
+}
+
+function applyArrange() {
+  const select = document.getElementById('arrange-select');
+  const value = select.value;
+  if (!value) return;
+
+  if (value === 'front') SlideEditor.bringToFront();
+  if (value === 'forward') SlideEditor.bringForward();
+  if (value === 'backward') SlideEditor.sendBackward();
+  if (value === 'back') SlideEditor.sendToBack();
+}
+
+function toggleSnapGuides() {
+  const prefs = SlideEditor.getPrefs();
+  SlideEditor.setSnapToGuides(!prefs.snapToGuides);
+  refreshToggleButtons();
+}
+
+function toggleGrid() {
+  const prefs = SlideEditor.getPrefs();
+  SlideEditor.setShowGrid(!prefs.showGrid);
+  refreshToggleButtons();
+}
+
+function toggleGridSnap() {
+  const prefs = SlideEditor.getPrefs();
+  SlideEditor.setSnapToGrid(!prefs.snapToGrid);
+  refreshToggleButtons();
+}
+
+function refreshToggleButtons() {
+  const prefs = SlideEditor.getPrefs();
+
+  const snapBtn = document.getElementById('btn-snap-guides');
+  const gridBtn = document.getElementById('btn-grid');
+  const gridSnapBtn = document.getElementById('btn-grid-snap');
+
+  snapBtn.textContent = `Snap: ${prefs.snapToGuides ? 'On' : 'Off'}`;
+  gridBtn.textContent = `Grid: ${prefs.showGrid ? 'On' : 'Off'}`;
+  gridSnapBtn.textContent = `Grid Snap: ${prefs.snapToGrid ? 'On' : 'Off'}`;
+
+  snapBtn.classList.toggle('active', prefs.snapToGuides);
+  gridBtn.classList.toggle('active', prefs.showGrid);
+  gridSnapBtn.classList.toggle('active', prefs.snapToGrid);
 }
 </script>
 </body>

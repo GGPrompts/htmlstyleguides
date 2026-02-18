@@ -320,7 +320,7 @@ const SlideEngine = (() => {
       window.mermaid.initialize({
         startOnLoad: false,
         theme: isLightTheme() ? 'default' : 'dark',
-        securityLevel: 'loose',
+        securityLevel: deck.mermaidSecurity || 'strict',
       });
       mermaidReady = true;
       renderMermaidElements(slideEl);
