@@ -36,21 +36,24 @@ window.Renderers["particle-field"] = (function () {
     return { x: cx, y: cy };
   }
 
+  function scale() { return Math.min(w, h) / 500; }
+
   function spawnParticles(note, ch) {
     var origin = channelOrigin(ch);
     var count = 3 + Math.floor(note.vol * 8);
+    var sc = scale();
     for (var i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
       var angle = Math.random() * Math.PI * 2;
-      var speed = 40 + Math.random() * 120 * note.vol;
-      var size = 2 + note.vol * 6 + note.normalized * 4;
+      var speed = (40 + Math.random() * 120 * note.vol) * sc;
+      var size = (3 + note.vol * 10 + note.normalized * 8) * sc;
       particles.push({
-        x: origin.x + (Math.random() - 0.5) * 20,
-        y: origin.y + (Math.random() - 0.5) * 20,
+        x: origin.x + (Math.random() - 0.5) * 40 * sc,
+        y: origin.y + (Math.random() - 0.5) * 40 * sc,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
         size: size,
         life: 1,
-        decay: 0.4 + Math.random() * 0.8,
+        decay: 0.3 + Math.random() * 0.6,
         color: getColor(note.wave),
         alpha: 0.8 + Math.random() * 0.2
       });
@@ -58,12 +61,14 @@ window.Renderers["particle-field"] = (function () {
   }
 
   function spawnShockwave(beat) {
+    var sc = scale();
     shockwaves.push({
       x: w / 2,
       y: h / 2,
-      radius: 10,
+      radius: 10 * sc,
       maxRadius: Math.min(w, h) * 0.5,
-      speed: 300 + (beat % 4 === 0 ? 200 : 0),
+      speed: (300 + (beat % 4 === 0 ? 200 : 0)) * sc,
+      lineWidth: 2 + sc,
       alpha: beat % 4 === 0 ? 0.4 : 0.2,
       color: beat % 4 === 0 ? "#ff6b6b" : "#48dbfb"
     });
@@ -156,13 +161,14 @@ window.Renderers["particle-field"] = (function () {
         // Hex color — convert via temp
         ctx.globalAlpha = sw.alpha;
         ctx.strokeStyle = sw.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = sw.lineWidth;
         ctx.stroke();
         ctx.globalAlpha = 1;
       }
 
       // Channel labels (subtle)
-      ctx.font = "11px monospace";
+      var sc = scale();
+      ctx.font = Math.round(11 * sc) + "px monospace";
       ctx.fillStyle = "rgba(255,255,255,0.15)";
       if (analysis) {
         for (var ci = 0; ci < analysis.numChannels; ci++) {
@@ -193,7 +199,7 @@ window.Renderers["particle-field"] = (function () {
         ctx.fill();
 
         // Glow
-        if (p.size > 4) {
+        if (p.size > 4 * sc) {
           ctx.globalAlpha = p.life * p.alpha * 0.3;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.size * p.life * 2, 0, Math.PI * 2);
@@ -206,10 +212,10 @@ window.Renderers["particle-field"] = (function () {
       // Beat indicator (bottom center)
       var beatInBar = currentBeat % 4;
       for (var bi = 0; bi < 4; bi++) {
-        var bx = w / 2 - 30 + bi * 20;
-        var by = h - 30;
+        var bx = w / 2 - 30 * sc + bi * 20 * sc;
+        var by = h - 30 * sc;
         ctx.beginPath();
-        ctx.arc(bx, by, bi === beatInBar ? 6 : 4, 0, Math.PI * 2);
+        ctx.arc(bx, by, (bi === beatInBar ? 6 : 4) * sc, 0, Math.PI * 2);
         ctx.fillStyle = bi === beatInBar ? "#ff6b6b" : "rgba(255,255,255,0.2)";
         ctx.fill();
       }
