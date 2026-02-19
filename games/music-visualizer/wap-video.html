@@ -1180,10 +1180,19 @@
             // 3. Floor
             drawFloor(ctx, energy);
 
-            // 4. Poles (behind figures)
-            // ... (dancers drawing)
-            for (var bi = 0; bi < poleBehind.length; bi++) {
-                drawPoleDancer(ctx, poleBehind[bi]);
+            // 4. Poles & pole dancers (depth sorted)
+            // Check which pole dancers are behind their pole
+            var poleFront = [];
+            for (var pi = 0; pi < 2; pi++) {
+                var fig = figures[pi];
+                if (!fig.active) continue;
+                var cosA = Math.cos(fig.orbitAngle);
+                if (cosA < 0) {
+                    // Behind pole — draw before pole
+                    drawPoleDancer(ctx, fig);
+                } else {
+                    poleFront.push(fig);
+                }
             }
 
             drawPole(ctx, poleX1);
