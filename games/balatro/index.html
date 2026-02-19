@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BALATRO - Roguelike Poker Deckbuilder</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0008;
+    overflow: hidden;
+    font-family: 'Russo One', sans-serif;
+    color: #fff;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  canvas#bg {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 0;
+  }
+
+  /* CRT scanlines */
+  .scanlines {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 1;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 2px,
+      rgba(0, 0, 0, 0.15) 2px,
+      rgba(0, 0, 0, 0.15) 4px
+    );
+  }
+
+  /* Vignette */
+  .vignette {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 2;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      transparent 40%,
+      rgba(5, 0, 4, 0.5) 70%,
+      rgba(5, 0, 4, 0.85) 100%
+    );
+  }
+
+  /* UI overlay */
+  .ui {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  /* Title */
+  .title {
+    font-size: clamp(4rem, 12vw, 10rem);
+    letter-spacing: 0.15em;
+    line-height: 1;
+    background: linear-gradient(
+      90deg,
+      #ffd700, #ff4444, #9b30ff, #ff4444, #ffd700
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradientShift 4s ease-in-out infinite;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px rgba(255, 68, 68, 0.4))
+            drop-shadow(0 0 60px rgba(155, 48, 255, 0.3));
+    user-select: none;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .subtitle-top {
+    font-size: clamp(1rem, 3vw, 2rem);
+    letter-spacing: 0.5em;
+    color: #ff6b6b;
+    text-shadow: 0 0 20px rgba(255, 107, 107, 0.5);
+    margin-bottom: -5px;
+    opacity: 0.9;
+  }
+
+  /* Menu */
+  .menu {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  .menu-item {
+    display: block;
+    font-family: 'Russo One', sans-serif;
+    font-size: clamp(1.2rem, 3vw, 1.8rem);
+    letter-spacing: 0.15em;
+    color: #ddd;
+    text-decoration: none;
+    padding: 12px 50px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    transform: skewX(-3deg);
+    border: none;
+    background: none;
+    text-align: center;
+  }
+
+  .menu-item::before {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    bottom: 6px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #ffd700, transparent);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .menu-item:hover {
+    color: #ffd700;
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.6), 0 0 30px rgba(255, 215, 0, 0.3);
+    transform: skewX(-3deg) scale(1.08);
+  }
+
+  .menu-item:hover::before {
+    opacity: 1;
+  }
+
+  .menu-item.disabled {
+    color: #555;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  .menu-item.disabled:hover {
+    color: #555;
+    text-shadow: none;
+    transform: skewX(-3deg) scale(1);
+  }
+
+  .menu-item.disabled::before {
+    display: none;
+  }
+
+  .subtitle-bottom {
+    margin-top: 50px;
+    font-size: clamp(0.7rem, 1.8vw, 1rem);
+    letter-spacing: 0.3em;
+    color: rgba(255, 215, 0, 0.5);
+    text-transform: uppercase;
+  }
+
+  /* Card decorations flanking the title */
+  .card-deco {
+    position: fixed;
+    z-index: 2;
+    pointer-events: none;
+    font-size: clamp(3rem, 6vw, 5rem);
+    opacity: 0.12;
+    animation: cardFloat 6s ease-in-out infinite;
+  }
+  .card-deco.left { left: 5%; top: 20%; animation-delay: 0s; }
+  .card-deco.right { right: 5%; top: 25%; animation-delay: -3s; }
+
+  @keyframes cardFloat {
+    0%, 100% { transform: translateY(0) rotate(-5deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+  }
+
+  @media (max-width: 768px) {
+    .menu-item { padding: 10px 30px; }
+    .card-deco { display: none; }
+    .subtitle-top { letter-spacing: 0.3em; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+
+<div class="card-deco left">&#9824; &#9829;</div>
+<div class="card-deco right">&#9830; &#9827;</div>
+
+<div class="ui">
+  <div class="subtitle-top">ROGUELIKE POKER</div>
+  <div class="title">BALATRO</div>
+
+  <nav class="menu">
+    <a href="game.html" class="menu-item" id="new-run">New Run</a>
+    <a href="#" class="menu-item disabled" id="continue-btn">Continue</a>
+    <button class="menu-item" id="options-btn">Options</button>
+  </nav>
+
+  <div class="subtitle-bottom">A poker deckbuilder roguelike</div>
+</div>
+
+<script>
+// --- Continue button check ---
+(function() {
+  const save = localStorage.getItem('balatro_save');
+  const btn = document.getElementById('continue-btn');
+  if (save) {
+    btn.classList.remove('disabled');
+    btn.href = 'game.html?continue=1';
+  }
+})();
+
+// --- WebGL Metaball Lava Lamp ---
+const canvas = document.getElementById('bg');
+const gl = canvas.getContext('webgl', { alpha: false, antialias: false });
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Vertex shader - full screen quad
+const vsSource = `
+attribute vec2 aPos;
+void main() {
+  gl_Position = vec4(aPos, 0.0, 1.0);
+}`;
+
+// Fragment shader - metaball lava lamp with Balatro palette
+const fsSource = `
+precision mediump float;
+uniform float uTime;
+uniform vec2 uResolution;
+
+// Smooth minimum for metaball blending
+float smin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+float blob(vec2 uv, vec2 center, float radius) {
+  return length(uv - center) - radius;
+}
+
+void main() {
+  vec2 uv = (gl_FragCoord.xy - 0.5 * uResolution) / min(uResolution.x, uResolution.y);
+  float t = uTime * 0.4;
+
+  // --- Synthwave grid background ---
+  vec2 guv = uv;
+  guv.y -= 0.1;
+  // Perspective warp
+  float perspective = 1.0 / (guv.y + 1.5);
+  float gx = guv.x * perspective * 4.0;
+  float gy = perspective * 3.0 - t * 0.5;
+
+  float gridX = smoothstep(0.02, 0.0, abs(fract(gx) - 0.5) * 2.0 - 0.9);
+  float gridY = smoothstep(0.02, 0.0, abs(fract(gy) - 0.5) * 2.0 - 0.9);
+  float grid = (gridX + gridY) * 0.15 * max(0.0, -guv.y + 0.3);
+  // Fade grid at horizon
+  grid *= smoothstep(0.6, 0.1, guv.y + 0.5);
+
+  // --- Metaball blobs ---
+  vec2 b1 = vec2(sin(t * 0.7) * 0.4, cos(t * 0.5) * 0.3 + 0.05);
+  vec2 b2 = vec2(cos(t * 0.6 + 1.0) * 0.35, sin(t * 0.8 + 2.0) * 0.25 - 0.1);
+  vec2 b3 = vec2(sin(t * 0.9 + 3.0) * 0.3, cos(t * 0.4 + 1.5) * 0.35);
+  vec2 b4 = vec2(cos(t * 0.5 + 4.0) * 0.45, sin(t * 0.7 + 3.0) * 0.2 + 0.15);
+  vec2 b5 = vec2(sin(t * 0.8 + 5.0) * 0.25, cos(t * 0.6 + 4.0) * 0.3 - 0.15);
+
+  float d1 = blob(uv, b1, 0.18);
+  float d2 = blob(uv, b2, 0.15);
+  float d3 = blob(uv, b3, 0.2);
+  float d4 = blob(uv, b4, 0.13);
+  float d5 = blob(uv, b5, 0.16);
+
+  float k = 0.25; // smoothing factor
+  float d = smin(d1, d2, k);
+  d = smin(d, d3, k);
+  d = smin(d, d4, k);
+  d = smin(d, d5, k);
+
+  // --- Balatro color palette: deep red, crimson, purple, gold ---
+  vec3 colDeepRed = vec3(0.6, 0.05, 0.1);
+  vec3 colCrimson = vec3(0.85, 0.15, 0.2);
+  vec3 colPurple = vec3(0.45, 0.1, 0.6);
+  vec3 colGold = vec3(1.0, 0.8, 0.2);
+  vec3 colDarkPurple = vec3(0.15, 0.02, 0.2);
+
+  // Blob interior color - shift between palette based on position + time
+  float colorMix = sin(uv.x * 3.0 + t) * 0.5 + 0.5;
+  float colorMix2 = cos(uv.y * 2.5 - t * 0.7) * 0.5 + 0.5;
+  vec3 blobColor = mix(colDeepRed, colCrimson, colorMix);
+  blobColor = mix(blobColor, colPurple, colorMix2 * 0.6);
+  // Gold highlights near blob edges
+  float edgeFactor = smoothstep(0.0, 0.08, abs(d));
+  blobColor = mix(blobColor, colGold, (1.0 - edgeFactor) * 0.4);
+
+  // Rim lighting
+  float rim = smoothstep(0.02, -0.01, d) - smoothstep(-0.01, -0.04, d);
+
+  // Glow outside blobs
+  float glow = 0.02 / (abs(d) + 0.02);
+  glow = pow(glow, 1.5) * 0.3;
+
+  // Blob body
+  float body = smoothstep(0.01, -0.01, d);
+
+  // --- Compose ---
+  // Background: very dark purple-black with subtle grid
+  vec3 bg = colDarkPurple * 0.3;
+  vec3 gridColor = mix(colDeepRed, colPurple, 0.5) * 0.7;
+  bg += gridColor * grid;
+
+  // Add glow
+  vec3 glowColor = mix(colCrimson, colGold, sin(t * 0.3) * 0.5 + 0.5) * glow;
+
+  // Final color
+  vec3 col = bg + glowColor;
+  col = mix(col, blobColor, body * 0.85);
+  col += colGold * rim * 0.6;
+
+  // --- Chromatic aberration ---
+  vec2 dir = uv * 0.003;
+  float rOff = body * 0.6;
+  // Simulate by shifting color channels slightly
+  col.r += smoothstep(0.05, -0.02, d - 0.015) * 0.08;
+  col.b += smoothstep(0.05, -0.02, d + 0.015) * 0.08;
+
+  // Subtle overall tint to warm things up
+  col += vec3(0.02, 0.0, 0.01);
+
+  // Tone mapping
+  col = col / (col + vec3(0.8));
+  col = pow(col, vec3(0.9));
+
+  gl_FragColor = vec4(col, 1.0);
+}`;
+
+function createShader(type, source) {
+  const s = gl.createShader(type);
+  gl.shaderSource(s, source);
+  gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    console.error('Shader error:', gl.getShaderInfoLog(s));
+    gl.deleteShader(s);
+    return null;
+  }
+  return s;
+}
+
+const vs = createShader(gl.VERTEX_SHADER, vsSource);
+const fs = createShader(gl.FRAGMENT_SHADER, fsSource);
+
+const program = gl.createProgram();
+gl.attachShader(program, vs);
+gl.attachShader(program, fs);
+gl.linkProgram(program);
+
+if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+  console.error('Program error:', gl.getProgramInfoLog(program));
+}
+
+gl.useProgram(program);
+
+// Full-screen quad
+const quad = new Float32Array([-1,-1, 1,-1, -1,1, 1,1]);
+const buf = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+gl.bufferData(gl.ARRAY_BUFFER, quad, gl.STATIC_DRAW);
+
+const aPos = gl.getAttribLocation(program, 'aPos');
+gl.enableVertexAttribArray(aPos);
+gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+const uTime = gl.getUniformLocation(program, 'uTime');
+const uResolution = gl.getUniformLocation(program, 'uResolution');
+
+let startTime = performance.now();
+
+function frame() {
+  const t = (performance.now() - startTime) * 0.001;
+  gl.uniform1f(uTime, t);
+  gl.uniform2f(uResolution, canvas.width, canvas.height);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  requestAnimationFrame(frame);
+}
+frame();
+
+// --- Options placeholder ---
+document.getElementById('options-btn').addEventListener('click', function() {
+  // Future: open options modal
+  alert('Options coming soon!');
+});
+</script>
+</body>
+</html>

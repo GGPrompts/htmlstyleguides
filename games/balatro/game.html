@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Balatro - Roguelike Poker Deckbuilder</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --felt: #0d4a2b;
+  --felt-dark: #093a22;
+  --felt-light: #12633a;
+  --gold: #ffd700;
+  --gold-dim: #b8960f;
+  --red: #dc2626;
+  --red-hover: #ef4444;
+  --chrome: #c0c0c0;
+  --chrome-dark: #8a8a8a;
+  --card-bg: #faf7f0;
+  --card-shadow: rgba(0,0,0,0.4);
+  --text: #e8e8e8;
+  --text-dim: #9ca3af;
+  --overlay-bg: rgba(0,0,0,0.75);
+  --clubs: #22c55e;
+  --diamonds: #f97316;
+  --hearts: #ec4899;
+  --spades: #06b6d4;
+  --mono: 'Courier New', 'Consolas', monospace;
+  --display: 'Russo One', sans-serif;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: var(--mono);
+  color: var(--text);
+  background: var(--felt);
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at 50% 30%, var(--felt-light) 0%, transparent 60%),
+    repeating-linear-gradient(
+      0deg,
+      transparent, transparent 2px,
+      rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px
+    );
+}
+
+/* ── LAYOUT ─────────────────────────────────────────── */
+#game-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 12px;
+  gap: 6px;
+}
+
+/* ── TOP BAR ────────────────────────────────────────── */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid var(--chrome-dark);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-family: var(--display);
+  flex-shrink: 0;
+}
+.top-bar .ante-label {
+  color: var(--gold);
+  font-size: 1rem;
+  letter-spacing: 1px;
+}
+.top-bar .blind-label {
+  font-size: 0.9rem;
+  color: var(--text);
+}
+.top-bar .boss-label {
+  color: var(--red);
+}
+.top-bar .money {
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+.top-bar .suits-display {
+  font-size: 1rem;
+  letter-spacing: 2px;
+}
+.top-bar .suits-display .s-clubs { color: var(--clubs); }
+.top-bar .suits-display .s-diamonds { color: var(--diamonds); }
+.top-bar .suits-display .s-hearts { color: var(--hearts); }
+.top-bar .suits-display .s-spades { color: var(--spades); }
+
+/* ── JOKER SLOTS ────────────────────────────────────── */
+.joker-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 0;
+  flex-shrink: 0;
+  min-height: 64px;
+}
+.joker-slot {
+  width: 80px;
+  height: 52px;
+  border: 2px dashed var(--chrome-dark);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  background: rgba(0,0,0,0.15);
+  flex-shrink: 0;
+  cursor: default;
+  position: relative;
+}
+.joker-slot.filled {
+  border: 2px solid var(--chrome);
+  background: linear-gradient(135deg, #2d1b69 0%, #1a1a2e 100%);
+  cursor: pointer;
+  font-size: 0.6rem;
+  color: var(--text);
+  padding: 4px;
+  text-align: center;
+  line-height: 1.2;
+  font-family: var(--mono);
+}
+.joker-slot.filled:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 8px rgba(255,215,0,0.3);
+}
+.joker-slot .joker-name {
+  font-family: var(--display);
+  font-size: 0.55rem;
+  color: var(--gold);
+  display: block;
+}
+.joker-slot .joker-desc {
+  font-size: 0.5rem;
+  color: var(--text-dim);
+  display: block;
+  margin-top: 1px;
+}
+
+/* ── BLIND INFO ─────────────────────────────────────── */
+.blind-info {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid var(--chrome-dark);
+  border-radius: 8px;
+  padding: 8px 16px;
+  flex-shrink: 0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.blind-info .info-block {
+  text-align: center;
+}
+.blind-info .info-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.blind-info .info-value {
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold);
+}
+.blind-info .info-value.score-on-track { color: var(--clubs); }
+.blind-info .info-value.score-danger { color: var(--red); }
+.boss-effect-text {
+  font-size: 0.65rem;
+  color: var(--red);
+  text-align: center;
+  width: 100%;
+  margin-top: 2px;
+}
+
+/* ── SCORE BAR (progress) ──────────────────────────── */
+.score-bar-wrap {
+  width: 100%;
+  height: 8px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.score-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  width: 0%;
+}
+
+/* ── HAND AREA ──────────────────────────────────────── */
+.hand-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 8px 0;
+}
+.hand-cards {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  perspective: 600px;
+}
+
+/* ── PLAYING CARD ───────────────────────────────────── */
+.card {
+  width: 60px;
+  height: 90px;
+  background: var(--card-bg);
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 2px 6px var(--card-shadow);
+  user-select: none;
+  flex-shrink: 0;
+}
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 16px var(--card-shadow);
+}
+.card.selected {
+  transform: translateY(-22px);
+  border-color: var(--gold);
+  box-shadow: 0 0 14px rgba(255,215,0,0.5), 0 8px 20px var(--card-shadow);
+}
+.card .card-tl {
+  position: absolute;
+  top: 4px; left: 5px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 1;
+  font-family: var(--mono);
+}
+.card .card-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.6rem;
+  line-height: 1;
+}
+.card .card-br {
+  position: absolute;
+  bottom: 4px; right: 5px;
+  font-size: 0.55rem;
+  font-weight: bold;
+  line-height: 1;
+  font-family: var(--mono);
+  transform: rotate(180deg);
+}
+
+/* Enhancement border glows */
+.card.enh-bonus { border-color: #facc15; box-shadow: 0 0 8px rgba(250,204,21,0.4); }
+.card.enh-mult { border-color: #ec4899; box-shadow: 0 0 8px rgba(236,72,153,0.4); }
+.card.enh-glass { border-color: #06b6d4; box-shadow: 0 0 8px rgba(6,182,212,0.4); }
+.card.enh-steel { border-color: #94a3b8; box-shadow: 0 0 8px rgba(148,163,184,0.4); }
+.card.enh-stone { border-color: #92400e; box-shadow: 0 0 8px rgba(146,64,14,0.4); }
+.card.enh-gold { border-color: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.5); }
+.card.enh-lucky { border-color: #22c55e; box-shadow: 0 0 8px rgba(34,197,94,0.4); }
+.card.selected.enh-bonus,
+.card.selected.enh-mult,
+.card.selected.enh-glass,
+.card.selected.enh-steel,
+.card.selected.enh-stone,
+.card.selected.enh-gold,
+.card.selected.enh-lucky {
+  transform: translateY(-22px);
+  box-shadow: 0 0 14px rgba(255,215,0,0.5), 0 8px 20px var(--card-shadow);
+}
+
+/* Edition effects */
+.card.ed-foil {
+  background: linear-gradient(135deg, #faf7f0 0%, #e8e8e8 40%, #faf7f0 60%, #d4d4d8 100%);
+}
+.card.ed-holo {
+  background: linear-gradient(135deg,
+    #faf7f0 0%, #fce4ec 20%, #e3f2fd 40%,
+    #f3e5f5 60%, #fff9c4 80%, #faf7f0 100%);
+}
+.card.ed-poly {
+  background: linear-gradient(135deg,
+    #faf7f0 0%, #c8e6c9 25%, #bbdefb 50%,
+    #f8bbd0 75%, #faf7f0 100%);
+  animation: polyShimmer 3s ease-in-out infinite;
+}
+@keyframes polyShimmer {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(30deg); }
+}
+
+/* Enhancement tag */
+.card .enh-tag {
+  position: absolute;
+  bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 3px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ── HAND PREVIEW ───────────────────────────────────── */
+.hand-preview {
+  text-align: center;
+  padding: 6px 0;
+  min-height: 36px;
+  flex-shrink: 0;
+}
+.hand-preview .hand-type-name {
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold);
+}
+.hand-preview .hand-values {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+.hand-preview .hand-level {
+  font-size: 0.65rem;
+  color: var(--chrome);
+}
+
+/* ── ACTION BUTTONS ─────────────────────────────────── */
+.action-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 8px 0;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+.btn {
+  font-family: var(--display);
+  font-size: 0.85rem;
+  padding: 10px 20px;
+  border: 2px solid var(--chrome-dark);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.btn:active { transform: scale(0.96); }
+.btn-play {
+  background: linear-gradient(180deg, var(--red) 0%, #991b1b 100%);
+  color: #fff;
+  border-color: var(--red);
+}
+.btn-play:hover { background: linear-gradient(180deg, var(--red-hover) 0%, var(--red) 100%); }
+.btn-play:disabled {
+  background: #555;
+  border-color: #444;
+  color: #888;
+  cursor: not-allowed;
+}
+.btn-discard {
+  background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  border-color: #3b82f6;
+}
+.btn-discard:hover { background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%); }
+.btn-discard:disabled {
+  background: #555;
+  border-color: #444;
+  color: #888;
+  cursor: not-allowed;
+}
+.btn-sort {
+  background: rgba(0,0,0,0.3);
+  color: var(--text);
+  border-color: var(--chrome-dark);
+}
+.btn-sort:hover { border-color: var(--chrome); background: rgba(0,0,0,0.5); }
+.btn-gold {
+  background: linear-gradient(180deg, var(--gold) 0%, var(--gold-dim) 100%);
+  color: #1a1a2e;
+  border-color: var(--gold);
+}
+.btn-gold:hover { background: linear-gradient(180deg, #ffe44d 0%, var(--gold) 100%); }
+.btn-gold:disabled {
+  background: #555;
+  border-color: #444;
+  color: #888;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: rgba(0,0,0,0.3);
+  color: var(--text);
+  border-color: var(--chrome-dark);
+}
+.btn-secondary:hover { border-color: var(--chrome); }
+.btn-danger {
+  background: linear-gradient(180deg, #7f1d1d 0%, #450a0a 100%);
+  color: #fca5a5;
+  border-color: #991b1b;
+  font-size: 0.65rem;
+  padding: 4px 8px;
+}
+.btn-danger:hover { border-color: var(--red); }
+
+/* Deck count */
+.deck-count {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* ── OVERLAYS ───────────────────────────────────────── */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.overlay.active { display: flex; }
+.overlay-box {
+  background: linear-gradient(180deg, #1a1a2e 0%, #0f0f23 100%);
+  border: 2px solid var(--chrome);
+  border-radius: 16px;
+  padding: 32px 40px;
+  text-align: center;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.overlay-title {
+  font-family: var(--display);
+  font-size: 1.8rem;
+  color: var(--gold);
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+/* ── SCORING OVERLAY ────────────────────────────────── */
+#scoring-overlay .score-anim {
+  font-family: var(--display);
+  font-size: 1.4rem;
+  margin: 12px 0;
+}
+#scoring-overlay .score-chips { color: #3b82f6; }
+#scoring-overlay .score-x { color: var(--text-dim); margin: 0 6px; }
+#scoring-overlay .score-mult { color: var(--red); }
+#scoring-overlay .score-eq { color: var(--text-dim); margin: 0 6px; }
+#scoring-overlay .score-final { color: var(--gold); font-size: 2rem; }
+.score-mods {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin: 6px 0;
+  max-height: 120px;
+  overflow-y: auto;
+}
+.score-mods .chip-mod { color: #60a5fa; }
+.score-mods .mult-mod { color: #f87171; }
+
+/* ── BLIND COMPLETE OVERLAY ─────────────────────────── */
+#blind-complete-overlay .reward-text {
+  font-size: 1rem;
+  color: var(--gold);
+  margin: 12px 0;
+}
+
+/* ── SHOP SCREEN ────────────────────────────────────── */
+#shop-screen {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 12px;
+  gap: 10px;
+}
+#shop-screen.active { display: flex; }
+
+.shop-header {
+  text-align: center;
+  font-family: var(--display);
+  font-size: 1.4rem;
+  color: var(--gold);
+  letter-spacing: 2px;
+  flex-shrink: 0;
+}
+.shop-money {
+  text-align: center;
+  font-family: var(--display);
+  font-size: 1rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+  flex-shrink: 0;
+}
+
+.shop-section {
+  margin-bottom: 8px;
+}
+.shop-section-title {
+  font-family: var(--display);
+  font-size: 0.8rem;
+  color: var(--chrome);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.shop-items {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.shop-item {
+  background: linear-gradient(135deg, #2d1b69 0%, #1a1a2e 100%);
+  border: 2px solid var(--chrome-dark);
+  border-radius: 10px;
+  padding: 12px;
+  width: 160px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.shop-item:hover {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(255,215,0,0.3);
+}
+.shop-item.sold {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.shop-item .item-name {
+  font-family: var(--display);
+  font-size: 0.75rem;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.shop-item .item-desc {
+  font-size: 0.6rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  min-height: 24px;
+}
+.shop-item .item-cost {
+  font-family: var(--display);
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+.shop-item .item-type-tag {
+  font-size: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-bottom: 4px;
+}
+.item-type-tag.planet { background: #1e3a5f; color: #7dd3fc; }
+.item-type-tag.tarot { background: #4a1942; color: #e879f9; }
+.item-type-tag.voucher { background: #3f3f0e; color: var(--gold); }
+
+/* Shop joker row (owned) */
+.shop-owned-jokers {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 8px 0;
+}
+.shop-joker-owned {
+  background: linear-gradient(135deg, #2d1b69 0%, #1a1a2e 100%);
+  border: 2px solid var(--chrome-dark);
+  border-radius: 8px;
+  padding: 8px;
+  width: 100px;
+  text-align: center;
+  position: relative;
+}
+.shop-joker-owned .joker-name {
+  font-family: var(--display);
+  font-size: 0.55rem;
+  color: var(--gold);
+}
+.shop-joker-owned .sell-value {
+  font-size: 0.55rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ── GAME OVER / WIN ────────────────────────────────── */
+.final-stats {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 12px 0;
+  line-height: 1.8;
+}
+.final-stats span { color: var(--gold); }
+
+/* ── TOAST NOTIFICATIONS ────────────────────────────── */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: #1a1a2e;
+  border: 2px solid var(--gold);
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-family: var(--display);
+  color: var(--gold);
+  font-size: 0.85rem;
+  z-index: 200;
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.error { border-color: var(--red); color: #fca5a5; }
+
+/* ── RESPONSIVE ─────────────────────────────────────── */
+@media (max-width: 768px) {
+  #game-screen { padding: 4px 6px; gap: 4px; }
+  .top-bar { padding: 6px 10px; font-size: 0.8rem; }
+  .top-bar .ante-label { font-size: 0.8rem; }
+  .top-bar .blind-label { font-size: 0.7rem; }
+  .top-bar .money { font-size: 0.9rem; }
+  .blind-info { padding: 6px 8px; gap: 6px; }
+  .blind-info .info-label { font-size: 0.6rem; }
+  .blind-info .info-value { font-size: 0.85rem; }
+  .card { width: 48px; height: 72px; }
+  .card .card-tl { font-size: 0.6rem; top: 3px; left: 3px; }
+  .card .card-center { font-size: 1.2rem; }
+  .card .card-br { font-size: 0.45rem; bottom: 3px; right: 3px; }
+  .card .enh-tag { font-size: 0.35rem; bottom: 12px; }
+  .hand-cards { gap: 4px; }
+  .card.selected { transform: translateY(-16px); }
+  .btn { font-size: 0.7rem; padding: 8px 14px; }
+  .joker-slot { width: 60px; height: 44px; }
+  .joker-slot .joker-name { font-size: 0.45rem; }
+  .joker-slot .joker-desc { font-size: 0.4rem; }
+  .overlay-box { padding: 20px 24px; }
+  .overlay-title { font-size: 1.3rem; }
+  .shop-item { width: 130px; padding: 8px; }
+  #shop-screen { padding: 8px; }
+}
+
+@media (max-width: 480px) {
+  .card { width: 40px; height: 62px; border-radius: 5px; }
+  .card .card-tl { font-size: 0.5rem; top: 2px; left: 2px; }
+  .card .card-center { font-size: 1rem; }
+  .card .card-br { display: none; }
+  .card .enh-tag { display: none; }
+  .hand-cards { gap: 2px; }
+  .card.selected { transform: translateY(-12px); }
+  .btn { font-size: 0.65rem; padding: 6px 10px; }
+  .top-bar { flex-wrap: wrap; gap: 4px; }
+  .joker-slot { width: 50px; height: 38px; }
+  .shop-item { width: 110px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     GAME SCREEN (SELECT_CARDS phase)
+     ═══════════════════════════════════════════════════ -->
+<div id="game-screen">
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <span class="ante-label" id="ante-label">ANTE 1</span>
+    <span class="blind-label" id="blind-label">Small Blind</span>
+    <span class="money" id="money-label">$4</span>
+    <span class="suits-display">
+      <span class="s-spades">&#9824;</span><span class="s-hearts">&#9829;</span><span class="s-diamonds">&#9830;</span><span class="s-clubs">&#9827;</span>
+    </span>
+  </div>
+
+  <!-- Joker Slots -->
+  <div class="joker-row" id="joker-row"></div>
+
+  <!-- Blind Info -->
+  <div class="blind-info">
+    <div class="info-block">
+      <div class="info-label">Target</div>
+      <div class="info-value" id="target-value">300</div>
+    </div>
+    <div class="info-block" style="flex:1; max-width:220px;">
+      <div class="info-label">Score</div>
+      <div class="info-value" id="score-value">0 / 300</div>
+      <div class="score-bar-wrap">
+        <div class="score-bar-fill" id="score-bar"></div>
+      </div>
+    </div>
+    <div class="info-block">
+      <div class="info-label">Hands</div>
+      <div class="info-value" id="hands-value">4</div>
+    </div>
+    <div class="info-block">
+      <div class="info-label">Discards</div>
+      <div class="info-value" id="discards-value">3</div>
+    </div>
+    <div class="boss-effect-text" id="boss-effect-text"></div>
+  </div>
+
+  <!-- Hand Area -->
+  <div class="hand-area">
+    <div class="hand-cards" id="hand-cards"></div>
+  </div>
+
+  <!-- Hand Preview -->
+  <div class="hand-preview" id="hand-preview">
+    <div class="hand-type-name" id="preview-type">Select cards to play</div>
+    <div class="hand-values" id="preview-values"></div>
+    <div class="hand-level" id="preview-level"></div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="action-row">
+    <button class="btn btn-play" id="btn-play" disabled>Play Hand</button>
+    <button class="btn btn-discard" id="btn-discard" disabled>Discard</button>
+    <button class="btn btn-sort" id="btn-sort">Sort: Rank</button>
+  </div>
+
+  <!-- Deck count -->
+  <div class="deck-count" id="deck-count">Deck: 44</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SCORING OVERLAY
+     ═══════════════════════════════════════════════════ -->
+<div class="overlay" id="scoring-overlay">
+  <div class="overlay-box">
+    <div class="overlay-title" id="scoring-hand-name">Pair</div>
+    <div class="score-mods" id="score-mods"></div>
+    <div class="score-anim">
+      <span class="score-chips" id="anim-chips">0</span>
+      <span class="score-x">&times;</span>
+      <span class="score-mult" id="anim-mult">0</span>
+      <span class="score-eq">=</span>
+      <span class="score-final" id="anim-final">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     BLIND COMPLETE OVERLAY
+     ═══════════════════════════════════════════════════ -->
+<div class="overlay" id="blind-complete-overlay">
+  <div class="overlay-box">
+    <div class="overlay-title">BLIND DEFEATED!</div>
+    <div class="reward-text" id="reward-text">+$7 reward</div>
+    <div class="reward-text" id="interest-text" style="font-size:0.8rem; color:var(--text-dim);"></div>
+    <div style="margin-top:20px;">
+      <button class="btn btn-gold" id="btn-to-shop">Continue to Shop</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     SHOP SCREEN
+     ═══════════════════════════════════════════════════ -->
+<div id="shop-screen">
+  <div class="shop-header">SHOP</div>
+  <div class="shop-money" id="shop-money">$4</div>
+
+  <!-- Owned Jokers (sellable) -->
+  <div class="shop-section">
+    <div class="shop-section-title">Your Jokers (click to sell)</div>
+    <div class="shop-owned-jokers" id="shop-owned-jokers"></div>
+  </div>
+
+  <!-- Jokers for sale -->
+  <div class="shop-section">
+    <div class="shop-section-title">Jokers</div>
+    <div class="shop-items" id="shop-jokers"></div>
+  </div>
+
+  <!-- Consumables for sale -->
+  <div class="shop-section">
+    <div class="shop-section-title">Consumables</div>
+    <div class="shop-items" id="shop-consumables"></div>
+  </div>
+
+  <!-- Voucher -->
+  <div class="shop-section">
+    <div class="shop-section-title">Voucher</div>
+    <div class="shop-items" id="shop-voucher"></div>
+  </div>
+
+  <div class="action-row">
+    <button class="btn btn-secondary" id="btn-reroll">Reroll ($5)</button>
+    <button class="btn btn-gold" id="btn-next-blind">Next Blind</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     GAME OVER OVERLAY
+     ═══════════════════════════════════════════════════ -->
+<div class="overlay" id="gameover-overlay">
+  <div class="overlay-box">
+    <div class="overlay-title" style="color:var(--red);">GAME OVER</div>
+    <div class="final-stats" id="gameover-stats"></div>
+    <button class="btn btn-play" id="btn-retry" style="margin-top:16px;">Try Again</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     WIN OVERLAY
+     ═══════════════════════════════════════════════════ -->
+<div class="overlay" id="win-overlay">
+  <div class="overlay-box">
+    <div class="overlay-title">YOU WIN!</div>
+    <div style="font-size:2rem; margin:12px 0;">&#127183; &#127920;</div>
+    <div class="final-stats" id="win-stats"></div>
+    <button class="btn btn-gold" id="btn-win-restart" style="margin-top:16px;">Play Again</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════
+     JS MODULES (loaded in order)
+     ═══════════════════════════════════════════════════ -->
+<script src="cards.js"></script>
+<script src="hands.js"></script>
+<script src="scoring.js"></script>
+<script src="jokers.js"></script>
+<script src="blinds.js"></script>
+<script src="data.js"></script>
+<script src="shop.js"></script>
+<script src="game-state.js"></script>
+
+<script>
+(function() {
+  const B = window.Balatro;
+
+  // ── DOM REFS ───────────────────────────────────────
+  const $ = id => document.getElementById(id);
+  const gameScreen = $('game-screen');
+  const shopScreen = $('shop-screen');
+  const scoringOverlay = $('scoring-overlay');
+  const blindCompleteOverlay = $('blind-complete-overlay');
+  const gameoverOverlay = $('gameover-overlay');
+  const winOverlay = $('win-overlay');
+  const toastEl = $('toast');
+
+  // ── TOAST ──────────────────────────────────────────
+  let toastTimer = null;
+  function showToast(msg, isError) {
+    toastEl.textContent = msg;
+    toastEl.className = 'toast show' + (isError ? ' error' : '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { toastEl.className = 'toast'; }, 2000);
+  }
+
+  // ── ENHANCEMENT CLASS ──────────────────────────────
+  function enhClass(card) {
+    const map = { 1:'enh-bonus', 2:'enh-mult', 3:'enh-glass', 4:'enh-steel', 5:'enh-stone', 6:'enh-gold', 7:'enh-lucky' };
+    return map[card.enhancement] || '';
+  }
+  function edClass(card) {
+    const map = { 1:'ed-foil', 2:'ed-holo', 3:'ed-poly' };
+    return map[card.edition] || '';
+  }
+
+  // ── RENDER CARD HTML ───────────────────────────────
+  function renderCardHTML(card, index) {
+    const color = B.suitColor(card.suit);
+    const rank = B.rankShort(card.rank);
+    const suit = B.suitSymbol(card.suit);
+    const sel = card.selected ? ' selected' : '';
+    const enh = enhClass(card);
+    const ed = edClass(card);
+    const enhTag = card.enhancement > 0
+      ? '<span class="enh-tag" style="color:' + B.enhancementColor(card.enhancement) + '">' + B.enhancementName(card.enhancement) + '</span>'
+      : '';
+    return '<div class="card' + sel + (enh ? ' ' + enh : '') + (ed ? ' ' + ed : '') + '" data-index="' + index + '">'
+      + '<span class="card-tl" style="color:' + color + '">' + rank + suit + '</span>'
+      + '<span class="card-center" style="color:' + color + '">' + suit + '</span>'
+      + '<span class="card-br" style="color:' + color + '">' + rank + suit + '</span>'
+      + enhTag
+      + '</div>';
+  }
+
+  // ── RENDER JOKER ROW ───────────────────────────────
+  function renderJokers() {
+    const state = B.gameState;
+    const row = $('joker-row');
+    let html = '';
+    for (let i = 0; i < B.MAX_JOKERS; i++) {
+      if (state.jokers[i]) {
+        const j = state.jokers[i];
+        const rarCol = B.rarityColor(j.rarity || 0);
+        html += '<div class="joker-slot filled" title="' + j.desc + '" style="border-color:' + rarCol + ';">'
+          + '<span class="joker-name">' + j.name + '</span>'
+          + '<span class="joker-desc">' + j.desc + '</span>'
+          + '</div>';
+      } else {
+        html += '<div class="joker-slot">+</div>';
+      }
+    }
+    row.innerHTML = html;
+  }
+
+  // ── SORT MODE LABEL ────────────────────────────────
+  function sortLabel() {
+    const state = B.gameState;
+    if (!state) return 'Sort';
+    const labels = ['None', 'Suit', 'Rank'];
+    return 'Sort: ' + labels[state.sortMode];
+  }
+
+  // ── HIDE ALL SCREENS ──────────────────────────────
+  function hideAll() {
+    gameScreen.style.display = 'none';
+    shopScreen.className = '';
+    shopScreen.style.display = 'none';
+    scoringOverlay.className = 'overlay';
+    blindCompleteOverlay.className = 'overlay';
+    gameoverOverlay.className = 'overlay';
+    winOverlay.className = 'overlay';
+  }
+
+  // ── MAIN RENDER ────────────────────────────────────
+  function render() {
+    const state = B.gameState;
+    if (!state) return;
+    const rs = state.roundState;
+    const phase = state.phase;
+
+    hideAll();
+
+    if (phase === B.Phase.SELECT_CARDS) {
+      gameScreen.style.display = 'flex';
+      renderGameScreen(state, rs);
+    } else if (phase === B.Phase.BLIND_COMPLETE) {
+      gameScreen.style.display = 'flex';
+      renderGameScreen(state, rs);
+      blindCompleteOverlay.className = 'overlay active';
+      renderBlindComplete(state, rs);
+    } else if (phase === B.Phase.SHOP) {
+      shopScreen.style.display = 'flex';
+      shopScreen.className = 'active';
+      renderShop(state, rs);
+    } else if (phase === B.Phase.GAME_OVER) {
+      gameScreen.style.display = 'flex';
+      renderGameScreen(state, rs);
+      gameoverOverlay.className = 'overlay active';
+      renderGameOver(state, rs);
+    } else if (phase === B.Phase.WIN) {
+      gameScreen.style.display = 'flex';
+      renderGameScreen(state, rs);
+      winOverlay.className = 'overlay active';
+      renderWin(state, rs);
+    }
+  }
+
+  function renderGameScreen(state, rs) {
+    // Top bar
+    $('ante-label').textContent = 'ANTE ' + rs.ante;
+    const blind = rs.currentBlind;
+    const blindEl = $('blind-label');
+    blindEl.textContent = blind.name;
+    blindEl.className = 'blind-label' + (blind.bossEffect ? ' boss-label' : '');
+    $('money-label').textContent = '$' + rs.money;
+
+    // Blind info
+    $('target-value').textContent = rs.targetScore.toLocaleString();
+    $('score-value').textContent = rs.currentScore.toLocaleString() + ' / ' + rs.targetScore.toLocaleString();
+
+    const pct = Math.min(100, (rs.currentScore / rs.targetScore) * 100);
+    $('score-bar').style.width = pct + '%';
+
+    const scoreEl = $('score-value');
+    if (rs.currentScore >= rs.targetScore * 0.7) {
+      scoreEl.className = 'info-value score-on-track';
+    } else if (rs.handsRemaining <= 1 && rs.currentScore < rs.targetScore * 0.5) {
+      scoreEl.className = 'info-value score-danger';
+    } else {
+      scoreEl.className = 'info-value';
+    }
+
+    $('hands-value').textContent = rs.handsRemaining;
+    $('discards-value').textContent = rs.discardsRemaining;
+
+    // Boss effect
+    const bossText = $('boss-effect-text');
+    if (blind.bossEffect) {
+      bossText.textContent = blind.bossEffect.desc;
+    } else {
+      bossText.textContent = '';
+    }
+
+    // Jokers
+    renderJokers();
+
+    // Hand cards
+    const handDiv = $('hand-cards');
+    let cardsHTML = '';
+    for (let i = 0; i < state.hand.length; i++) {
+      cardsHTML += renderCardHTML(state.hand[i], i);
+    }
+    handDiv.innerHTML = cardsHTML;
+
+    // Hand preview
+    const selected = state.hand.filter(c => c.selected);
+    const hi = state.currentHandInfo;
+    if (hi && selected.length > 0) {
+      $('preview-type').textContent = B.handTypeName(hi.type);
+      $('preview-values').textContent = hi.baseChips + ' \u00D7 ' + hi.baseMult;
+      $('preview-level').textContent = 'lvl ' + (hi.level || 1);
+    } else {
+      $('preview-type').textContent = selected.length > 0 ? 'Select up to 5' : 'Select cards to play';
+      $('preview-values').textContent = '';
+      $('preview-level').textContent = '';
+    }
+
+    // Buttons
+    $('btn-play').disabled = selected.length === 0 || rs.handsRemaining <= 0;
+    $('btn-discard').disabled = selected.length === 0 || rs.discardsRemaining <= 0;
+    $('btn-sort').textContent = sortLabel();
+
+    // Deck count
+    $('deck-count').textContent = 'Deck: ' + state.deck.length;
+  }
+
+  // ── SCORING ANIMATION ─────────────────────────────
+  function showScoringAnimation(scoreCalc, handInfo, callback) {
+    scoringOverlay.className = 'overlay active';
+    $('scoring-hand-name').textContent = B.handTypeName(handInfo.type);
+
+    // Score mods
+    let modsHTML = '';
+    for (const m of scoreCalc.chipMods) {
+      modsHTML += '<div class="chip-mod">' + m + '</div>';
+    }
+    for (const m of scoreCalc.multMods) {
+      modsHTML += '<div class="mult-mod">' + m + '</div>';
+    }
+    $('score-mods').innerHTML = modsHTML;
+
+    // Animate counting up
+    const targetChips = scoreCalc.totalChips;
+    const targetMult = scoreCalc.totalMult;
+    const targetFinal = scoreCalc.finalScore;
+
+    const chipsEl = $('anim-chips');
+    const multEl = $('anim-mult');
+    const finalEl = $('anim-final');
+
+    chipsEl.textContent = '0';
+    multEl.textContent = '0';
+    finalEl.textContent = '0';
+
+    const duration = 800;
+    const start = performance.now();
+
+    function tick(now) {
+      const elapsed = now - start;
+      const t = Math.min(1, elapsed / duration);
+      const ease = 1 - Math.pow(1 - t, 3); // ease-out cubic
+
+      chipsEl.textContent = Math.floor(targetChips * ease).toLocaleString();
+      multEl.textContent = Math.floor(targetMult * ease).toLocaleString();
+      finalEl.textContent = Math.floor(targetFinal * ease).toLocaleString();
+
+      if (t < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        chipsEl.textContent = targetChips.toLocaleString();
+        multEl.textContent = targetMult.toLocaleString();
+        finalEl.textContent = targetFinal.toLocaleString();
+        setTimeout(() => {
+          scoringOverlay.className = 'overlay';
+          if (callback) callback();
+        }, 1200);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ── BLIND COMPLETE ─────────────────────────────────
+  function renderBlindComplete(state, rs) {
+    const blind = rs.currentBlind;
+    $('reward-text').textContent = '+$' + blind.reward + ' reward';
+    const interest = Math.min(5, Math.floor(rs.money / 5));
+    $('interest-text').textContent = interest > 0 ? '+$' + interest + ' interest' : '';
+  }
+
+  // ── SHOP ───────────────────────────────────────────
+  function renderShop(state, rs) {
+    const shop = state.currentShop;
+    $('shop-money').textContent = '$' + rs.money;
+
+    // Owned jokers
+    const ownedDiv = $('shop-owned-jokers');
+    let ownedHTML = '';
+    state.jokers.forEach((j, i) => {
+      const sell = B.getJokerSellValue(j);
+      ownedHTML += '<div class="shop-joker-owned" data-sell-index="' + i + '" style="cursor:pointer; border-color:' + B.rarityColor(j.rarity || 0) + ';">'
+        + '<div class="joker-name">' + j.name + '</div>'
+        + '<div class="sell-value">Sell: $' + sell + '</div>'
+        + '</div>';
+    });
+    ownedDiv.innerHTML = ownedHTML;
+
+    if (!shop) {
+      $('shop-jokers').innerHTML = '<div style="color:var(--text-dim);">No items</div>';
+      $('shop-consumables').innerHTML = '';
+      $('shop-voucher').innerHTML = '';
+      return;
+    }
+
+    // Jokers for sale
+    let jokersHTML = '';
+    shop.jokers.forEach((j, i) => {
+      const rarCol = B.rarityColor(j.rarity || 0);
+      const affordable = rs.money >= j.cost && state.jokers.length < B.MAX_JOKERS;
+      jokersHTML += '<div class="shop-item' + (affordable ? '' : ' sold') + '" data-buy-joker="' + i + '" style="border-color:' + rarCol + ';">'
+        + '<div class="item-name">' + j.name + '</div>'
+        + '<div class="item-desc">' + j.desc + '</div>'
+        + '<div class="item-cost">$' + j.cost + '</div>'
+        + '</div>';
+    });
+    if (shop.jokers.length === 0) jokersHTML = '<div style="color:var(--text-dim); font-size:0.75rem;">Sold out</div>';
+    $('shop-jokers').innerHTML = jokersHTML;
+
+    // Consumables
+    let consHTML = '';
+    shop.consumables.forEach((item, i) => {
+      const cost = item.cost || 3;
+      const affordable = rs.money >= cost;
+      const typeClass = item.cardType === 'planet' ? 'planet' : 'tarot';
+      const typeLabel = item.cardType === 'planet' ? 'Planet' : 'Tarot';
+      consHTML += '<div class="shop-item' + (affordable ? '' : ' sold') + '" data-buy-cons="' + i + '">'
+        + '<span class="item-type-tag ' + typeClass + '">' + typeLabel + '</span>'
+        + '<div class="item-name">' + item.name + '</div>'
+        + '<div class="item-desc">' + item.desc + '</div>'
+        + '<div class="item-cost">$' + cost + '</div>'
+        + '</div>';
+    });
+    if (shop.consumables.length === 0) consHTML = '<div style="color:var(--text-dim); font-size:0.75rem;">Sold out</div>';
+    $('shop-consumables').innerHTML = consHTML;
+
+    // Voucher
+    let vouchHTML = '';
+    if (shop.voucher) {
+      const v = shop.voucher;
+      const affordable = rs.money >= v.cost;
+      vouchHTML += '<div class="shop-item' + (affordable ? '' : ' sold') + '" data-buy-voucher>'
+        + '<span class="item-type-tag voucher">Voucher</span>'
+        + '<div class="item-name">' + v.name + '</div>'
+        + '<div class="item-desc">' + v.desc + '</div>'
+        + '<div class="item-cost">$' + v.cost + '</div>'
+        + '</div>';
+    } else {
+      vouchHTML = '<div style="color:var(--text-dim); font-size:0.75rem;">Sold out</div>';
+    }
+    $('shop-voucher').innerHTML = vouchHTML;
+
+    // Reroll button
+    const rerollCost = shop.rerollCost || 5;
+    $('btn-reroll').textContent = 'Reroll ($' + rerollCost + ')';
+    $('btn-reroll').disabled = rs.money < rerollCost;
+  }
+
+  // ── GAME OVER ──────────────────────────────────────
+  function renderGameOver(state, rs) {
+    $('gameover-stats').innerHTML = 'Reached Ante <span>' + rs.ante + '</span> - '
+      + rs.currentBlind.name
+      + '<br>Score: <span>' + rs.currentScore.toLocaleString() + '</span> / '
+      + rs.targetScore.toLocaleString()
+      + '<br>Jokers: <span>' + state.jokers.length + '</span>';
+  }
+
+  // ── WIN ────────────────────────────────────────────
+  function renderWin(state, rs) {
+    $('win-stats').innerHTML = 'Cleared all 8 antes!'
+      + '<br>Final money: <span>$' + rs.money + '</span>'
+      + '<br>Jokers: <span>' + state.jokers.map(j => j.name).join(', ') + '</span>';
+  }
+
+  // ── EVENT HANDLERS ─────────────────────────────────
+
+  // Card clicks (delegated)
+  $('hand-cards').addEventListener('click', e => {
+    const card = e.target.closest('.card');
+    if (!card) return;
+    const idx = parseInt(card.dataset.index, 10);
+    B.toggleCardSelection(idx);
+    render();
+  });
+
+  // Play hand
+  $('btn-play').addEventListener('click', () => {
+    const state = B.gameState;
+    if (!state) return;
+
+    const selected = state.hand.filter(c => c.selected);
+    if (selected.length === 0) return;
+
+    // Capture hand info before play
+    const hi = state.currentHandInfo;
+    const result = B.playHand();
+    if (!result) return;
+
+    if (result.error) {
+      showToast(result.error, true);
+      return;
+    }
+
+    // Show scoring animation, then render final state
+    showScoringAnimation(result, hi || { type: 0 }, () => {
+      render();
+    });
+  });
+
+  // Discard
+  $('btn-discard').addEventListener('click', () => {
+    const ok = B.discardCards();
+    if (!ok) {
+      showToast('Cannot discard', true);
+      return;
+    }
+    render();
+  });
+
+  // Sort
+  $('btn-sort').addEventListener('click', () => {
+    B.cycleSortMode();
+    render();
+  });
+
+  // Blind complete -> shop
+  $('btn-to-shop').addEventListener('click', () => {
+    B.advanceBlind();
+    if (B.gameState.phase === B.Phase.WIN) {
+      render();
+      return;
+    }
+    B.enterShop();
+    render();
+  });
+
+  // Shop: buy joker (delegated)
+  $('shop-jokers').addEventListener('click', e => {
+    const item = e.target.closest('.shop-item');
+    if (!item || item.classList.contains('sold')) return;
+    const idx = parseInt(item.dataset.buyJoker, 10);
+    if (isNaN(idx)) return;
+    const ok = B.buyJoker(idx);
+    if (ok) {
+      showToast('Joker purchased!');
+    } else {
+      showToast('Cannot buy joker', true);
+    }
+    render();
+  });
+
+  // Shop: buy consumable (delegated)
+  $('shop-consumables').addEventListener('click', e => {
+    const item = e.target.closest('.shop-item');
+    if (!item || item.classList.contains('sold')) return;
+    const idx = parseInt(item.dataset.buyCons, 10);
+    if (isNaN(idx)) return;
+    const result = B.buyConsumable(idx);
+    if (result && result.type === 'planet') {
+      showToast(result.name + ' used! ' + B.handTypeName(result.handType) + ' now lvl ' + result.newLevel);
+    } else if (result && result.type === 'tarot') {
+      showToast(result.name + ' acquired!');
+    } else {
+      showToast('Cannot buy', true);
+    }
+    render();
+  });
+
+  // Shop: buy voucher (delegated)
+  $('shop-voucher').addEventListener('click', e => {
+    const item = e.target.closest('.shop-item');
+    if (!item || item.classList.contains('sold')) return;
+    if (!item.hasAttribute('data-buy-voucher')) return;
+    const ok = B.buyVoucher();
+    if (ok) {
+      showToast('Voucher purchased!');
+    } else {
+      showToast('Cannot buy voucher', true);
+    }
+    render();
+  });
+
+  // Shop: sell joker (delegated)
+  $('shop-owned-jokers').addEventListener('click', e => {
+    const el = e.target.closest('.shop-joker-owned');
+    if (!el) return;
+    const idx = parseInt(el.dataset.sellIndex, 10);
+    if (isNaN(idx)) return;
+    const jokerName = B.gameState.jokers[idx]?.name || 'Joker';
+    const ok = B.sellJoker(idx);
+    if (ok) {
+      showToast('Sold ' + jokerName);
+    }
+    render();
+  });
+
+  // Shop: reroll
+  $('btn-reroll').addEventListener('click', () => {
+    const ok = B.rerollShop();
+    if (!ok) {
+      showToast('Cannot afford reroll', true);
+      return;
+    }
+    render();
+  });
+
+  // Shop: next blind
+  $('btn-next-blind').addEventListener('click', () => {
+    B.leaveShop();
+    render();
+  });
+
+  // Game over: retry
+  $('btn-retry').addEventListener('click', () => {
+    B.deleteSave();
+    B.newGame();
+    render();
+  });
+
+  // Win: play again
+  $('btn-win-restart').addEventListener('click', () => {
+    B.deleteSave();
+    B.newGame();
+    render();
+  });
+
+  // ── INIT ───────────────────────────────────────────
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('continue') === '1' && B.loadGame()) {
+    // Loaded saved game
+  } else {
+    B.newGame();
+  }
+  render();
+
+})();
+</script>
+</body>
+</html>
