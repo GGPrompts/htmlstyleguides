@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elevator to the Final Floor — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #1a150e;
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(26,21,14,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(18px, 4.5vw, 44px);
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #c8a84e;
+            text-shadow: 0 0 30px rgba(200,168,78,0.5), 0 0 60px rgba(200,168,78,0.2);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #c8a84e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #c8a84e;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(200,168,78,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(200,168,78,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+            font-family: sans-serif;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Elevator to the Final Floor</div>
+        <div class="play-sub">an art deco ascent</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Elevator to the Final Floor Video Renderer ─────────────────────
+    window.Renderers['elevator-final-floor-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Color Palette ──
+        var BG_DARK   = '#1a150e';
+        var BRASS     = '#c8a84e';
+        var BRASS_DIM = '#8b7230';
+        var DARK_WOOD = '#3d2b1a';
+        var PANEL     = '#2a1f14';
+        var CREAM     = '#f0e6cc';
+        var RED_CARPET= '#8b2020';
+
+        // Floor scene colors per zone
+        var ZONE_PALETTES = [
+            // Lobby/Bossa: warm cream, plants, marble
+            { bg: '#f5efe0', accent: '#4a8c5c', detail: '#c8a84e', name: 'LOBBY' },
+            // Tritone Creep: corporate grey-blue, fluorescent
+            { bg: '#2a3040', accent: '#60c0c0', detail: '#88aacc', name: 'OFFICES' },
+            // Minor Shift: dim amber, restaurant/bar
+            { bg: '#1e1408', accent: '#ff8844', detail: '#c8a84e', name: 'LOUNGE' },
+            // Dissonant: sickly green, lab/hospital
+            { bg: '#0a1a0a', accent: '#44ff66', detail: '#88ff88', name: 'LAB' },
+            // Horror: blood red, darkness
+            { bg: '#1a0505', accent: '#ff2222', detail: '#880000', name: 'INFERNO' },
+            // Penthouse: blinding white/gold
+            { bg: '#fffbe6', accent: '#ffd700', detail: '#ffffff', name: 'PENTHOUSE' }
+        ];
+
+        // ── State ──
+        var currentFloor = 0;
+        var targetFloor = 0;
+        var floorDisplay = 0;
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var dingAlpha = 0;
+        var dingRingRadius = 0;
+        var cableOffset = 0;
+        var doorOpenAmount = 0;
+        var doorTarget = 0;
+        var shakeX = 0, shakeY = 0;
+        var lastSeqIndex = -1;
+        var sectionZone = 0;
+        var introFade = 0;
+        var outroFade = 1;
+        var dialAngle = 0;
+        var dialTarget = 0;
+        var floorPassOffset = 0;
+        var elevatorSpeed = 0;
+        var flickerTimer = 0;
+        var flickerAlpha = 1;
+        var particles = [];
+        var cableVibration = 0;
+        var mechanicalClick = 0;
+        var floorSceneY = 0;
+        var revealAlpha = 0;
+        var expressShake = 0;
+        var floorGapScenes = [];
+
+        // ── Section Mapping ──
+        // seqIdx 0: Ding Intro (lobby)
+        // seqIdx 1-8: Floors 1-20 Bossa (zone 0)
+        // seqIdx 9: Ding - Floor 20
+        // seqIdx 10-17: Floors 20-50 Tritone Creep (zone 1)
+        // seqIdx 18: Ding - Floor 50
+        // seqIdx 19-24: Floors 50-70 Minor Shift (zone 2)
+        // seqIdx 25: Ding - Floor 70
+        // seqIdx 26-31: Floors 70-80 Dissonant (zone 3)
+        // seqIdx 32: Ding - Floor 80
+        // seqIdx 33-40: Floors 80-95 Horror (zone 4)
+        // seqIdx 41: Floors 95-98 Desperate Muzak
+        // seqIdx 42: Floor 99 Final Ding
+        // seqIdx 43-44: The Final Floor / Reveal (zone 5)
+        // seqIdx 45: Silence
+
+        function mapZone(seqIdx) {
+            if (seqIdx <= 0) return -1;   // intro
+            if (seqIdx <= 8) return 0;    // bossa lobby
+            if (seqIdx <= 9) return 0;    // ding 20
+            if (seqIdx <= 17) return 1;   // tritone offices
+            if (seqIdx <= 18) return 1;   // ding 50
+            if (seqIdx <= 24) return 2;   // minor lounge
+            if (seqIdx <= 25) return 2;   // ding 70
+            if (seqIdx <= 31) return 3;   // dissonant lab
+            if (seqIdx <= 32) return 3;   // ding 80
+            if (seqIdx <= 40) return 4;   // horror
+            if (seqIdx <= 41) return 4;   // desperate
+            if (seqIdx <= 42) return 4;   // final ding
+            return 5;                     // penthouse
+        }
+
+        function mapFloor(seqIdx) {
+            if (seqIdx <= 0) return 0;
+            if (seqIdx <= 8) return Math.floor(1 + (seqIdx - 1) * 2.5);
+            if (seqIdx <= 9) return 20;
+            if (seqIdx <= 17) return Math.floor(20 + (seqIdx - 10) * 3.75);
+            if (seqIdx <= 18) return 50;
+            if (seqIdx <= 24) return Math.floor(50 + (seqIdx - 19) * 3.33);
+            if (seqIdx <= 25) return 70;
+            if (seqIdx <= 31) return Math.floor(70 + (seqIdx - 26) * 1.67);
+            if (seqIdx <= 32) return 80;
+            if (seqIdx <= 40) return Math.floor(80 + (seqIdx - 33) * 1.875);
+            if (seqIdx <= 41) return 97;
+            if (seqIdx <= 42) return 99;
+            return 100;
+        }
+
+        function isDingSection(seqIdx) {
+            return seqIdx === 0 || seqIdx === 9 || seqIdx === 18 || seqIdx === 25 || seqIdx === 32 || seqIdx === 42;
+        }
+
+        // ── Helpers ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function lerpSmooth(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+
+        function hexToRgb(hex) {
+            var r = parseInt(hex.slice(1,3), 16);
+            var g = parseInt(hex.slice(3,5), 16);
+            var b = parseInt(hex.slice(5,7), 16);
+            return [r, g, b];
+        }
+
+        // ── Draw Art Deco Patterns ──
+        function drawDecoLine(ctx, x1, y1, x2, y2, color, width) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width || 1;
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawDecoChevron(ctx, cx, cy, size, color, alpha) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = alpha;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - size, cy + size * 0.5);
+            ctx.lineTo(cx, cy - size * 0.5);
+            ctx.lineTo(cx + size, cy + size * 0.5);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // ── Elevator Interior ──
+        function drawElevatorShell(ctx, energy) {
+            var wallMargin = W * 0.08;
+            var topY = H * 0.04;
+            var botY = H * 0.96;
+            var left = wallMargin;
+            var right = W - wallMargin;
+            var innerW = right - left;
+
+            // Back wall
+            ctx.fillStyle = PANEL;
+            ctx.fillRect(left, topY, innerW, botY - topY);
+
+            // Wood paneling (lower half)
+            var panelTop = H * 0.45;
+            ctx.fillStyle = DARK_WOOD;
+            ctx.fillRect(left, panelTop, innerW, botY - panelTop);
+
+            // Panel groove lines
+            ctx.strokeStyle = 'rgba(200,168,78,0.15)';
+            ctx.lineWidth = 1;
+            var panelCount = 5;
+            for (var i = 1; i < panelCount; i++) {
+                var px = left + (innerW / panelCount) * i;
+                ctx.beginPath();
+                ctx.moveTo(px, panelTop);
+                ctx.lineTo(px, botY);
+                ctx.stroke();
+            }
+
+            // Horizontal brass trim at panel top
+            ctx.fillStyle = BRASS;
+            ctx.fillRect(left, panelTop - 3, innerW, 6);
+
+            // Art deco pattern on upper wall
+            var patternAlpha = 0.12 + energy * 0.08;
+            var decoY = topY + (panelTop - topY) * 0.5;
+            for (var d = 0; d < 7; d++) {
+                var dx = left + innerW * (d + 0.5) / 7;
+                drawDecoChevron(ctx, dx, decoY, 18 + energy * 5, BRASS, patternAlpha);
+                drawDecoChevron(ctx, dx, decoY - 25, 12, BRASS, patternAlpha * 0.6);
+            }
+
+            // Brass corner trim
+            var trimW = 8;
+            ctx.fillStyle = BRASS_DIM;
+            ctx.fillRect(left, topY, trimW, botY - topY);
+            ctx.fillRect(right - trimW, topY, trimW, botY - topY);
+            ctx.fillRect(left, topY, innerW, trimW);
+            ctx.fillRect(left, botY - trimW, innerW, trimW);
+
+            // Floor (red carpet)
+            ctx.fillStyle = RED_CARPET;
+            ctx.fillRect(left + trimW, botY - 40, innerW - trimW * 2, 32);
+
+            // Ceiling light
+            var lightAlpha = (0.5 + energy * 0.3) * flickerAlpha;
+            var lightGrad = ctx.createRadialGradient(W * 0.5, topY + 10, 5, W * 0.5, topY + 10, W * 0.4);
+            lightGrad.addColorStop(0, 'rgba(255,240,200,' + lightAlpha + ')');
+            lightGrad.addColorStop(0.5, 'rgba(255,240,200,' + (lightAlpha * 0.2) + ')');
+            lightGrad.addColorStop(1, 'rgba(255,240,200,0)');
+            ctx.fillStyle = lightGrad;
+            ctx.fillRect(left, topY, innerW, H * 0.5);
+
+            return { left: left, right: right, topY: topY, botY: botY, innerW: innerW, trimW: trimW };
+        }
+
+        // ── Elevator Doors ──
+        function drawDoors(ctx, shell) {
+            var doorH = shell.botY - shell.topY;
+            var doorW = shell.innerW * 0.5;
+            var cx = W * 0.5;
+            var openPx = doorOpenAmount * doorW;
+
+            // Left door
+            var ldLeft = cx - doorW + openPx * 0.5;
+            ctx.fillStyle = '#555';
+            ctx.fillRect(shell.left, shell.topY, Math.max(0, cx - openPx * 0.5 - shell.left), doorH);
+
+            // Right door
+            ctx.fillRect(cx + openPx * 0.5, shell.topY, Math.max(0, shell.right - cx - openPx * 0.5), doorH);
+
+            // Door seam
+            if (doorOpenAmount < 0.95) {
+                ctx.strokeStyle = 'rgba(200,168,78,0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx - openPx * 0.5, shell.topY);
+                ctx.lineTo(cx - openPx * 0.5, shell.botY);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cx + openPx * 0.5, shell.topY);
+                ctx.lineTo(cx + openPx * 0.5, shell.botY);
+                ctx.stroke();
+            }
+        }
+
+        // ── Floor indicator dial (analog semicircle) ──
+        function drawFloorDial(ctx, shell, floor) {
+            var cx = W * 0.5;
+            var cy = shell.topY + 60;
+            var r = Math.min(W * 0.12, 80);
+
+            // Dial background
+            ctx.save();
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.beginPath();
+            ctx.arc(cx, cy, r + 6, Math.PI, 0);
+            ctx.fill();
+
+            ctx.fillStyle = DARK_WOOD;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, Math.PI, 0);
+            ctx.fill();
+
+            // Brass rim
+            ctx.strokeStyle = BRASS;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, Math.PI, 0);
+            ctx.stroke();
+
+            // Floor number markings
+            ctx.fillStyle = CREAM;
+            ctx.font = Math.max(9, r * 0.14) + 'px "Playfair Display", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            var marks = [0, 10, 20, 35, 50, 70, 80, 95, 99];
+            for (var i = 0; i < marks.length; i++) {
+                var angle = Math.PI + (marks[i] / 100) * Math.PI;
+                var mx = cx + Math.cos(angle) * (r * 0.78);
+                var my = cy + Math.sin(angle) * (r * 0.78);
+                ctx.fillText(marks[i] === 0 ? 'L' : '' + marks[i], mx, my);
+
+                // Tick mark
+                ctx.strokeStyle = BRASS_DIM;
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * (r * 0.9), cy + Math.sin(angle) * (r * 0.9));
+                ctx.lineTo(cx + Math.cos(angle) * (r * 0.95), cy + Math.sin(angle) * (r * 0.95));
+                ctx.stroke();
+            }
+
+            // Needle
+            var needleAngle = Math.PI + (dialAngle / 100) * Math.PI;
+            ctx.strokeStyle = '#ff3333';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(needleAngle) * (r * 0.7), cy + Math.sin(needleAngle) * (r * 0.7));
+            ctx.stroke();
+
+            // Center hub
+            ctx.fillStyle = BRASS;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // ── Digital floor counter ──
+        function drawFloorCounter(ctx, shell, floor) {
+            var cx = W * 0.5;
+            var cy = shell.topY + 140;
+            var boxW = 100;
+            var boxH = 44;
+
+            ctx.fillStyle = '#0a0a0a';
+            ctx.fillRect(cx - boxW / 2, cy - boxH / 2, boxW, boxH);
+            ctx.strokeStyle = BRASS;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(cx - boxW / 2, cy - boxH / 2, boxW, boxH);
+
+            // Floor number with segment display feel
+            var displayFloor = Math.round(floorDisplay);
+            var text = displayFloor === 0 ? 'L' : '' + displayFloor;
+            ctx.fillStyle = '#ff3333';
+            ctx.font = 'bold ' + Math.max(22, boxH * 0.6) + 'px "Playfair Display", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, cx, cy + 1);
+
+            // Up arrow
+            if (elevatorSpeed > 0.1) {
+                var arrowX = cx + boxW / 2 + 15;
+                var arrowBlink = (Math.sin(Date.now() * 0.01) > 0) ? 1 : 0.3;
+                ctx.fillStyle = 'rgba(200,168,78,' + arrowBlink + ')';
+                ctx.beginPath();
+                ctx.moveTo(arrowX, cy - 12);
+                ctx.lineTo(arrowX - 8, cy + 4);
+                ctx.lineTo(arrowX + 8, cy + 4);
+                ctx.fill();
+            }
+        }
+
+        // ── Floor gap scenes (visible through door gaps / back panel) ──
+        function drawFloorScene(ctx, shell, zone, yOffset, energy) {
+            if (zone < 0 || zone >= ZONE_PALETTES.length) return;
+            var pal = ZONE_PALETTES[zone];
+            var sceneH = 60;
+            var cx = W * 0.5;
+            var left = shell.left + shell.trimW;
+            var right = shell.right - shell.trimW;
+            var sceneW = right - left;
+
+            // Scene strip visible through wall gap
+            var gapY = H * 0.25 + yOffset;
+            if (gapY < shell.topY || gapY > shell.botY - sceneH) return;
+
+            ctx.save();
+            ctx.globalAlpha = 0.4 + energy * 0.3;
+
+            // Background
+            ctx.fillStyle = pal.bg;
+            ctx.fillRect(left, gapY, sceneW, sceneH);
+
+            // Scene-specific elements
+            if (zone === 0) {
+                // Lobby: potted plants, marble floor
+                for (var p = 0; p < 5; p++) {
+                    var px = left + sceneW * (p + 0.5) / 5;
+                    ctx.fillStyle = pal.accent;
+                    ctx.beginPath();
+                    ctx.arc(px, gapY + 20, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#8b6914';
+                    ctx.fillRect(px - 4, gapY + 30, 8, 20);
+                }
+            } else if (zone === 1) {
+                // Offices: desk shapes, screens
+                for (var o = 0; o < 6; o++) {
+                    var ox = left + sceneW * (o + 0.5) / 6;
+                    ctx.fillStyle = '#556';
+                    ctx.fillRect(ox - 12, gapY + 30, 24, 16);
+                    ctx.fillStyle = pal.accent;
+                    ctx.fillRect(ox - 6, gapY + 10, 12, 18);
+                }
+            } else if (zone === 2) {
+                // Lounge: candles, bar
+                ctx.fillStyle = '#3a2010';
+                ctx.fillRect(left, gapY + 35, sceneW, 20);
+                for (var c = 0; c < 8; c++) {
+                    var canX = left + sceneW * (c + 0.5) / 8;
+                    ctx.fillStyle = pal.accent;
+                    ctx.beginPath();
+                    ctx.arc(canX, gapY + 28, 3 + Math.sin(Date.now() * 0.005 + c) * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else if (zone === 3) {
+                // Lab: bubbling tubes, green glow
+                for (var t = 0; t < 7; t++) {
+                    var tx = left + sceneW * (t + 0.5) / 7;
+                    ctx.strokeStyle = pal.accent;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(tx, gapY + 10);
+                    ctx.lineTo(tx, gapY + 45);
+                    ctx.stroke();
+                    // Bubbles
+                    var bubY = gapY + 15 + Math.abs(Math.sin(Date.now() * 0.003 + t * 2)) * 25;
+                    ctx.fillStyle = pal.accent;
+                    ctx.beginPath();
+                    ctx.arc(tx, bubY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else if (zone === 4) {
+                // Inferno: flames
+                for (var f = 0; f < 10; f++) {
+                    var fx = left + sceneW * (f + 0.5) / 10;
+                    var fh = 15 + Math.sin(Date.now() * 0.008 + f * 1.5) * 12;
+                    var fg = ctx.createLinearGradient(fx, gapY + sceneH, fx, gapY + sceneH - fh);
+                    fg.addColorStop(0, pal.accent);
+                    fg.addColorStop(0.5, '#ff8800');
+                    fg.addColorStop(1, 'rgba(255,0,0,0)');
+                    ctx.fillStyle = fg;
+                    ctx.beginPath();
+                    ctx.moveTo(fx - 8, gapY + sceneH);
+                    ctx.quadraticCurveTo(fx + Math.sin(Date.now() * 0.01 + f) * 4, gapY + sceneH - fh, fx + 8, gapY + sceneH);
+                    ctx.fill();
+                }
+            } else if (zone === 5) {
+                // Penthouse: blinding gold light
+                var pg = ctx.createRadialGradient(cx, gapY + sceneH / 2, 0, cx, gapY + sceneH / 2, sceneW * 0.5);
+                pg.addColorStop(0, 'rgba(255,215,0,0.9)');
+                pg.addColorStop(0.5, 'rgba(255,240,200,0.4)');
+                pg.addColorStop(1, 'rgba(255,251,230,0.1)');
+                ctx.fillStyle = pg;
+                ctx.fillRect(left, gapY, sceneW, sceneH);
+            }
+
+            // Floor gap border
+            ctx.strokeStyle = 'rgba(200,168,78,0.3)';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(left, gapY, sceneW, sceneH);
+
+            ctx.restore();
+        }
+
+        // ── Cables visible above ──
+        function drawCables(ctx, shell, energy) {
+            var cx = W * 0.5;
+            var topArea = shell.topY;
+            var cableCount = 4;
+
+            ctx.save();
+            ctx.strokeStyle = 'rgba(200,168,78,0.25)';
+            ctx.lineWidth = 2;
+
+            for (var i = 0; i < cableCount; i++) {
+                var x = cx + (i - 1.5) * 25;
+                var vibAmt = cableVibration * (3 + i * 2);
+                var vibX = Math.sin(Date.now() * 0.02 + i * 1.5) * vibAmt;
+
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.quadraticCurveTo(x + vibX, topArea * 0.5, x, topArea - 5);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Counterweight ──
+        function drawCounterweight(ctx, shell) {
+            var x = shell.right - 30;
+            var weightY = shell.topY + (1 - floorDisplay / 100) * (shell.botY - shell.topY - 80);
+
+            ctx.fillStyle = BRASS_DIM;
+            ctx.fillRect(x - 10, weightY, 20, 35);
+
+            // Cable to counterweight
+            ctx.strokeStyle = 'rgba(200,168,78,0.2)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, weightY);
+            ctx.stroke();
+        }
+
+        // ── Ding Effect ──
+        function drawDingEffect(ctx) {
+            if (dingAlpha <= 0.01) return;
+            var cx = W * 0.5;
+            var cy = H * 0.15;
+
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,215,0,' + dingAlpha + ')';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(cx, cy, dingRingRadius, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = 'rgba(255,215,0,' + (dingAlpha * 0.5) + ')';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, dingRingRadius * 0.6, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Ding text
+            ctx.fillStyle = 'rgba(255,215,0,' + dingAlpha + ')';
+            ctx.font = 'bold 24px "Playfair Display", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('DING', cx, cy - dingRingRadius - 15);
+
+            ctx.restore();
+        }
+
+        // ── Particles (dust/sparks) ──
+        function initParticles() {
+            particles = [];
+            for (var i = 0; i < 30; i++) {
+                particles.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    size: 1 + Math.random() * 2,
+                    speed: 10 + Math.random() * 30,
+                    alpha: 0.1 + Math.random() * 0.3,
+                    drift: (Math.random() - 0.5) * 10
+                });
+            }
+        }
+
+        function updateParticles(dt, energy) {
+            var speedMul = 1 + energy * 4 + elevatorSpeed * 2;
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                p.y += p.speed * speedMul * dt;
+                p.x += p.drift * dt;
+                if (p.y > H + 10) {
+                    p.y = -10;
+                    p.x = Math.random() * W;
+                }
+            }
+        }
+
+        function drawParticles(ctx, energy) {
+            ctx.save();
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                ctx.fillStyle = 'rgba(255,240,200,' + (p.alpha * (0.3 + energy * 0.7)) + ')';
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+            }
+            ctx.restore();
+        }
+
+        // ── Scrolling floor lines (visible through gaps) ──
+        function drawFloorLines(ctx, shell, energy) {
+            var left = shell.left;
+            var right = shell.right;
+            var speed = elevatorSpeed;
+            if (speed < 0.05) return;
+
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, speed * 0.5) * (0.3 + energy * 0.4);
+
+            // Horizontal lines scrolling down (floors passing)
+            var lineSpacing = 80 - speed * 20;
+            if (lineSpacing < 20) lineSpacing = 20;
+            var offset = floorPassOffset % lineSpacing;
+
+            ctx.strokeStyle = BRASS_DIM;
+            ctx.lineWidth = 1;
+            for (var y = offset; y < H; y += lineSpacing) {
+                ctx.beginPath();
+                ctx.moveTo(left + 10, y);
+                ctx.lineTo(left + 20, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(right - 20, y);
+                ctx.lineTo(right - 10, y);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Express zone blur effect ──
+        function drawExpressBlur(ctx, energy) {
+            if (expressShake < 0.1) return;
+            ctx.save();
+            ctx.globalAlpha = expressShake * 0.15;
+            ctx.fillStyle = '#000';
+            // Motion blur bars
+            for (var i = 0; i < 8; i++) {
+                var y = Math.random() * H;
+                ctx.fillRect(0, y, W, 2 + expressShake * 3);
+            }
+            ctx.restore();
+        }
+
+        // ── Penthouse Reveal ──
+        function drawPenthouseReveal(ctx) {
+            if (revealAlpha <= 0.01) return;
+            ctx.save();
+
+            // Blinding gold light from center
+            var cx = W * 0.5;
+            var cy = H * 0.5;
+            var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, W * 0.7);
+            grad.addColorStop(0, 'rgba(255,215,0,' + (revealAlpha * 0.8) + ')');
+            grad.addColorStop(0.3, 'rgba(255,240,200,' + (revealAlpha * 0.4) + ')');
+            grad.addColorStop(0.7, 'rgba(255,251,230,' + (revealAlpha * 0.1) + ')');
+            grad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // "THE FINAL FLOOR" text
+            ctx.fillStyle = 'rgba(26,21,14,' + revealAlpha + ')';
+            ctx.font = 'bold ' + Math.max(20, W * 0.05) + 'px "Playfair Display", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('THE FINAL FLOOR', cx, cy);
+
+            // Floor 100
+            ctx.font = Math.max(60, W * 0.12) + 'px "Playfair Display", serif';
+            ctx.fillStyle = 'rgba(200,168,78,' + revealAlpha + ')';
+            ctx.fillText('100', cx, cy + W * 0.08);
+
+            ctx.restore();
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            currentFloor = 0;
+            targetFloor = 0;
+            floorDisplay = 0;
+            lastBeat = -1;
+            beatPulse = 0;
+            dingAlpha = 0;
+            dingRingRadius = 0;
+            cableOffset = 0;
+            doorOpenAmount = 0;
+            doorTarget = 0;
+            shakeX = 0; shakeY = 0;
+            lastSeqIndex = -1;
+            sectionZone = -1;
+            introFade = 0;
+            outroFade = 1;
+            dialAngle = 0;
+            dialTarget = 0;
+            floorPassOffset = 0;
+            elevatorSpeed = 0;
+            flickerTimer = 0;
+            flickerAlpha = 1;
+            cableVibration = 0;
+            mechanicalClick = 0;
+            revealAlpha = 0;
+            expressShake = 0;
+            initParticles();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+        }
+
+        // ── Main Render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            // Background
+            ctx.fillStyle = BG_DARK;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: draw static elevator
+                var shell = drawElevatorShell(ctx, 0);
+                drawFloorDial(ctx, shell, 0);
+                drawFloorCounter(ctx, shell, 0);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+            var fracBeat = (cursor.totalFracRow % (analysis ? analysis.rpb : 4)) / (analysis ? analysis.rpb : 4);
+
+            // ── Section transitions ──
+            var newZone = mapZone(seqIdx);
+            var newFloor = mapFloor(seqIdx);
+
+            if (seqIdx !== lastSeqIndex) {
+                var oldZone = sectionZone;
+                sectionZone = newZone;
+                targetFloor = newFloor;
+                dialTarget = newFloor;
+
+                // Ding on zone transitions
+                if (isDingSection(seqIdx)) {
+                    dingAlpha = 1;
+                    dingRingRadius = 10;
+                    doorTarget = 0.7;
+                    // Brief door open then close
+                    setTimeout(function() { doorTarget = 0; }, 2000);
+                }
+
+                // Express zone shake for horror sections
+                if (newZone === 4 && oldZone !== 4) {
+                    expressShake = 1;
+                }
+
+                // Penthouse reveal
+                if (newZone === 5) {
+                    doorTarget = 1;
+                }
+
+                // Flicker in horror zones
+                if (newZone === 4) {
+                    flickerTimer = 0.5;
+                }
+
+                lastSeqIndex = seqIdx;
+            }
+
+            // ── Beat sync ──
+            var currentBeat = Math.floor(cursor.totalFracRow / (analysis ? analysis.rpb : 4));
+            if (currentBeat !== lastBeat) {
+                lastBeat = currentBeat;
+                beatPulse = 1;
+                mechanicalClick = 1;
+                cableVibration = Math.min(1, cableVibration + 0.3);
+            }
+
+            // ── Update state ──
+            beatPulse *= 0.9;
+            mechanicalClick *= 0.85;
+
+            // Floor display smooth scrolling
+            floorDisplay = lerpSmooth(floorDisplay, targetFloor, 3 + energy * 5, dt);
+            dialAngle = lerpSmooth(dialAngle, dialTarget, 2 + energy * 3, dt);
+
+            // Door open/close
+            doorOpenAmount = lerpSmooth(doorOpenAmount, doorTarget, 4, dt);
+
+            // Elevator speed based on floor change rate
+            var floorDelta = Math.abs(targetFloor - currentFloor);
+            elevatorSpeed = lerpSmooth(elevatorSpeed, Math.min(1, floorDelta * 0.05 + energy * 0.5), 3, dt);
+            currentFloor = lerpSmooth(currentFloor, targetFloor, 2, dt);
+
+            // Floor pass scrolling
+            floorPassOffset += elevatorSpeed * dt * 200;
+
+            // Cable vibration decay
+            cableVibration = lerpSmooth(cableVibration, energy * 0.3, 5, dt);
+
+            // Ding effect decay
+            dingAlpha *= 0.97;
+            dingRingRadius += dt * 80;
+
+            // Flicker
+            if (flickerTimer > 0) {
+                flickerTimer -= dt;
+                flickerAlpha = Math.random() > 0.3 ? 1 : 0.2;
+            } else {
+                flickerAlpha = lerpSmooth(flickerAlpha, 1, 8, dt);
+            }
+            // Horror zone occasional flickers
+            if (sectionZone === 4 && Math.random() < 0.005) {
+                flickerTimer = 0.15;
+            }
+
+            // Express shake decay
+            expressShake = lerpSmooth(expressShake, sectionZone === 4 ? energy * 0.3 : 0, 3, dt);
+
+            // Intro fade
+            if (sectionZone <= 0) {
+                introFade = lerpSmooth(introFade, 1, 1.5, dt);
+            } else {
+                introFade = 1;
+            }
+
+            // Penthouse reveal
+            if (sectionZone === 5) {
+                revealAlpha = lerpSmooth(revealAlpha, 1, 1.2, dt);
+            }
+
+            // Outro (silence section)
+            if (seqIdx >= 45) {
+                outroFade = lerpSmooth(outroFade, 0, 1, dt);
+            }
+
+            // Shake from energy
+            shakeX = (Math.random() - 0.5) * energy * 3 * (1 + expressShake * 4);
+            shakeY = (Math.random() - 0.5) * energy * 2 * (1 + expressShake * 3);
+
+            // Particles
+            updateParticles(dt, energy);
+
+            // ── Draw ──
+            ctx.save();
+            ctx.translate(shakeX, shakeY);
+            ctx.globalAlpha = introFade * outroFade;
+
+            // Elevator shell
+            var shell = drawElevatorShell(ctx, energy);
+
+            // Floor lines scrolling (visible at edges)
+            drawFloorLines(ctx, shell, energy);
+
+            // Floor scene through gaps
+            var sceneOffset1 = (floorPassOffset % 200) - 100;
+            var sceneOffset2 = ((floorPassOffset + 100) % 200) - 100;
+            drawFloorScene(ctx, shell, sectionZone, sceneOffset1, energy);
+            if (sectionZone > 0) {
+                drawFloorScene(ctx, shell, sectionZone - 1, sceneOffset2, energy * 0.5);
+            }
+
+            // Cables
+            drawCables(ctx, shell, energy);
+
+            // Counterweight
+            drawCounterweight(ctx, shell);
+
+            // Floor dial
+            drawFloorDial(ctx, shell, Math.round(floorDisplay));
+
+            // Floor counter
+            drawFloorCounter(ctx, shell, Math.round(floorDisplay));
+
+            // Doors (drawn over everything inside elevator)
+            if (doorOpenAmount > 0.01) {
+                drawDoors(ctx, shell);
+            }
+
+            // Ding effect
+            drawDingEffect(ctx);
+
+            // Express blur
+            drawExpressBlur(ctx, energy);
+
+            // Dust particles
+            drawParticles(ctx, energy);
+
+            // Mechanical click indicator (small brass circle pulse)
+            if (mechanicalClick > 0.1) {
+                ctx.save();
+                ctx.globalAlpha = mechanicalClick * 0.6;
+                ctx.strokeStyle = BRASS;
+                ctx.lineWidth = 2;
+                var clickR = 5 + (1 - mechanicalClick) * 15;
+                ctx.beginPath();
+                ctx.arc(W * 0.5, H * 0.92, clickR, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Beat pulse vignette
+            if (beatPulse > 0.1) {
+                ctx.save();
+                var vigGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, W * 0.2, W * 0.5, H * 0.5, W * 0.7);
+                vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                vigGrad.addColorStop(1, 'rgba(200,168,78,' + (beatPulse * 0.12) + ')');
+                ctx.fillStyle = vigGrad;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // Penthouse reveal overlay
+            drawPenthouseReveal(ctx);
+
+            ctx.restore();
+
+            // Fade to black on outro
+            if (outroFade < 0.99) {
+                ctx.fillStyle = 'rgba(26,21,14,' + (1 - outroFade) + ')';
+                ctx.fillRect(0, 0, W, H);
+            }
+        }
+
+        return {
+            name: 'Elevator to the Final Floor Video',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('elevator-final-floor-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/elevator-to-the-final-floor.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
