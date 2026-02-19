@@ -1318,7 +1318,15 @@
 
             // Freeze
             const timeScale = freezeTimer > 0 ? 0.0 : (activePower === 'slow' ? 0.4 : 1.0);
-            if (freezeTimer > 0) freezeTimer -= dt;
+            if (freezeTimer > 0) {
+                freezeTimer -= dt;
+                if (freezeTimer <= 0) {
+                    // Freeze just expired — grant brief invulnerability so the player
+                    // isn't killed by bubbles they walked next to while frozen
+                    freezeTimer = 0;
+                    invulnTimer = Math.max(invulnTimer, 0.8);
+                }
+            }
 
             // Timer
             levelTime -= dt;
@@ -1469,7 +1477,10 @@
                 powerTimer -= dt;
                 if (powerTimer <= 0) {
                     if (activePower === 'double') maxHarpoons = 1;
-                    if (activePower === 'slow') invulnTimer = 0.5;
+                    // Grant brief invulnerability after any powerup expires so the
+                    // player can react to their changed state (e.g. bubbles speeding
+                    // back up after slow, or losing double harpoon coverage)
+                    invulnTimer = Math.max(invulnTimer, 0.5);
                     activePower = null;
                     document.getElementById('hud-powerup').classList.remove('active');
                 }
