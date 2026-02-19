@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocarina Echoes — Pixel Forest Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0b1a0f;
+            color: #fff;
+            font-family: 'Press Start 2P', monospace;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(11,26,15,0.92);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(16px, 4vw, 40px);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #7cfc00;
+            text-shadow: 0 0 20px rgba(124,252,0,0.5), 0 0 50px rgba(124,252,0,0.2);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(9px, 1.8vw, 14px);
+            color: rgba(210,180,120,0.6);
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #7cfc00;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #7cfc00;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(124,252,0,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(124,252,0,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 10px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">< Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Ocarina Echoes</div>
+        <div class="play-sub">a pixel forest adventure</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // -- Ocarina Echoes Video Renderer ----------------------------------------
+    window.Renderers['ocarina-echoes-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // -- Palette --
+        var SKY_TOP     = '#0b1a0f';
+        var SKY_BOT     = '#1a3320';
+        var GROUND      = '#2a1a0e';
+        var GROUND_DARK = '#1a0f06';
+        var TRUNK_COL   = '#3d2817';
+        var CANOPY_DARK = '#1a4020';
+        var CANOPY_MID  = '#2d6b3a';
+        var CANOPY_LITE = '#4a9c52';
+        var GOLD_LIGHT  = '#d4aa40';
+        var CHAR_COL    = '#1a1a2e';
+        var NOTE_COL    = '#7cfc00';
+        var RAIN_COL    = '#8ab4c8';
+        var FIREFLY_COL = '#ffe066';
+
+        // -- State --
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var elapsed = 0;
+        var sectionMood = 'intro'; // intro, forest, rain, bell, outro
+        var lastSeqIndex = -1;
+        var introFadeIn = 0;
+
+        // -- Parallax trees --
+        var treeLayers = []; // [{x, height, canopyR, speed}]
+        var TREE_LAYER_COUNT = 3;
+
+        // -- Character --
+        var charX = 0, charY = 0;
+        var charBob = 0;
+        var ocarinaPulse = 0;
+
+        // -- Particles --
+        var notes = [];      // musical note particles
+        var fireflies = [];
+        var birds = [];
+        var butterflies = [];
+        var raindrops = [];
+        var leaves = [];
+        var goldenRays = [];
+
+        // -- Helpers --
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function clamp(v, mn, mx) { return v < mn ? mn : v > mx ? mx : v; }
+        function rand(a, b) { return a + Math.random() * (b - a); }
+
+        // -- Pixel helper: snap to grid for pixel-art feel --
+        var PX = 3; // pixel size
+        function snap(v) { return Math.floor(v / PX) * PX; }
+
+        // -- Draw a pixel rect --
+        function pxRect(ctx, x, y, w, h, col) {
+            ctx.fillStyle = col;
+            ctx.fillRect(snap(x), snap(y), snap(w) || PX, snap(h) || PX);
+        }
+
+        // -- Section mapping based on song sequence --
+        // seq: [0:Intro, 1:ForestA, 2:ForestB, 3:ForestA, 4:Rain, 5:Bell, 6:ForestA, 7:ForestB, 8:Bell]
+        function mapSection(seqIndex) {
+            if (seqIndex <= 0) return 'intro';
+            if (seqIndex <= 3) return 'forest';
+            if (seqIndex <= 4) return 'rain';
+            if (seqIndex <= 5) return 'bell';
+            if (seqIndex <= 7) return 'forest';
+            if (seqIndex <= 8) return 'bell';
+            return 'outro';
+        }
+
+        // -- Initialize tree layers --
+        function initTrees() {
+            treeLayers = [];
+            for (var layer = 0; layer < TREE_LAYER_COUNT; layer++) {
+                var trees = [];
+                var count = 8 + layer * 4;
+                var depth = (layer + 1) / TREE_LAYER_COUNT; // 0.33, 0.66, 1.0
+                for (var i = 0; i < count; i++) {
+                    trees.push({
+                        x: (i / count) * (W * 2) - W * 0.3,
+                        trunkH: H * (0.15 + depth * 0.2) * (0.7 + Math.random() * 0.6),
+                        canopyR: H * (0.06 + depth * 0.08) * (0.6 + Math.random() * 0.8),
+                        canopyLayers: 2 + Math.floor(Math.random() * 3)
+                    });
+                }
+                treeLayers.push({
+                    trees: trees,
+                    speed: 8 + layer * 15, // pixels per second
+                    depth: depth,
+                    offset: 0
+                });
+            }
+        }
+
+        // -- Initialize creatures --
+        function initCreatures() {
+            fireflies = [];
+            for (var i = 0; i < 30; i++) {
+                fireflies.push({
+                    x: rand(0, W),
+                    y: rand(H * 0.2, H * 0.75),
+                    phase: rand(0, Math.PI * 2),
+                    speed: rand(10, 30),
+                    driftX: rand(-8, 8),
+                    size: rand(PX, PX * 2)
+                });
+            }
+
+            birds = [];
+            for (var b = 0; b < 6; b++) {
+                birds.push({
+                    x: rand(-W * 0.2, W * 1.2),
+                    y: rand(H * 0.05, H * 0.35),
+                    vx: rand(20, 60) * (Math.random() > 0.5 ? 1 : -1),
+                    wingPhase: rand(0, Math.PI * 2),
+                    size: rand(PX * 2, PX * 4),
+                    active: false,
+                    beatCooldown: 0
+                });
+            }
+
+            butterflies = [];
+            for (var bf = 0; bf < 8; bf++) {
+                butterflies.push({
+                    x: rand(0, W),
+                    y: rand(H * 0.3, H * 0.7),
+                    phase: rand(0, Math.PI * 2),
+                    color: ['#ff88cc', '#88ccff', '#ffcc44', '#cc88ff'][Math.floor(rand(0, 4))],
+                    speed: rand(15, 40),
+                    active: false,
+                    beatCooldown: 0
+                });
+            }
+
+            leaves = [];
+            for (var l = 0; l < 20; l++) {
+                leaves.push({
+                    x: rand(0, W),
+                    y: rand(-H * 0.1, H),
+                    vy: rand(15, 40),
+                    vx: rand(-10, 10),
+                    rot: rand(0, Math.PI * 2),
+                    rotSpeed: rand(-2, 2),
+                    size: rand(PX * 2, PX * 4),
+                    color: [CANOPY_MID, CANOPY_LITE, '#6ab04c', '#badc58'][Math.floor(rand(0, 4))]
+                });
+            }
+        }
+
+        // -- Initialize rain --
+        function initRain() {
+            raindrops = [];
+            for (var i = 0; i < 120; i++) {
+                raindrops.push({
+                    x: rand(0, W),
+                    y: rand(-H, H),
+                    speed: rand(300, 600),
+                    len: rand(PX * 2, PX * 6)
+                });
+            }
+        }
+
+        // -- Initialize golden light rays --
+        function initGoldenRays() {
+            goldenRays = [];
+            for (var i = 0; i < 5; i++) {
+                goldenRays.push({
+                    x: rand(W * 0.1, W * 0.9),
+                    width: rand(W * 0.02, W * 0.06),
+                    alpha: rand(0.03, 0.08),
+                    drift: rand(-5, 5)
+                });
+            }
+        }
+
+        // -- Draw sky gradient --
+        function drawSky(ctx, energy, isRain) {
+            var topCol = isRain ? '#060d0a' : SKY_TOP;
+            var botCol = isRain ? '#0d1a14' : SKY_BOT;
+            var grad = ctx.createLinearGradient(0, 0, 0, H * 0.75);
+            grad.addColorStop(0, topCol);
+            grad.addColorStop(1, botCol);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // -- Draw ground --
+        function drawGround(ctx, groundY, energy) {
+            var grad = ctx.createLinearGradient(0, groundY, 0, H);
+            grad.addColorStop(0, GROUND);
+            grad.addColorStop(1, GROUND_DARK);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, snap(groundY), W, H - snap(groundY));
+
+            // Grass tufts on the ground line
+            ctx.fillStyle = CANOPY_DARK;
+            for (var i = 0; i < W; i += PX * 4) {
+                var gh = PX * (2 + Math.sin(i * 0.03 + elapsed) * 1.5);
+                ctx.fillRect(snap(i), snap(groundY - gh), PX, snap(gh));
+            }
+        }
+
+        // -- Draw tree layer --
+        function drawTreeLayer(ctx, layer, groundY, energy) {
+            var alphaBase = 0.3 + layer.depth * 0.7;
+            var trees = layer.trees;
+
+            for (var i = 0; i < trees.length; i++) {
+                var t = trees[i];
+                var tx = ((t.x - layer.offset) % (W * 2));
+                if (tx < -W * 0.3) tx += W * 2;
+
+                var trunkX = snap(tx);
+                var trunkW = snap(PX * (2 + layer.depth * 3));
+                var trunkBot = snap(groundY);
+                var trunkTop = snap(groundY - t.trunkH);
+
+                // Trunk
+                ctx.fillStyle = TRUNK_COL;
+                ctx.globalAlpha = alphaBase;
+                ctx.fillRect(trunkX - trunkW / 2, trunkTop, trunkW, trunkBot - trunkTop);
+
+                // Canopy: stacked circles of pixel rects
+                var cr = t.canopyR;
+                var cLayers = t.canopyLayers;
+                for (var cl = 0; cl < cLayers; cl++) {
+                    var cy = trunkTop - cr * 0.4 * cl;
+                    var r = cr * (1 - cl * 0.2);
+                    var col = cl === 0 ? CANOPY_DARK : (cl === 1 ? CANOPY_MID : CANOPY_LITE);
+
+                    // Pixel circle approximation
+                    ctx.fillStyle = col;
+                    ctx.globalAlpha = alphaBase * (0.8 + energy * 0.2);
+                    for (var py = -r; py < r; py += PX) {
+                        var halfW = Math.sqrt(r * r - py * py);
+                        ctx.fillRect(snap(trunkX - halfW), snap(cy + py), snap(halfW * 2), PX);
+                    }
+                }
+            }
+            ctx.globalAlpha = 1;
+        }
+
+        // -- Draw golden light rays filtering through canopy --
+        function drawGoldenLight(ctx, energy) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < goldenRays.length; i++) {
+                var ray = goldenRays[i];
+                var alpha = ray.alpha * (0.5 + energy * 0.5) * introFadeIn;
+                if (alpha < 0.005) continue;
+
+                var grad = ctx.createLinearGradient(ray.x, 0, ray.x, H * 0.8);
+                grad.addColorStop(0, 'rgba(212,170,64,' + (alpha * 0.3) + ')');
+                grad.addColorStop(0.3, 'rgba(212,170,64,' + alpha + ')');
+                grad.addColorStop(1, 'rgba(212,170,64,0)');
+                ctx.fillStyle = grad;
+
+                ctx.beginPath();
+                ctx.moveTo(ray.x - ray.width * 0.3, 0);
+                ctx.lineTo(ray.x + ray.width * 0.3, 0);
+                ctx.lineTo(ray.x + ray.width, H * 0.8);
+                ctx.lineTo(ray.x - ray.width, H * 0.8);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // -- Draw character silhouette --
+        function drawCharacter(ctx, energy) {
+            var cx = snap(charX);
+            var cy = snap(charY + charBob);
+            var s = PX * 2; // pixel scale
+
+            // Body silhouette (dark)
+            ctx.fillStyle = CHAR_COL;
+
+            // Head
+            pxRect(ctx, cx - s * 2, cy - s * 12, s * 4, s * 4, CHAR_COL);
+
+            // Hair tuft
+            pxRect(ctx, cx - s * 3, cy - s * 13, s * 2, s * 2, CHAR_COL);
+            pxRect(ctx, cx + s * 1, cy - s * 13, s * 2, s * 2, CHAR_COL);
+
+            // Torso
+            pxRect(ctx, cx - s * 2, cy - s * 8, s * 4, s * 5, CHAR_COL);
+
+            // Legs
+            pxRect(ctx, cx - s * 2, cy - s * 3, s * 2, s * 3, CHAR_COL);
+            pxRect(ctx, cx,         cy - s * 3, s * 2, s * 3, CHAR_COL);
+
+            // Arms holding ocarina out
+            pxRect(ctx, cx + s * 2, cy - s * 7, s * 3, s, CHAR_COL);
+            pxRect(ctx, cx - s * 5, cy - s * 7, s * 3, s, CHAR_COL);
+
+            // Ocarina (golden ellipse-ish)
+            pxRect(ctx, cx + s * 4, cy - s * 8, s * 3, s * 2, GOLD_LIGHT);
+            pxRect(ctx, cx + s * 5, cy - s * 9, s * 2, s, GOLD_LIGHT);
+
+            // Ocarina glow when playing
+            if (ocarinaPulse > 0.05) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = ocarinaPulse * 0.4;
+                ctx.fillStyle = NOTE_COL;
+                var gr = s * 6 * ocarinaPulse;
+                ctx.beginPath();
+                ctx.arc(cx + s * 5, cy - s * 8, gr, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // -- Spawn note particle --
+        function spawnNote(energy) {
+            var s = PX * 2;
+            notes.push({
+                x: charX + s * 6,
+                y: charY + charBob - s * 8,
+                vx: rand(20, 60),
+                vy: rand(-60, -20),
+                life: 1,
+                decay: rand(0.3, 0.6),
+                size: PX * (2 + energy * 2),
+                type: Math.floor(rand(0, 3)) // 0=quarter, 1=eighth, 2=beam
+            });
+        }
+
+        // -- Draw note particles --
+        function drawNotes(ctx) {
+            for (var i = notes.length - 1; i >= 0; i--) {
+                var n = notes[i];
+                if (n.life <= 0) { notes.splice(i, 1); continue; }
+
+                ctx.save();
+                ctx.globalAlpha = n.life * introFadeIn;
+                ctx.fillStyle = NOTE_COL;
+
+                var nx = snap(n.x);
+                var ny = snap(n.y);
+                var sz = snap(n.size);
+
+                // Simple pixel music note shape
+                if (n.type === 0) {
+                    // Filled circle head + stem
+                    pxRect(ctx, nx, ny, sz, sz, NOTE_COL);
+                    pxRect(ctx, nx + sz, ny - sz * 2, PX, sz * 2, NOTE_COL);
+                } else if (n.type === 1) {
+                    // Open circle head + stem + flag
+                    pxRect(ctx, nx, ny, sz, sz, NOTE_COL);
+                    pxRect(ctx, nx + sz, ny - sz * 2, PX, sz * 2, NOTE_COL);
+                    pxRect(ctx, nx + sz, ny - sz * 2, sz, PX, NOTE_COL);
+                } else {
+                    // Double beam
+                    pxRect(ctx, nx, ny, sz, sz, NOTE_COL);
+                    pxRect(ctx, nx + sz * 2, ny + PX, sz, sz, NOTE_COL);
+                    pxRect(ctx, nx + sz, ny - sz * 2, PX, sz * 2, NOTE_COL);
+                    pxRect(ctx, nx + sz * 3, ny - sz, PX, sz * 2, NOTE_COL);
+                    pxRect(ctx, nx + sz, ny - sz * 2, sz * 2, PX, NOTE_COL);
+                }
+                ctx.restore();
+            }
+        }
+
+        // -- Draw fireflies --
+        function drawFireflies(ctx, energy) {
+            for (var i = 0; i < fireflies.length; i++) {
+                var f = fireflies[i];
+                var flicker = Math.sin(f.phase) * 0.5 + 0.5;
+                var alpha = flicker * (0.3 + energy * 0.5) * introFadeIn;
+                if (alpha < 0.02) continue;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = FIREFLY_COL;
+                ctx.fillRect(snap(f.x), snap(f.y), snap(f.size), snap(f.size));
+
+                // Glow
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = alpha * 0.3;
+                ctx.fillStyle = FIREFLY_COL;
+                var gs = f.size * 4;
+                ctx.fillRect(snap(f.x - gs / 2), snap(f.y - gs / 2), snap(gs), snap(gs));
+                ctx.restore();
+            }
+        }
+
+        // -- Draw birds --
+        function drawBirds(ctx) {
+            for (var i = 0; i < birds.length; i++) {
+                var b = birds[i];
+                if (!b.active) continue;
+
+                ctx.save();
+                ctx.globalAlpha = 0.7 * introFadeIn;
+                ctx.fillStyle = CHAR_COL;
+
+                var bx = snap(b.x);
+                var by = snap(b.y);
+                var wingOff = Math.sin(b.wingPhase) * b.size;
+
+                // Body
+                pxRect(ctx, bx, by, b.size, PX, CHAR_COL);
+                // Wings
+                pxRect(ctx, bx - b.size, by - snap(wingOff), PX * 2, PX, CHAR_COL);
+                pxRect(ctx, bx + b.size, by - snap(wingOff), PX * 2, PX, CHAR_COL);
+                ctx.restore();
+            }
+        }
+
+        // -- Draw butterflies --
+        function drawButterflies(ctx) {
+            for (var i = 0; i < butterflies.length; i++) {
+                var bf = butterflies[i];
+                if (!bf.active) continue;
+
+                ctx.save();
+                ctx.globalAlpha = 0.7 * introFadeIn;
+
+                var bx = snap(bf.x);
+                var by = snap(bf.y);
+                var wingOpen = Math.abs(Math.sin(bf.phase)) * PX * 3;
+
+                // Body
+                pxRect(ctx, bx, by, PX, PX * 2, CHAR_COL);
+                // Wings
+                pxRect(ctx, bx - snap(wingOpen) - PX, by, snap(wingOpen), PX * 2, bf.color);
+                pxRect(ctx, bx + PX, by, snap(wingOpen), PX * 2, bf.color);
+                ctx.restore();
+            }
+        }
+
+        // -- Draw rain --
+        function drawRain(ctx, energy) {
+            if (sectionMood !== 'rain') return;
+
+            ctx.save();
+            ctx.globalAlpha = 0.5 + energy * 0.3;
+            ctx.fillStyle = RAIN_COL;
+            for (var i = 0; i < raindrops.length; i++) {
+                var r = raindrops[i];
+                ctx.fillRect(snap(r.x), snap(r.y), PX, snap(r.len));
+            }
+            ctx.restore();
+
+            // Mist at ground level
+            ctx.save();
+            var groundY = H * 0.78;
+            var grad = ctx.createLinearGradient(0, groundY - H * 0.05, 0, groundY + H * 0.05);
+            grad.addColorStop(0, 'rgba(138,180,200,0)');
+            grad.addColorStop(0.5, 'rgba(138,180,200,' + (0.06 + energy * 0.06) + ')');
+            grad.addColorStop(1, 'rgba(138,180,200,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, groundY - H * 0.05, W, H * 0.1);
+            ctx.restore();
+        }
+
+        // -- Draw leaves --
+        function drawLeaves(ctx, energy) {
+            for (var i = 0; i < leaves.length; i++) {
+                var lf = leaves[i];
+                ctx.save();
+                ctx.globalAlpha = (0.4 + energy * 0.3) * introFadeIn;
+                ctx.translate(snap(lf.x), snap(lf.y));
+                ctx.rotate(lf.rot);
+                ctx.fillStyle = lf.color;
+                ctx.fillRect(-lf.size / 2, -PX / 2, snap(lf.size), PX);
+                ctx.fillRect(-PX / 2, -lf.size / 2, PX, snap(lf.size * 0.6));
+                ctx.restore();
+            }
+        }
+
+        // -- Draw title --
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            ctx.save();
+            ctx.globalAlpha = titleAlpha;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var fs = Math.max(12, Math.min(W * 0.035, 36));
+            ctx.font = fs + 'px "Press Start 2P", monospace';
+
+            // Shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.fillText('OCARINA ECHOES', W / 2 + 2, H * 0.12 + 2);
+
+            // Main text
+            ctx.shadowColor = NOTE_COL;
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = NOTE_COL;
+            ctx.fillText('OCARINA ECHOES', W / 2, H * 0.12);
+
+            // Subtitle
+            ctx.shadowBlur = 10;
+            ctx.font = Math.max(8, fs * 0.45) + 'px "Press Start 2P", monospace';
+            ctx.fillStyle = GOLD_LIGHT;
+            ctx.shadowColor = GOLD_LIGHT;
+            ctx.globalAlpha = titleAlpha * 0.6;
+            ctx.fillText('a forest lullaby', W / 2, H * 0.12 + fs * 1.3);
+
+            ctx.restore();
+        }
+
+        // -- Update functions --
+        function updateParticles(dt, energy) {
+            // Notes
+            for (var i = notes.length - 1; i >= 0; i--) {
+                var n = notes[i];
+                n.x += n.vx * dt;
+                n.y += n.vy * dt;
+                n.vy -= 20 * dt; // float upward over time
+                n.life -= n.decay * dt;
+            }
+
+            // Fireflies
+            for (var fi = 0; fi < fireflies.length; fi++) {
+                var f = fireflies[fi];
+                f.phase += dt * (1.5 + energy * 2);
+                f.x += f.driftX * dt;
+                f.y += Math.sin(f.phase * 0.7) * f.speed * dt;
+                if (f.x < -20) f.x = W + 20;
+                if (f.x > W + 20) f.x = -20;
+                if (f.y < H * 0.1) f.y = H * 0.7;
+                if (f.y > H * 0.8) f.y = H * 0.2;
+            }
+
+            // Birds
+            for (var bi = 0; bi < birds.length; bi++) {
+                var b = birds[bi];
+                if (b.beatCooldown > 0) b.beatCooldown -= dt;
+                if (b.active) {
+                    b.wingPhase += dt * 8;
+                    b.x += b.vx * dt;
+                    if (b.x < -W * 0.3 || b.x > W * 1.3) {
+                        b.active = false;
+                    }
+                }
+            }
+
+            // Butterflies
+            for (var bfi = 0; bfi < butterflies.length; bfi++) {
+                var bf = butterflies[bfi];
+                if (bf.beatCooldown > 0) bf.beatCooldown -= dt;
+                if (bf.active) {
+                    bf.phase += dt * 6;
+                    bf.x += Math.sin(bf.phase * 0.3) * bf.speed * dt;
+                    bf.y += Math.cos(bf.phase * 0.5) * bf.speed * 0.5 * dt;
+                    if (bf.y < H * 0.1 || bf.y > H * 0.85) {
+                        bf.active = false;
+                    }
+                }
+            }
+
+            // Rain
+            if (sectionMood === 'rain') {
+                for (var ri = 0; ri < raindrops.length; ri++) {
+                    var rd = raindrops[ri];
+                    rd.y += rd.speed * dt;
+                    rd.x -= 30 * dt; // slight wind
+                    if (rd.y > H) {
+                        rd.y = -rd.len;
+                        rd.x = rand(0, W);
+                    }
+                    if (rd.x < -10) rd.x = W + 10;
+                }
+            }
+
+            // Leaves
+            for (var li = 0; li < leaves.length; li++) {
+                var lf = leaves[li];
+                lf.y += lf.vy * dt;
+                lf.x += lf.vx * dt + Math.sin(elapsed + li) * 5 * dt;
+                lf.rot += lf.rotSpeed * dt;
+                if (lf.y > H + 20) {
+                    lf.y = -20;
+                    lf.x = rand(0, W);
+                }
+            }
+
+            // Golden rays drift
+            for (var gi = 0; gi < goldenRays.length; gi++) {
+                goldenRays[gi].x += goldenRays[gi].drift * dt;
+                if (goldenRays[gi].x < -50 || goldenRays[gi].x > W + 50) {
+                    goldenRays[gi].drift *= -1;
+                }
+            }
+
+            // Parallax tree scrolling
+            for (var tli = 0; tli < treeLayers.length; tli++) {
+                treeLayers[tli].offset += treeLayers[tli].speed * (0.3 + energy * 0.7) * dt;
+            }
+        }
+
+        function onBeat(beat, energy) {
+            // Spawn notes from ocarina
+            var noteCount = 1 + Math.floor(energy * 3);
+            for (var i = 0; i < noteCount; i++) {
+                spawnNote(energy);
+            }
+
+            ocarinaPulse = 0.5 + energy * 0.5;
+
+            // Activate birds on some beats
+            if (beat % 4 === 0 && energy > 0.3) {
+                for (var bi = 0; bi < birds.length; bi++) {
+                    if (!birds[bi].active && birds[bi].beatCooldown <= 0) {
+                        birds[bi].active = true;
+                        birds[bi].x = birds[bi].vx > 0 ? -PX * 4 : W + PX * 4;
+                        birds[bi].y = rand(H * 0.05, H * 0.3);
+                        birds[bi].beatCooldown = 3;
+                        break;
+                    }
+                }
+            }
+
+            // Activate butterflies
+            if (beat % 2 === 0 && energy > 0.2) {
+                for (var bfi = 0; bfi < butterflies.length; bfi++) {
+                    if (!butterflies[bfi].active && butterflies[bfi].beatCooldown <= 0) {
+                        butterflies[bfi].active = true;
+                        butterflies[bfi].x = charX + rand(-W * 0.15, W * 0.15);
+                        butterflies[bfi].y = charY + rand(-H * 0.1, H * 0.05);
+                        butterflies[bfi].beatCooldown = 2;
+                        break;
+                    }
+                }
+            }
+        }
+
+        // -- Init --
+        function init(ctx, width, height, anal) {
+            W = width;
+            H = height;
+            analysis = anal;
+
+            charX = W * 0.35;
+            charY = H * 0.78;
+
+            initTrees();
+            initCreatures();
+            initRain();
+            initGoldenRays();
+
+            lastBeat = -1;
+            beatPulse = 0;
+            elapsed = 0;
+            introFadeIn = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'intro';
+            titleAlpha = 0;
+            notes = [];
+        }
+
+        // -- Resize --
+        function resize(width, height) {
+            W = width;
+            H = height;
+            charX = W * 0.35;
+            charY = H * 0.78;
+            initTrees();
+            initRain();
+            initGoldenRays();
+        }
+
+        // -- Main render --
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+            var groundY = H * 0.78;
+
+            elapsed += dt;
+
+            // -- Idle state --
+            if (!cursor) {
+                drawSky(ctx, 0, false);
+                for (var tl = 0; tl < treeLayers.length; tl++) {
+                    drawTreeLayer(ctx, treeLayers[tl], groundY, 0);
+                }
+                drawGround(ctx, groundY, 0);
+                drawGoldenLight(ctx, 0.3);
+
+                // Idle fireflies
+                for (var fi = 0; fi < fireflies.length; fi++) {
+                    fireflies[fi].phase += dt * 1.2;
+                }
+                drawFireflies(ctx, 0.2);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // -- Section transitions --
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+                lastSeqIndex = seqIdx;
+            }
+
+            // -- Intro fade --
+            introFadeIn = Math.min(1, introFadeIn + dt * 0.5);
+
+            // -- Beat detection --
+            if (beat !== lastBeat) {
+                onBeat(beat, energy);
+                beatPulse = 1;
+            }
+            lastBeat = beat;
+
+            beatPulse *= Math.exp(-6 * dt);
+            ocarinaPulse *= Math.exp(-4 * dt);
+
+            // Character bob
+            charBob = Math.sin(elapsed * 2.5) * PX * 1.5 * (0.3 + energy * 0.7);
+
+            // Title: show during intro and bell sections
+            titleTarget = (sectionMood === 'intro' || sectionMood === 'bell') ? 1 : 0;
+            titleAlpha += (titleTarget - titleAlpha) * dt * 3;
+
+            // -- Update --
+            updateParticles(dt, energy);
+
+            // -- Draw scene back to front --
+
+            // 1. Sky
+            drawSky(ctx, energy, sectionMood === 'rain');
+
+            // 2. Far trees
+            if (treeLayers.length > 0) {
+                drawTreeLayer(ctx, treeLayers[0], groundY, energy);
+            }
+
+            // 3. Golden light rays (behind mid trees)
+            if (sectionMood !== 'rain') {
+                drawGoldenLight(ctx, energy);
+            }
+
+            // 4. Birds (far layer)
+            drawBirds(ctx);
+
+            // 5. Mid trees
+            if (treeLayers.length > 1) {
+                drawTreeLayer(ctx, treeLayers[1], groundY, energy);
+            }
+
+            // 6. Title
+            drawTitle(ctx);
+
+            // 7. Rain (mid layer)
+            drawRain(ctx, energy);
+
+            // 8. Leaves
+            drawLeaves(ctx, energy);
+
+            // 9. Fireflies
+            drawFireflies(ctx, energy);
+
+            // 10. Butterflies
+            drawButterflies(ctx);
+
+            // 11. Near trees
+            if (treeLayers.length > 2) {
+                drawTreeLayer(ctx, treeLayers[2], groundY, energy);
+            }
+
+            // 12. Ground
+            drawGround(ctx, groundY, energy);
+
+            // 13. Character
+            drawCharacter(ctx, energy);
+
+            // 14. Note particles (in front of character)
+            drawNotes(ctx);
+
+            // 15. Beat flash (subtle green pulse)
+            if (beatPulse > 0.1) {
+                ctx.save();
+                ctx.globalAlpha = beatPulse * 0.04 * energy;
+                ctx.fillStyle = NOTE_COL;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // 16. Vignette
+            ctx.save();
+            var vgrad = ctx.createRadialGradient(W / 2, H / 2, W * 0.25, W / 2, H / 2, W * 0.75);
+            vgrad.addColorStop(0, 'rgba(0,0,0,0)');
+            vgrad.addColorStop(1, 'rgba(0,0,0,0.4)');
+            ctx.fillStyle = vgrad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        return {
+            name: 'Ocarina Echoes Pixel Forest',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // -- Page bootstrap -------------------------------------------------------
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('ocarina-echoes-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/ocarina-echoes.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
