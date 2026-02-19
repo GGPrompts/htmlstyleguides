@@ -102,6 +102,7 @@
 
     <script src="../audio-tracker/playback-engine.js"></script>
     <script src="engine.js"></script>
+    <script src="stick-fight-engine.js"></script>
     <script>
     // ── Fencing Match in a Thunderstorm Video Renderer ──────────────
     window.Renderers['fencing-thunderstorm-video'] = (function() {
@@ -144,38 +145,12 @@
         // Sparks from sword clash
         var sparks = [];
 
-        // Fencer state
-        var fencerA = {
-            x: 0, baseX: 0,
-            stance: 0,        // 0=neutral, -1=back, 1=lunge
-            swordAngle: 0,
-            swordTarget: 0,
-            bodyLean: 0,
-            leanTarget: 0,
-            armExtend: 0.5,
-            armTarget: 0.5,
-            legSpread: 0,
-            legTarget: 0,
-            parry: 0,
-            attackFlash: 0,
-            facing: 1          // 1=right, -1=left
-        };
-
-        var fencerB = {
-            x: 0, baseX: 0,
-            stance: 0,
-            swordAngle: 0,
-            swordTarget: 0,
-            bodyLean: 0,
-            leanTarget: 0,
-            armExtend: 0.5,
-            armTarget: 0.5,
-            legSpread: 0,
-            legTarget: 0,
-            parry: 0,
-            attackFlash: 0,
-            facing: -1
-        };
+        // Fencer state (StickFight figures)
+        var fencerA = null;
+        var fencerB = null;
+        var fencerBaseXA = 0, fencerBaseXB = 0;
+        var stanceA = 0, stanceB = 0;  // -1=back, 0=neutral, 1=lunge
+        var attackFlashA = 0, attackFlashB = 0;
 
         // Cloud layer
         var clouds = [];
@@ -487,213 +462,81 @@
             ctx.restore();
         }
 
-        // ── Fencer drawing ──
-        function drawFencer(ctx, fencer, color, figH) {
-            var x = fencer.x;
-            var facing = fencer.facing;
-            var lean = fencer.bodyLean;
-            var armExt = fencer.armExtend;
-            var legSpr = fencer.legSpread;
-            var swordAng = fencer.swordAngle;
-
-            // Dimensions
-            var headR = figH * 0.06;
-            var torsoLen = figH * 0.3;
-            var upperArm = figH * 0.14;
-            var forearm = figH * 0.13;
-            var thigh = figH * 0.2;
-            var shin = figH * 0.2;
-            var swordLen = figH * 0.35;
-
-            // Key positions (feet at y=0 relative)
-            var hipX = lean * figH * 0.08 * facing;
-            var hipY = -(shin + thigh);
-            var neckX = hipX + lean * figH * 0.04 * facing;
-            var neckY = hipY - torsoLen;
-            var headX = neckX + lean * figH * 0.02 * facing;
-            var headY = neckY - headR * 1.5;
-
-            // Front shoulder (sword arm)
-            var fShoulderX = neckX + facing * figH * 0.06;
-            var fShoulderY = neckY + figH * 0.02;
-
-            // Back shoulder
-            var bShoulderX = neckX - facing * figH * 0.06;
-            var bShoulderY = neckY + figH * 0.02;
-
-            // Sword arm: extends forward
-            var elbowAngle = -0.3 + armExt * 0.6;
-            var fElbowX = fShoulderX + facing * Math.cos(elbowAngle) * upperArm;
-            var fElbowY = fShoulderY + Math.sin(elbowAngle) * upperArm;
-
-            var handAngle = elbowAngle - 0.2 + armExt * 0.4;
-            var fHandX = fElbowX + facing * Math.cos(handAngle) * forearm;
-            var fHandY = fElbowY + Math.sin(handAngle) * forearm;
-
-            // Back arm (guard hand, behind body)
-            var bElbowX = bShoulderX - facing * upperArm * 0.4;
-            var bElbowY = bShoulderY + upperArm * 0.3;
-            var bHandX = bElbowX - facing * forearm * 0.2;
-            var bHandY = bElbowY - forearm * 0.5;
-
-            // Legs
-            var frontFoot = legSpr * figH * 0.12;
-            var backFoot = legSpr * figH * 0.08;
-            var fAnkleX = hipX + facing * (figH * 0.05 + frontFoot);
-            var fAnkleY = 0;
-            var bAnkleX = hipX - facing * (figH * 0.05 + backFoot);
-            var bAnkleY = 0;
-
-            var fKneeX = (hipX + fAnkleX) * 0.5 + facing * figH * 0.02;
-            var fKneeY = hipY * 0.45 - legSpr * figH * 0.04;
-            var bKneeX = (hipX + bAnkleX) * 0.5;
-            var bKneeY = hipY * 0.45;
-
-            // Sword from hand
-            var swordEndX = fHandX + facing * Math.cos(swordAng) * swordLen;
-            var swordEndY = fHandY + Math.sin(swordAng) * swordLen;
-
-            // Draw
-            ctx.save();
-            ctx.translate(x, roofY);
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 8;
-
-            function line(x1, y1, x2, y2) {
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                ctx.lineTo(x2, y2);
-                ctx.stroke();
-            }
-
-            // Back leg
-            line(hipX, hipY, bKneeX, bKneeY);
-            line(bKneeX, bKneeY, bAnkleX, bAnkleY);
-
-            // Front leg
-            line(hipX, hipY, fKneeX, fKneeY);
-            line(fKneeX, fKneeY, fAnkleX, fAnkleY);
-
-            // Torso
-            line(hipX, hipY, neckX, neckY);
-
-            // Back arm
-            line(bShoulderX, bShoulderY, bElbowX, bElbowY);
-            line(bElbowX, bElbowY, bHandX, bHandY);
-
-            // Front arm (sword arm)
-            line(fShoulderX, fShoulderY, fElbowX, fElbowY);
-            line(fElbowX, fElbowY, fHandX, fHandY);
-
-            // Sword
-            ctx.strokeStyle = '#c0c8e0';
-            ctx.lineWidth = 2;
-            ctx.shadowColor = '#e0e8ff';
-            ctx.shadowBlur = 6;
-            line(fHandX, fHandY, swordEndX, swordEndY);
-
-            // Guard (small crossbar at hand)
-            var guardLen = figH * 0.04;
-            var guardAngle = swordAng + Math.PI * 0.5;
-            ctx.lineWidth = 2.5;
-            ctx.strokeStyle = color;
-            line(
-                fHandX + Math.cos(guardAngle) * guardLen,
-                fHandY + Math.sin(guardAngle) * guardLen,
-                fHandX - Math.cos(guardAngle) * guardLen,
-                fHandY - Math.sin(guardAngle) * guardLen
-            );
-
-            // Head
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 3;
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 8;
-            ctx.beginPath();
-            ctx.arc(headX, headY, headR, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Fencing mask visor line
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(headX - headR * 0.6 * facing, headY - headR * 0.2);
-            ctx.lineTo(headX + headR * 0.8 * facing, headY - headR * 0.1);
-            ctx.stroke();
-
-            // Attack flash (glow on sword tip)
-            if (fencer.attackFlash > 0.05) {
+        // ── Fencer drawing (delegates to StickFight) ──
+        // Draws attack flash on sword tip after StickFight draws the figure
+        function drawFencerFlash(ctx, fig, flashAlphaVal) {
+            if (flashAlphaVal < 0.05) return;
+            if (fig.mode === 'ragdoll') return;
+            var joints = StickFight.computeJoints(fig);
+            var hand = joints.handL;
+            if (fig.params.swordLen > 0) {
+                var sLen = fig.params.swordLen * fig.figH;
+                var sAng = fig.params.swordAngle;
+                var tipX = fig.x + hand.x + Math.cos(sAng) * sLen * fig.facing;
+                var tipY = fig.y + hand.y + Math.sin(sAng) * sLen;
                 ctx.save();
-                ctx.globalAlpha = fencer.attackFlash;
+                ctx.globalAlpha = flashAlphaVal;
                 ctx.shadowColor = SPARK_COLOR;
                 ctx.shadowBlur = 20;
                 ctx.fillStyle = SPARK_COLOR;
                 ctx.beginPath();
-                ctx.arc(swordEndX, swordEndY, 4 + fencer.attackFlash * 6, 0, Math.PI * 2);
+                ctx.arc(tipX, tipY, 4 + flashAlphaVal * 6, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             }
-
-            ctx.restore();
-
-            // Return sword tip position in world coords for clash detection
-            return { tipX: x + swordEndX, tipY: roofY + swordEndY };
         }
 
-        // ── Fencer AI / choreography ──
-        function updateFencer(fencer, dt, beat, energy, isA) {
-            var speed = 8;
-
-            // Lerp all params toward targets
-            fencer.bodyLean = lerpExp(fencer.bodyLean, fencer.leanTarget, speed, dt);
-            fencer.armExtend = lerpExp(fencer.armExtend, fencer.armTarget, speed * 1.5, dt);
-            fencer.legSpread = lerpExp(fencer.legSpread, fencer.legTarget, speed, dt);
-            fencer.swordAngle = lerpExp(fencer.swordAngle, fencer.swordTarget, speed * 2, dt);
-
-            // Position lerps toward stance
-            var centerX = W * 0.5;
-            var spread = W * (0.08 + energy * 0.06);
-            var lungeOffset = fencer.stance * W * 0.06;
-            var targetX = fencer.baseX + lungeOffset * fencer.facing;
-            fencer.x = lerpExp(fencer.x, targetX, 6, dt);
-
-            // Attack flash decay
-            fencer.attackFlash *= Math.exp(-8 * dt);
+        // ── Fencer position update ──
+        function updateFencerPosition(fig, stance, baseX, dt, energy) {
+            if (fig.mode === 'ragdoll') return;
+            var lungeOffset = stance * W * 0.06;
+            var targetX = baseX + lungeOffset * fig.facing;
+            fig.x = lerpExp(fig.x, targetX, 6, dt);
         }
+
+        // Denouement tracking
+        var ragdolled = false;
 
         function choreographBeat(beat, energy, seqIdx) {
-            // Determine who attacks based on pattern
             var beatMod = beat % 8;
             var isClash = false;
 
             if (sectionMood === 'storm') {
-                // Both at rest, swords down
-                setGuard(fencerA, 0.3, 0, -0.3, 0.3);
-                setGuard(fencerB, 0.3, 0, -0.3, 0.3);
+                setFencerGuard(fencerA, 0.3, 0, -0.3, 0.3);
+                stanceA = 0;
+                setFencerGuard(fencerB, 0.3, 0, -0.3, 0.3);
+                stanceB = 0;
                 return false;
             }
 
             if (sectionMood === 'salute') {
-                // Formal salute: swords raised
-                setGuard(fencerA, 0.5, 0, -1.2, 0.1);
-                setGuard(fencerB, 0.5, 0, -1.2, 0.1);
+                StickFight.setPose(fencerA, 'salute');
+                StickFight.setTarget(fencerA, 'swordAngle', -1.2);
+                stanceA = 0;
+                StickFight.setPose(fencerB, 'salute');
+                StickFight.setTarget(fencerB, 'swordAngle', -1.2);
+                stanceB = 0;
                 return false;
             }
 
             if (sectionMood === 'interlude') {
-                // Both step back, catch breath
-                setGuard(fencerA, 0.4, -0.2, -0.2, 0.2);
-                setGuard(fencerB, 0.4, -0.2, -0.2, 0.2);
+                setFencerGuard(fencerA, 0.4, -0.2, -0.2, 0.2);
+                stanceA = 0;
+                setFencerGuard(fencerB, 0.4, -0.2, -0.2, 0.2);
+                stanceB = 0;
                 return false;
             }
 
             if (sectionMood === 'denouement') {
-                // A salutes (victor), B lowers sword
-                setGuard(fencerA, 0.5, 0, -1.0, 0.1);
-                setGuard(fencerB, 0.3, -0.3, 0.5, 0.1);
+                if (!ragdolled) {
+                    // Fencer B loses — ragdoll with impulse away from A
+                    StickFight.goRagdoll(fencerB, roofY, fencerB.facing * -200, -300);
+                    ragdolled = true;
+                }
+                // A salutes
+                StickFight.setPose(fencerA, 'salute');
+                StickFight.setTarget(fencerA, 'swordAngle', -1.0);
+                stanceA = 0;
                 return false;
             }
 
@@ -702,63 +545,61 @@
             var tempo = sectionMood === 'finale' ? 2 : sectionMood === 'bout2' ? 4 : 8;
 
             if (beatMod % tempo === 0 || (energy > 0.6 && beatMod % 2 === 0)) {
-                // Alternating attacks
                 var aAttacks = (beat % (tempo * 2)) < tempo;
 
                 if (energy > 0.8 && sectionMood === 'finale') {
-                    // Simultaneous attacks (clash!)
-                    setLunge(fencerA, aggression);
-                    setLunge(fencerB, aggression);
+                    setFencerLunge(fencerA, aggression);
+                    setFencerLunge(fencerB, aggression);
                     isClash = true;
                 } else if (aAttacks) {
-                    setLunge(fencerA, aggression);
-                    setParry(fencerB, aggression);
-                    fencerA.attackFlash = 0.8;
+                    setFencerLunge(fencerA, aggression);
+                    setFencerParry(fencerB, aggression);
+                    attackFlashA = 0.8;
                 } else {
-                    setParry(fencerA, aggression);
-                    setLunge(fencerB, aggression);
-                    fencerB.attackFlash = 0.8;
+                    setFencerParry(fencerA, aggression);
+                    setFencerLunge(fencerB, aggression);
+                    attackFlashB = 0.8;
                 }
             } else {
-                // Return to guard between attacks
-                var guardIntensity = 0.4 + energy * 0.2;
-                setGuard(fencerA, guardIntensity, rand(-0.1, 0.1), rand(-0.4, -0.1), 0.4);
-                setGuard(fencerB, guardIntensity, rand(-0.1, 0.1), rand(-0.4, -0.1), 0.4);
+                var gi = 0.4 + energy * 0.2;
+                setFencerGuard(fencerA, gi, rand(-0.1, 0.1), rand(-0.4, -0.1), 0.4);
+                setFencerGuard(fencerB, gi, rand(-0.1, 0.1), rand(-0.4, -0.1), 0.4);
             }
 
             return isClash;
         }
 
-        function setLunge(f, intensity) {
-            f.stance = 0.5 + intensity * 0.5;
-            f.leanTarget = 0.4 + intensity * 0.4;
-            f.armTarget = 0.7 + intensity * 0.3;
-            f.legTarget = 0.5 + intensity * 0.4;
-            f.swordTarget = -0.1 + rand(-0.15, 0.15);
+        // Map old fencer params to StickFight pose targets
+        function setFencerLunge(fig, intensity) {
+            if (fig.mode === 'ragdoll') return;
+            StickFight.setPose(fig, 'lunge');
+            StickFight.setTarget(fig, 'swordAngle', -0.1 + rand(-0.15, 0.15));
+            StickFight.setTarget(fig, 'legSpread', 0.5 + intensity * 0.4);
+            StickFight.setTarget(fig, 'lean', 0.4 + intensity * 0.4);
+            if (fig === fencerA) stanceA = 0.5 + intensity * 0.5;
+            else stanceB = 0.5 + intensity * 0.5;
         }
 
-        function setParry(f, intensity) {
-            f.stance = -0.2 - intensity * 0.2;
-            f.leanTarget = -0.2 - intensity * 0.2;
-            f.armTarget = 0.3 + rand(0, 0.3);
-            f.legTarget = 0.2 + intensity * 0.1;
-            // Parry angles: high, low, or side
+        function setFencerParry(fig, intensity) {
+            if (fig.mode === 'ragdoll') return;
+            StickFight.setPose(fig, 'block');
             var parryType = Math.random();
-            if (parryType < 0.33) {
-                f.swordTarget = -0.8 + rand(-0.2, 0.2); // high parry
-            } else if (parryType < 0.66) {
-                f.swordTarget = 0.3 + rand(-0.2, 0.2);  // low parry
-            } else {
-                f.swordTarget = -0.3 + rand(-0.3, 0.3);  // lateral
-            }
+            var sAng;
+            if (parryType < 0.33) sAng = -0.8 + rand(-0.2, 0.2);
+            else if (parryType < 0.66) sAng = 0.3 + rand(-0.2, 0.2);
+            else sAng = -0.3 + rand(-0.3, 0.3);
+            StickFight.setTarget(fig, 'swordAngle', sAng);
+            StickFight.setTarget(fig, 'legSpread', 0.2 + intensity * 0.1);
+            if (fig === fencerA) stanceA = -0.2 - intensity * 0.2;
+            else stanceB = -0.2 - intensity * 0.2;
         }
 
-        function setGuard(f, armExt, lean, swordAng, legSpr) {
-            f.stance = 0;
-            f.leanTarget = lean;
-            f.armTarget = armExt;
-            f.legTarget = legSpr;
-            f.swordTarget = swordAng;
+        function setFencerGuard(fig, armExt, lean, swordAng, legSpr) {
+            if (fig.mode === 'ragdoll') return;
+            StickFight.setPose(fig, 'guard');
+            StickFight.setTarget(fig, 'lean', lean);
+            StickFight.setTarget(fig, 'swordAngle', swordAng);
+            StickFight.setTarget(fig, 'legSpread', legSpr);
         }
 
         // ── Sky gradient ──
@@ -830,13 +671,29 @@
             analysis = anal;
             roofY = H * ROOF_Y_RATIO;
 
-            fencerA.baseX = W * 0.38;
-            fencerA.x = fencerA.baseX;
-            fencerA.facing = 1;
+            var figH = H * 0.3;
+            fencerBaseXA = W * 0.38;
+            fencerBaseXB = W * 0.62;
 
-            fencerB.baseX = W * 0.62;
-            fencerB.x = fencerB.baseX;
-            fencerB.facing = -1;
+            fencerA = StickFight.create({
+                x: fencerBaseXA, y: roofY,
+                figH: figH, facing: 1,
+                color: FENCER_A_COLOR, poseSpeed: 10
+            });
+            fencerA.params.swordLen = 0.35;
+            fencerA.targets.swordLen = 0.35;
+
+            fencerB = StickFight.create({
+                x: fencerBaseXB, y: roofY,
+                figH: figH, facing: -1,
+                color: FENCER_B_COLOR, poseSpeed: 10
+            });
+            fencerB.params.swordLen = 0.35;
+            fencerB.targets.swordLen = 0.35;
+
+            stanceA = 0; stanceB = 0;
+            attackFlashA = 0; attackFlashB = 0;
+            ragdolled = false;
 
             initRain();
             initClouds();
@@ -859,8 +716,10 @@
         function resize(width, height) {
             W = width; H = height;
             roofY = H * ROOF_Y_RATIO;
-            fencerA.baseX = W * 0.38;
-            fencerB.baseX = W * 0.62;
+            fencerBaseXA = W * 0.38;
+            fencerBaseXB = W * 0.62;
+            if (fencerA) { fencerA.figH = H * 0.3; fencerA.y = roofY; }
+            if (fencerB) { fencerB.figH = H * 0.3; fencerB.y = roofY; }
             initRain();
             initClouds();
         }
@@ -971,8 +830,11 @@
             titleAlpha = lerpExp(titleAlpha, titleTarget, 3, dt);
 
             // ── Update systems ──
-            updateFencer(fencerA, dt, beat, energy, true);
-            updateFencer(fencerB, dt, beat, energy, false);
+            updateFencerPosition(fencerA, stanceA, fencerBaseXA, dt, energy);
+            updateFencerPosition(fencerB, stanceB, fencerBaseXB, dt, energy);
+            StickFight.updateAll([fencerA, fencerB], dt);
+            attackFlashA *= Math.exp(-8 * dt);
+            attackFlashB *= Math.exp(-8 * dt);
             updateRain(dt, rainIntensity);
             updateClouds(dt);
             updateLightning(dt);
@@ -1011,9 +873,9 @@
             drawRooftop(ctx, energy);
 
             // 8. Fencers
-            var figH = H * 0.3;
-            var tipA = drawFencer(ctx, fencerA, FENCER_A_COLOR, figH);
-            var tipB = drawFencer(ctx, fencerB, FENCER_B_COLOR, figH);
+            StickFight.drawAll(ctx, [fencerA, fencerB]);
+            drawFencerFlash(ctx, fencerA, attackFlashA);
+            drawFencerFlash(ctx, fencerB, attackFlashB);
 
             // 9. Sparks
             drawSparks(ctx);

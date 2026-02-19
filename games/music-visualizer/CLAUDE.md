@@ -91,6 +91,176 @@ window.Renderers['my-renderer'] = {
 2. Add a `<script>` tag in `index.html` before the inline `<script>` block
 3. It auto-appears in the renderer dropdown
 
+## Stick Fight Engine (`stick-fight-engine.js`)
+
+Shared stick-figure skeleton, pose, and ragdoll toolkit. Not a renderer — a module that video renderers call into. ES5 IIFE exposing `window.StickFight`.
+
+### Loading
+
+Add the script tag **after** `engine.js` and **before** the inline renderer:
+
+```html
+<script src="../audio-tracker/playback-engine.js"></script>
+<script src="engine.js"></script>
+<script src="stick-fight-engine.js"></script>
+<script>
+window.Renderers['my-video'] = (function() { ... })();
+</script>
+```
+
+### Quick Start Pattern
+
+```js
+// In init():
+var figH = H * 0.3;
+var groundY = H * 0.78;
+var a = StickFight.create({ x: W * 0.35, y: groundY, figH: figH, facing: 1, color: '#8898c8' });
+var b = StickFight.create({ x: W * 0.65, y: groundY, figH: figH, facing: -1, color: '#c09070' });
+
+// On beat:
+StickFight.setPose(a, 'lunge');
+StickFight.setPose(b, 'block');
+
+// Each frame:
+StickFight.updateAll([a, b], dt);
+StickFight.drawAll(ctx, [a, b]);
+```
+
+### API Reference
+
+| Function | Description |
+|----------|-------------|
+| `create(opts)` | New figure. Options: `x, y, figH, facing (1/-1), color, lineWidth, poseSpeed` |
+| `setPose(fig, name)` | Set targets from named pose library |
+| `setTarget(fig, key, val)` | Override a single target parameter |
+| `computeJoints(fig)` | Returns 13 joint positions (relative to feet at 0,0) |
+| `drawFigure(ctx, fig, joints?)` | Draw one figure (joints computed if omitted) |
+| `updateFigure(fig, dt)` | Lerp params toward targets (or step ragdoll) |
+| `updateAll(figs, dt)` | Batch update |
+| `drawAll(ctx, figs)` | Batch draw (auto-handles pose vs ragdoll mode) |
+| `goRagdoll(fig, groundY, impulseX, impulseY)` | Switch to Verlet ragdoll physics |
+| `lerpExp(cur, tgt, speed, dt)` | Exponential lerp helper |
+| `defaultParams()` | Fresh pose parameter object |
+
+### Figure Object
+
+Created by `StickFight.create()`. Key fields:
+
+```
+fig.x, fig.y         — world position (feet)
+fig.figH             — total figure height in pixels
+fig.facing           — 1 (right) or -1 (left)
+fig.color            — stroke color
+fig.lineWidth        — stroke width (default 3)
+fig.params           — current pose parameters (lerped each frame)
+fig.targets          — target pose parameters (set by setPose/setTarget)
+fig.poseSpeed        — lerp speed (default 10, higher = snappier)
+fig.mode             — 'pose' or 'ragdoll'
+fig.ragdoll          — Verlet state (null until goRagdoll called)
+```
+
+### Pose Parameters
+
+All params are numbers, lerped smoothly each frame:
+
+| Param | Range | Effect |
+|-------|-------|--------|
+| `bounce` | -1..1 | Vertical bob (positive = up) |
+| `lean` | -1..1 | Torso lean (positive = forward relative to facing) |
+| `armLAngle` | radians | Left arm angle from straight-down (negative = up/forward) |
+| `armRAngle` | radians | Right arm angle |
+| `elbowLBend` | 0..1 | Left forearm bend |
+| `elbowRBend` | 0..1 | Right forearm bend |
+| `legSpread` | 0..1 | Stance width |
+| `kneeL` | -1..1 | Left knee offset (negative = forward) |
+| `kneeR` | -1..1 | Right knee offset |
+| `swordAngle` | radians | Weapon angle (only drawn if swordLen > 0) |
+| `swordLen` | 0..1 | Weapon length as fraction of figH (0 = no weapon) |
+
+### Named Poses
+
+`idle` `guard` `lunge` `punch` `kick` `block` `recoil` `dance_basic` `arms_up` `kneel` `fallen` `salute`
+
+Use `setPose` to set all targets at once, then `setTarget` to tweak individual params:
+
+```js
+StickFight.setPose(fig, 'guard');
+StickFight.setTarget(fig, 'swordAngle', -0.5);  // custom sword position
+StickFight.setTarget(fig, 'lean', 0.3);          // lean forward more
+```
+
+### Bone Proportions (fractions of figH)
+
+```
+headR: 0.07, neck: 0.06, shoulder: 0.09, torso: 0.28,
+upperArm: 0.13, forearm: 0.12, thigh: 0.20, shin: 0.19
+```
+
+Accessible as `StickFight.BONE`. Total standing height ≈ `shin + thigh + torso + neck + headR*2` = ~0.81 * figH (rest is bounce headroom).
+
+### Joint Names (13 points)
+
+`head` `neck` `shoulderL` `shoulderR` `elbowL` `elbowR` `handL` `handR` `hip` `kneeL` `kneeR` `ankleL` `ankleR`
+
+Positions are relative to (0,0) at the figure's feet, y-negative = up. Use `computeJoints(fig)` to get them, e.g. for attaching effects to a hand or checking sword tip position.
+
+### Ragdoll
+
+Switch a figure to ragdoll mode when it should collapse/fly/tumble:
+
+```js
+// On the killing blow:
+StickFight.goRagdoll(fig, groundY, impulseX, impulseY);
+// impulseX/Y in pixels/sec — e.g. (200, -300) launches up-right
+```
+
+- Snapshots current joint positions into 13 Verlet point masses
+- Distance constraints keep limbs connected
+- Ground collision with configurable bounce (0.3) and friction (0.85)
+- Auto-settles after 0.5s of low velocity
+- `updateAll` and `drawAll` handle ragdoll figures automatically
+- Once ragdolled, the figure stays ragdolled (no automatic recovery)
+
+### Weapons
+
+Figures can hold a sword/weapon drawn from `handL`:
+
+```js
+fig.params.swordLen = 0.35;    // set both current and target
+fig.targets.swordLen = 0.35;   // (fraction of figH)
+StickFight.setTarget(fig, 'swordAngle', -0.2);  // angle in radians
+```
+
+The engine draws the blade (silver) with a guard crossbar (figure color). For attack flash effects (glow on sword tip), handle that in your renderer — see `fencing-match-in-a-thunderstorm-video.html` for the pattern.
+
+### Coordinate System
+
+- `fig.y` is the **ground line** (feet position). Figures extend upward (negative y).
+- `drawFigure` translates to `(fig.x, fig.y)` internally, so joint coords are local.
+- Ragdoll points are in **world coordinates** (no translation needed).
+- `facing` flips arm movement direction but not the skeleton — arms that reach "forward" go in the facing direction.
+
+### Integration Tips
+
+- **Non-combat videos** only need `create` + `setPose` + `updateAll` + `drawAll` — no weapons, no ragdoll.
+- **Custom poses**: use `setTarget` to tweak individual params after `setPose`, or skip `setPose` entirely and set all targets manually.
+- **Beat sync**: call `setPose` on beat changes, let `updateAll(figs, dt)` handle smooth transitions.
+- **Multiple figures**: pass arrays to `updateAll` / `drawAll`. Create as many as you need.
+- **Scene-specific drawing** (hair, clothing, faces, glow effects) stays in the video renderer — the engine just draws the skeleton.
+- **Position movement**: update `fig.x` directly in your renderer (the engine doesn't move figures laterally).
+
+### Videos Using the Engine
+
+| Video | Pattern |
+|-------|---------|
+| `fencing-match-in-a-thunderstorm-video.html` | 2 armed figures, pose choreography + denouement ragdoll |
+
+### Future Sessions (not yet implemented)
+
+- **Combat system**: `StickFight.attack(attacker, moveName, target)` — hit detection, reactions
+- **Gore & effects**: `StickFight.updateEffects(dt)` / `drawEffects(ctx)` — blood particles, dismemberment
+- Remaining ~20 stick figure videos to be refactored to use the engine
+
 ## Embeddability
 
 Other pages can embed a visualizer background:
