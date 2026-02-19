@@ -3000,6 +3000,9 @@
             var dt = frameData.dt || 1 / 60;
             var cursor = frameData.cursor;
 
+            // Protect engine context state from any leaks within scenes
+            ctx.save();
+
             // Background fill
             ctx.fillStyle = BG_DEEP;
             ctx.fillRect(0, 0, W, H);
@@ -3012,6 +3015,7 @@
                 var idleCoinR = Math.min(W, H) * 0.05;
                 drawCoin(ctx, W * 0.5, H * 0.5, idleCoinR, coinAngle, coinShine, 0);
                 drawVignette(ctx, 0.5);
+                ctx.restore();
                 return;
             }
 
@@ -3082,9 +3086,13 @@
                 ctx.fillRect(0, 0, W, H);
                 ctx.restore();
             }
+
+            // Restore engine context state (prevents leaked state from persisting across frames)
+            ctx.restore();
         }
 
         function drawSceneByIndex(sceneIdx, ctx, dt, cursor, energy, bp) {
+            ctx.save();
             try {
                 switch (sceneIdx) {
                     case 0: drawStripScene(ctx, dt, cursor, energy, bp); break;
@@ -3098,6 +3106,7 @@
             } catch (e) {
                 console.error('Scene ' + sceneIdx + ' render error:', e);
             }
+            ctx.restore();
         }
 
         return {
