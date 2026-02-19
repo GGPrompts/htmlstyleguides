@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survivors: Gothic Cathedral Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0a0808;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(10,8,8,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(20px, 5vw, 48px);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #c43c3c;
+            text-shadow: 0 0 30px rgba(196,60,60,0.6), 0 0 60px rgba(196,60,60,0.3);
+            margin-bottom: 8px;
+        }
+        .play-sub {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.2em;
+            text-transform: lowercase;
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #c43c3c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #c43c3c;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(196,60,60,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(196,60,60,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            font-family: sans-serif;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Survivors: Gothic Cathedral</div>
+        <div class="play-sub">arena theme</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Survivors: Gothic Cathedral Video Renderer ─────────────────
+    window.Renderers['survivors-gothic-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Palette ──
+        var BG = '#0a0808';
+        var STONE_DARK = '#1a1614';
+        var STONE_MID = '#2a2420';
+        var STONE_LIGHT = '#3a3230';
+        var RUBY = '#c43c3c';
+        var EMERALD = '#2ca858';
+        var SAPPHIRE = '#3868c8';
+        var AMBER = '#d4a030';
+        var GHOST_GREEN = '#88ccaa';
+        var CANDLE_AMBER = '#e8a020';
+        var BONE_WHITE = '#d8d0c0';
+        var PURPLE = '#7848a8';
+
+        var GLASS_COLORS = [RUBY, EMERALD, SAPPHIRE, AMBER, PURPLE];
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var sectionMood = 'intro';
+        var lastSeqIndex = -1;
+        var time = 0;
+
+        // Survivor state
+        var survivorX = 0.5;
+        var survivorSwing = 0;
+        var survivorSwingTarget = 0;
+        var weaponAngle = 0;
+        var weaponSwinging = false;
+        var weaponSwingTimer = 0;
+
+        // Enemies
+        var skeletons = [];
+        var ghosts = [];
+        var MAX_SKELETONS = 6;
+        var MAX_GHOSTS = 4;
+
+        // Glass shards
+        var shards = [];
+
+        // Candles
+        var candles = [];
+        var NUM_CANDLES = 12;
+
+        // Dust motes
+        var dustMotes = [];
+        var NUM_DUST = 60;
+
+        // Organ pipes
+        var organPipes = [];
+        var NUM_PIPES = 16;
+
+        // Architecture
+        var archPositions = [];
+        var columnPositions = [];
+        var windowPositions = [];
+
+        // ── Helpers ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+        function rand(lo, hi) { return lo + Math.random() * (hi - lo); }
+        function hexToRgb(hex) {
+            return {
+                r: parseInt(hex.slice(1,3), 16),
+                g: parseInt(hex.slice(3,5), 16),
+                b: parseInt(hex.slice(5,7), 16)
+            };
+        }
+        function rgba(hex, a) {
+            var c = hexToRgb(hex);
+            return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+        }
+
+        // ── Section mapping ──
+        // Sequence: 0=intro, 1-2=verse, 3-4=chorus, 5-6=verse, 7-8=bridge, 9=fill,
+        //           10-11=chorus, 12-13=verse, 14-15=bridge, 16=fill/outro
+        function mapSection(seqIndex) {
+            if (seqIndex <= 0) return 'intro';
+            if (seqIndex <= 2) return 'verse';
+            if (seqIndex <= 4) return 'chorus';
+            if (seqIndex <= 6) return 'verse';
+            if (seqIndex <= 8) return 'bridge';
+            if (seqIndex <= 9) return 'fill';
+            if (seqIndex <= 11) return 'chorus';
+            if (seqIndex <= 13) return 'verse';
+            if (seqIndex <= 15) return 'bridge';
+            return 'outro';
+        }
+
+        // ── Init architecture ──
+        function initArchitecture() {
+            archPositions = [];
+            columnPositions = [];
+            windowPositions = [];
+
+            // Gothic arches along the top
+            var numArches = 5;
+            for (var i = 0; i < numArches; i++) {
+                var ax = (i + 0.5) / numArches * W;
+                archPositions.push({ x: ax, w: W / numArches * 0.85 });
+            }
+
+            // Columns
+            var numCols = 8;
+            for (var c = 0; c < numCols; c++) {
+                var cx = (c + 0.5) / numCols * W;
+                columnPositions.push({ x: cx });
+            }
+
+            // Stained glass windows (3 main ones)
+            windowPositions = [
+                { x: W * 0.2, y: H * 0.12, w: W * 0.14, h: H * 0.28, color: RUBY },
+                { x: W * 0.5, y: H * 0.06, w: W * 0.18, h: H * 0.35, color: SAPPHIRE },
+                { x: W * 0.8, y: H * 0.12, w: W * 0.14, h: H * 0.28, color: EMERALD }
+            ];
+        }
+
+        // ── Init entities ──
+        function initCandles() {
+            candles = [];
+            for (var i = 0; i < NUM_CANDLES; i++) {
+                candles.push({
+                    x: rand(0.05, 0.95) * W,
+                    y: rand(0.5, 0.75) * H,
+                    size: rand(0.6, 1.2),
+                    phase: rand(0, Math.PI * 2),
+                    flicker: 0
+                });
+            }
+        }
+
+        function initDust() {
+            dustMotes = [];
+            for (var i = 0; i < NUM_DUST; i++) {
+                dustMotes.push({
+                    x: rand(0, W),
+                    y: rand(0, H),
+                    vx: rand(-8, 8),
+                    vy: rand(-15, -3),
+                    size: rand(1, 3),
+                    alpha: rand(0.1, 0.4),
+                    phase: rand(0, Math.PI * 2)
+                });
+            }
+        }
+
+        function initOrganPipes() {
+            organPipes = [];
+            var pipeAreaX = W * 0.35;
+            var pipeAreaW = W * 0.3;
+            for (var i = 0; i < NUM_PIPES; i++) {
+                var t = i / (NUM_PIPES - 1);
+                organPipes.push({
+                    x: pipeAreaX + t * pipeAreaW,
+                    baseH: H * (0.08 + Math.sin(t * Math.PI) * 0.18),
+                    pulse: 0,
+                    width: W * 0.012
+                });
+            }
+        }
+
+        function spawnSkeleton() {
+            if (skeletons.length >= MAX_SKELETONS) return;
+            var side = Math.random() > 0.5 ? 1 : -1;
+            skeletons.push({
+                x: side > 0 ? W + 30 : -30,
+                y: H * rand(0.6, 0.8),
+                vx: -side * rand(20, 50),
+                phase: rand(0, Math.PI * 2),
+                hp: 1,
+                dying: false,
+                deathTimer: 0,
+                size: rand(0.8, 1.1)
+            });
+        }
+
+        function spawnGhost() {
+            if (ghosts.length >= MAX_GHOSTS) return;
+            ghosts.push({
+                x: rand(0.1, 0.9) * W,
+                y: H * 0.2,
+                targetX: rand(0.2, 0.8) * W,
+                targetY: H * rand(0.35, 0.65),
+                phase: rand(0, Math.PI * 2),
+                alpha: 0,
+                alphaTarget: rand(0.3, 0.6),
+                hp: 1,
+                dying: false,
+                deathTimer: 0,
+                size: rand(0.8, 1.3)
+            });
+        }
+
+        function spawnShards(cx, cy, color, count) {
+            for (var i = 0; i < count; i++) {
+                var angle = rand(0, Math.PI * 2);
+                var speed = rand(60, 200);
+                shards.push({
+                    x: cx, y: cy,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 40,
+                    rot: rand(0, Math.PI * 2),
+                    rotSpeed: rand(-8, 8),
+                    size: rand(3, 10),
+                    color: color,
+                    alpha: 1,
+                    life: 1
+                });
+            }
+        }
+
+        // ── Drawing functions ──
+
+        function drawCathedralBG(ctx, energy) {
+            // Dark stone background with vaulted ceiling feel
+            var grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, '#050404');
+            grad.addColorStop(0.3, STONE_DARK);
+            grad.addColorStop(0.7, STONE_MID);
+            grad.addColorStop(1, '#0d0a08');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Stone texture lines
+            ctx.strokeStyle = rgba(STONE_LIGHT, 0.08);
+            ctx.lineWidth = 1;
+            for (var i = 0; i < 20; i++) {
+                var y = (i / 20) * H;
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawGothicArches(ctx, energy) {
+            ctx.save();
+            ctx.strokeStyle = rgba(STONE_LIGHT, 0.3 + energy * 0.2);
+            ctx.lineWidth = 2;
+
+            for (var i = 0; i < archPositions.length; i++) {
+                var a = archPositions[i];
+                var archH = H * 0.35;
+                var halfW = a.w * 0.5;
+
+                // Pointed gothic arch
+                ctx.beginPath();
+                ctx.moveTo(a.x - halfW, archH);
+                ctx.quadraticCurveTo(a.x - halfW * 0.3, archH * 0.15, a.x, archH * 0.05);
+                ctx.quadraticCurveTo(a.x + halfW * 0.3, archH * 0.15, a.x + halfW, archH);
+                ctx.stroke();
+
+                // Inner arch (thinner)
+                ctx.strokeStyle = rgba(STONE_LIGHT, 0.15);
+                ctx.lineWidth = 1;
+                var inset = 8;
+                ctx.beginPath();
+                ctx.moveTo(a.x - halfW + inset, archH);
+                ctx.quadraticCurveTo(a.x - halfW * 0.3 + inset * 0.5, archH * 0.15 + inset, a.x, archH * 0.05 + inset);
+                ctx.quadraticCurveTo(a.x + halfW * 0.3 - inset * 0.5, archH * 0.15 + inset, a.x + halfW - inset, archH);
+                ctx.stroke();
+
+                ctx.strokeStyle = rgba(STONE_LIGHT, 0.3 + energy * 0.2);
+                ctx.lineWidth = 2;
+            }
+            ctx.restore();
+        }
+
+        function drawColumns(ctx, energy) {
+            ctx.save();
+            for (var i = 0; i < columnPositions.length; i++) {
+                var col = columnPositions[i];
+                var colW = W * 0.018;
+                var colTop = H * 0.05;
+                var colBot = H * 0.85;
+
+                // Column body
+                var grad = ctx.createLinearGradient(col.x - colW, 0, col.x + colW, 0);
+                grad.addColorStop(0, rgba(STONE_LIGHT, 0.08));
+                grad.addColorStop(0.3, rgba(STONE_LIGHT, 0.2));
+                grad.addColorStop(0.5, rgba(STONE_LIGHT, 0.25 + energy * 0.1));
+                grad.addColorStop(0.7, rgba(STONE_LIGHT, 0.2));
+                grad.addColorStop(1, rgba(STONE_LIGHT, 0.08));
+                ctx.fillStyle = grad;
+                ctx.fillRect(col.x - colW, colTop, colW * 2, colBot - colTop);
+
+                // Capital (top decoration)
+                ctx.fillStyle = rgba(STONE_LIGHT, 0.3);
+                ctx.fillRect(col.x - colW * 1.5, colTop, colW * 3, colW * 0.8);
+                ctx.fillRect(col.x - colW * 1.3, colTop + colW * 0.8, colW * 2.6, colW * 0.4);
+            }
+            ctx.restore();
+        }
+
+        function drawStainedGlass(ctx, energy, beatPulseVal) {
+            ctx.save();
+            for (var i = 0; i < windowPositions.length; i++) {
+                var win = windowPositions[i];
+                var glowIntensity = 0.2 + energy * 0.4 + beatPulseVal * 0.3;
+
+                // Window frame
+                ctx.strokeStyle = rgba(STONE_LIGHT, 0.4);
+                ctx.lineWidth = 3;
+
+                // Pointed top window shape
+                ctx.beginPath();
+                var top = win.y;
+                var bot = win.y + win.h;
+                var left = win.x - win.w * 0.5;
+                var right = win.x + win.w * 0.5;
+                ctx.moveTo(left, bot);
+                ctx.lineTo(left, top + win.h * 0.3);
+                ctx.quadraticCurveTo(win.x, top - win.h * 0.05, right, top + win.h * 0.3);
+                ctx.lineTo(right, bot);
+                ctx.closePath();
+                ctx.stroke();
+
+                // Glass fill with glow
+                var glassGrad = ctx.createRadialGradient(win.x, win.y + win.h * 0.4, 0, win.x, win.y + win.h * 0.4, win.w * 0.7);
+                glassGrad.addColorStop(0, rgba(win.color, glowIntensity * 0.8));
+                glassGrad.addColorStop(0.5, rgba(win.color, glowIntensity * 0.4));
+                glassGrad.addColorStop(1, rgba(win.color, glowIntensity * 0.1));
+                ctx.fillStyle = glassGrad;
+                ctx.fill();
+
+                // Cross dividers
+                ctx.strokeStyle = rgba(STONE_LIGHT, 0.3);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(win.x, top + win.h * 0.15);
+                ctx.lineTo(win.x, bot);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(left + 4, win.y + win.h * 0.5);
+                ctx.lineTo(right - 4, win.y + win.h * 0.5);
+                ctx.stroke();
+
+                // Light rays from windows
+                if (energy > 0.3) {
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'lighter';
+                    var rayGrad = ctx.createLinearGradient(win.x, win.y + win.h, win.x, H);
+                    rayGrad.addColorStop(0, rgba(win.color, glowIntensity * 0.15));
+                    rayGrad.addColorStop(1, rgba(win.color, 0));
+                    ctx.fillStyle = rayGrad;
+                    ctx.beginPath();
+                    ctx.moveTo(win.x - win.w * 0.3, win.y + win.h);
+                    ctx.lineTo(win.x + win.w * 0.3, win.y + win.h);
+                    ctx.lineTo(win.x + win.w * 0.8, H);
+                    ctx.lineTo(win.x - win.w * 0.8, H);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.restore();
+                }
+
+                // Rose window pattern (center window only)
+                if (i === 1) {
+                    var roseY = win.y + win.h * 0.25;
+                    var roseR = win.w * 0.2;
+                    ctx.strokeStyle = rgba(STONE_LIGHT, 0.2);
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(win.x, roseY, roseR, 0, Math.PI * 2);
+                    ctx.stroke();
+                    for (var r = 0; r < 8; r++) {
+                        var angle = (r / 8) * Math.PI * 2 + time * 0.1;
+                        ctx.beginPath();
+                        ctx.moveTo(win.x, roseY);
+                        ctx.lineTo(win.x + Math.cos(angle) * roseR, roseY + Math.sin(angle) * roseR);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawOrganPipes(ctx, energy, beatPulseVal) {
+            ctx.save();
+            for (var i = 0; i < organPipes.length; i++) {
+                var pipe = organPipes[i];
+                var pulseH = pipe.baseH + pipe.pulse * H * 0.06;
+                var pipeTop = H * 0.02;
+
+                // Pipe body
+                var pGrad = ctx.createLinearGradient(pipe.x - pipe.width, 0, pipe.x + pipe.width, 0);
+                pGrad.addColorStop(0, rgba(STONE_LIGHT, 0.15));
+                pGrad.addColorStop(0.3, rgba('#888070', 0.3 + pipe.pulse * 0.3));
+                pGrad.addColorStop(0.5, rgba('#a09888', 0.35 + pipe.pulse * 0.4));
+                pGrad.addColorStop(0.7, rgba('#888070', 0.3 + pipe.pulse * 0.3));
+                pGrad.addColorStop(1, rgba(STONE_LIGHT, 0.15));
+                ctx.fillStyle = pGrad;
+                ctx.fillRect(pipe.x - pipe.width * 0.5, pipeTop, pipe.width, pulseH);
+
+                // Pipe top cap
+                ctx.fillStyle = rgba('#a09888', 0.4 + pipe.pulse * 0.3);
+                ctx.beginPath();
+                ctx.ellipse(pipe.x, pipeTop, pipe.width * 0.6, pipe.width * 0.25, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Resonance glow
+                if (pipe.pulse > 0.1) {
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'lighter';
+                    var glowGrad = ctx.createRadialGradient(pipe.x, pipeTop, 0, pipe.x, pipeTop, pipe.width * 3);
+                    glowGrad.addColorStop(0, rgba(AMBER, pipe.pulse * 0.3));
+                    glowGrad.addColorStop(1, rgba(AMBER, 0));
+                    ctx.fillStyle = glowGrad;
+                    ctx.fillRect(pipe.x - pipe.width * 3, pipeTop - pipe.width * 2, pipe.width * 6, pipe.width * 4);
+                    ctx.restore();
+                }
+
+                // Decay pulse
+                pipe.pulse *= 0.92;
+            }
+            ctx.restore();
+        }
+
+        function drawFloor(ctx, energy) {
+            var floorY = H * 0.82;
+            ctx.save();
+
+            // Dark stone floor
+            var floorGrad = ctx.createLinearGradient(0, floorY, 0, H);
+            floorGrad.addColorStop(0, STONE_MID);
+            floorGrad.addColorStop(1, '#050404');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, floorY, W, H - floorY);
+
+            // Floor tiles (perspective)
+            ctx.strokeStyle = rgba(STONE_LIGHT, 0.1 + energy * 0.05);
+            ctx.lineWidth = 1;
+            var vpX = W * 0.5;
+            for (var i = 0; i <= 12; i++) {
+                var x = (i / 12) * W;
+                ctx.beginPath();
+                ctx.moveTo(x, floorY);
+                ctx.lineTo(vpX + (x - vpX) * 2, H);
+                ctx.stroke();
+            }
+            for (var j = 0; j < 6; j++) {
+                var y = floorY + Math.pow(j / 6, 1.5) * (H - floorY);
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(W, y);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Survivor drawing ──
+        function drawSurvivor(ctx, energy, beatPulseVal) {
+            var sx = survivorX * W;
+            var sy = H * 0.72;
+            var figH = H * 0.14;
+            var headR = figH * 0.08;
+            var bounce = Math.sin(time * 6) * 3 * energy;
+
+            ctx.save();
+            ctx.translate(sx, sy + bounce);
+
+            // Body (stick figure style)
+            ctx.strokeStyle = RUBY;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = RUBY;
+            ctx.shadowBlur = 10;
+            ctx.lineCap = 'round';
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(0, -figH * 0.85, headR, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Helmet / hood outline
+            ctx.beginPath();
+            ctx.arc(0, -figH * 0.85, headR * 1.3, -Math.PI * 0.9, -Math.PI * 0.1);
+            ctx.stroke();
+
+            // Eyes (determined)
+            ctx.fillStyle = RUBY;
+            ctx.fillRect(-headR * 0.4, -figH * 0.87, headR * 0.2, headR * 0.15);
+            ctx.fillRect(headR * 0.2, -figH * 0.87, headR * 0.2, headR * 0.15);
+
+            // Neck to torso
+            ctx.beginPath();
+            ctx.moveTo(0, -figH * 0.77);
+            ctx.lineTo(0, -figH * 0.4);
+            ctx.stroke();
+
+            // Shoulders
+            ctx.beginPath();
+            ctx.moveTo(-figH * 0.12, -figH * 0.7);
+            ctx.lineTo(figH * 0.12, -figH * 0.7);
+            ctx.stroke();
+
+            // Left arm
+            ctx.beginPath();
+            ctx.moveTo(-figH * 0.12, -figH * 0.7);
+            ctx.lineTo(-figH * 0.18, -figH * 0.5);
+            ctx.lineTo(-figH * 0.12, -figH * 0.35);
+            ctx.stroke();
+
+            // Right arm + weapon
+            var wAngle = weaponAngle;
+            var elbowX = figH * 0.16;
+            var elbowY = -figH * 0.55;
+            ctx.beginPath();
+            ctx.moveTo(figH * 0.12, -figH * 0.7);
+            ctx.lineTo(elbowX, elbowY);
+            ctx.stroke();
+
+            // Weapon (sword)
+            var swordLen = figH * 0.35;
+            ctx.save();
+            ctx.translate(elbowX, elbowY);
+            ctx.rotate(wAngle);
+            ctx.strokeStyle = '#e8e0d0';
+            ctx.lineWidth = 2;
+            ctx.shadowColor = '#e8e0d0';
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(swordLen, 0);
+            ctx.stroke();
+            // Crossguard
+            ctx.beginPath();
+            ctx.moveTo(4, -5);
+            ctx.lineTo(4, 5);
+            ctx.stroke();
+            // Blade glow on swing
+            if (weaponSwinging) {
+                ctx.strokeStyle = rgba(RUBY, 0.4);
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(4, 0);
+                ctx.lineTo(swordLen, 0);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            ctx.strokeStyle = RUBY;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = RUBY;
+
+            // Legs
+            var legSpread = figH * 0.08 + Math.abs(Math.sin(time * 4)) * figH * 0.03 * energy;
+            ctx.beginPath();
+            ctx.moveTo(0, -figH * 0.4);
+            ctx.lineTo(-legSpread, -figH * 0.2);
+            ctx.lineTo(-legSpread * 0.8, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, -figH * 0.4);
+            ctx.lineTo(legSpread, -figH * 0.2);
+            ctx.lineTo(legSpread * 0.8, 0);
+            ctx.stroke();
+
+            // Cloak flutter
+            if (energy > 0.3) {
+                ctx.strokeStyle = rgba(RUBY, 0.3);
+                ctx.lineWidth = 1;
+                for (var c = 0; c < 3; c++) {
+                    var cOff = Math.sin(time * 5 + c * 1.5) * 6 * energy;
+                    ctx.beginPath();
+                    ctx.moveTo(-figH * 0.06, -figH * 0.7);
+                    ctx.quadraticCurveTo(-figH * 0.15 + cOff, -figH * 0.5, -figH * 0.1 + cOff * 1.5, -figH * 0.25);
+                    ctx.stroke();
+                }
+            }
+
+            ctx.restore();
+        }
+
+        // ── Skeleton drawing ──
+        function drawSkeleton(ctx, skel) {
+            var x = skel.x;
+            var y = skel.y;
+            var s = skel.size;
+            var figH = H * 0.1 * s;
+            var headR = figH * 0.09;
+            var walk = Math.sin(time * 5 + skel.phase) * 4;
+            var alpha = skel.dying ? (1 - skel.deathTimer) : 1;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(x, y + walk);
+            ctx.strokeStyle = BONE_WHITE;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = BONE_WHITE;
+            ctx.shadowBlur = 4;
+            ctx.lineCap = 'round';
+
+            // Skull
+            ctx.beginPath();
+            ctx.arc(0, -figH * 0.85, headR, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Eye sockets (dark)
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-headR * 0.3, -figH * 0.87, headR * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(headR * 0.3, -figH * 0.87, headR * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Jaw
+            ctx.strokeStyle = BONE_WHITE;
+            ctx.beginPath();
+            ctx.moveTo(-headR * 0.4, -figH * 0.82);
+            ctx.lineTo(0, -figH * 0.78 + Math.sin(time * 8 + skel.phase) * 1.5);
+            ctx.lineTo(headR * 0.4, -figH * 0.82);
+            ctx.stroke();
+
+            // Spine
+            ctx.beginPath();
+            ctx.moveTo(0, -figH * 0.77);
+            ctx.lineTo(0, -figH * 0.35);
+            ctx.stroke();
+
+            // Ribs
+            for (var r = 0; r < 3; r++) {
+                var ribY = -figH * (0.7 - r * 0.1);
+                ctx.beginPath();
+                ctx.moveTo(-figH * 0.07, ribY);
+                ctx.quadraticCurveTo(-figH * 0.1, ribY + 3, -figH * 0.05, ribY + 5);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(figH * 0.07, ribY);
+                ctx.quadraticCurveTo(figH * 0.1, ribY + 3, figH * 0.05, ribY + 5);
+                ctx.stroke();
+            }
+
+            // Arms (reaching forward)
+            var armReach = Math.sin(time * 3 + skel.phase) * figH * 0.05;
+            ctx.beginPath();
+            ctx.moveTo(-figH * 0.08, -figH * 0.68);
+            ctx.lineTo(-figH * 0.15 + armReach, -figH * 0.55);
+            ctx.lineTo(-figH * 0.2 + armReach * 1.5, -figH * 0.5);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(figH * 0.08, -figH * 0.68);
+            ctx.lineTo(figH * 0.15 + armReach, -figH * 0.55);
+            ctx.lineTo(figH * 0.2 + armReach * 1.5, -figH * 0.5);
+            ctx.stroke();
+
+            // Legs (bone segments)
+            var legPhase = Math.sin(time * 4 + skel.phase);
+            ctx.beginPath();
+            ctx.moveTo(0, -figH * 0.35);
+            ctx.lineTo(-figH * 0.06 + legPhase * 2, -figH * 0.18);
+            ctx.lineTo(-figH * 0.04, 0);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, -figH * 0.35);
+            ctx.lineTo(figH * 0.06 - legPhase * 2, -figH * 0.18);
+            ctx.lineTo(figH * 0.04, 0);
+            ctx.stroke();
+
+            // Death scatter effect
+            if (skel.dying) {
+                var scatter = skel.deathTimer;
+                ctx.globalAlpha = alpha * 0.6;
+                for (var b = 0; b < 5; b++) {
+                    var bx = Math.cos(b * 1.3 + skel.phase) * scatter * 40;
+                    var by = Math.sin(b * 1.7 + skel.phase) * scatter * 30 - scatter * 20;
+                    ctx.fillStyle = BONE_WHITE;
+                    ctx.fillRect(bx - 2, by - figH * 0.5 - 2, 4, 8);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        // ── Ghost drawing ──
+        function drawGhost(ctx, ghost) {
+            var alpha = ghost.dying ? ghost.alpha * (1 - ghost.deathTimer) : ghost.alpha;
+            if (alpha < 0.01) return;
+
+            var x = ghost.x;
+            var y = ghost.y;
+            var s = ghost.size;
+            var figH = H * 0.1 * s;
+            var float = Math.sin(time * 2 + ghost.phase) * 8;
+            var sway = Math.sin(time * 1.5 + ghost.phase * 2) * 5;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.translate(x + sway, y + float);
+
+            // Ghost body (translucent flowing shape)
+            var bodyGrad = ctx.createRadialGradient(0, -figH * 0.3, 0, 0, -figH * 0.3, figH * 0.5);
+            bodyGrad.addColorStop(0, rgba(GHOST_GREEN, 0.5));
+            bodyGrad.addColorStop(0.6, rgba(GHOST_GREEN, 0.2));
+            bodyGrad.addColorStop(1, rgba(GHOST_GREEN, 0));
+            ctx.fillStyle = bodyGrad;
+
+            ctx.beginPath();
+            ctx.moveTo(-figH * 0.2, 0);
+            // Wavy bottom
+            for (var w = 0; w <= 8; w++) {
+                var wx = -figH * 0.2 + (w / 8) * figH * 0.4;
+                var wy = Math.sin(time * 6 + w * 0.8 + ghost.phase) * 5;
+                ctx.lineTo(wx, wy);
+            }
+            ctx.lineTo(figH * 0.2, -figH * 0.2);
+            ctx.quadraticCurveTo(figH * 0.22, -figH * 0.6, 0, -figH * 0.7);
+            ctx.quadraticCurveTo(-figH * 0.22, -figH * 0.6, -figH * 0.2, -figH * 0.2);
+            ctx.closePath();
+            ctx.fill();
+
+            // Ghost outline
+            ctx.strokeStyle = rgba(GHOST_GREEN, 0.6);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Eyes (hollow dark)
+            ctx.fillStyle = rgba('#000', 0.8);
+            ctx.beginPath();
+            ctx.ellipse(-figH * 0.06, -figH * 0.45, figH * 0.03, figH * 0.04, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(figH * 0.06, -figH * 0.45, figH * 0.03, figH * 0.04, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Mouth (wailing)
+            ctx.beginPath();
+            ctx.ellipse(0, -figH * 0.33, figH * 0.03, figH * 0.04 + Math.sin(time * 7) * figH * 0.01, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Death dissolve
+            if (ghost.dying) {
+                ctx.globalCompositeOperation = 'lighter';
+                for (var d = 0; d < 8; d++) {
+                    var dx = Math.cos(d + ghost.phase) * ghost.deathTimer * 30;
+                    var dy = Math.sin(d * 1.5) * ghost.deathTimer * 25 - ghost.deathTimer * 15;
+                    ctx.fillStyle = rgba(GHOST_GREEN, 0.3 * (1 - ghost.deathTimer));
+                    ctx.beginPath();
+                    ctx.arc(dx, dy - figH * 0.35, figH * 0.03, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            ctx.restore();
+        }
+
+        // ── Candles ──
+        function drawCandles(ctx, energy) {
+            ctx.save();
+            for (var i = 0; i < candles.length; i++) {
+                var c = candles[i];
+                var flicker = 0.7 + Math.sin(time * 12 + c.phase) * 0.15 + Math.sin(time * 7.3 + c.phase * 1.5) * 0.1;
+                flicker += c.flicker;
+                var fSize = c.size * (3 + energy * 2);
+
+                // Candle body
+                ctx.fillStyle = rgba('#e8d8b0', 0.4);
+                ctx.fillRect(c.x - 1.5, c.y, 3, 12 * c.size);
+
+                // Flame
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                var flameGrad = ctx.createRadialGradient(c.x, c.y - fSize * 0.5, 0, c.x, c.y - fSize * 0.5, fSize * 2);
+                flameGrad.addColorStop(0, rgba(CANDLE_AMBER, flicker * 0.6));
+                flameGrad.addColorStop(0.3, rgba(CANDLE_AMBER, flicker * 0.3));
+                flameGrad.addColorStop(1, rgba(CANDLE_AMBER, 0));
+                ctx.fillStyle = flameGrad;
+                ctx.fillRect(c.x - fSize * 2, c.y - fSize * 3, fSize * 4, fSize * 4);
+
+                // Flame shape
+                ctx.fillStyle = rgba('#ffe880', flicker * 0.9);
+                ctx.beginPath();
+                ctx.moveTo(c.x - 2, c.y);
+                ctx.quadraticCurveTo(c.x - 3, c.y - fSize * 1.5, c.x, c.y - fSize * 2.5 + Math.sin(time * 15 + c.phase) * 2);
+                ctx.quadraticCurveTo(c.x + 3, c.y - fSize * 1.5, c.x + 2, c.y);
+                ctx.fill();
+                ctx.restore();
+
+                c.flicker *= 0.9;
+            }
+            ctx.restore();
+        }
+
+        // ── Dust motes ──
+        function updateDust(dt) {
+            for (var i = 0; i < dustMotes.length; i++) {
+                var d = dustMotes[i];
+                d.x += d.vx * dt + Math.sin(time * 0.5 + d.phase) * 2 * dt;
+                d.y += d.vy * dt;
+                if (d.y < -10) { d.y = H + 10; d.x = rand(0, W); }
+                if (d.x < -10) d.x = W + 10;
+                if (d.x > W + 10) d.x = -10;
+            }
+        }
+
+        function drawDust(ctx) {
+            ctx.save();
+            for (var i = 0; i < dustMotes.length; i++) {
+                var d = dustMotes[i];
+                ctx.globalAlpha = d.alpha * (0.5 + Math.sin(time * 2 + d.phase) * 0.3);
+                ctx.fillStyle = '#e8d8c0';
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Glass shards ──
+        function updateShards(dt) {
+            for (var i = shards.length - 1; i >= 0; i--) {
+                var s = shards[i];
+                s.x += s.vx * dt;
+                s.y += s.vy * dt;
+                s.vy += 200 * dt; // gravity
+                s.rot += s.rotSpeed * dt;
+                s.life -= dt * 0.8;
+                s.alpha = clamp(s.life, 0, 1);
+                if (s.life <= 0) shards.splice(i, 1);
+            }
+        }
+
+        function drawShards(ctx) {
+            ctx.save();
+            for (var i = 0; i < shards.length; i++) {
+                var s = shards[i];
+                ctx.save();
+                ctx.globalAlpha = s.alpha;
+                ctx.translate(s.x, s.y);
+                ctx.rotate(s.rot);
+                ctx.fillStyle = s.color;
+                ctx.shadowColor = s.color;
+                ctx.shadowBlur = 6;
+                // Triangle shard
+                ctx.beginPath();
+                ctx.moveTo(-s.size * 0.5, -s.size * 0.3);
+                ctx.lineTo(s.size * 0.5, 0);
+                ctx.lineTo(-s.size * 0.2, s.size * 0.4);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        // ── Flash ──
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = flashAlpha;
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Title ──
+        function drawTitle(ctx, energy) {
+            if (sectionMood !== 'chorus' && sectionMood !== 'fill') return;
+
+            var alpha = clamp(energy * 1.5 - 0.2, 0, 0.9);
+            if (alpha < 0.01) return;
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.globalAlpha = alpha;
+
+            var fontSize = Math.max(16, Math.min(W * 0.04, 52));
+            ctx.font = '900 ' + fontSize + 'px "Cinzel", serif';
+
+            // Text shadow glow
+            ctx.shadowColor = RUBY;
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = RUBY;
+            ctx.fillText('SURVIVORS', W * 0.5, H * 0.15);
+
+            ctx.shadowBlur = 20;
+            ctx.font = '700 ' + (fontSize * 0.5) + 'px "Cinzel", serif';
+            ctx.fillStyle = rgba(RUBY, 0.7);
+            ctx.fillText('GOTHIC CATHEDRAL', W * 0.5, H * 0.15 + fontSize * 0.8);
+
+            ctx.restore();
+        }
+
+        // ── Vignette ──
+        function drawVignette(ctx) {
+            var grad = ctx.createRadialGradient(W * 0.5, H * 0.5, W * 0.2, W * 0.5, H * 0.5, W * 0.7);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // ══════════════════════════════════════════
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            time = 0;
+            lastBeat = -1;
+            beatPulse = 0;
+            flashAlpha = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'intro';
+
+            survivorX = 0.5;
+            weaponAngle = -Math.PI * 0.3;
+            weaponSwinging = false;
+            weaponSwingTimer = 0;
+
+            skeletons = [];
+            ghosts = [];
+            shards = [];
+
+            initArchitecture();
+            initCandles();
+            initDust();
+            initOrganPipes();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+            initArchitecture();
+            initCandles();
+            initOrganPipes();
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+            time += dt;
+
+            // ── Background ──
+            drawCathedralBG(ctx, 0);
+
+            if (!cursor) {
+                // Idle state
+                drawColumns(ctx, 0);
+                drawGothicArches(ctx, 0);
+                drawStainedGlass(ctx, 0, 0);
+                drawOrganPipes(ctx, 0, 0);
+                drawFloor(ctx, 0);
+                drawCandles(ctx, 0);
+                drawDust(ctx);
+                updateDust(dt);
+                drawVignette(ctx);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0.5;
+            var sectionChanged = false;
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+                sectionChanged = true;
+                lastSeqIndex = seqIdx;
+
+                // Stained glass shatter on chorus entry
+                if (newSection === 'chorus') {
+                    flashAlpha = 0.25;
+                    for (var wi = 0; wi < windowPositions.length; wi++) {
+                        var win = windowPositions[wi];
+                        spawnShards(win.x, win.y + win.h * 0.5, win.color, 8);
+                    }
+                }
+
+                // Spawn ghosts on bridge
+                if (newSection === 'bridge') {
+                    for (var g = 0; g < 2; g++) spawnGhost();
+                }
+            }
+
+            // ── Beat pulse ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+
+                // Spawn enemies on beats
+                if (sectionMood === 'verse' || sectionMood === 'chorus') {
+                    if (Math.random() < 0.35 + energy * 0.3) spawnSkeleton();
+                }
+                if (sectionMood === 'chorus' || sectionMood === 'bridge') {
+                    if (Math.random() < 0.15 + energy * 0.15) spawnGhost();
+                }
+
+                // Survivor weapon swing on strong beats
+                if (energy > 0.3 && beat % 2 === 0) {
+                    weaponSwinging = true;
+                    weaponSwingTimer = 0;
+                    survivorSwingTarget = (Math.random() - 0.5) * 0.1;
+                }
+
+                // Organ pipe pulse on beats (bass channel)
+                var bassNote = frameData.currentNotes ? frameData.currentNotes[2] : null;
+                if (bassNote && bassNote.midi) {
+                    var pipeIdx = Math.floor(((bassNote.midi - 36) / 24) * NUM_PIPES);
+                    pipeIdx = clamp(pipeIdx, 0, NUM_PIPES - 1);
+                    organPipes[pipeIdx].pulse = 0.8 + energy * 0.5;
+                    // Also pulse neighbors
+                    if (pipeIdx > 0) organPipes[pipeIdx - 1].pulse = 0.4;
+                    if (pipeIdx < NUM_PIPES - 1) organPipes[pipeIdx + 1].pulse = 0.4;
+                }
+
+                // Candle flicker on beats
+                for (var ci = 0; ci < candles.length; ci++) {
+                    candles[ci].flicker = energy * 0.3;
+                }
+
+                // Flash on high energy chorus beats
+                if (sectionMood === 'chorus' && energy > 0.6) {
+                    flashAlpha = Math.max(flashAlpha, 0.1 + energy * 0.08);
+                }
+
+                lastBeat = beat;
+            }
+
+            // ── Decay ──
+            beatPulse *= Math.exp(-8 * dt);
+            flashAlpha *= Math.exp(-5 * dt);
+
+            // ── Weapon swing animation ──
+            if (weaponSwinging) {
+                weaponSwingTimer += dt;
+                var swingDur = 0.25;
+                var swingProg = weaponSwingTimer / swingDur;
+                if (swingProg >= 1) {
+                    weaponSwinging = false;
+                    weaponAngle = -Math.PI * 0.3;
+                } else {
+                    // Quick arc: raise then slash down
+                    weaponAngle = -Math.PI * 0.3 + Math.sin(swingProg * Math.PI) * Math.PI * 0.8;
+                }
+            }
+
+            // ── Survivor movement ──
+            survivorX = lerp(survivorX, 0.5 + survivorSwingTarget, 1 - Math.exp(-3 * dt));
+
+            // ── Update enemies ──
+            // Skeletons
+            for (var si = skeletons.length - 1; si >= 0; si--) {
+                var sk = skeletons[si];
+                if (sk.dying) {
+                    sk.deathTimer += dt * 3;
+                    if (sk.deathTimer >= 1) {
+                        skeletons.splice(si, 1);
+                        continue;
+                    }
+                } else {
+                    sk.x += sk.vx * dt;
+                    // Check if near survivor for "kill"
+                    var distToSurvivor = Math.abs(sk.x - survivorX * W);
+                    if (distToSurvivor < W * 0.08 && weaponSwinging) {
+                        sk.dying = true;
+                        sk.deathTimer = 0;
+                        // Bone scatter shards
+                        spawnShards(sk.x, sk.y - H * 0.05, BONE_WHITE, 5);
+                    }
+                    // Remove if off screen
+                    if (sk.x < -60 || sk.x > W + 60) {
+                        skeletons.splice(si, 1);
+                    }
+                }
+            }
+
+            // Ghosts
+            for (var gi = ghosts.length - 1; gi >= 0; gi--) {
+                var gh = ghosts[gi];
+                if (gh.dying) {
+                    gh.deathTimer += dt * 2;
+                    if (gh.deathTimer >= 1) {
+                        ghosts.splice(gi, 1);
+                        continue;
+                    }
+                } else {
+                    gh.x = lerp(gh.x, gh.targetX, 1 - Math.exp(-0.5 * dt));
+                    gh.y = lerp(gh.y, gh.targetY, 1 - Math.exp(-0.5 * dt));
+                    gh.alpha = lerp(gh.alpha, gh.alphaTarget, 1 - Math.exp(-1 * dt));
+
+                    // Retarget occasionally
+                    if (Math.random() < dt * 0.3) {
+                        gh.targetX = rand(0.15, 0.85) * W;
+                        gh.targetY = rand(0.3, 0.65) * H;
+                    }
+
+                    // Kill check
+                    var gDist = Math.abs(gh.x - survivorX * W);
+                    if (gDist < W * 0.12 && Math.abs(gh.y - H * 0.65) < H * 0.2 && weaponSwinging) {
+                        gh.dying = true;
+                        gh.deathTimer = 0;
+                        spawnShards(gh.x, gh.y, GHOST_GREEN, 4);
+                    }
+
+                    // Timeout old ghosts
+                    if (sectionMood !== 'bridge' && sectionMood !== 'chorus' && gh.alpha > 0.1) {
+                        gh.alphaTarget = 0;
+                        if (gh.alpha < 0.02) {
+                            ghosts.splice(gi, 1);
+                        }
+                    }
+                }
+            }
+
+            // ── Update particles ──
+            updateDust(dt);
+            updateShards(dt);
+
+            // ══════════════════════════════════════
+            // ── DRAW SCENE (back to front) ──
+
+            // 1. Cathedral structure
+            drawColumns(ctx, energy);
+            drawGothicArches(ctx, energy);
+            drawStainedGlass(ctx, energy, beatPulse);
+            drawOrganPipes(ctx, energy, beatPulse);
+
+            // 2. Ghosts (mid-depth, translucent)
+            for (var gdi = 0; gdi < ghosts.length; gdi++) {
+                drawGhost(ctx, ghosts[gdi]);
+            }
+
+            // 3. Floor
+            drawFloor(ctx, energy);
+
+            // 4. Skeletons
+            for (var sdi = 0; sdi < skeletons.length; sdi++) {
+                drawSkeleton(ctx, skeletons[sdi]);
+            }
+
+            // 5. Survivor
+            drawSurvivor(ctx, energy, beatPulse);
+
+            // 6. Candles & dust (atmosphere)
+            drawCandles(ctx, energy);
+            drawDust(ctx);
+
+            // 7. Glass shards (foreground)
+            drawShards(ctx);
+
+            // 8. Title
+            drawTitle(ctx, energy);
+
+            // 9. Vignette & flash
+            drawVignette(ctx);
+            drawFlash(ctx);
+        }
+
+        return {
+            name: 'Survivors: Gothic Cathedral',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('survivors-gothic-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/survivors-gothic.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
