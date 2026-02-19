@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Through the Fire and Flames — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0a0408;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(10,4,8,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(18px, 4.5vw, 44px);
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #ff4400;
+            text-shadow: 0 0 30px rgba(255,68,0,0.7), 0 0 60px rgba(255,200,0,0.3), 0 2px 4px rgba(0,0,0,0.8);
+            margin-bottom: 12px;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .play-sub {
+            font-size: clamp(11px, 1.8vw, 16px);
+            color: rgba(255,180,80,0.5);
+            margin-bottom: 40px;
+            letter-spacing: 0.1em;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #ff4400;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #ff4400;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,68,0,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(255,68,0,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">← Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Through the Fire and Flames</div>
+        <div class="play-sub">5-minute power metal epic</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Through the Fire and Flames Video Renderer ─────────────────────
+    window.Renderers['ttfaf-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Palette ──
+        var COL = {
+            bg:         '#0a0408',
+            fire1:      '#ff4400',
+            fire2:      '#ff8800',
+            fire3:      '#ffcc00',
+            fire4:      '#fff4cc',
+            ember:      '#ff6622',
+            dragon:     '#22cc44',
+            dragonDark: '#0a5518',
+            steel:      '#8899aa',
+            steelBright:'#ccdde8',
+            sky:        '#060818',
+            star:       '#ffffff',
+            campfire:   '#ff9944',
+            campEmber:  '#cc5500'
+        };
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var sectionMood = 'keyboard-intro';
+        var lastSeqIndex = -1;
+        var globalTime = 0;
+
+        // ── Particle pools ──
+        var flames = [];
+        var embers = [];
+        var dragonFireParticles = [];
+        var fretNotes = [];
+        var stars = [];
+        var chargeParticles = [];
+
+        // ── Scene objects ──
+        var warrior1 = { x: 0, swordAngle: 0, swordTarget: 0, slashTimer: 0, facing: 1 };
+        var warrior2 = { x: 0, swordAngle: 0, swordTarget: 0, slashTimer: 0, facing: -1 };
+        var dragon = { x: 0, y: 0, wingAngle: 0, breathTimer: 0, breathActive: false, headAngle: 0 };
+        var campfire = { flicker: 0, windDir: 0 };
+
+        // ── Section mapping (130 patterns at 200 BPM) ──
+        // Rough breakdown for a DragonForce-style song:
+        // 0-7: keyboard intro
+        // 8-15: verse 1 (twin guitar riff)
+        // 16-23: pre-chorus / ascending riff
+        // 24-35: chorus 1 (blazing)
+        // 36-43: verse 2
+        // 44-51: pre-chorus 2
+        // 52-63: chorus 2
+        // 64-75: guitar solo
+        // 76-83: acoustic breakdown
+        // 84-91: build back up
+        // 92-107: final chorus / blazing finale
+        // 108-119: extended solo / shred
+        // 120-129: outro / final charge
+        function mapSection(seqIndex) {
+            if (seqIndex <= 7) return 'keyboard-intro';
+            if (seqIndex <= 15) return 'twin-guitar';
+            if (seqIndex <= 23) return 'pre-chorus';
+            if (seqIndex <= 35) return 'chorus';
+            if (seqIndex <= 43) return 'twin-guitar';
+            if (seqIndex <= 51) return 'pre-chorus';
+            if (seqIndex <= 63) return 'chorus';
+            if (seqIndex <= 75) return 'guitar-solo';
+            if (seqIndex <= 83) return 'acoustic';
+            if (seqIndex <= 91) return 'build';
+            if (seqIndex <= 107) return 'chorus';
+            if (seqIndex <= 119) return 'guitar-solo';
+            return 'finale';
+        }
+
+        // ── Helpers ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+        function hexToRgb(hex) {
+            return {
+                r: parseInt(hex.slice(1,3), 16),
+                g: parseInt(hex.slice(3,5), 16),
+                b: parseInt(hex.slice(5,7), 16)
+            };
+        }
+        function rgba(hex, a) {
+            var c = hexToRgb(hex);
+            return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+        }
+        function rand(min, max) { return min + Math.random() * (max - min); }
+
+        // ── Init particle pools ──
+        function initFlames(count) {
+            flames = [];
+            for (var i = 0; i < count; i++) {
+                flames.push({
+                    x: rand(0, W), y: H + rand(0, 50),
+                    vx: rand(-30, 30), vy: rand(-120, -250),
+                    life: 0, maxLife: rand(0.6, 1.8),
+                    size: rand(3, 12), phase: rand(0, Math.PI * 2)
+                });
+            }
+        }
+
+        function initEmbers(count) {
+            embers = [];
+            for (var i = 0; i < count; i++) {
+                embers.push({
+                    x: rand(0, W), y: rand(0, H),
+                    vx: rand(-20, 60), vy: rand(-80, -200),
+                    life: rand(0, 2), maxLife: rand(1.5, 3.5),
+                    size: rand(1, 3.5), brightness: rand(0.3, 1)
+                });
+            }
+        }
+
+        function initStars(count) {
+            stars = [];
+            for (var i = 0; i < count; i++) {
+                stars.push({
+                    x: rand(0, 1), y: rand(0, 0.5),
+                    size: rand(0.5, 2.5),
+                    twinkle: rand(0, Math.PI * 2),
+                    twinkleSpeed: rand(1, 4)
+                });
+            }
+        }
+
+        function initFretNotes() {
+            fretNotes = [];
+            for (var i = 0; i < 60; i++) {
+                fretNotes.push({
+                    lane: Math.floor(rand(0, 5)),
+                    z: rand(0, 1),
+                    speed: rand(0.4, 1.2),
+                    color: Math.floor(rand(0, 4)),
+                    active: false
+                });
+            }
+        }
+
+        // ── Update functions ──
+        function updateFlames(dt, energy, intensity) {
+            var spawnRate = intensity * 8;
+            for (var i = 0; i < flames.length; i++) {
+                var f = flames[i];
+                f.life += dt;
+                if (f.life >= f.maxLife) {
+                    // Respawn
+                    f.x = rand(0, W);
+                    f.y = H + rand(0, 20);
+                    f.vx = rand(-40, 40) * (1 + energy);
+                    f.vy = rand(-150, -350) * (0.5 + energy * 1.5);
+                    f.life = 0;
+                    f.maxLife = rand(0.4, 1.5);
+                    f.size = rand(3, 14) * (0.7 + energy * 0.6);
+                }
+                f.x += f.vx * dt;
+                f.y += f.vy * dt;
+                f.vx += Math.sin(f.phase + globalTime * 3) * 40 * dt;
+            }
+        }
+
+        function updateEmbers(dt, energy) {
+            for (var i = 0; i < embers.length; i++) {
+                var e = embers[i];
+                e.life += dt;
+                if (e.life >= e.maxLife) {
+                    e.x = rand(0, W);
+                    e.y = H + rand(0, 20);
+                    e.vx = rand(-30, 70);
+                    e.vy = rand(-100, -250) * (0.5 + energy);
+                    e.life = 0;
+                    e.maxLife = rand(1, 3);
+                    e.brightness = rand(0.3, 1);
+                }
+                e.x += e.vx * dt;
+                e.y += e.vy * dt;
+                e.vx += Math.sin(globalTime * 2 + i) * 15 * dt;
+            }
+        }
+
+        function updateDragonFire(dt) {
+            for (var i = dragonFireParticles.length - 1; i >= 0; i--) {
+                var p = dragonFireParticles[i];
+                p.life += dt;
+                if (p.life >= p.maxLife) {
+                    dragonFireParticles.splice(i, 1);
+                    continue;
+                }
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vy += 30 * dt; // slight gravity
+                p.size *= (1 + 1.5 * dt); // expand
+            }
+        }
+
+        function spawnDragonFire(originX, originY, dirX, dirY, count) {
+            for (var i = 0; i < count; i++) {
+                var spread = rand(-0.3, 0.3);
+                var speed = rand(200, 600);
+                dragonFireParticles.push({
+                    x: originX + rand(-10, 10),
+                    y: originY + rand(-10, 10),
+                    vx: (dirX + spread) * speed,
+                    vy: (dirY + spread * 0.5) * speed,
+                    life: 0, maxLife: rand(0.3, 0.8),
+                    size: rand(4, 16),
+                    hue: rand(0, 60) // fire hue
+                });
+            }
+        }
+
+        // ── Draw functions ──
+
+        function drawSkyGradient(ctx, mood, energy) {
+            var grad;
+            if (mood === 'acoustic') {
+                grad = ctx.createLinearGradient(0, 0, 0, H);
+                grad.addColorStop(0, '#0a0c24');
+                grad.addColorStop(0.4, '#141832');
+                grad.addColorStop(1, '#0a0818');
+            } else if (mood === 'keyboard-intro') {
+                var fade = clamp01(globalTime * 0.15);
+                grad = ctx.createLinearGradient(0, 0, 0, H);
+                grad.addColorStop(0, '#000000');
+                grad.addColorStop(0.5, rgba('#1a0800', fade));
+                grad.addColorStop(1, rgba('#2a0400', fade * 0.5));
+            } else {
+                var fireIntensity = clamp01(energy * 1.5);
+                grad = ctx.createLinearGradient(0, 0, 0, H);
+                grad.addColorStop(0, COL.sky);
+                grad.addColorStop(0.3, rgba('#1a0600', 0.3 + fireIntensity * 0.4));
+                grad.addColorStop(0.7, rgba('#2a0800', 0.2 + fireIntensity * 0.5));
+                grad.addColorStop(1, rgba('#3a0a00', 0.3 + fireIntensity * 0.4));
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        function drawStars(ctx, alpha) {
+            ctx.save();
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                var twinkle = 0.4 + 0.6 * Math.sin(s.twinkle + globalTime * s.twinkleSpeed);
+                ctx.globalAlpha = alpha * twinkle;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(s.x * W, s.y * H, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawMountains(ctx, energy) {
+            ctx.save();
+            var baseY = H * 0.7;
+            // Back range
+            ctx.fillStyle = rgba('#0a0412', 0.9);
+            ctx.beginPath();
+            ctx.moveTo(0, baseY);
+            for (var x = 0; x <= W; x += 20) {
+                var h = Math.sin(x * 0.003) * H * 0.12 + Math.sin(x * 0.008 + 1) * H * 0.06;
+                ctx.lineTo(x, baseY - h - H * 0.05);
+            }
+            ctx.lineTo(W, H);
+            ctx.lineTo(0, H);
+            ctx.fill();
+            // Front range
+            ctx.fillStyle = rgba('#060210', 0.95);
+            ctx.beginPath();
+            ctx.moveTo(0, baseY + H * 0.05);
+            for (var x2 = 0; x2 <= W; x2 += 15) {
+                var h2 = Math.sin(x2 * 0.005 + 2) * H * 0.08 + Math.sin(x2 * 0.012) * H * 0.04;
+                ctx.lineTo(x2, baseY + H * 0.05 - h2);
+            }
+            ctx.lineTo(W, H);
+            ctx.lineTo(0, H);
+            ctx.fill();
+            // Fire glow on mountains during intense sections
+            if (energy > 0.4) {
+                var glowGrad = ctx.createLinearGradient(0, baseY - H * 0.2, 0, baseY + H * 0.1);
+                glowGrad.addColorStop(0, 'rgba(255,68,0,0)');
+                glowGrad.addColorStop(1, rgba('#ff4400', energy * 0.15));
+                ctx.fillStyle = glowGrad;
+                ctx.fillRect(0, baseY - H * 0.2, W, H * 0.3);
+            }
+            ctx.restore();
+        }
+
+        function drawGround(ctx, energy) {
+            var groundY = H * 0.78;
+            ctx.save();
+            ctx.fillStyle = '#060210';
+            ctx.fillRect(0, groundY, W, H - groundY);
+            // Fire reflection
+            if (energy > 0.2) {
+                var grad = ctx.createLinearGradient(0, groundY, 0, groundY + H * 0.12);
+                grad.addColorStop(0, rgba('#ff4400', energy * 0.12));
+                grad.addColorStop(1, 'rgba(255,68,0,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, groundY, W, H * 0.12);
+            }
+            ctx.restore();
+        }
+
+        function drawFlames(ctx, energy, intensity) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < flames.length; i++) {
+                var f = flames[i];
+                var t = f.life / f.maxLife;
+                if (t >= 1) continue;
+                var alpha = (1 - t) * intensity * (0.5 + energy * 0.5);
+                var size = f.size * (1 + t * 0.8);
+
+                // Color shifts from white-yellow at base to red at top
+                var r, g, b;
+                if (t < 0.2) {
+                    r = 255; g = lerp(255, 200, t * 5); b = lerp(200, 0, t * 5);
+                } else if (t < 0.5) {
+                    r = 255; g = lerp(200, 100, (t - 0.2) / 0.3); b = 0;
+                } else {
+                    r = lerp(255, 180, (t - 0.5) * 2); g = lerp(100, 0, (t - 0.5) * 2); b = 0;
+                }
+
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = 'rgb(' + Math.floor(r) + ',' + Math.floor(g) + ',' + Math.floor(b) + ')';
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawEmbers(ctx, energy) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < embers.length; i++) {
+                var e = embers[i];
+                var t = e.life / e.maxLife;
+                if (t >= 1) continue;
+                var alpha = (1 - t) * e.brightness * (0.3 + energy * 0.5);
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = t < 0.5 ? COL.fire3 : COL.ember;
+                ctx.fillRect(e.x, e.y, e.size, e.size);
+            }
+            ctx.restore();
+        }
+
+        // ── Warrior drawing ──
+        function drawWarrior(ctx, w, groundY, figH, energy, beat) {
+            ctx.save();
+            ctx.translate(w.x, groundY);
+            var scale = w.facing;
+
+            var headY = -figH;
+            var shoulderY = -figH * 0.82;
+            var hipY = -figH * 0.45;
+            var kneeY = -figH * 0.2;
+
+            // Bounce on beat
+            var bounce = beatPulse * 6 * energy;
+            headY -= bounce;
+            shoulderY -= bounce;
+            hipY -= bounce * 0.5;
+
+            ctx.strokeStyle = COL.steel;
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = COL.steelBright;
+            ctx.lineCap = 'round';
+
+            // Legs
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(-figH * 0.08 * scale, kneeY);
+            ctx.lineTo(0, hipY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(figH * 0.12 * scale, 0);
+            ctx.lineTo(figH * 0.06 * scale, kneeY);
+            ctx.lineTo(0, hipY);
+            ctx.stroke();
+
+            // Torso
+            ctx.beginPath();
+            ctx.moveTo(0, hipY);
+            ctx.lineTo(0, shoulderY);
+            ctx.stroke();
+
+            // Arms
+            var armLen = figH * 0.3;
+            // Sword arm
+            var swordArmX = Math.cos(w.swordAngle) * armLen * scale;
+            var swordArmY = shoulderY + Math.sin(w.swordAngle) * armLen;
+            ctx.beginPath();
+            ctx.moveTo(figH * 0.05 * scale, shoulderY);
+            ctx.lineTo(figH * 0.05 * scale + swordArmX, swordArmY);
+            ctx.stroke();
+
+            // Shield arm (away from camera side)
+            ctx.beginPath();
+            ctx.moveTo(-figH * 0.05 * scale, shoulderY);
+            ctx.lineTo(-figH * 0.18 * scale, shoulderY + figH * 0.12);
+            ctx.stroke();
+
+            // Sword blade
+            var swordLen = figH * 0.35;
+            var bladeEndX = figH * 0.05 * scale + swordArmX + Math.cos(w.swordAngle - 0.3) * swordLen * scale;
+            var bladeEndY = swordArmY + Math.sin(w.swordAngle - 0.3) * swordLen;
+            ctx.strokeStyle = COL.steelBright;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ffffff';
+            ctx.beginPath();
+            ctx.moveTo(figH * 0.05 * scale + swordArmX, swordArmY);
+            ctx.lineTo(bladeEndX, bladeEndY);
+            ctx.stroke();
+
+            // Sword slash trail
+            if (w.slashTimer > 0) {
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.strokeStyle = rgba('#ff8800', w.slashTimer);
+                ctx.lineWidth = 4 + w.slashTimer * 8;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ff4400';
+                ctx.beginPath();
+                ctx.arc(figH * 0.05 * scale + swordArmX, swordArmY, swordLen * 0.8,
+                    w.swordAngle - 1.2 * scale, w.swordAngle + 0.5 * scale);
+                ctx.stroke();
+                ctx.globalCompositeOperation = 'source-over';
+            }
+
+            // Head
+            ctx.strokeStyle = COL.steel;
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = COL.steelBright;
+            ctx.beginPath();
+            ctx.arc(0, headY + figH * 0.06, figH * 0.06, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Helmet crest
+            ctx.beginPath();
+            ctx.moveTo(0, headY);
+            ctx.lineTo(figH * 0.04 * scale, headY - figH * 0.04);
+            ctx.lineTo(-figH * 0.02 * scale, headY + figH * 0.02);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function updateWarrior(w, dt, energy, beat) {
+            // Sword slashing
+            if (beat !== lastBeat && energy > 0.3) {
+                w.swordTarget = rand(-2.2, -0.3);
+                w.slashTimer = 0.7 + energy * 0.3;
+            }
+            w.swordAngle += (w.swordTarget - w.swordAngle) * (1 - Math.exp(-12 * dt));
+            w.slashTimer = Math.max(0, w.slashTimer - dt * 3);
+        }
+
+        // ── Dragon drawing ──
+        function drawDragon(ctx, energy) {
+            if (sectionMood !== 'chorus' && sectionMood !== 'pre-chorus' && sectionMood !== 'finale') return;
+
+            ctx.save();
+            ctx.translate(dragon.x, dragon.y);
+
+            var wingSpan = W * 0.18;
+            var bodyLen = W * 0.08;
+
+            // Wing flap
+            dragon.wingAngle = Math.sin(globalTime * 4) * 0.4 + 0.2;
+            var wingY = Math.sin(dragon.wingAngle) * H * 0.06;
+
+            ctx.strokeStyle = COL.dragon;
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = COL.dragon;
+            ctx.lineCap = 'round';
+
+            // Body
+            ctx.beginPath();
+            ctx.moveTo(-bodyLen, 0);
+            ctx.quadraticCurveTo(0, -bodyLen * 0.2, bodyLen * 0.6, bodyLen * 0.1);
+            ctx.stroke();
+
+            // Left wing
+            ctx.beginPath();
+            ctx.moveTo(-bodyLen * 0.3, -bodyLen * 0.1);
+            ctx.quadraticCurveTo(-wingSpan * 0.5, -wingSpan * 0.5 + wingY, -wingSpan, wingY * 0.5);
+            ctx.lineTo(-wingSpan * 0.7, -bodyLen * 0.05 + wingY * 0.3);
+            ctx.lineTo(-wingSpan * 0.4, 0);
+            ctx.stroke();
+
+            // Right wing
+            ctx.beginPath();
+            ctx.moveTo(bodyLen * 0.1, -bodyLen * 0.1);
+            ctx.quadraticCurveTo(wingSpan * 0.4, -wingSpan * 0.5 + wingY, wingSpan * 0.8, wingY * 0.5);
+            ctx.lineTo(wingSpan * 0.5, -bodyLen * 0.05 + wingY * 0.3);
+            ctx.lineTo(bodyLen * 0.2, 0);
+            ctx.stroke();
+
+            // Head
+            var headX = bodyLen * 0.6 + Math.cos(dragon.headAngle) * bodyLen * 0.2;
+            var headY = bodyLen * 0.1 + Math.sin(dragon.headAngle) * bodyLen * 0.1;
+            ctx.beginPath();
+            ctx.moveTo(bodyLen * 0.6, bodyLen * 0.1);
+            ctx.lineTo(headX + bodyLen * 0.15, headY);
+            ctx.stroke();
+            // Eye
+            ctx.fillStyle = COL.fire1;
+            ctx.beginPath();
+            ctx.arc(headX + bodyLen * 0.1, headY - bodyLen * 0.02, 3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Tail
+            ctx.strokeStyle = COL.dragonDark;
+            ctx.beginPath();
+            ctx.moveTo(-bodyLen, 0);
+            ctx.quadraticCurveTo(-bodyLen * 1.5, -bodyLen * 0.3 + Math.sin(globalTime * 3) * 10,
+                                  -bodyLen * 1.8, -bodyLen * 0.1);
+            ctx.stroke();
+
+            // Dragon fire breath
+            if (dragon.breathActive) {
+                var fireOriginX = headX + bodyLen * 0.15;
+                var fireOriginY = headY + 5;
+                spawnDragonFire(dragon.x + fireOriginX, dragon.y + fireOriginY,
+                    0.8 + Math.sin(globalTime * 6) * 0.2, 0.5, 3);
+            }
+
+            ctx.restore();
+        }
+
+        function drawDragonFireParticles(ctx) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < dragonFireParticles.length; i++) {
+                var p = dragonFireParticles[i];
+                var t = p.life / p.maxLife;
+                var alpha = (1 - t) * 0.8;
+                var hue = p.hue + t * 30;
+                // Map hue 0-90 to fire colors
+                var r = 255;
+                var g = Math.floor(lerp(100, 255, clamp01(hue / 60)));
+                var b = hue > 40 ? Math.floor(lerp(0, 100, (hue - 40) / 50)) : 0;
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = 'rgb(' + r + ',' + g + ',' + b + ')';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * (1 - t * 0.3), 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Fretboard / note highway ──
+        function drawFretboard(ctx, energy, beat) {
+            if (sectionMood !== 'guitar-solo') return;
+
+            ctx.save();
+            var fbY = H * 0.55;
+            var fbH = H * 0.35;
+            var vanishY = fbY;
+            var bottomY = fbY + fbH;
+            var laneW = W * 0.08;
+            var centerX = W * 0.5;
+            var laneColors = [COL.fire1, COL.fire2, COL.fire3, COL.dragon, COL.steelBright];
+
+            // Highway surface
+            ctx.fillStyle = rgba('#0a0412', 0.7);
+            ctx.beginPath();
+            ctx.moveTo(centerX - laneW * 0.5, vanishY);
+            ctx.lineTo(centerX + laneW * 0.5, vanishY);
+            ctx.lineTo(centerX + laneW * 3, bottomY);
+            ctx.lineTo(centerX - laneW * 3, bottomY);
+            ctx.fill();
+
+            // Lane dividers
+            ctx.strokeStyle = rgba('#ffffff', 0.15);
+            ctx.lineWidth = 1;
+            for (var lane = 0; lane <= 5; lane++) {
+                var topX = centerX + (lane - 2.5) * laneW * 0.2;
+                var botX = centerX + (lane - 2.5) * laneW * 1.2;
+                ctx.beginPath();
+                ctx.moveTo(topX, vanishY);
+                ctx.lineTo(botX, bottomY);
+                ctx.stroke();
+            }
+
+            // Scrolling notes
+            for (var i = 0; i < fretNotes.length; i++) {
+                var n = fretNotes[i];
+                n.z += dt * n.speed * (1 + energy * 2);
+                if (n.z > 1) {
+                    n.z = 0;
+                    n.lane = Math.floor(rand(0, 5));
+                    n.speed = rand(0.3, 1.0);
+                    n.color = Math.floor(rand(0, 5));
+                    n.active = energy > 0.2;
+                }
+                if (!n.active) continue;
+
+                var progress = n.z;
+                var noteY = vanishY + progress * fbH;
+                var noteX = centerX + (n.lane - 2) * laneW * (0.2 + progress * 1.0);
+                var noteSize = 4 + progress * 12;
+
+                ctx.globalAlpha = 0.5 + progress * 0.5;
+                ctx.fillStyle = laneColors[n.color];
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = laneColors[n.color];
+                ctx.beginPath();
+                ctx.arc(noteX, noteY, noteSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Hit line
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#ffffff';
+            ctx.globalAlpha = 0.6 + beatPulse * 0.4;
+            ctx.beginPath();
+            ctx.moveTo(centerX - laneW * 2.8, bottomY - 20);
+            ctx.lineTo(centerX + laneW * 2.8, bottomY - 20);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Acoustic campfire scene ──
+        function drawCampfireScene(ctx, energy) {
+            if (sectionMood !== 'acoustic') return;
+
+            ctx.save();
+            var groundY = H * 0.78;
+
+            // Calm fire at center
+            var fireX = W * 0.5;
+            var fireY = groundY;
+
+            // Fire glow
+            var glowR = 80 + Math.sin(globalTime * 5) * 15;
+            var grad = ctx.createRadialGradient(fireX, fireY, 5, fireX, fireY, glowR);
+            grad.addColorStop(0, rgba('#ff8844', 0.4));
+            grad.addColorStop(0.5, rgba('#ff4400', 0.15));
+            grad.addColorStop(1, 'rgba(255,68,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(fireX - glowR, fireY - glowR, glowR * 2, glowR * 2);
+
+            // Small campfire flames
+            for (var i = 0; i < 8; i++) {
+                var angle = (i / 8) * Math.PI * 2 + globalTime * 2;
+                var flameH = 20 + Math.sin(angle * 3 + globalTime * 8) * 10;
+                var fx = fireX + Math.cos(angle) * 8;
+
+                ctx.fillStyle = i % 2 === 0 ? COL.fire2 : COL.fire3;
+                ctx.globalAlpha = 0.5 + Math.sin(globalTime * 6 + i) * 0.3;
+                ctx.beginPath();
+                ctx.moveTo(fx - 4, fireY);
+                ctx.quadraticCurveTo(fx + Math.sin(globalTime * 4 + i) * 5, fireY - flameH * 0.6,
+                                      fx, fireY - flameH);
+                ctx.quadraticCurveTo(fx - Math.sin(globalTime * 3 + i) * 3, fireY - flameH * 0.4,
+                                      fx + 4, fireY);
+                ctx.fill();
+            }
+
+            // Log silhouettes
+            ctx.globalAlpha = 0.8;
+            ctx.fillStyle = '#1a0a04';
+            ctx.beginPath();
+            ctx.ellipse(fireX, fireY + 5, 25, 6, 0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(fireX, fireY + 5, 22, 5, -0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Sitting warrior silhouettes
+            ctx.fillStyle = 'rgba(10,4,8,0.85)';
+            // Left figure
+            ctx.beginPath();
+            ctx.ellipse(fireX - W * 0.08, groundY - 20, 12, 25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(fireX - W * 0.08, groundY - 50, 8, 0, Math.PI * 2);
+            ctx.fill();
+            // Right figure
+            ctx.beginPath();
+            ctx.ellipse(fireX + W * 0.09, groundY - 18, 11, 24, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(fireX + W * 0.09, groundY - 47, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // ── Title overlay ──
+        function drawTitle(ctx, alpha) {
+            if (alpha < 0.01) return;
+            ctx.save();
+
+            var fontSize = Math.max(16, Math.min(W * 0.035, 42));
+            ctx.font = '900 ' + fontSize + 'px "Cinzel", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.globalAlpha = alpha;
+
+            // Fire glow on text
+            ctx.shadowColor = '#ff4400';
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = '#ff6600';
+            ctx.fillText('THROUGH THE FIRE AND FLAMES', W * 0.5, H * 0.13);
+
+            // White core
+            ctx.shadowColor = '#ffcc00';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#ffddaa';
+            ctx.globalAlpha = alpha * 0.7;
+            ctx.fillText('THROUGH THE FIRE AND FLAMES', W * 0.5, H * 0.13);
+
+            ctx.restore();
+        }
+
+        // ── Beat flash ──
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = flashAlpha;
+            ctx.fillStyle = '#ff8844';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Charge particles (finale) ──
+        function updateChargeParticles(dt, energy) {
+            // Spawn new
+            if (sectionMood === 'finale' || sectionMood === 'build') {
+                var spawnCount = Math.floor(energy * 5);
+                for (var s = 0; s < spawnCount; s++) {
+                    if (chargeParticles.length < 200) {
+                        var angle = rand(0, Math.PI * 2);
+                        var dist = rand(100, Math.max(W, H));
+                        chargeParticles.push({
+                            x: W * 0.5 + Math.cos(angle) * dist,
+                            y: H * 0.5 + Math.sin(angle) * dist,
+                            tx: W * 0.5 + rand(-50, 50),
+                            ty: H * 0.5 + rand(-50, 50),
+                            speed: rand(0.5, 2),
+                            life: 0, maxLife: rand(0.5, 1.5),
+                            size: rand(1, 4),
+                            color: Math.random() > 0.5 ? COL.fire3 : COL.fire1
+                        });
+                    }
+                }
+            }
+
+            for (var i = chargeParticles.length - 1; i >= 0; i--) {
+                var p = chargeParticles[i];
+                p.life += dt;
+                if (p.life >= p.maxLife) {
+                    chargeParticles.splice(i, 1);
+                    continue;
+                }
+                var t = p.life / p.maxLife;
+                p.x = lerp(p.x, p.tx, t * p.speed * dt * 10);
+                p.y = lerp(p.y, p.ty, t * p.speed * dt * 10);
+            }
+        }
+
+        function drawChargeParticles(ctx) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < chargeParticles.length; i++) {
+                var p = chargeParticles[i];
+                var t = p.life / p.maxLife;
+                ctx.globalAlpha = (1 - t) * 0.7;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Screen shake helper ──
+        var shakeAmount = 0;
+        function applyShake(ctx) {
+            if (shakeAmount < 0.5) return;
+            var sx = (Math.random() - 0.5) * shakeAmount;
+            var sy = (Math.random() - 0.5) * shakeAmount;
+            ctx.translate(sx, sy);
+        }
+
+        // ── Vignette ──
+        function drawVignette(ctx, intensity) {
+            var grad = ctx.createRadialGradient(W * 0.5, H * 0.5, W * 0.2, W * 0.5, H * 0.5, W * 0.8);
+            grad.addColorStop(0, 'rgba(0,0,0,0)');
+            grad.addColorStop(1, rgba('#000000', 0.4 + intensity * 0.3));
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            globalTime = 0;
+            lastBeat = -1;
+            beatPulse = 0;
+            flashAlpha = 0;
+            sectionMood = 'keyboard-intro';
+            lastSeqIndex = -1;
+            shakeAmount = 0;
+
+            warrior1.x = W * 0.3;
+            warrior2.x = W * 0.7;
+            dragon.x = W * 0.55;
+            dragon.y = H * 0.2;
+
+            dragonFireParticles = [];
+            chargeParticles = [];
+
+            initFlames(120);
+            initEmbers(100);
+            initStars(150);
+            initFretNotes();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+            warrior1.x = W * 0.3;
+            warrior2.x = W * 0.7;
+            dragon.x = W * 0.55;
+            dragon.y = H * 0.2;
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            globalTime += dt;
+
+            // Background
+            ctx.fillStyle = COL.bg;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: dark sky + stars + mountains
+                drawSkyGradient(ctx, 'keyboard-intro', 0);
+                drawStars(ctx, 0.5);
+                drawMountains(ctx, 0);
+                drawGround(ctx, 0);
+                drawVignette(ctx, 0);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+                lastSeqIndex = seqIdx;
+
+                // Flash on major transitions
+                if (newSection === 'chorus' || newSection === 'finale') {
+                    flashAlpha = 0.5;
+                    shakeAmount = 12;
+                }
+                if (newSection === 'guitar-solo') {
+                    flashAlpha = 0.3;
+                }
+                // Dragon breath triggers
+                if (newSection === 'chorus' || newSection === 'finale') {
+                    dragon.breathActive = true;
+                    dragon.breathTimer = 0;
+                }
+                if (newSection === 'acoustic') {
+                    dragon.breathActive = false;
+                }
+            }
+
+            // ── Beat detection ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+
+                // Flash on strong beats in intense sections
+                if ((sectionMood === 'chorus' || sectionMood === 'finale') && energy > 0.5) {
+                    flashAlpha = Math.max(flashAlpha, 0.08 + energy * 0.12);
+                    shakeAmount = Math.max(shakeAmount, 4 + energy * 8);
+                }
+                if (sectionMood === 'twin-guitar' && energy > 0.4) {
+                    flashAlpha = Math.max(flashAlpha, 0.05);
+                }
+            }
+
+            // Decay
+            beatPulse *= Math.exp(-10 * dt); // faster decay at 200 BPM
+            flashAlpha *= Math.exp(-8 * dt);
+            shakeAmount *= Math.exp(-6 * dt);
+
+            lastBeat = beat;
+
+            // ── Dragon breath management ──
+            if (dragon.breathActive) {
+                dragon.breathTimer += dt;
+                if (dragon.breathTimer > 3) {
+                    dragon.breathActive = false;
+                }
+                dragon.headAngle = Math.sin(globalTime * 2) * 0.3;
+            }
+            // Re-trigger breath on chorus beats
+            if ((sectionMood === 'chorus' || sectionMood === 'finale') && beat !== lastBeat && Math.random() > 0.7) {
+                dragon.breathActive = true;
+                dragon.breathTimer = 0;
+            }
+
+            // Dragon movement
+            dragon.x = W * 0.5 + Math.sin(globalTime * 0.5) * W * 0.2;
+            dragon.y = H * 0.18 + Math.sin(globalTime * 0.8) * H * 0.05;
+
+            // ── Determine intensity multiplier ──
+            var flameIntensity = 0;
+            var showWarriors = false;
+            var showTitle = false;
+            var titleAlpha = 0;
+            var starsAlpha = 0;
+
+            switch (sectionMood) {
+                case 'keyboard-intro':
+                    flameIntensity = clamp01(globalTime * 0.08) * 0.5 + energy * 0.3;
+                    starsAlpha = 0.6;
+                    showTitle = true;
+                    titleAlpha = clamp01(energy * 2);
+                    break;
+                case 'twin-guitar':
+                    flameIntensity = 0.4 + energy * 0.4;
+                    showWarriors = true;
+                    starsAlpha = 0.3;
+                    break;
+                case 'pre-chorus':
+                    flameIntensity = 0.5 + energy * 0.5;
+                    showWarriors = true;
+                    starsAlpha = 0.2;
+                    break;
+                case 'chorus':
+                    flameIntensity = 0.7 + energy * 0.3;
+                    showWarriors = true;
+                    showTitle = true;
+                    titleAlpha = 0.8 + beatPulse * 0.2;
+                    starsAlpha = 0.1;
+                    break;
+                case 'guitar-solo':
+                    flameIntensity = 0.3 + energy * 0.5;
+                    starsAlpha = 0.2;
+                    break;
+                case 'acoustic':
+                    flameIntensity = 0;
+                    starsAlpha = 0.9;
+                    break;
+                case 'build':
+                    flameIntensity = energy;
+                    showWarriors = true;
+                    starsAlpha = 0.15;
+                    break;
+                case 'finale':
+                    flameIntensity = 1;
+                    showWarriors = true;
+                    showTitle = true;
+                    titleAlpha = 1;
+                    starsAlpha = 0;
+                    break;
+            }
+
+            // ── Update systems ──
+            updateFlames(dt, energy, flameIntensity);
+            updateEmbers(dt, energy);
+            updateDragonFire(dt);
+            updateChargeParticles(dt, energy);
+
+            if (showWarriors) {
+                updateWarrior(warrior1, dt, energy, beat);
+                updateWarrior(warrior2, dt, energy, beat);
+            }
+
+            // ── Draw scene ──
+            ctx.save();
+            applyShake(ctx);
+
+            // Sky
+            drawSkyGradient(ctx, sectionMood, energy);
+
+            // Stars (prominent in acoustic, faint otherwise)
+            if (starsAlpha > 0.01) {
+                drawStars(ctx, starsAlpha);
+            }
+
+            // Mountains (not in acoustic close-up)
+            if (sectionMood !== 'acoustic') {
+                drawMountains(ctx, energy);
+            }
+
+            // Dragon (choruses and finale)
+            drawDragon(ctx, energy);
+            drawDragonFireParticles(ctx);
+
+            // Ground
+            drawGround(ctx, energy);
+
+            // Campfire scene (acoustic)
+            drawCampfireScene(ctx, energy);
+
+            // Warriors
+            if (showWarriors) {
+                var groundY = H * 0.78;
+                var figH = H * 0.22;
+                drawWarrior(ctx, warrior1, groundY, figH, energy, beat);
+                drawWarrior(ctx, warrior2, groundY, figH, energy, beat);
+            }
+
+            // Flames from bottom
+            if (flameIntensity > 0.01) {
+                drawFlames(ctx, energy, flameIntensity);
+                drawEmbers(ctx, energy);
+            }
+
+            // Fretboard (guitar solo)
+            drawFretboard(ctx, energy, beat);
+
+            // Charge particles (build + finale)
+            if (sectionMood === 'build' || sectionMood === 'finale') {
+                drawChargeParticles(ctx);
+            }
+
+            // Title
+            if (showTitle) {
+                drawTitle(ctx, titleAlpha);
+            }
+
+            // Vignette
+            drawVignette(ctx, sectionMood === 'acoustic' ? 0.5 : energy * 0.3);
+
+            ctx.restore();
+
+            // Flash on top (outside shake transform)
+            drawFlash(ctx);
+        }
+
+        return {
+            name: 'Through the Fire and Flames',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('ttfaf-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/through-the-fire-and-flames.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
