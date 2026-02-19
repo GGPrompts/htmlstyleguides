@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survivors: Cosmic Void — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #04020a;
+            color: #fff;
+            font-family: 'Orbitron', sans-serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(4,2,10,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(18px, 4.5vw, 44px);
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #c084fc;
+            text-shadow: 0 0 30px rgba(192,132,252,0.6), 0 0 60px rgba(192,132,252,0.3);
+            margin-bottom: 10px;
+        }
+        .play-sub {
+            font-size: clamp(11px, 2vw, 16px);
+            color: rgba(255,255,255,0.4);
+            letter-spacing: 0.2em;
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #c084fc;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #c084fc;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(192,132,252,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(192,132,252,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&#8592; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Survivors: Cosmic Void</div>
+        <div class="play-sub">arena theme</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Survivors: Cosmic Void Video Renderer ─────────────────────────
+    window.Renderers['survivors-cosmic-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Palette ──
+        var BG = '#04020a';
+        var VOID_PURPLE = '#1a0630';
+        var NEBULA_PINK = '#e040a0';
+        var NEBULA_TEAL = '#40e0d0';
+        var STAR_WHITE = '#f0f0ff';
+        var STAR_GOLD = '#ffd700';
+        var IRIDESCENT1 = '#c084fc';
+        var IRIDESCENT2 = '#60d0f0';
+        var DEEP_BLACK = '#08041a';
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var sectionMood = 'intro';
+        var lastSeqIndex = -1;
+        var introFadeIn = 0;
+        var time = 0;
+
+        // ── Stars ──
+        var stars = [];
+        var NUM_STARS = 200;
+
+        // ── Nebula clouds ──
+        var nebulaClouds = [];
+        var NUM_CLOUDS = 8;
+
+        // ── Survivor ──
+        var survivor = {
+            x: 0, y: 0,
+            angle: 0,         // facing direction
+            attackTimer: 0,    // counts down from 1
+            attackArm: 1,      // 1 or -1, which arm swings
+            weaponGlow: 0,
+            dashTrail: [],
+            shieldPulse: 0
+        };
+
+        // ── Enemies ──
+        var enemies = [];
+        var MAX_ENEMIES = 12;
+        var enemySpawnTimer = 0;
+
+        // ── Defeated constellation ──
+        var defeatedPoints = [];
+        var constellationLines = [];
+        var MAX_CONSTELLATION = 30;
+
+        // ── Particles ──
+        var particles = [];
+
+        // ── Cosmic rays ──
+        var cosmicRays = [];
+        var NUM_RAYS = 5;
+
+        // ── Energy bursts (on kill) ──
+        var bursts = [];
+
+        // ── Helpers ──
+        function rand(min, max) { return min + Math.random() * (max - min); }
+        function dist(x1, y1, x2, y2) {
+            var dx = x1 - x2, dy = y1 - y2;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+        function lerpVal(a, b, t) { return a + (b - a) * t; }
+        function hexToRgb(hex) {
+            return {
+                r: parseInt(hex.slice(1, 3), 16),
+                g: parseInt(hex.slice(3, 5), 16),
+                b: parseInt(hex.slice(5, 7), 16)
+            };
+        }
+
+        // ── Section mapping ──
+        // seq: 0=intro, 1-2=verse, 3-4=chorus, 5-6=verse, 7-8=bridge, 9=fill,
+        //      10-11=chorus, 12-13=verse, 14-15=bridge, 16=fill
+        function mapSection(seqIndex) {
+            if (seqIndex <= 0) return 'intro';
+            if (seqIndex <= 2) return 'verse';
+            if (seqIndex <= 4) return 'chorus';
+            if (seqIndex <= 6) return 'verse';
+            if (seqIndex <= 8) return 'bridge';
+            if (seqIndex <= 9) return 'build';
+            if (seqIndex <= 11) return 'chorus';
+            if (seqIndex <= 13) return 'verse';
+            if (seqIndex <= 15) return 'bridge';
+            return 'build';
+        }
+
+        // ── Star field ──
+        function initStars() {
+            stars = [];
+            for (var i = 0; i < NUM_STARS; i++) {
+                stars.push({
+                    x: rand(-0.1, 1.1),
+                    y: rand(-0.1, 1.1),
+                    z: rand(0.1, 1),      // depth
+                    size: rand(0.5, 2.5),
+                    twinklePhase: rand(0, Math.PI * 2),
+                    twinkleSpeed: rand(1, 4),
+                    hue: rand(0, 1) > 0.8 ? rand(30, 60) : rand(200, 280) // gold or blue-purple
+                });
+            }
+        }
+
+        function drawStars(ctx, rotation) {
+            var cx = W * 0.5, cy = H * 0.5;
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                var twinkle = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(s.twinklePhase + time * s.twinkleSpeed));
+                var alpha = twinkle * s.z * introFadeIn;
+
+                // Rotate around center
+                var sx = (s.x - 0.5) * W;
+                var sy = (s.y - 0.5) * H;
+                var cosR = Math.cos(rotation * s.z);
+                var sinR = Math.sin(rotation * s.z);
+                var rx = cx + sx * cosR - sy * sinR;
+                var ry = cy + sx * sinR + sy * cosR;
+
+                var size = s.size * (0.5 + s.z * 0.5);
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                if (s.hue > 100) {
+                    ctx.fillStyle = 'hsl(' + s.hue + ', 60%, 85%)';
+                } else {
+                    ctx.fillStyle = STAR_GOLD;
+                }
+                ctx.beginPath();
+                ctx.arc(rx, ry, size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Glow on bright stars
+                if (s.z > 0.7 && twinkle > 0.7) {
+                    ctx.globalAlpha = alpha * 0.3;
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = ctx.fillStyle;
+                    ctx.beginPath();
+                    ctx.arc(rx, ry, size * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        // ── Nebula clouds ──
+        function initNebulae() {
+            nebulaClouds = [];
+            var colors = [NEBULA_PINK, NEBULA_TEAL, IRIDESCENT1, '#6020a0'];
+            for (var i = 0; i < NUM_CLOUDS; i++) {
+                nebulaClouds.push({
+                    x: rand(0.1, 0.9),
+                    y: rand(0.1, 0.9),
+                    rx: rand(80, 200),
+                    ry: rand(60, 150),
+                    color: colors[i % colors.length],
+                    rotation: rand(0, Math.PI * 2),
+                    rotSpeed: rand(-0.02, 0.02),
+                    alpha: rand(0.02, 0.06)
+                });
+            }
+        }
+
+        function drawNebulae(ctx, energy) {
+            for (var i = 0; i < nebulaClouds.length; i++) {
+                var c = nebulaClouds[i];
+                var rgb = hexToRgb(c.color);
+                var a = c.alpha * (0.6 + energy * 0.8) * introFadeIn;
+
+                ctx.save();
+                ctx.translate(c.x * W, c.y * H);
+                ctx.rotate(c.rotation + time * c.rotSpeed);
+                ctx.globalAlpha = a;
+                ctx.globalCompositeOperation = 'lighter';
+
+                var grad = ctx.createRadialGradient(0, 0, 0, 0, 0, c.rx);
+                grad.addColorStop(0, 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.4)');
+                grad.addColorStop(0.5, 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0.15)');
+                grad.addColorStop(1, 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',0)');
+                ctx.fillStyle = grad;
+
+                ctx.beginPath();
+                ctx.ellipse(0, 0, c.rx, c.ry, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ── Cosmic rays ──
+        function initRays() {
+            cosmicRays = [];
+            for (var i = 0; i < NUM_RAYS; i++) {
+                cosmicRays.push({
+                    angle: rand(0, Math.PI * 2),
+                    speed: rand(0.1, 0.3),
+                    width: rand(1, 3),
+                    length: rand(0.3, 0.7),
+                    color: Math.random() > 0.5 ? IRIDESCENT1 : IRIDESCENT2,
+                    alpha: rand(0.03, 0.08)
+                });
+            }
+        }
+
+        function drawCosmicRays(ctx, energy) {
+            var cx = W * 0.5, cy = H * 0.5;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < cosmicRays.length; i++) {
+                var r = cosmicRays[i];
+                var a = r.angle + time * r.speed;
+                var len = Math.max(W, H) * r.length;
+                var rgb = hexToRgb(r.color);
+                var alpha = r.alpha * (0.5 + energy * 1.0) * introFadeIn;
+
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',1)';
+                ctx.lineWidth = r.width;
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.lineTo(cx + Math.cos(a) * len, cy + Math.sin(a) * len);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Survivor drawing ──
+        function drawSurvivor(ctx, energy) {
+            var sx = survivor.x, sy = survivor.y;
+            var figH = Math.min(W, H) * 0.08;
+            var atk = survivor.attackTimer;
+            var arm = survivor.attackArm;
+
+            ctx.save();
+            ctx.translate(sx, sy);
+
+            // Shield pulse (on high energy)
+            if (survivor.shieldPulse > 0.01) {
+                var sp = survivor.shieldPulse;
+                ctx.save();
+                ctx.globalAlpha = sp * 0.3;
+                ctx.strokeStyle = IRIDESCENT2;
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = IRIDESCENT2;
+                ctx.beginPath();
+                ctx.arc(0, 0, figH * 0.9 + sp * 10, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Body glow
+            var glowAlpha = 0.1 + energy * 0.15 + beatPulse * 0.1;
+            ctx.save();
+            ctx.globalAlpha = glowAlpha;
+            ctx.globalCompositeOperation = 'lighter';
+            var bodyGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, figH);
+            bodyGrad.addColorStop(0, IRIDESCENT1);
+            bodyGrad.addColorStop(1, 'rgba(192,132,252,0)');
+            ctx.fillStyle = bodyGrad;
+            ctx.beginPath();
+            ctx.arc(0, 0, figH, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = STAR_WHITE;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = IRIDESCENT1;
+
+            // Head
+            var headY = -figH * 0.55;
+            var headR = figH * 0.12;
+            ctx.beginPath();
+            ctx.arc(0, headY, headR, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(240,240,255,0.3)';
+            ctx.fill();
+
+            // Visor (helmet line)
+            ctx.save();
+            ctx.strokeStyle = IRIDESCENT2;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, headY, headR * 0.9, -Math.PI * 0.3, Math.PI * 0.3);
+            ctx.stroke();
+            ctx.restore();
+
+            // Torso
+            ctx.beginPath();
+            ctx.moveTo(0, headY + headR);
+            ctx.lineTo(0, figH * 0.05);
+            ctx.stroke();
+
+            // Shoulders
+            var shoulderY = headY + headR + figH * 0.08;
+            var shoulderW = figH * 0.2;
+            ctx.beginPath();
+            ctx.moveTo(-shoulderW, shoulderY);
+            ctx.lineTo(shoulderW, shoulderY);
+            ctx.stroke();
+
+            // Arms
+            var baseArmAngle = Math.PI * 0.35;
+            var atkSwing = atk * 1.8;
+            var lArmAngle = baseArmAngle + (arm < 0 ? atkSwing : 0);
+            var rArmAngle = baseArmAngle + (arm > 0 ? atkSwing : 0);
+            var armLen = figH * 0.22;
+
+            // Left arm
+            var lEx = -shoulderW + Math.sin(-lArmAngle) * armLen;
+            var lEy = shoulderY + Math.cos(lArmAngle) * armLen;
+            ctx.beginPath();
+            ctx.moveTo(-shoulderW, shoulderY);
+            ctx.lineTo(lEx, lEy);
+            ctx.lineTo(lEx + Math.sin(-lArmAngle - 0.3) * armLen * 0.9, lEy + Math.cos(lArmAngle + 0.3) * armLen * 0.9);
+            ctx.stroke();
+
+            // Right arm
+            var rEx = shoulderW + Math.sin(rArmAngle) * armLen;
+            var rEy = shoulderY + Math.cos(rArmAngle) * armLen;
+            ctx.beginPath();
+            ctx.moveTo(shoulderW, shoulderY);
+            ctx.lineTo(rEx, rEy);
+            ctx.lineTo(rEx + Math.sin(rArmAngle + 0.3) * armLen * 0.9, rEy + Math.cos(rArmAngle + 0.3) * armLen * 0.9);
+            ctx.stroke();
+
+            // Weapon glow on attacking hand
+            if (atk > 0.1) {
+                var wx = arm > 0 ? rEx + Math.sin(rArmAngle + 0.3) * armLen * 0.9 : lEx + Math.sin(-lArmAngle - 0.3) * armLen * 0.9;
+                var wy = arm > 0 ? rEy + Math.cos(rArmAngle + 0.3) * armLen * 0.9 : lEy + Math.cos(lArmAngle + 0.3) * armLen * 0.9;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                // Energy blade
+                var bladeLen = figH * 0.3 * atk;
+                var bladeAngle = arm > 0 ? rArmAngle + 0.3 : -lArmAngle - 0.3;
+                ctx.strokeStyle = STAR_GOLD;
+                ctx.lineWidth = 4 * atk;
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = STAR_GOLD;
+                ctx.beginPath();
+                ctx.moveTo(wx, wy);
+                ctx.lineTo(wx + Math.sin(bladeAngle) * bladeLen, wy + Math.cos(bladeAngle) * bladeLen);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Legs
+            var hipY = figH * 0.05;
+            var legLen = figH * 0.2;
+            // Floating bob
+            var legSpread = 0.15 + Math.sin(time * 1.5) * 0.05;
+            ctx.beginPath();
+            ctx.moveTo(0, hipY);
+            ctx.lineTo(-figH * legSpread, hipY + legLen);
+            ctx.lineTo(-figH * (legSpread + 0.03), hipY + legLen * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, hipY);
+            ctx.lineTo(figH * legSpread, hipY + legLen);
+            ctx.lineTo(figH * (legSpread + 0.03), hipY + legLen * 2);
+            ctx.stroke();
+
+            // Jetpack thrusters (small glow under feet)
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = 0.2 + energy * 0.3 + beatPulse * 0.2;
+            var thrustGrad = ctx.createRadialGradient(0, hipY + legLen * 2 + 5, 0, 0, hipY + legLen * 2 + 5, figH * 0.2);
+            thrustGrad.addColorStop(0, 'rgba(96,208,240,0.6)');
+            thrustGrad.addColorStop(1, 'rgba(96,208,240,0)');
+            ctx.fillStyle = thrustGrad;
+            ctx.fillRect(-figH * 0.25, hipY + legLen * 2, figH * 0.5, figH * 0.3);
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        // ── Dash trail ──
+        function drawDashTrail(ctx) {
+            for (var i = 0; i < survivor.dashTrail.length; i++) {
+                var t = survivor.dashTrail[i];
+                ctx.save();
+                ctx.globalAlpha = t.alpha * 0.4;
+                ctx.strokeStyle = IRIDESCENT1;
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = 6;
+                ctx.shadowColor = IRIDESCENT1;
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, 6, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // ── Enemies ──
+        function spawnEnemy() {
+            var angle = rand(0, Math.PI * 2);
+            var spawnDist = Math.max(W, H) * 0.6;
+            var cx = W * 0.5, cy = H * 0.5;
+            var types = ['void-blob', 'crystal-star', 'nebula-tentacle'];
+            var type = types[Math.floor(rand(0, types.length))];
+
+            enemies.push({
+                x: cx + Math.cos(angle) * spawnDist,
+                y: cy + Math.sin(angle) * spawnDist,
+                type: type,
+                size: type === 'nebula-tentacle' ? rand(25, 40) : rand(15, 30),
+                speed: rand(20, 60),
+                health: 1,
+                phase: rand(0, Math.PI * 2),
+                wobble: rand(0.5, 2),
+                dying: false,
+                deathTimer: 0
+            });
+        }
+
+        function updateEnemies(dt, energy) {
+            var tx = survivor.x, ty = survivor.y;
+            for (var i = enemies.length - 1; i >= 0; i--) {
+                var e = enemies[i];
+                if (e.dying) {
+                    e.deathTimer -= dt;
+                    if (e.deathTimer <= 0) {
+                        // Add to constellation
+                        defeatedPoints.push({ x: e.x, y: e.y, alpha: 1 });
+                        if (defeatedPoints.length > MAX_CONSTELLATION) {
+                            defeatedPoints.shift();
+                        }
+                        // Add constellation line to nearest point
+                        if (defeatedPoints.length > 1) {
+                            var last = defeatedPoints[defeatedPoints.length - 1];
+                            var nearest = null, nearDist = Infinity;
+                            for (var j = 0; j < defeatedPoints.length - 1; j++) {
+                                var d = dist(last.x, last.y, defeatedPoints[j].x, defeatedPoints[j].y);
+                                if (d < nearDist && d < W * 0.3) {
+                                    nearDist = d;
+                                    nearest = j;
+                                }
+                            }
+                            if (nearest !== null) {
+                                constellationLines.push({
+                                    x1: last.x, y1: last.y,
+                                    x2: defeatedPoints[nearest].x, y2: defeatedPoints[nearest].y,
+                                    alpha: 0.6
+                                });
+                            }
+                        }
+                        // Spawn energy burst
+                        bursts.push({ x: e.x, y: e.y, radius: 5, maxRadius: 60 + energy * 40, alpha: 0.8 });
+                        // Spawn stardust particles
+                        for (var p = 0; p < 8; p++) {
+                            var pa = rand(0, Math.PI * 2);
+                            var ps = rand(40, 120);
+                            particles.push({
+                                x: e.x, y: e.y,
+                                vx: Math.cos(pa) * ps,
+                                vy: Math.sin(pa) * ps,
+                                life: rand(0.5, 1.5),
+                                maxLife: rand(0.5, 1.5),
+                                size: rand(1, 3),
+                                color: Math.random() > 0.5 ? STAR_GOLD : IRIDESCENT1
+                            });
+                        }
+                        enemies.splice(i, 1);
+                        continue;
+                    }
+                    continue;
+                }
+
+                // Move toward survivor with wobble
+                var dx = tx - e.x, dy = ty - e.y;
+                var d = Math.sqrt(dx * dx + dy * dy) || 1;
+                var wobbleX = Math.sin(time * e.wobble + e.phase) * 30;
+                var wobbleY = Math.cos(time * e.wobble * 0.7 + e.phase) * 30;
+                e.x += (dx / d * e.speed + wobbleX * 0.3) * dt;
+                e.y += (dy / d * e.speed + wobbleY * 0.3) * dt;
+
+                // Kill when survivor attacks nearby enemy
+                if (survivor.attackTimer > 0.3 && dist(e.x, e.y, tx, ty) < e.size + 40) {
+                    e.dying = true;
+                    e.deathTimer = 0.15;
+                }
+            }
+        }
+
+        function drawEnemies(ctx) {
+            for (var i = 0; i < enemies.length; i++) {
+                var e = enemies[i];
+                var alpha = e.dying ? e.deathTimer / 0.15 : 1;
+
+                ctx.save();
+                ctx.translate(e.x, e.y);
+                ctx.globalAlpha = alpha * introFadeIn;
+
+                if (e.type === 'void-blob') {
+                    // Dark circle with starry interior
+                    ctx.fillStyle = DEEP_BLACK;
+                    ctx.shadowBlur = 12;
+                    ctx.shadowColor = '#4a0080';
+                    ctx.beginPath();
+                    // Wobbly circle
+                    for (var a = 0; a < Math.PI * 2; a += 0.2) {
+                        var r = e.size + Math.sin(a * 3 + time * 2 + e.phase) * e.size * 0.15;
+                        var px = Math.cos(a) * r;
+                        var py = Math.sin(a) * r;
+                        if (a === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Inner stars
+                    ctx.save();
+                    ctx.clip();
+                    ctx.fillStyle = STAR_WHITE;
+                    for (var s = 0; s < 6; s++) {
+                        var sx = Math.sin(s * 1.2 + time * 0.5) * e.size * 0.6;
+                        var sy = Math.cos(s * 1.7 + time * 0.3) * e.size * 0.6;
+                        ctx.globalAlpha = 0.4 + Math.sin(time * 3 + s) * 0.3;
+                        ctx.beginPath();
+                        ctx.arc(sx, sy, 1.5, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+
+                    // Purple edge glow
+                    ctx.strokeStyle = '#8040c0';
+                    ctx.lineWidth = 2;
+                    ctx.globalAlpha = alpha * 0.6;
+                    ctx.stroke();
+
+                } else if (e.type === 'crystal-star') {
+                    // Star fragment - crystalline shape
+                    var spikes = 5;
+                    var outerR = e.size;
+                    var innerR = e.size * 0.45;
+                    ctx.fillStyle = 'rgba(255,215,0,0.15)';
+                    ctx.strokeStyle = STAR_GOLD;
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = STAR_GOLD;
+                    ctx.beginPath();
+                    var rot = time * 1.5 + e.phase;
+                    for (var k = 0; k < spikes * 2; k++) {
+                        var ang = (k / (spikes * 2)) * Math.PI * 2 + rot;
+                        var rad = k % 2 === 0 ? outerR : innerR;
+                        var sx2 = Math.cos(ang) * rad;
+                        var sy2 = Math.sin(ang) * rad;
+                        if (k === 0) ctx.moveTo(sx2, sy2);
+                        else ctx.lineTo(sx2, sy2);
+                    }
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                } else if (e.type === 'nebula-tentacle') {
+                    // Tentacle creature - wavy lines from center
+                    var numTentacles = 6;
+                    ctx.strokeStyle = NEBULA_TEAL;
+                    ctx.lineWidth = 2.5;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = NEBULA_TEAL;
+                    for (var t = 0; t < numTentacles; t++) {
+                        var tAngle = (t / numTentacles) * Math.PI * 2 + time * 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(0, 0);
+                        var segments = 4;
+                        var prevX = 0, prevY = 0;
+                        for (var seg = 1; seg <= segments; seg++) {
+                            var segLen = e.size * 0.3;
+                            var wave = Math.sin(time * 3 + t + seg * 0.8) * 8;
+                            var nx = prevX + Math.cos(tAngle + wave * 0.05) * segLen;
+                            var ny = prevY + Math.sin(tAngle + wave * 0.05) * segLen;
+                            ctx.lineTo(nx + wave * Math.cos(tAngle + Math.PI * 0.5) * 0.3, ny + wave * Math.sin(tAngle + Math.PI * 0.5) * 0.3);
+                            prevX = nx;
+                            prevY = ny;
+                        }
+                        ctx.stroke();
+                    }
+
+                    // Central eye
+                    ctx.fillStyle = NEBULA_PINK;
+                    ctx.globalAlpha = alpha * 0.8;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, e.size * 0.18, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // ── Constellation of defeated ──
+        function drawConstellation(ctx) {
+            // Lines
+            ctx.save();
+            ctx.strokeStyle = STAR_GOLD;
+            ctx.lineWidth = 1;
+            for (var i = 0; i < constellationLines.length; i++) {
+                var l = constellationLines[i];
+                ctx.globalAlpha = l.alpha * 0.3 * introFadeIn;
+                ctx.beginPath();
+                ctx.moveTo(l.x1, l.y1);
+                ctx.lineTo(l.x2, l.y2);
+                ctx.stroke();
+                l.alpha *= 0.999; // very slow fade
+            }
+            ctx.restore();
+
+            // Points
+            ctx.save();
+            ctx.fillStyle = STAR_WHITE;
+            for (var j = 0; j < defeatedPoints.length; j++) {
+                var p = defeatedPoints[j];
+                ctx.globalAlpha = p.alpha * 0.5 * introFadeIn;
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = STAR_GOLD;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 2.5, 0, Math.PI * 2);
+                ctx.fill();
+                p.alpha *= 0.9995;
+            }
+            ctx.restore();
+        }
+
+        // ── Energy bursts ──
+        function updateBursts(dt) {
+            for (var i = bursts.length - 1; i >= 0; i--) {
+                var b = bursts[i];
+                b.radius += (b.maxRadius - b.radius) * 4 * dt;
+                b.alpha -= dt * 2;
+                if (b.alpha <= 0) bursts.splice(i, 1);
+            }
+        }
+
+        function drawBursts(ctx) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < bursts.length; i++) {
+                var b = bursts[i];
+                var grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.radius);
+                grad.addColorStop(0, 'rgba(255,215,0,' + (b.alpha * 0.5) + ')');
+                grad.addColorStop(0.5, 'rgba(192,132,252,' + (b.alpha * 0.3) + ')');
+                grad.addColorStop(1, 'rgba(192,132,252,0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Particles ──
+        function updateParticles(dt) {
+            for (var i = particles.length - 1; i >= 0; i--) {
+                var p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vx *= 0.98;
+                p.vy *= 0.98;
+                p.life -= dt;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function drawParticles(ctx) {
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                var alpha = (p.life / p.maxLife) * introFadeIn;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ── Stardust ambient particles ──
+        var stardust = [];
+        var NUM_STARDUST = 60;
+
+        function initStardust() {
+            stardust = [];
+            for (var i = 0; i < NUM_STARDUST; i++) {
+                stardust.push({
+                    x: rand(0, 1), y: rand(0, 1),
+                    vx: rand(-10, 10), vy: rand(-10, 10),
+                    size: rand(0.5, 2),
+                    alpha: rand(0.1, 0.4),
+                    twinkle: rand(0, Math.PI * 2)
+                });
+            }
+        }
+
+        function drawStardust(ctx, energy) {
+            ctx.save();
+            ctx.fillStyle = STAR_WHITE;
+            for (var i = 0; i < stardust.length; i++) {
+                var s = stardust[i];
+                s.x += s.vx / W * 0.02;
+                s.y += s.vy / H * 0.02;
+                if (s.x < 0) s.x = 1;
+                if (s.x > 1) s.x = 0;
+                if (s.y < 0) s.y = 1;
+                if (s.y > 1) s.y = 0;
+
+                var twinkle = 0.5 + 0.5 * Math.sin(s.twinkle + time * 2);
+                ctx.globalAlpha = s.alpha * twinkle * introFadeIn * (0.5 + energy * 0.5);
+                ctx.beginPath();
+                ctx.arc(s.x * W, s.y * H, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Title ──
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            var text = 'SURVIVORS: COSMIC VOID';
+            var baseFontSize = Math.max(12, Math.min(W * 0.032, 40));
+            var y = H * 0.12;
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '900 ' + baseFontSize + 'px "Orbitron", sans-serif';
+            ctx.globalAlpha = titleAlpha;
+            ctx.shadowBlur = 40;
+            ctx.shadowColor = IRIDESCENT1;
+            ctx.fillStyle = STAR_WHITE;
+            ctx.fillText(text, W * 0.5, y);
+
+            // Iridescent underline
+            ctx.globalAlpha = titleAlpha * 0.6;
+            var tw = ctx.measureText(text).width;
+            var grad = ctx.createLinearGradient(W * 0.5 - tw * 0.5, 0, W * 0.5 + tw * 0.5, 0);
+            grad.addColorStop(0, IRIDESCENT1);
+            grad.addColorStop(0.5, STAR_GOLD);
+            grad.addColorStop(1, IRIDESCENT2);
+            ctx.strokeStyle = grad;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(W * 0.5 - tw * 0.5, y + baseFontSize * 0.7);
+            ctx.lineTo(W * 0.5 + tw * 0.5, y + baseFontSize * 0.7);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Flash overlay ──
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = flashAlpha;
+            ctx.fillStyle = IRIDESCENT1;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Vignette ──
+        function drawVignette(ctx) {
+            var grad = ctx.createRadialGradient(W * 0.5, H * 0.5, W * 0.2, W * 0.5, H * 0.5, W * 0.8);
+            grad.addColorStop(0, 'rgba(4,2,10,0)');
+            grad.addColorStop(1, 'rgba(4,2,10,0.7)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+
+            survivor.x = W * 0.5;
+            survivor.y = H * 0.5;
+
+            initStars();
+            initNebulae();
+            initRays();
+            initStardust();
+
+            enemies = [];
+            defeatedPoints = [];
+            constellationLines = [];
+            particles = [];
+            bursts = [];
+            survivor.dashTrail = [];
+
+            lastBeat = -1;
+            beatPulse = 0;
+            flashAlpha = 0;
+            introFadeIn = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'intro';
+            titleAlpha = 0;
+            time = 0;
+            enemySpawnTimer = 0;
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+            survivor.x = W * 0.5;
+            survivor.y = H * 0.5;
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+
+            time += dt;
+
+            // Background
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, W, H);
+
+            // Deep space gradient
+            var bgGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, W * 0.7);
+            bgGrad.addColorStop(0, VOID_PURPLE);
+            bgGrad.addColorStop(1, BG);
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: just stars and nebula
+                introFadeIn = Math.min(1, introFadeIn + dt * 0.5);
+                var starRot = time * 0.01;
+                drawStars(ctx, starRot);
+                drawNebulae(ctx, 0.2);
+                drawStardust(ctx, 0.2);
+                drawVignette(ctx);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+                // Flash on chorus entry
+                if (newSection === 'chorus' && sectionMood !== 'chorus') {
+                    flashAlpha = 0.25;
+                }
+                lastSeqIndex = seqIdx;
+            }
+
+            // ── Intro fade-in ──
+            if (sectionMood === 'intro') {
+                introFadeIn = Math.min(1, introFadeIn + dt * 0.4);
+            } else {
+                introFadeIn = Math.min(1, introFadeIn + dt * 2);
+            }
+
+            // ── Beat pulse ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+
+                // Survivor attacks on beats during chorus/build
+                if (sectionMood === 'chorus' || sectionMood === 'build') {
+                    survivor.attackTimer = 1;
+                    survivor.attackArm *= -1;
+                    survivor.shieldPulse = 0.8;
+                } else if (sectionMood === 'verse' && energy > 0.4) {
+                    // Lighter attacks in verse
+                    if (beat % 2 === 0) {
+                        survivor.attackTimer = 0.8;
+                        survivor.attackArm *= -1;
+                    }
+                }
+
+                // Flash on high-energy chorus beats
+                if (sectionMood === 'chorus' && energy > 0.6) {
+                    flashAlpha = 0.1 + energy * 0.08;
+                }
+
+                // Enemy spawn
+                enemySpawnTimer++;
+                var spawnInterval = sectionMood === 'chorus' ? 1 : sectionMood === 'verse' ? 2 : sectionMood === 'bridge' ? 4 : 3;
+                if (enemySpawnTimer >= spawnInterval && enemies.length < MAX_ENEMIES) {
+                    spawnEnemy();
+                    enemySpawnTimer = 0;
+                }
+            }
+
+            beatPulse *= Math.exp(-8 * dt);
+            flashAlpha *= Math.exp(-5 * dt);
+            survivor.attackTimer *= Math.exp(-6 * dt);
+            survivor.shieldPulse *= Math.exp(-4 * dt);
+            lastBeat = beat;
+
+            // ── Title ──
+            titleTarget = (sectionMood === 'chorus') ? 1 : 0;
+            titleAlpha += (titleTarget - titleAlpha) * (1 - Math.exp(-3 * dt));
+
+            // ── Survivor movement ──
+            // Orbit center gently, drift based on section
+            var cx = W * 0.5, cy = H * 0.5;
+            var orbitR = Math.min(W, H) * 0.06;
+            var orbitSpeed = sectionMood === 'chorus' ? 1.2 : sectionMood === 'bridge' ? 0.3 : 0.6;
+            survivor.angle += orbitSpeed * dt;
+            var targetX = cx + Math.cos(survivor.angle) * orbitR;
+            var targetY = cy + Math.sin(survivor.angle * 0.7) * orbitR * 0.6;
+            // Float bob
+            targetY += Math.sin(time * 1.2) * 8;
+            survivor.x += (targetX - survivor.x) * 3 * dt;
+            survivor.y += (targetY - survivor.y) * 3 * dt;
+
+            // Dash trail
+            if (sectionMood === 'chorus' || sectionMood === 'build') {
+                survivor.dashTrail.push({ x: survivor.x, y: survivor.y, alpha: 0.6 });
+                if (survivor.dashTrail.length > 12) survivor.dashTrail.shift();
+            } else {
+                if (survivor.dashTrail.length > 0) {
+                    survivor.dashTrail.shift();
+                }
+            }
+            for (var di = 0; di < survivor.dashTrail.length; di++) {
+                survivor.dashTrail[di].alpha *= 0.95;
+            }
+
+            // ── Update ──
+            updateEnemies(dt, energy);
+            updateBursts(dt);
+            updateParticles(dt);
+
+            // ── Star field rotation (slow) ──
+            var starRot2 = time * 0.015 + beatPulse * 0.02;
+
+            // ── Draw scene (back to front) ──
+
+            // 1. Stars
+            drawStars(ctx, starRot2);
+
+            // 2. Nebulae
+            drawNebulae(ctx, energy);
+
+            // 3. Cosmic rays
+            drawCosmicRays(ctx, energy);
+
+            // 4. Constellation
+            drawConstellation(ctx);
+
+            // 5. Stardust
+            drawStardust(ctx, energy);
+
+            // 6. Enemies
+            drawEnemies(ctx);
+
+            // 7. Energy bursts
+            drawBursts(ctx);
+
+            // 8. Dash trail
+            drawDashTrail(ctx);
+
+            // 9. Survivor
+            drawSurvivor(ctx, energy);
+
+            // 10. Particles
+            drawParticles(ctx);
+
+            // 11. Title
+            drawTitle(ctx);
+
+            // 12. Vignette
+            drawVignette(ctx);
+
+            // 13. Flash
+            drawFlash(ctx);
+        }
+
+        return {
+            name: 'Survivors: Cosmic Void',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('survivors-cosmic-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/survivors-cosmic.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
