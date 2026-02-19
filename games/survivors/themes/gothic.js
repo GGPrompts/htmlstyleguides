@@ -3,7 +3,7 @@ window.THEME = {
   fonts: { title: 'Cinzel', body: 'Crimson Text' },
   victoryCondition: { timeSeconds: 420, bossName: 'The Pale One' },
   worldOrder: { current: 1, next: 'shop.html?world=forest' },
-  song: '../audio-tracker/songs/survivors-gothic.json',
+  song: '../../music/audio-tracker/songs/survivors-gothic.json',
   palette: {
     bg: '#0a0a0f', bgLight: '#1a1020', accent: '#8b0000',
     gold: '#d4af37', bone: '#e8dcc8', emerald: '#2e8b57',

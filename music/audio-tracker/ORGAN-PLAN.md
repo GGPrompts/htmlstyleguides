@@ -27,7 +27,7 @@ Listed in the games index under a new "The Studio" section (alongside Audio Trac
 ## File Structure
 
 ```
-games/audio-tracker/
+music/audio-tracker/
 ├── organ.html          # The virtual organ (complete)
 ├── sheet-music.js      # Scrolling grand-staff canvas renderer
 ├── synth.js            # Reused as-is

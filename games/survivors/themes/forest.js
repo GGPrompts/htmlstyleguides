@@ -3,7 +3,7 @@ window.THEME = {
   fonts: { title: 'Amatic SC', body: 'Cabin' },
   victoryCondition: { timeSeconds: 540, bossName: 'The Blight' },
   worldOrder: { current: 2, next: 'shop.html?world=cosmic' },
-  song: '../audio-tracker/songs/survivors-forest.json',
+  song: '../../music/audio-tracker/songs/survivors-forest.json',
   palette: {
     bg: '#0a1a0a', bgLight: '#152015', accent: '#228b22',
     gold: '#daa520', bone: '#d8e8c8', emerald: '#33cc33',

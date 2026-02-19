@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mozart's Study — Chiptune Music Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-display: 'Cinzel', serif;
+            --font-accent: 'Cinzel Decorative', serif;
+            --font-heading: 'Cormorant Garamond', serif;
+            --font-body: 'Crimson Pro', serif;
+
+            --manuscript-cream: #f5f0e1;
+            --manuscript-cream-dark: #e8e0cb;
+            --parchment-edge: #d9c59c;
+            --ink-black: #1a1410;
+            --ink-faded: #3d352e;
+            --mahogany: #4a2020;
+            --mahogany-light: #6b3030;
+            --antique-gold: #c5a24d;
+            --antique-gold-light: #e3cf8a;
+            --antique-gold-dark: #9a7b2e;
+            --staff-gray: #8a7e6e;
+            --staff-gray-light: #b0a594;
+            --burgundy: #6b2d3e;
+            --burgundy-dark: #4a1c28;
+            --burgundy-light: #8e3d52;
+            --candlelight: #f0d78c;
+            --candlelight-warm: #e09d37;
+            --forest-green: #2d4a3e;
+            --bg-primary: var(--manuscript-cream);
+            --bg-secondary: var(--manuscript-cream-dark);
+            --bg-card: #faf7f0;
+            --text-primary: var(--ink-black);
+            --text-secondary: var(--ink-faded);
+            --text-muted: var(--staff-gray);
+            --shadow-card: 0 6px 32px rgba(197, 162, 77, 0.12), 0 2px 8px rgba(26, 20, 16, 0.06);
+            --shadow-hover: 0 10px 40px rgba(197, 162, 77, 0.22), 0 4px 12px rgba(26, 20, 16, 0.08);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { font-size: 17px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(197, 162, 77, 0.06) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(74, 32, 32, 0.04) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ========== HEADER ========== */
+        .header {
+            text-align: center;
+            padding: 4rem 2rem 3rem;
+            border-bottom: 2px solid var(--antique-gold);
+            position: relative;
+        }
+
+        .header::after {
+            content: '\266B \2022 \266A \2022 \266B';
+            display: block;
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-primary);
+            padding: 0 1.5rem;
+            color: var(--antique-gold);
+            font-size: 1rem;
+            letter-spacing: 0.3em;
+        }
+
+        .back-link {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 0.75rem;
+            color: var(--antique-gold-dark);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            padding: 0.4rem 1rem;
+            border: 1px solid var(--parchment-edge);
+            margin-bottom: 2rem;
+            transition: all 0.25s ease;
+        }
+
+        .back-link:hover {
+            border-color: var(--antique-gold);
+            color: var(--mahogany);
+        }
+
+        .header h1 {
+            font-family: var(--font-accent);
+            font-size: clamp(2.5rem, 7vw, 4rem);
+            font-weight: 400;
+            color: var(--mahogany);
+            letter-spacing: 0.04em;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .tagline {
+            font-family: var(--font-heading);
+            font-size: 1.2rem;
+            font-style: italic;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+
+        /* ========== TOOL CARDS ========== */
+        .tools-section {
+            padding: 3rem 0 2rem;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .tool-card {
+            display: block;
+            text-decoration: none;
+            color: var(--text-primary);
+            background: var(--bg-card);
+            border: 1px solid var(--parchment-edge);
+            padding: 1.5rem;
+            transition: all 0.25s ease;
+            box-shadow: var(--shadow-card);
+            position: relative;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--antique-gold);
+        }
+
+        .tool-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.75rem;
+            display: block;
+        }
+
+        .tool-card h3 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.4rem;
+            color: var(--mahogany);
+        }
+
+        .tool-card p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ========== STAFF LINE DIVIDER ========== */
+        .staff-divider {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 1rem 0;
+            opacity: 0.2;
+        }
+
+        .staff-divider span {
+            display: block;
+            height: 1px;
+            background: var(--staff-gray);
+        }
+
+        /* ========== SONG BROWSER ========== */
+        .browser-section {
+            padding: 2rem 0 4rem;
+        }
+
+        .browser-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .browser-header h2 {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: var(--mahogany);
+            letter-spacing: 0.04em;
+        }
+
+        .browser-controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .browser-controls select,
+        .browser-controls input {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            padding: 0.4rem 0.75rem;
+            border: 1px solid var(--parchment-edge);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .browser-controls select:focus,
+        .browser-controls input:focus {
+            border-color: var(--antique-gold);
+        }
+
+        .browser-controls input {
+            width: 180px;
+        }
+
+        /* Song table */
+        .song-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .song-table thead th {
+            font-family: var(--font-display);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            text-align: left;
+            padding: 0.75rem 0.5rem;
+            border-bottom: 2px solid var(--antique-gold);
+            cursor: pointer;
+            user-select: none;
+            white-space: nowrap;
+        }
+
+        .song-table thead th:hover {
+            color: var(--mahogany);
+        }
+
+        .song-table thead th.sorted-asc::after { content: ' \25B2'; font-size: 0.6rem; }
+        .song-table thead th.sorted-desc::after { content: ' \25BC'; font-size: 0.6rem; }
+
+        .song-table tbody tr {
+            border-bottom: 1px solid var(--parchment-edge);
+            transition: background 0.15s;
+        }
+
+        .song-table tbody tr:hover {
+            background: var(--manuscript-cream-dark);
+        }
+
+        .song-table td {
+            padding: 0.65rem 0.5rem;
+            vertical-align: middle;
+        }
+
+        .song-title {
+            font-family: var(--font-heading);
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .song-desc {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            max-width: 40ch;
+        }
+
+        .song-bpm {
+            font-family: var(--font-display);
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        .song-category {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0.2rem 0.5rem;
+            border: 1px solid;
+        }
+
+        .cat-classic { color: var(--antique-gold-dark); border-color: var(--antique-gold); background: rgba(197, 162, 77, 0.1); }
+        .cat-original { color: var(--burgundy); border-color: var(--burgundy-light); background: rgba(107, 45, 62, 0.08); }
+        .cat-cover { color: var(--forest-green); border-color: var(--forest-green); background: rgba(45, 74, 62, 0.08); }
+
+        .song-actions {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        .song-actions a {
+            font-family: var(--font-display);
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            padding: 0.25rem 0.5rem;
+            border: 1px solid var(--parchment-edge);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .song-actions a:hover {
+            border-color: var(--antique-gold);
+            color: var(--mahogany);
+            background: rgba(197, 162, 77, 0.1);
+        }
+
+        .song-count {
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 1rem 0;
+        }
+
+        /* ========== FOOTER ========== */
+        .footer {
+            text-align: center;
+            padding: 3rem 2rem;
+            border-top: 2px solid var(--antique-gold);
+            position: relative;
+        }
+
+        .footer::before {
+            content: '\266B \2022 \266A \2022 \266B';
+            display: block;
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-primary);
+            padding: 0 1.5rem;
+            color: var(--antique-gold);
+            font-size: 1rem;
+            letter-spacing: 0.3em;
+        }
+
+        .footer p {
+            font-family: var(--font-heading);
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--text-muted);
+        }
+
+        .footer a {
+            color: var(--antique-gold-dark);
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            color: var(--mahogany);
+        }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 768px) {
+            .container { padding: 0 1rem; }
+            .header { padding: 3rem 1rem 2rem; }
+            .header h1 { font-size: 2.2rem; }
+            .tools-grid { grid-template-columns: repeat(2, 1fr); }
+            .browser-header { flex-direction: column; align-items: flex-start; }
+            .browser-controls { width: 100%; }
+            .browser-controls input { flex: 1; }
+
+            .song-table, .song-table thead, .song-table tbody, .song-table tr, .song-table td {
+                display: block;
+            }
+            .song-table thead { display: none; }
+            .song-table tbody tr {
+                padding: 0.75rem 0;
+                border-bottom: 1px solid var(--parchment-edge);
+            }
+            .song-table td {
+                padding: 0.2rem 0;
+            }
+            .song-desc { max-width: none; }
+            .td-bpm::before { content: 'BPM: '; font-family: var(--font-display); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <a href="../index.html" class="back-link">&larr; Home</a>
+            <h1>Mozart's Study</h1>
+            <p class="tagline">A chiptune music studio built in the browser</p>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <!-- Tool Cards -->
+        <section class="tools-section">
+            <div class="tools-grid">
+                <a href="audio-tracker/index.html" class="tool-card">
+                    <span class="tool-icon">&#9836;</span>
+                    <h3>Audio Tracker</h3>
+                    <p>Compose chiptune in a FamiTracker-inspired sequencer with piano keyboard input and 9 instrument presets.</p>
+                </a>
+                <a href="visualizer/index.html" class="tool-card">
+                    <span class="tool-icon">&#9685;</span>
+                    <h3>Visualizer</h3>
+                    <p>Canvas visualizer with pluggable renderers — particle fields, waveform grids, and spectrum rings.</p>
+                </a>
+                <a href="visualizer/music-videos/index.html" class="tool-card">
+                    <span class="tool-icon">&#9654;</span>
+                    <h3>Music Videos</h3>
+                    <p>Stick-figure music videos synced to chiptune beats through a Cassette Futurism VHS interface.</p>
+                </a>
+                <a href="audio-tracker/organ.html" class="tool-card">
+                    <span class="tool-icon">&#9961;</span>
+                    <h3>Cathedral Organ</h3>
+                    <p>Virtual pipe organ with a gothic cathedral aesthetic. Keys light up during song playback.</p>
+                </a>
+            </div>
+        </section>
+
+        <!-- Staff Line Divider -->
+        <div class="staff-divider">
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        <!-- Song Library Browser -->
+        <section class="browser-section">
+            <div class="browser-header">
+                <h2>Song Library</h2>
+                <div class="browser-controls">
+                    <input type="text" id="search" placeholder="Search songs...">
+                    <select id="filter-category">
+                        <option value="all">All Categories</option>
+                        <option value="classic">Classic</option>
+                        <option value="original">Original</option>
+                        <option value="cover">Cover</option>
+                    </select>
+                    <select id="sort-by">
+                        <option value="title">Sort: Title</option>
+                        <option value="bpm">Sort: BPM</option>
+                        <option value="category">Sort: Category</option>
+                    </select>
+                </div>
+            </div>
+
+            <p class="song-count" id="song-count"></p>
+
+            <table class="song-table">
+                <thead>
+                    <tr>
+                        <th data-sort="title" class="sorted-asc">Title</th>
+                        <th data-sort="bpm">BPM</th>
+                        <th data-sort="category">Category</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="song-list"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>No frameworks. No build step. Just <a href="../index.html">HTML Style Guides</a>.</p>
+    </footer>
+
+    <script>
+    (function() {
+        // Video slug mapping: song JSON filename (without .json) -> video HTML slug
+        // Most map directly; these are the exceptions
+        var VIDEO_SLUG_MAP = {
+            'monastery-of-the-morning-mist': 'monastery-morning-mist',
+            'oasis-of-the-forgotten-king': 'oasis-forgotten-king',
+            'survivors-cyberpunk': 'survivors-neon-district',
+            'voyage-of-the-paper-lantern': 'voyage-paper-lantern',
+            'tidepool-at-the-edge-of-the-world': 'tidepool-edge',
+            'wireless-access-protocol': 'wap'
+        };
+
+        // Set of song slugs that have videos
+        var VIDEO_SLUGS = new Set([
+            'abyssal-waltz', 'bazaar-of-the-midnight-sun', 'bioluminescent',
+            'bonus-stage-bounce', 'bowser-on-steroids', 'caravan-of-the-sirocco',
+            'cathedral-of-collapse', 'cathedral-vigil', 'classical-runner-overture',
+            'clockwork-requiem', 'cradle-of-the-colossus', 'cyber-cathedral-requiem',
+            'dialectic-of-the-ramen', 'elevator-to-the-final-floor',
+            'fencing-match-in-a-thunderstorm', 'ghosts-of-the-arcade', 'glitch-dimension',
+            'graceful-defeat', 'hacking-the-mainframe', 'hollow-choir-ascendant',
+            'kitchen-timer-fugue', 'last-transmission-from-voyager', 'long-december',
+            'monastery-of-the-morning-mist', 'neon-velocity', 'oasis-of-the-forgotten-king',
+            'ocarina-echoes', 'orbital-lounge', 'photosynthesis',
+            'recursive-disagreement', 'requiem-in-stone', 'romantic-dissonance',
+            'save-corrupted', 'segfault-uprising', 'sonata-in-c-dissolving',
+            'speedrun-any-percent', 'survivors-campfire', 'survivors-cosmic',
+            'survivors-cyberpunk', 'survivors-forest', 'survivors-gothic',
+            'system-infection', 'tavern-brawl-crescendo', 'the-coins-journey',
+            'the-divas-aria', 'the-duel-at-worlds-end', 'the-lighthouse-keeper',
+            'the-password-was-wrong', 'through-the-fire-and-flames',
+            'tidepool-at-the-edge-of-the-world', 'voyage-of-the-paper-lantern',
+            'wap', 'white-pony-rom', 'wireless-access-protocol'
+        ]);
+
+        var songs = [];
+        var sortField = 'title';
+        var sortDir = 1;
+        var filterCat = 'all';
+        var searchTerm = '';
+
+        function slugFromFile(file) {
+            return file.replace('.json', '');
+        }
+
+        function videoSlug(songSlug) {
+            return VIDEO_SLUG_MAP[songSlug] || songSlug;
+        }
+
+        function hasVideo(songSlug) {
+            return VIDEO_SLUGS.has(songSlug);
+        }
+
+        function sortTitle(a, b) {
+            return a.title.localeCompare(b.title) * sortDir;
+        }
+
+        function sortBpm(a, b) {
+            return (a.bpm - b.bpm) * sortDir;
+        }
+
+        function sortCategory(a, b) {
+            return a.category.localeCompare(b.category) * sortDir || a.title.localeCompare(b.title);
+        }
+
+        function getFiltered() {
+            return songs.filter(function(s) {
+                if (filterCat !== 'all' && s.category !== filterCat) return false;
+                if (searchTerm && s.title.toLowerCase().indexOf(searchTerm) === -1 &&
+                    s.description.toLowerCase().indexOf(searchTerm) === -1) return false;
+                return true;
+            });
+        }
+
+        function render() {
+            var list = getFiltered();
+            var sortFn = sortField === 'bpm' ? sortBpm : sortField === 'category' ? sortCategory : sortTitle;
+            list.sort(sortFn);
+
+            var tbody = document.getElementById('song-list');
+            var html = '';
+
+            list.forEach(function(s) {
+                var slug = slugFromFile(s.file);
+                var actions = '<a href="audio-tracker/index.html?song=' + s.file + '">Tracker</a>' +
+                    '<a href="visualizer/index.html?song=' + s.file + '">Visualizer</a>';
+
+                if (hasVideo(slug)) {
+                    actions += '<a href="visualizer/' + videoSlug(slug) + '-video.html">Video</a>';
+                }
+
+                html += '<tr>' +
+                    '<td><div class="song-title">' + s.title + '</div><div class="song-desc">' + s.description + '</div></td>' +
+                    '<td class="td-bpm"><span class="song-bpm">' + s.bpm + '</span></td>' +
+                    '<td><span class="song-category cat-' + s.category + '">' + s.category + '</span></td>' +
+                    '<td><div class="song-actions">' + actions + '</div></td>' +
+                    '</tr>';
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('song-count').textContent = list.length + ' of ' + songs.length + ' songs';
+        }
+
+        // Column header sorting
+        document.querySelectorAll('.song-table thead th[data-sort]').forEach(function(th) {
+            th.addEventListener('click', function() {
+                var field = this.getAttribute('data-sort');
+                if (sortField === field) {
+                    sortDir *= -1;
+                } else {
+                    sortField = field;
+                    sortDir = 1;
+                }
+                document.querySelectorAll('.song-table thead th').forEach(function(h) {
+                    h.classList.remove('sorted-asc', 'sorted-desc');
+                });
+                this.classList.add(sortDir === 1 ? 'sorted-asc' : 'sorted-desc');
+                document.getElementById('sort-by').value = field;
+                render();
+            });
+        });
+
+        // Controls
+        document.getElementById('filter-category').addEventListener('change', function() {
+            filterCat = this.value;
+            render();
+        });
+
+        document.getElementById('sort-by').addEventListener('change', function() {
+            sortField = this.value;
+            sortDir = 1;
+            document.querySelectorAll('.song-table thead th').forEach(function(h) {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+                if (h.getAttribute('data-sort') === sortField) h.classList.add('sorted-asc');
+            });
+            render();
+        });
+
+        document.getElementById('search').addEventListener('input', function() {
+            searchTerm = this.value.toLowerCase().trim();
+            render();
+        });
+
+        // Load song data
+        fetch('audio-tracker/songs/index.json')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                songs = data.songs;
+                render();
+            });
+    })();
+    </script>
+</body>
+</html>

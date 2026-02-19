@@ -9,13 +9,13 @@ allow-model-invocation: true
 
 Compose a full-length chiptune song using **$ARGUMENTS**.
 
-Output a complete `.json` song file in the compact event format defined by `games/audio-tracker/AI-SONG-FORMAT.md`. The song should be 3-4 minutes long with full structural development — not a short loop.
+Output a complete `.json` song file in the compact event format defined by `music/audio-tracker/AI-SONG-FORMAT.md`. The song should be 3-4 minutes long with full structural development — not a short loop.
 
 ## Phase 0 — Parse Request & Plan
 
 1. Parse the argument for style, key, BPM, and description hints.
-2. Read `games/audio-tracker/AI-SONG-FORMAT.md` for the compact event format spec.
-3. Read `games/audio-tracker/songs/index.json` to see existing songs and avoid duplicates.
+2. Read `music/audio-tracker/AI-SONG-FORMAT.md` for the compact event format spec.
+3. Read `music/audio-tracker/songs/index.json` to see existing songs and avoid duplicates.
 4. Read one existing song JSON (e.g., `boss-battle.json` or `canon-in-d.json`) to calibrate output density and formatting.
 5. Select the appropriate style profile from the **Style Profiles** section below.
 6. Plan the song structure:
@@ -81,14 +81,14 @@ For songs longer than 4 minutes, or when the user requests multiple parallel/seq
 
 1. **Opus plans the architecture**: Define instruments, section descriptions (10-30 sections), key/mode/energy per section, and the number of patterns each agent should compose (~13 patterns ≈ 30 seconds at most tempos).
 
-2. **Write the master plan** to `games/audio-tracker/songs/_chunks-{song-name}/instruments.json` with the instrument array and section descriptions.
+2. **Write the master plan** to `music/audio-tracker/songs/_chunks-{song-name}/instruments.json` with the instrument array and section descriptions.
 
 3. **Launch sequential Haiku agents**, each composing one section. Each agent receives:
    - The instrument definitions (constant)
    - Its section description (from the plan)
    - **The handoff payload** from the previous agent — the sustaining notes at the end of the last pattern
 
-4. **Extract handoff notes** between agents using `games/audio-tracker/songs/_ttfaf-chunks/extract_handoff.py`:
+4. **Extract handoff notes** between agents using `music/audio-tracker/songs/_ttfaf-chunks/extract_handoff.py`:
    ```bash
    python3 extract_handoff.py chunk-NN.json
    ```
@@ -138,7 +138,7 @@ Let ring 2-4 rows before new notes.
 - Ch2: row 24, n:[note], inst [idx], d:12
 - Ch3: [drum fill or crash description]
 
-## OUTPUT: Write to `games/audio-tracker/songs/_chunks-{name}/chunk-NN.json`
+## OUTPUT: Write to `music/audio-tracker/songs/_chunks-{name}/chunk-NN.json`
 ```
 
 ### When to Use Relay Mode
@@ -149,12 +149,12 @@ Let ring 2-4 rows before new notes.
 
 ## Phase 2 — Output
 
-1. Write the complete JSON to `games/audio-tracker/songs/{kebab-case-title}.json`.
-2. Update `games/audio-tracker/songs/index.json` to add the new song entry.
+1. Write the complete JSON to `music/audio-tracker/songs/{kebab-case-title}.json`.
+2. Update `music/audio-tracker/songs/index.json` to add the new song entry.
 3. Verify the JSON is valid and all pattern IDs referenced in the sequence exist.
 4. Run the boundary gap fixer to extend note durations at pattern transitions:
    ```bash
-   python3 games/audio-tracker/tools/fix-boundary-gaps.py --fix games/audio-tracker/songs/{kebab-case-title}.json
+   python3 music/audio-tracker/tools/fix-boundary-gaps.py --fix music/audio-tracker/songs/{kebab-case-title}.json
    ```
    This detects silent gaps where a note's `d` ends before the pattern boundary and the next pattern doesn't start on row 0, then extends durations to sustain through.
 5. Spot-check transition continuity:

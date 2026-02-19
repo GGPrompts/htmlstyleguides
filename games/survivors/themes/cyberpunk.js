@@ -3,7 +3,7 @@ window.THEME = {
   fonts: { title: 'Orbitron', body: 'Share Tech Mono' },
   victoryCondition: { timeSeconds: 300, bossName: 'Singularity' },
   worldOrder: { current: 0, next: 'shop.html?world=gothic' },
-  song: '../audio-tracker/songs/survivors-cyberpunk.json',
+  song: '../../music/audio-tracker/songs/survivors-cyberpunk.json',
   palette: {
     bg: '#0a0a1a', bgLight: '#1a1a2a', accent: '#ff0080',
     gold: '#00ffff', bone: '#c0e0ff', emerald: '#39ff14',

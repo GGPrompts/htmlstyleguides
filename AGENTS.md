@@ -6,7 +6,7 @@ This repo contains many self-contained HTML pages and small assets. Use **bd** (
 
 Use bd for:
 - Multi-step work that spans sessions
-- Changes that touch shared/global assets (site-wide CSS, shared JS, indexes like `games/audio-tracker/songs/index.json`)
+- Changes that touch shared/global assets (site-wide CSS, shared JS, indexes like `music/audio-tracker/songs/index.json`)
 - Bugs/features with follow-ups, QA notes, or dependencies
 
 Skip bd for:

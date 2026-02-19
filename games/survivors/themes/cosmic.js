@@ -3,7 +3,7 @@ window.THEME = {
   fonts: { title: 'Exo 2', body: 'Space Mono' },
   victoryCondition: { timeSeconds: 720, bossName: 'The Singularity' },
   worldOrder: { current: 3, next: 'victory.html' },
-  song: '../audio-tracker/songs/survivors-cosmic.json',
+  song: '../../music/audio-tracker/songs/survivors-cosmic.json',
   palette: {
     bg: '#050510', bgLight: '#101025', accent: '#9933ff',
     gold: '#ffd700', bone: '#d0d8f0', emerald: '#33ff88',

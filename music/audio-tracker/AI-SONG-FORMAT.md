@@ -90,7 +90,7 @@ The tracker now accepts two song JSON styles:
 After generating a song, run the boundary gap fixer to smooth pattern transitions:
 
 ```bash
-python3 games/audio-tracker/tools/fix-boundary-gaps.py --fix games/audio-tracker/songs/your-song.json
+python3 music/audio-tracker/tools/fix-boundary-gaps.py --fix music/audio-tracker/songs/your-song.json
 ```
 
 This scans for silent gaps at pattern boundaries — where a note's `d` ends before the pattern length and the next pattern doesn't immediately start a note — and extends durations to sustain through. Use `--all` to scan the entire library.

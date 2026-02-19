@@ -1,6 +1,6 @@
 # HTML Style Guides Project
 
-A collection of CSS design system showcases, interactive educational stories, styled tech reference guides, and browser games. Everything runs on GitHub Pages with zero build tools or frameworks.
+A collection of CSS design system showcases, interactive educational stories, styled tech reference guides, a chiptune music studio, and browser games. Everything runs on GitHub Pages with zero build tools or frameworks.
 
 ## Project Structure
 
@@ -28,10 +28,14 @@ A collection of CSS design system showcases, interactive educational stories, st
 │   ├── themes/             # Theme JS modules (default, graffiti, cyberpunk)
 │   ├── assets/             # Deck images (prefix with deck name)
 │   └── decks/              # JSON presentation files
+├── music/                  # Chiptune music studio (Mozart's Study)
+│   ├── CLAUDE.md           # How to use the music section
+│   ├── index.html          # Hub page — song browser + tool links
+│   ├── audio-tracker/      # FamiTracker-inspired sequencer + organ
+│   └── visualizer/         # Canvas visualizer + music videos
+│       └── CLAUDE.md       # How to build renderers
 └── games/                  # Browser games (modular JS)
-    ├── survivors/          # Survivors roguelike (arena + shop + themes)
-    └── music-visualizer/   # Canvas visualizer synced to chiptune songs
-        └── CLAUDE.md       # How to build renderers
+    └── survivors/          # Survivors roguelike (arena + shop + themes)
 ```
 
 ## Core Principles

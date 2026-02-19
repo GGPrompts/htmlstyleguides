@@ -5,7 +5,7 @@ Canvas-based music visualizer synced to the chiptune song library (57 songs). Pl
 ## Architecture
 
 ```
-music-visualizer/
+music/visualizer/
   index.html              # Hub: full-viewport canvas + overlay UI
   engine.js               # Core: audio, cursor, analysis, canvas, renderer dispatch
   renderers/
@@ -32,9 +32,9 @@ Creates an `AudioContext` shared with `ChipPlayer` via `initExternal()`. On song
 
 ### Dependencies (not modified)
 
-- `games/audio-tracker/playback-engine.js` — ChipPlayer audio engine
-- `games/audio-tracker/songs/index.json` — song manifest (title, category, BPM)
-- `games/audio-tracker/songs/*.json` — song data files
+- `music/audio-tracker/playback-engine.js` — ChipPlayer audio engine
+- `music/audio-tracker/songs/index.json` — song manifest (title, category, BPM)
+- `music/audio-tracker/songs/*.json` — song data files
 
 ## Writing a New Renderer
 
@@ -267,12 +267,12 @@ Other pages can embed a visualizer background:
 
 ```html
 <canvas id="bg-viz" style="position:fixed;top:0;left:0;width:100%;height:100%"></canvas>
-<script src="games/audio-tracker/playback-engine.js"></script>
-<script src="games/music-visualizer/engine.js"></script>
-<script src="games/music-visualizer/renderers/particle-field.js"></script>
+<script src="music/audio-tracker/playback-engine.js"></script>
+<script src="music/visualizer/engine.js"></script>
+<script src="music/visualizer/renderers/particle-field.js"></script>
 <script>
   Visualizer.init(document.getElementById('bg-viz'));
-  fetch('games/audio-tracker/songs/crystal-caves.json')
+  fetch('music/audio-tracker/songs/crystal-caves.json')
     .then(r => r.json())
     .then(json => {
       Visualizer.loadSong(json);
