@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Coin's Journey — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #1a1408;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(26,20,8,0.92);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(20px, 5vw, 48px);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #d4a843;
+            text-shadow: 0 0 30px rgba(212,168,67,0.6), 0 0 60px rgba(212,168,67,0.3);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #d4a843;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #d4a843;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,67,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(212,168,67,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            font-family: sans-serif;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">The Coin's Journey</div>
+        <div class="play-sub">follow a coin through the economy</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // -- The Coin's Journey Video Renderer --
+    window.Renderers['coins-journey-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // -- State --
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var lastSeqIndex = -1;
+        var scene = 0; // 0=mint, 1=pocket, 2=vending, 3=busker, 4=well
+        var sceneTransition = 0; // 0-1 transition progress
+        var prevScene = 0;
+
+        // Coin state
+        var coinX = 0, coinY = 0;
+        var coinR = 0;
+        var coinAngle = 0;
+        var coinSpin = 0;
+        var coinBounce = 0;
+        var coinShine = 0;
+
+        // Scene-specific state
+        var sparks = [];
+        var gears = [];
+        var ripples = [];
+        var musicNotes = [];
+        var crowdFeet = [];
+        var conveyorOffset = 0;
+        var pressY = 0;
+        var vendSlotY = 0;
+        var wellWaterY = 0;
+        var titleAlpha = 0;
+        var flashAlpha = 0;
+
+        // Palette
+        var GOLD = '#d4a843';
+        var COPPER = '#b87333';
+        var DARK_GOLD = '#8b6914';
+        var LIGHT_GOLD = '#f0d77b';
+
+        var SCENE_COLORS = [
+            { bg: '#1a1408', accent: '#ff6633', secondary: '#cc4400' },   // mint: orange/fire
+            { bg: '#0a0812', accent: '#6b5b95', secondary: '#4a3d6b' },   // pocket: purple/dark
+            { bg: '#0f1a12', accent: '#44cc77', secondary: '#22aa55' },   // vending: green
+            { bg: '#1a1210', accent: '#e8a63b', secondary: '#cc7722' },   // busker: warm amber
+            { bg: '#081420', accent: '#3399cc', secondary: '#1177aa' }    // well: blue/water
+        ];
+
+        // -- Helpers --
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+        function hexToRgb(hex) {
+            var r = parseInt(hex.slice(1,3), 16);
+            var g = parseInt(hex.slice(3,5), 16);
+            var b = parseInt(hex.slice(5,7), 16);
+            return { r: r, g: g, b: b };
+        }
+
+        function rgba(hex, a) {
+            var c = hexToRgb(hex);
+            return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+        }
+
+        // -- Scene mapping from seqIndex --
+        function getScene(seqIdx) {
+            if (seqIdx <= 3) return 0;   // Arcade = Mint/Factory
+            if (seqIdx <= 9) return 1;   // Pinball = Pocket
+            if (seqIdx <= 17) return 2;  // Slots = Vending Machine
+            if (seqIdx <= 28) return 3;  // Grate + Storm Drain = Busker
+            if (seqIdx <= 42) return 4;  // Ocean = Wishing Well
+            return 4;                    // Silence = still on well
+        }
+
+        // -- Draw coin --
+        function drawCoin(ctx, x, y, r, angle, shine, pulse) {
+            var scaleX = Math.abs(Math.cos(angle));
+            if (scaleX < 0.1) scaleX = 0.1;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scaleX, 1);
+
+            // Outer ring
+            var grad = ctx.createRadialGradient(0, -r * 0.3, r * 0.1, 0, 0, r);
+            grad.addColorStop(0, LIGHT_GOLD);
+            grad.addColorStop(0.5, GOLD);
+            grad.addColorStop(0.8, COPPER);
+            grad.addColorStop(1, DARK_GOLD);
+
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.shadowColor = GOLD;
+            ctx.shadowBlur = 15 + pulse * 20;
+            ctx.fill();
+
+            // Inner ring
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 0.85, 0, Math.PI * 2);
+            ctx.strokeStyle = rgba(DARK_GOLD, 0.6);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Dollar sign or star detail
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = rgba(DARK_GOLD, 0.5 + shine * 0.3);
+            ctx.font = 'bold ' + Math.floor(r * 1.1) + 'px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', 0, 1);
+
+            // Shine highlight
+            if (shine > 0) {
+                ctx.beginPath();
+                ctx.arc(-r * 0.25, -r * 0.25, r * 0.35 * shine, 0, Math.PI * 2);
+                ctx.fillStyle = rgba('#ffffff', 0.3 * shine);
+                ctx.fill();
+            }
+
+            ctx.restore();
+
+            // Glint lines on beat
+            if (pulse > 0.3) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.strokeStyle = rgba(LIGHT_GOLD, pulse * 0.6);
+                ctx.lineWidth = 2;
+                for (var i = 0; i < 4; i++) {
+                    var a = (i / 4) * Math.PI * 2 + angle * 2;
+                    var inner = r * 1.2;
+                    var outer = r * (1.4 + pulse * 0.5);
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+                    ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        // -- Scene 0: Mint/Factory --
+        function drawMint(ctx, energy, dt, frac) {
+            var sc = SCENE_COLORS[0];
+
+            // Conveyor belt
+            conveyorOffset += dt * 80 * (0.5 + energy);
+            if (conveyorOffset > 40) conveyorOffset -= 40;
+
+            var beltY = H * 0.65;
+            var beltH = 20;
+
+            // Factory background - dark industrial
+            ctx.fillStyle = '#1a1408';
+            ctx.fillRect(0, 0, W, H);
+
+            // Girders
+            ctx.strokeStyle = rgba('#554422', 0.3);
+            ctx.lineWidth = 4;
+            for (var g = 0; g < 5; g++) {
+                var gx = W * (g / 4);
+                ctx.beginPath();
+                ctx.moveTo(gx, 0);
+                ctx.lineTo(gx, H);
+                ctx.stroke();
+            }
+
+            // Cross beams
+            for (var cb = 0; cb < 3; cb++) {
+                var cy = H * (0.15 + cb * 0.2);
+                ctx.beginPath();
+                ctx.moveTo(0, cy);
+                ctx.lineTo(W, cy);
+                ctx.stroke();
+            }
+
+            // Stamping press
+            var pressBaseY = H * 0.15;
+            var pressW = W * 0.15;
+            var pressH = H * 0.35;
+            var pressCX = W * 0.5;
+
+            // Press descends on beats
+            pressY = lerp(pressY, beatPulse > 0.5 ? 1 : 0, 1 - Math.exp(-12 * dt));
+            var stampOff = pressY * H * 0.12;
+
+            ctx.fillStyle = '#333';
+            ctx.fillRect(pressCX - pressW / 2, pressBaseY, pressW, pressH + stampOff);
+            ctx.fillStyle = '#555';
+            ctx.fillRect(pressCX - pressW * 0.7, pressBaseY, pressW * 1.4, 20);
+
+            // Press head
+            ctx.fillStyle = sc.accent;
+            ctx.shadowColor = sc.accent;
+            ctx.shadowBlur = stampOff > H * 0.08 ? 20 : 0;
+            ctx.fillRect(pressCX - pressW * 0.4, pressBaseY + pressH + stampOff - 15, pressW * 0.8, 15);
+            ctx.shadowBlur = 0;
+
+            // Conveyor belt
+            ctx.fillStyle = '#2a2218';
+            ctx.fillRect(0, beltY, W, beltH);
+
+            // Belt treads
+            ctx.strokeStyle = rgba('#443322', 0.5);
+            ctx.lineWidth = 2;
+            for (var t = -1; t < W / 40 + 1; t++) {
+                var tx = t * 40 + conveyorOffset;
+                ctx.beginPath();
+                ctx.moveTo(tx, beltY);
+                ctx.lineTo(tx - 8, beltY + beltH);
+                ctx.stroke();
+            }
+
+            // Sparks on stamp
+            if (pressY > 0.7 && beatPulse > 0.3) {
+                for (var s = 0; s < 5; s++) {
+                    sparks.push({
+                        x: pressCX + (Math.random() - 0.5) * pressW * 0.6,
+                        y: pressBaseY + pressH + stampOff - 10,
+                        vx: (Math.random() - 0.5) * 200,
+                        vy: -Math.random() * 150 - 50,
+                        life: 1
+                    });
+                }
+            }
+
+            // Draw sparks
+            for (var si = sparks.length - 1; si >= 0; si--) {
+                var sp = sparks[si];
+                sp.x += sp.vx * dt;
+                sp.y += sp.vy * dt;
+                sp.vy += 300 * dt;
+                sp.life -= dt * 2.5;
+                if (sp.life <= 0) { sparks.splice(si, 1); continue; }
+                ctx.beginPath();
+                ctx.arc(sp.x, sp.y, 2 + sp.life * 3, 0, Math.PI * 2);
+                ctx.fillStyle = rgba(sc.accent, sp.life);
+                ctx.fill();
+            }
+
+            // Coin on conveyor
+            coinX = lerp(coinX, W * 0.5, 1 - Math.exp(-2 * dt));
+            coinY = beltY - coinR - 2 + coinBounce;
+        }
+
+        // -- Scene 1: Pocket --
+        function drawPocket(ctx, energy, dt, frac) {
+            // Dark interior with fabric texture
+            ctx.fillStyle = '#0a0812';
+            ctx.fillRect(0, 0, W, H);
+
+            // Fabric lines (diagonal weave pattern)
+            ctx.save();
+            ctx.globalAlpha = 0.08 + energy * 0.04;
+            ctx.strokeStyle = '#6b5b95';
+            ctx.lineWidth = 1;
+            var spacing = 25;
+            for (var i = -H; i < W + H; i += spacing) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i + H, H);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(i + H, 0);
+                ctx.lineTo(i, H);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Pocket seam curve
+            ctx.save();
+            ctx.strokeStyle = rgba('#6b5b95', 0.3);
+            ctx.lineWidth = 3;
+            ctx.setLineDash([8, 6]);
+            ctx.beginPath();
+            ctx.moveTo(W * 0.1, H * 0.15);
+            ctx.quadraticCurveTo(W * 0.05, H * 0.5, W * 0.2, H * 0.85);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(W * 0.9, H * 0.15);
+            ctx.quadraticCurveTo(W * 0.95, H * 0.5, W * 0.8, H * 0.85);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+
+            // Pocket bottom curve
+            ctx.save();
+            ctx.strokeStyle = rgba('#6b5b95', 0.2);
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath();
+            ctx.moveTo(W * 0.2, H * 0.85);
+            ctx.quadraticCurveTo(W * 0.5, H * 0.95, W * 0.8, H * 0.85);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.restore();
+
+            // Coin bounces inside pocket
+            var bounceFreq = 3 + energy * 4;
+            coinX = W * 0.5 + Math.sin(frac * bounceFreq) * W * 0.12 * energy;
+            coinY = H * 0.55 + Math.abs(Math.sin(frac * bounceFreq * 1.7)) * H * 0.08;
+        }
+
+        // -- Scene 2: Vending Machine --
+        function drawVending(ctx, energy, dt, frac) {
+            var sc = SCENE_COLORS[2];
+            ctx.fillStyle = '#0f1a12';
+            ctx.fillRect(0, 0, W, H);
+
+            // Machine body
+            var mx = W * 0.2;
+            var mw = W * 0.6;
+            var my = H * 0.05;
+            var mh = H * 0.9;
+
+            ctx.fillStyle = '#1a2a1e';
+            ctx.fillRect(mx, my, mw, mh);
+            ctx.strokeStyle = sc.accent;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(mx, my, mw, mh);
+
+            // Display window with items
+            var winY = my + mh * 0.05;
+            var winH = mh * 0.55;
+            ctx.fillStyle = '#0a150d';
+            ctx.fillRect(mx + 15, winY, mw - 30, winH);
+
+            // Shelves with items
+            var shelfCount = 4;
+            for (var s = 0; s < shelfCount; s++) {
+                var sy = winY + (s + 1) * (winH / shelfCount);
+                ctx.fillStyle = rgba(sc.secondary, 0.3);
+                ctx.fillRect(mx + 15, sy - 2, mw - 30, 2);
+
+                // Items on shelf
+                var itemCount = 5;
+                for (var it = 0; it < itemCount; it++) {
+                    var ix = mx + 25 + it * ((mw - 50) / itemCount);
+                    var iy = sy - winH / shelfCount + 5;
+                    var iw = (mw - 60) / itemCount - 4;
+                    var ih = winH / shelfCount - 8;
+
+                    ctx.fillStyle = rgba(sc.accent, 0.15 + Math.sin(frac + s + it) * 0.05);
+                    ctx.fillRect(ix, iy, iw, ih);
+                }
+            }
+
+            // Coin slot
+            var slotX = mx + mw * 0.75;
+            var slotY = my + mh * 0.65;
+            ctx.fillStyle = '#111';
+            ctx.fillRect(slotX - 15, slotY, 30, 5);
+            ctx.strokeStyle = sc.accent;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(slotX - 15, slotY, 30, 5);
+
+            // Gears (internal mechanism visible)
+            var gearCX = mx + mw * 0.5;
+            var gearCY = my + mh * 0.75;
+            for (var gi = 0; gi < 3; gi++) {
+                var gx = gearCX + (gi - 1) * 45;
+                var gy = gearCY;
+                var gr = 18 + gi * 3;
+                var ga = frac * (2 + gi) * (gi % 2 === 0 ? 1 : -1);
+
+                ctx.save();
+                ctx.translate(gx, gy);
+                ctx.rotate(ga);
+                ctx.strokeStyle = rgba(sc.accent, 0.3);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, gr, 0, Math.PI * 2);
+                ctx.stroke();
+                // Teeth
+                var teeth = 8;
+                for (var tt = 0; tt < teeth; tt++) {
+                    var ta = (tt / teeth) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(ta) * gr, Math.sin(ta) * gr);
+                    ctx.lineTo(Math.cos(ta) * (gr + 6), Math.sin(ta) * (gr + 6));
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+
+            // Dispense tray
+            var trayY = my + mh * 0.88;
+            ctx.fillStyle = '#0d1a0f';
+            ctx.fillRect(mx + 10, trayY, mw - 20, mh * 0.08);
+            ctx.strokeStyle = rgba(sc.accent, 0.4);
+            ctx.strokeRect(mx + 10, trayY, mw - 20, mh * 0.08);
+
+            // Coin entering slot animation
+            coinX = lerp(coinX, slotX, 1 - Math.exp(-3 * dt));
+            coinY = lerp(coinY, slotY - coinR - 5, 1 - Math.exp(-3 * dt));
+        }
+
+        // -- Scene 3: Street Busker --
+        function drawBusker(ctx, energy, dt, frac) {
+            var sc = SCENE_COLORS[3];
+            ctx.fillStyle = '#1a1210';
+            ctx.fillRect(0, 0, W, H);
+
+            // Street/sidewalk
+            var groundY = H * 0.75;
+            ctx.fillStyle = '#2a2018';
+            ctx.fillRect(0, groundY, W, H - groundY);
+
+            // Sidewalk lines
+            ctx.strokeStyle = rgba('#443322', 0.3);
+            ctx.lineWidth = 1;
+            for (var sl = 0; sl < W; sl += 60) {
+                ctx.beginPath();
+                ctx.moveTo(sl, groundY);
+                ctx.lineTo(sl, H);
+                ctx.stroke();
+            }
+
+            // Lamp post
+            ctx.fillStyle = '#333';
+            ctx.fillRect(W * 0.15 - 3, groundY - H * 0.45, 6, H * 0.45);
+            // Lamp glow
+            ctx.beginPath();
+            ctx.arc(W * 0.15, groundY - H * 0.45, 15, 0, Math.PI * 2);
+            ctx.fillStyle = rgba(sc.accent, 0.8);
+            ctx.shadowColor = sc.accent;
+            ctx.shadowBlur = 40;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Light cone from lamp
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var lampGrad = ctx.createRadialGradient(W * 0.15, groundY - H * 0.4, 10, W * 0.15, groundY - H * 0.1, H * 0.5);
+            lampGrad.addColorStop(0, rgba(sc.accent, 0.1));
+            lampGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = lampGrad;
+            ctx.beginPath();
+            ctx.moveTo(W * 0.15 - 5, groundY - H * 0.45);
+            ctx.lineTo(W * 0.15 - W * 0.15, groundY);
+            ctx.lineTo(W * 0.15 + W * 0.15, groundY);
+            ctx.lineTo(W * 0.15 + 5, groundY - H * 0.45);
+            ctx.fill();
+            ctx.restore();
+
+            // Hat on ground
+            var hatX = W * 0.55;
+            var hatY = groundY - 5;
+            ctx.fillStyle = '#3a2a1a';
+            ctx.beginPath();
+            ctx.ellipse(hatX, hatY, 40, 12, 0, 0, Math.PI);
+            ctx.fill();
+            ctx.fillStyle = '#2a1a0a';
+            ctx.beginPath();
+            ctx.ellipse(hatX, hatY - 15, 35, 20, 0, Math.PI, Math.PI * 2);
+            ctx.fill();
+
+            // Busker stick figure
+            var bx = W * 0.4;
+            var by = groundY;
+            ctx.strokeStyle = sc.accent;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = sc.accent;
+            ctx.shadowBlur = 8;
+
+            // Body
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx, by - H * 0.2);
+            ctx.stroke();
+            // Head
+            ctx.beginPath();
+            ctx.arc(bx, by - H * 0.23, 10, 0, Math.PI * 2);
+            ctx.stroke();
+            // Arms (playing guitar)
+            var armSwing = Math.sin(frac * 6) * 0.15 * energy;
+            ctx.beginPath();
+            ctx.moveTo(bx, by - H * 0.15);
+            ctx.lineTo(bx + 25 + armSwing * 40, by - H * 0.1);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(bx, by - H * 0.15);
+            ctx.lineTo(bx + 20, by - H * 0.17 + armSwing * 20);
+            ctx.stroke();
+            // Legs
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx - 12, by + 5);
+            ctx.moveTo(bx, by);
+            ctx.lineTo(bx + 12, by + 5);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // Guitar shape
+            ctx.strokeStyle = rgba(COPPER, 0.7);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(bx + 22, by - H * 0.12, 12, 8, 0.3, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Music notes floating
+            if (beatPulse > 0.5 && energy > 0.2) {
+                musicNotes.push({
+                    x: bx + 30 + Math.random() * 20,
+                    y: by - H * 0.15,
+                    vx: (Math.random() - 0.3) * 30,
+                    vy: -40 - Math.random() * 40,
+                    life: 1,
+                    type: Math.floor(Math.random() * 3)
+                });
+            }
+
+            ctx.font = '16px serif';
+            for (var ni = musicNotes.length - 1; ni >= 0; ni--) {
+                var n = musicNotes[ni];
+                n.x += n.vx * dt;
+                n.y += n.vy * dt;
+                n.life -= dt * 0.8;
+                if (n.life <= 0) { musicNotes.splice(ni, 1); continue; }
+                ctx.fillStyle = rgba(sc.accent, n.life * 0.7);
+                var noteChar = n.type === 0 ? '\u266A' : n.type === 1 ? '\u266B' : '\u2669';
+                ctx.fillText(noteChar, n.x, n.y);
+            }
+
+            // Crowd feet silhouettes at edges
+            ctx.fillStyle = rgba('#1a1210', 0.8);
+            for (var fi = 0; fi < 8; fi++) {
+                var fx = fi < 4 ? W * 0.7 + fi * 30 : W * 0.05 + (fi - 4) * 25;
+                var fbounce = Math.sin(frac * 2 + fi) * 3 * energy;
+                // Shoe shape
+                ctx.beginPath();
+                ctx.ellipse(fx, groundY + 2 + fbounce, 12, 5, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Leg
+                ctx.fillRect(fx - 3, groundY - 30 + fbounce, 6, 32);
+            }
+
+            // Coin heading toward hat
+            coinX = lerp(coinX, hatX, 1 - Math.exp(-2 * dt));
+            coinY = lerp(coinY, hatY - coinR - 15, 1 - Math.exp(-2 * dt));
+        }
+
+        // -- Scene 4: Wishing Well --
+        function drawWell(ctx, energy, dt, frac) {
+            var sc = SCENE_COLORS[4];
+            ctx.fillStyle = '#081420';
+            ctx.fillRect(0, 0, W, H);
+
+            // Stars
+            ctx.fillStyle = '#fff';
+            for (var st = 0; st < 40; st++) {
+                var sx = ((st * 137.5) % W);
+                var sy = ((st * 89.3) % (H * 0.4));
+                var sa = 0.2 + Math.sin(frac * 0.5 + st) * 0.15;
+                ctx.globalAlpha = sa;
+                ctx.beginPath();
+                ctx.arc(sx, sy, 1 + (st % 3) * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+
+            // Well structure
+            var wellCX = W * 0.5;
+            var wellTopY = H * 0.45;
+            var wellW = W * 0.35;
+            var wellH = 60;
+
+            // Stone wall (circular top perspective)
+            ctx.fillStyle = '#2a3040';
+            ctx.beginPath();
+            ctx.ellipse(wellCX, wellTopY, wellW / 2, 25, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = rgba(sc.accent, 0.3);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Well walls going down
+            ctx.fillStyle = '#1a2030';
+            ctx.fillRect(wellCX - wellW / 2, wellTopY, wellW, wellH);
+
+            // Inner well darkness
+            ctx.fillStyle = '#050a15';
+            ctx.beginPath();
+            ctx.ellipse(wellCX, wellTopY, wellW / 2 - 8, 20, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Water surface (lower in the well)
+            var waterY = wellTopY + 10;
+            ctx.fillStyle = rgba(sc.accent, 0.15);
+            ctx.beginPath();
+            ctx.ellipse(wellCX, waterY, wellW / 2 - 12, 16, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Ripples
+            if (beatPulse > 0.3) {
+                ripples.push({
+                    x: wellCX + (Math.random() - 0.5) * 20,
+                    y: waterY,
+                    r: 3,
+                    life: 1
+                });
+            }
+
+            for (var ri = ripples.length - 1; ri >= 0; ri--) {
+                var rp = ripples[ri];
+                rp.r += dt * 30;
+                rp.life -= dt * 0.7;
+                if (rp.life <= 0) { ripples.splice(ri, 1); continue; }
+                ctx.beginPath();
+                ctx.ellipse(rp.x, rp.y, rp.r, rp.r * 0.4, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = rgba(sc.accent, rp.life * 0.4);
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Roof posts
+            ctx.fillStyle = '#3a3020';
+            ctx.fillRect(wellCX - wellW / 2 - 5, wellTopY - H * 0.25, 8, H * 0.25);
+            ctx.fillRect(wellCX + wellW / 2 - 3, wellTopY - H * 0.25, 8, H * 0.25);
+
+            // Roof
+            ctx.fillStyle = '#4a3828';
+            ctx.beginPath();
+            ctx.moveTo(wellCX - wellW / 2 - 20, wellTopY - H * 0.25);
+            ctx.lineTo(wellCX, wellTopY - H * 0.35);
+            ctx.lineTo(wellCX + wellW / 2 + 20, wellTopY - H * 0.25);
+            ctx.closePath();
+            ctx.fill();
+
+            // Shimmer in the water (other coins)
+            for (var ci = 0; ci < 6; ci++) {
+                var cx = wellCX + Math.sin(frac * 0.3 + ci * 1.5) * (wellW / 2 - 20) * 0.5;
+                var cy = waterY + 2 + ci * 2;
+                var ca = 0.1 + Math.sin(frac + ci) * 0.08;
+                ctx.beginPath();
+                ctx.arc(cx, cy, 2 + ci * 0.3, 0, Math.PI * 2);
+                ctx.fillStyle = rgba(GOLD, ca);
+                ctx.fill();
+            }
+
+            // Moon reflection
+            ctx.beginPath();
+            ctx.arc(wellCX + 15, waterY - 3, 5, 0, Math.PI * 2);
+            ctx.fillStyle = rgba('#aaccee', 0.1 + Math.sin(frac * 0.5) * 0.05);
+            ctx.fill();
+
+            // Coin descending into well
+            var targetY = waterY - coinR;
+            if (energy < 0.15) {
+                // Settling -- coin sinks slowly
+                targetY = waterY + 5;
+            }
+            coinX = lerp(coinX, wellCX, 1 - Math.exp(-1.5 * dt));
+            coinY = lerp(coinY, targetY, 1 - Math.exp(-1.5 * dt));
+        }
+
+        // -- Title drawing --
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = titleAlpha;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var fontSize = Math.max(16, Math.min(W * 0.04, 42));
+            ctx.font = '700 ' + fontSize + 'px "Cinzel", serif';
+            ctx.fillStyle = GOLD;
+            ctx.shadowColor = GOLD;
+            ctx.shadowBlur = 30;
+            ctx.fillText("THE COIN'S JOURNEY", W / 2, H * 0.12);
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+
+        // -- Flash overlay --
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = flashAlpha;
+            ctx.fillStyle = LIGHT_GOLD;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // -- Scene transition overlay --
+        function drawTransition(ctx) {
+            if (sceneTransition < 0.01) return;
+            // Iris/circle wipe centered on coin
+            var maxR = Math.sqrt(W * W + H * H);
+            var progress = sceneTransition; // 1 = fully covered, 0 = fully open
+            var r = maxR * (1 - Math.abs(progress * 2 - 1));
+
+            if (progress > 0.5) {
+                // Closing
+                ctx.save();
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.rect(0, 0, W, H);
+                ctx.arc(coinX, coinY, r, 0, Math.PI * 2, true);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ---- Init ----
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            coinR = Math.min(W, H) * 0.04;
+            coinX = W * 0.5;
+            coinY = H * 0.5;
+            coinAngle = 0;
+            coinSpin = 0;
+            coinBounce = 0;
+            coinShine = 0.5;
+            lastBeat = -1;
+            beatPulse = 0;
+            lastSeqIndex = -1;
+            scene = 0;
+            prevScene = 0;
+            sceneTransition = 0;
+            pressY = 0;
+            flashAlpha = 0;
+            titleAlpha = 0;
+            sparks = [];
+            gears = [];
+            ripples = [];
+            musicNotes = [];
+            conveyorOffset = 0;
+        }
+
+        // ---- Resize ----
+        function resize(width, height) {
+            W = width; H = height;
+            coinR = Math.min(W, H) * 0.04;
+        }
+
+        // ---- Main render ----
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            // Background
+            ctx.fillStyle = SCENE_COLORS[scene].bg;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: draw coin centered, gently spinning
+                coinAngle += dt * 0.5;
+                coinShine = 0.5 + Math.sin(coinAngle * 2) * 0.3;
+                drawCoin(ctx, W / 2, H / 2, coinR * 1.5, coinAngle, coinShine, 0);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+            var elapsed = cursor.elapsed || 0;
+            var frac = elapsed;
+
+            // -- Scene transitions --
+            var newScene = getScene(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                if (newScene !== scene) {
+                    prevScene = scene;
+                    scene = newScene;
+                    sceneTransition = 1;
+                    flashAlpha = 0.3;
+
+                    // Reset coin position for new scene
+                    switch (scene) {
+                        case 0: coinX = W * 0.2; coinY = H * 0.3; break;
+                        case 1: coinX = W * 0.5; coinY = H * 0.3; break;
+                        case 2: coinX = W * 0.7; coinY = H * 0.3; break;
+                        case 3: coinX = W * 0.7; coinY = H * 0.2; break;
+                        case 4: coinX = W * 0.5; coinY = H * 0.15; break;
+                    }
+                }
+                lastSeqIndex = seqIdx;
+            }
+
+            // -- Beat pulse --
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+                coinSpin += 0.5 + energy * 1.5;
+                lastBeat = beat;
+            }
+            beatPulse *= Math.exp(-8 * dt);
+            flashAlpha *= Math.exp(-4 * dt);
+            sceneTransition *= Math.exp(-3 * dt);
+
+            // Coin physics
+            coinAngle += coinSpin * dt;
+            coinSpin *= Math.exp(-2 * dt);
+            coinBounce = Math.sin(frac * 4) * beatPulse * 8;
+            coinShine = 0.4 + beatPulse * 0.6;
+
+            // Title: show during first scene and scene transitions
+            var showTitle = (scene === 0 && seqIdx <= 1) || sceneTransition > 0.3;
+            titleAlpha = lerp(titleAlpha, showTitle ? 1 : 0, 1 - Math.exp(-4 * dt));
+
+            // -- Draw current scene --
+            switch (scene) {
+                case 0: drawMint(ctx, energy, dt, frac); break;
+                case 1: drawPocket(ctx, energy, dt, frac); break;
+                case 2: drawVending(ctx, energy, dt, frac); break;
+                case 3: drawBusker(ctx, energy, dt, frac); break;
+                case 4: drawWell(ctx, energy, dt, frac); break;
+            }
+
+            // -- Draw coin --
+            drawCoin(ctx, coinX, coinY + coinBounce, coinR, coinAngle, coinShine, beatPulse);
+
+            // -- Overlays --
+            drawTitle(ctx);
+            drawTransition(ctx);
+            drawFlash(ctx);
+        }
+
+        return {
+            name: "The Coin's Journey",
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // -- Page bootstrap --
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('coins-journey-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/the-coins-journey.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
