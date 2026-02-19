@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonata in C (Dissolving) — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=EB+Garamond:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #faf8f0;
+            color: #1a1a1a;
+            font-family: 'EB Garamond', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(250,248,240,0.95);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(20px, 5vw, 48px);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        .play-sub {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(26,26,26,0.5);
+            font-style: italic;
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 2px solid #1a1a1a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #1a1a1a;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(26,26,26,0.15); }
+            50% { box-shadow: 0 0 0 20px rgba(26,26,26,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(26,26,26,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(250,248,240,0.6);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(26,26,26,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&#8592; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Sonata in C (Dissolving)</div>
+        <div class="play-sub">a classical portrait melting into abstraction</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // -- Sonata in C (Dissolving) Video Renderer --
+    window.Renderers['sonata-dissolving'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // -- Dissolution progress: 0 = pristine classical, 1 = fully dissolved --
+        var dissolution = 0;
+        var targetDissolution = 0;
+
+        // -- Palette --
+        // Starts: crisp parchment, black ink, gold accents
+        // Dissolves into: watercolor pastels, then ghostly translucent
+        var PALETTE = {
+            parchment:  { r: 250, g: 248, b: 240 },
+            ink:        { r: 26,  g: 26,  b: 26  },
+            gold:       { r: 198, g: 168, b: 96  },
+            staffLine:  { r: 60,  g: 55,  b: 50  },
+            // Watercolor dissolution colors
+            rose:       { r: 210, g: 130, b: 140 },
+            lavender:   { r: 160, g: 140, b: 200 },
+            aqua:       { r: 130, g: 190, b: 195 },
+            peach:      { r: 230, g: 180, b: 140 },
+            sage:       { r: 150, g: 185, b: 145 },
+            ghost:      { r: 200, g: 200, b: 210 }
+        };
+
+        var WATERCOLORS = ['rose', 'lavender', 'aqua', 'peach', 'sage'];
+
+        // -- State --
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var elapsedTime = 0;
+        var lastSeqIndex = -1;
+
+        // Staff lines
+        var staffLines = [];
+        var NUM_STAFFS = 5;
+        var STAFF_SETS = 3; // three sets of 5 lines (treble, bass, extra)
+
+        // Musical notes on the staff
+        var notes = [];
+        var MAX_NOTES = 60;
+
+        // Drip particles
+        var drips = [];
+        var MAX_DRIPS = 200;
+
+        // Geometric order elements (rectangles, grid lines)
+        var orderElements = [];
+        var NUM_ORDER = 20;
+
+        // Watercolor blobs for dissolution
+        var blobs = [];
+        var MAX_BLOBS = 40;
+
+        // Ghost fragments at the end
+        var ghosts = [];
+        var MAX_GHOSTS = 30;
+
+        // -- Helpers --
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+        function rgba(col, alpha) {
+            return 'rgba(' + col.r + ',' + col.g + ',' + col.b + ',' + alpha + ')';
+        }
+
+        function lerpColor(c1, c2, t) {
+            return {
+                r: Math.round(lerp(c1.r, c2.r, t)),
+                g: Math.round(lerp(c1.g, c2.g, t)),
+                b: Math.round(lerp(c1.b, c2.b, t))
+            };
+        }
+
+        // Seeded pseudo-random for deterministic placement
+        var seed = 42;
+        function seededRandom() {
+            seed = (seed * 16807 + 0) % 2147483647;
+            return (seed - 1) / 2147483646;
+        }
+
+        // -- Map sequence index to dissolution amount --
+        // 52 entries total. Roughly:
+        // 0-5: pristine classical (0.0)
+        // 6-15: first signs of bending (0.0-0.2)
+        // 16-25: warping accelerates (0.2-0.5)
+        // 26-35: heavy dissolution (0.5-0.75)
+        // 36-45: peak chaos (0.75-0.95)
+        // 46-51: ghostly remnants (0.95-1.0)
+        function mapDissolution(seqIdx) {
+            if (seqIdx < 4) return 0.0;
+            if (seqIdx < 10) return (seqIdx - 4) / 6 * 0.15;
+            if (seqIdx < 18) return 0.15 + (seqIdx - 10) / 8 * 0.2;
+            if (seqIdx < 26) return 0.35 + (seqIdx - 18) / 8 * 0.2;
+            if (seqIdx < 36) return 0.55 + (seqIdx - 26) / 10 * 0.2;
+            if (seqIdx < 44) return 0.75 + (seqIdx - 36) / 8 * 0.15;
+            return 0.9 + (seqIdx - 44) / 8 * 0.1;
+        }
+
+        // -- Get current background color based on dissolution --
+        function getBgColor(d) {
+            if (d < 0.5) {
+                return lerpColor(PALETTE.parchment, { r: 240, g: 235, b: 225 }, d * 2);
+            } else if (d < 0.85) {
+                var t = (d - 0.5) / 0.35;
+                return lerpColor({ r: 240, g: 235, b: 225 }, { r: 30, g: 28, b: 35 }, t);
+            } else {
+                var t2 = (d - 0.85) / 0.15;
+                return lerpColor({ r: 30, g: 28, b: 35 }, { r: 15, g: 14, b: 20 }, t2);
+            }
+        }
+
+        // -- Initialize staff lines --
+        function initStaffLines() {
+            staffLines = [];
+            var staffSpacing = H * 0.012;
+            var setSpacing = H / (STAFF_SETS + 1);
+
+            for (var s = 0; s < STAFF_SETS; s++) {
+                var centerY = setSpacing * (s + 1);
+                for (var i = 0; i < NUM_STAFFS; i++) {
+                    var y = centerY + (i - 2) * staffSpacing;
+                    staffLines.push({
+                        baseY: y,
+                        y: y,
+                        x1: W * 0.1,
+                        x2: W * 0.9,
+                        warpPhase: seededRandom() * Math.PI * 2,
+                        warpSpeed: 0.3 + seededRandom() * 0.5,
+                        warpAmp: 0,
+                        bendPoints: [],
+                        opacity: 1,
+                        thickness: 1
+                    });
+                }
+            }
+        }
+
+        // -- Initialize order elements (neat geometric shapes) --
+        function initOrderElements() {
+            orderElements = [];
+            seed = 42;
+
+            // Treble clef placeholder (decorative rectangle group)
+            for (var i = 0; i < NUM_ORDER; i++) {
+                var col = Math.floor(seededRandom() * 6);
+                var row = Math.floor(seededRandom() * 4);
+                orderElements.push({
+                    x: W * 0.08 + col * W * 0.14,
+                    y: H * 0.15 + row * H * 0.2,
+                    w: W * 0.04 + seededRandom() * W * 0.03,
+                    h: H * 0.01 + seededRandom() * H * 0.02,
+                    rotation: 0,
+                    targetRotation: 0,
+                    slideX: 0,
+                    slideY: 0,
+                    opacity: 0.15 + seededRandom() * 0.15,
+                    meltY: 0,
+                    color: seededRandom() > 0.7 ? 'gold' : 'ink'
+                });
+            }
+        }
+
+        // -- Initialize notes --
+        function initNotes() {
+            notes = [];
+            seed = 137;
+            for (var i = 0; i < MAX_NOTES; i++) {
+                var staffSet = Math.floor(seededRandom() * STAFF_SETS);
+                var lineIdx = Math.floor(seededRandom() * NUM_STAFFS);
+                var setSpacing = H / (STAFF_SETS + 1);
+                var staffSpacing = H * 0.012;
+                var centerY = setSpacing * (staffSet + 1);
+                var baseY = centerY + (lineIdx - 2) * staffSpacing;
+                // Slightly offset between lines too
+                baseY += (seededRandom() - 0.5) * staffSpacing * 0.8;
+
+                notes.push({
+                    baseX: W * 0.12 + seededRandom() * W * 0.76,
+                    baseY: baseY,
+                    x: 0,
+                    y: 0,
+                    radius: 3 + seededRandom() * 3,
+                    filled: seededRandom() > 0.3,
+                    hasStem: seededRandom() > 0.2,
+                    stemUp: seededRandom() > 0.5,
+                    slideX: 0,
+                    slideY: 0,
+                    dripSpeed: 20 + seededRandom() * 80,
+                    wobblePhase: seededRandom() * Math.PI * 2,
+                    opacity: 1,
+                    meltProgress: 0,
+                    color: 'ink'
+                });
+            }
+        }
+
+        // -- Initialize blobs --
+        function initBlobs() {
+            blobs = [];
+            for (var i = 0; i < MAX_BLOBS; i++) {
+                var wcIdx = i % WATERCOLORS.length;
+                blobs.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    radius: 20 + Math.random() * 80,
+                    targetRadius: 0,
+                    color: WATERCOLORS[wcIdx],
+                    opacity: 0,
+                    targetOpacity: 0,
+                    pulsePhase: Math.random() * Math.PI * 2,
+                    driftX: (Math.random() - 0.5) * 30,
+                    driftY: Math.random() * 20 + 5
+                });
+            }
+        }
+
+        // -- Initialize ghosts --
+        function initGhosts() {
+            ghosts = [];
+            for (var i = 0; i < MAX_GHOSTS; i++) {
+                ghosts.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    w: 10 + Math.random() * 40,
+                    h: 2 + Math.random() * 8,
+                    opacity: 0,
+                    driftSpeed: 5 + Math.random() * 15,
+                    phase: Math.random() * Math.PI * 2,
+                    type: Math.random() > 0.5 ? 'line' : 'dot'
+                });
+            }
+        }
+
+        // -- Draw staff lines with warping --
+        function drawStaffLines(ctx, d, energy, time) {
+            if (d > 0.95) return; // gone
+
+            var baseOpacity = 1 - d * 0.9;
+
+            for (var i = 0; i < staffLines.length; i++) {
+                var sl = staffLines[i];
+
+                // Warp amplitude grows with dissolution
+                sl.warpAmp = d * 40 * (1 + energy * 0.5);
+                var phase = sl.warpPhase + time * sl.warpSpeed;
+
+                var inkColor = lerpColor(PALETTE.staffLine, PALETTE.ghost, d);
+                var alpha = baseOpacity * sl.opacity;
+                if (alpha < 0.01) continue;
+
+                ctx.strokeStyle = rgba(inkColor, alpha);
+                ctx.lineWidth = lerp(1, 0.5, d) * sl.thickness;
+                ctx.beginPath();
+
+                var segments = 40;
+                for (var s = 0; s <= segments; s++) {
+                    var t = s / segments;
+                    var x = lerp(sl.x1, sl.x2, t);
+                    // Multiple sine harmonics for organic warping
+                    var warp = Math.sin(phase + t * 4) * sl.warpAmp
+                            + Math.sin(phase * 1.7 + t * 7) * sl.warpAmp * 0.3
+                            + Math.sin(phase * 0.3 + t * 2) * sl.warpAmp * 0.5;
+                    // Add droop at edges (gravity melt)
+                    var edgeDroop = d * 60 * Math.pow(Math.abs(t - 0.5) * 2, 2);
+                    var y = sl.baseY + warp + edgeDroop;
+
+                    // Horizontal slide
+                    x += d * Math.sin(phase + i) * 30;
+
+                    if (s === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+        }
+
+        // -- Draw order elements (rectangles that melt) --
+        function drawOrderElements(ctx, d, energy, time) {
+            if (d > 0.9) return;
+
+            for (var i = 0; i < orderElements.length; i++) {
+                var el = orderElements[i];
+
+                // Melt downward
+                el.meltY = d * d * 200 * (1 + Math.sin(time * 0.5 + i) * 0.3);
+                el.targetRotation = d * (Math.sin(time * 0.3 + i * 0.7) * 0.5);
+
+                var alpha = el.opacity * (1 - d);
+                if (alpha < 0.01) continue;
+
+                var col = el.color === 'gold' ? PALETTE.gold : PALETTE.ink;
+                if (d > 0.3) {
+                    var wcIdx = i % WATERCOLORS.length;
+                    col = lerpColor(col, PALETTE[WATERCOLORS[wcIdx]], (d - 0.3) / 0.7);
+                }
+
+                ctx.save();
+                ctx.translate(el.x + el.slideX, el.y + el.slideY + el.meltY);
+                ctx.rotate(el.targetRotation);
+                ctx.fillStyle = rgba(col, alpha);
+
+                // Shape distortion: rectangles become rounded, then blobby
+                var cornerRadius = d * Math.min(el.w, el.h) * 0.5;
+                drawRoundRect(ctx, -el.w / 2, -el.h / 2, el.w * (1 + d * 0.3), el.h * (1 + d * 0.5), cornerRadius);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function drawRoundRect(ctx, x, y, w, h, r) {
+            r = Math.min(r, w / 2, h / 2);
+            ctx.beginPath();
+            ctx.moveTo(x + r, y);
+            ctx.lineTo(x + w - r, y);
+            ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+            ctx.lineTo(x + w, y + h - r);
+            ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+            ctx.lineTo(x + r, y + h);
+            ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+            ctx.lineTo(x, y + r);
+            ctx.quadraticCurveTo(x, y, x + r, y);
+            ctx.closePath();
+        }
+
+        // -- Draw notes that slide and drip --
+        function drawNotes(ctx, d, energy, time, beat) {
+            for (var i = 0; i < notes.length; i++) {
+                var n = notes[i];
+
+                // Progressive activation: notes appear over first 10% of dissolution
+                var activationThreshold = i / MAX_NOTES * 0.15;
+                if (d < activationThreshold && d < 0.01) continue;
+
+                // Slide off staff
+                n.slideX = d * Math.sin(time * 0.8 + n.wobblePhase) * 80;
+                n.slideY = d * d * n.dripSpeed * 3;
+
+                // Wobble
+                var wobble = d > 0.2 ? Math.sin(time * 3 + n.wobblePhase) * d * 8 : 0;
+
+                var x = n.baseX + n.slideX + wobble;
+                var y = n.baseY + n.slideY;
+
+                // Beat pulse on notes
+                var pulseR = n.radius;
+                if (beatPulse > 0.1 && d < 0.6) {
+                    pulseR += beatPulse * 3 * (1 - d);
+                }
+
+                // Color transition
+                var noteColor;
+                if (d < 0.3) {
+                    noteColor = PALETTE.ink;
+                } else if (d < 0.7) {
+                    var wcIdx = i % WATERCOLORS.length;
+                    noteColor = lerpColor(PALETTE.ink, PALETTE[WATERCOLORS[wcIdx]], (d - 0.3) / 0.4);
+                } else {
+                    var wcIdx2 = i % WATERCOLORS.length;
+                    noteColor = lerpColor(PALETTE[WATERCOLORS[wcIdx2]], PALETTE.ghost, (d - 0.7) / 0.3);
+                }
+
+                var alpha = d < 0.85 ? clamp(1 - d * 0.5, 0, 1) : clamp((1 - d) * 5, 0, 1);
+                if (alpha < 0.01) continue;
+
+                // Melt effect: note stretches vertically as it dissolves
+                var meltStretch = 1 + d * d * 3;
+
+                ctx.save();
+                ctx.translate(x, y);
+
+                // Note head
+                ctx.fillStyle = rgba(noteColor, alpha);
+                ctx.strokeStyle = rgba(noteColor, alpha * 0.8);
+                ctx.lineWidth = 1.5;
+
+                ctx.beginPath();
+                if (d < 0.5) {
+                    // Clean elliptical note head
+                    ctx.ellipse(0, 0, pulseR * 1.2, pulseR * 0.85 * meltStretch, -0.3, 0, Math.PI * 2);
+                } else {
+                    // Melting blob
+                    var blobPoints = 8;
+                    for (var bp = 0; bp <= blobPoints; bp++) {
+                        var angle = (bp / blobPoints) * Math.PI * 2;
+                        var blobR = pulseR * (1 + Math.sin(angle * 3 + time * 2 + i) * d * 0.4);
+                        var bx = Math.cos(angle) * blobR * 1.2;
+                        var by = Math.sin(angle) * blobR * meltStretch;
+                        if (bp === 0) ctx.moveTo(bx, by);
+                        else ctx.lineTo(bx, by);
+                    }
+                    ctx.closePath();
+                }
+
+                if (n.filled || d > 0.4) {
+                    ctx.fill();
+                } else {
+                    ctx.stroke();
+                }
+
+                // Stem (dissolves away)
+                if (n.hasStem && d < 0.7) {
+                    var stemLen = 20 * (1 - d);
+                    var stemDir = n.stemUp ? -1 : 1;
+                    ctx.strokeStyle = rgba(noteColor, alpha * (1 - d * 1.2));
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(pulseR * 0.8, 0);
+                    // Stem bends with dissolution
+                    var bendX = d * Math.sin(time + i) * 10;
+                    ctx.quadraticCurveTo(pulseR * 0.8 + bendX, stemDir * stemLen * 0.5, pulseR * 0.8 + bendX * 2, stemDir * stemLen);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+
+                // Drip trail from melting notes
+                if (d > 0.25 && n.slideY > 5) {
+                    var dripAlpha = alpha * 0.3 * clamp((d - 0.25) * 4, 0, 1);
+                    ctx.fillStyle = rgba(noteColor, dripAlpha);
+                    // Multiple drip drops
+                    var numDrops = Math.floor(d * 5);
+                    for (var dd = 0; dd < numDrops; dd++) {
+                        var dropY = n.baseY + n.slideY * (dd / numDrops) * 0.9;
+                        var dropX = n.baseX + n.slideX * (dd / numDrops) + Math.sin(time + dd + i) * 3;
+                        var dropR = 1.5 + Math.random() * 2 * d;
+                        ctx.beginPath();
+                        ctx.arc(dropX, dropY, dropR, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        // -- Draw watercolor blobs --
+        function drawBlobs(ctx, d, energy, time) {
+            if (d < 0.2) return;
+
+            var blobIntensity = clamp((d - 0.2) / 0.5, 0, 1);
+
+            for (var i = 0; i < blobs.length; i++) {
+                var b = blobs[i];
+
+                // Activate blobs progressively
+                var activation = clamp((d - 0.2 - (i / MAX_BLOBS) * 0.4) * 5, 0, 1);
+                if (activation < 0.01) continue;
+
+                b.targetRadius = (30 + energy * 50) * activation;
+                b.targetOpacity = 0.08 + energy * 0.12;
+
+                // Smooth interpolation
+                b.radius += (b.targetRadius - b.radius) * 0.03;
+                b.opacity += (b.targetOpacity * activation - b.opacity) * 0.05;
+
+                // Drift
+                b.x += b.driftX * 0.016;
+                b.y += b.driftY * 0.016;
+
+                // Wrap around
+                if (b.x < -100) b.x = W + 100;
+                if (b.x > W + 100) b.x = -100;
+                if (b.y > H + 100) { b.y = -100; b.x = Math.random() * W; }
+
+                // Pulse
+                var pulse = 1 + Math.sin(time * 1.5 + b.pulsePhase) * 0.2 * energy;
+                var r = b.radius * pulse;
+
+                if (r < 1 || b.opacity < 0.01) continue;
+
+                var col = PALETTE[b.color];
+
+                // Radial gradient for watercolor feel
+                var grad = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, r);
+                grad.addColorStop(0, rgba(col, b.opacity * 0.8));
+                grad.addColorStop(0.4, rgba(col, b.opacity * 0.4));
+                grad.addColorStop(0.7, rgba(col, b.opacity * 0.15));
+                grad.addColorStop(1, rgba(col, 0));
+
+                ctx.save();
+                ctx.globalCompositeOperation = d > 0.7 ? 'screen' : 'multiply';
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // -- Draw drip particles --
+        function updateAndDrawDrips(ctx, d, energy, dt, time) {
+            if (d < 0.15) return;
+
+            // Spawn drips
+            var spawnRate = d * d * 3 * (1 + energy);
+            while (drips.length < MAX_DRIPS && Math.random() < spawnRate * dt * 60) {
+                var wcIdx = Math.floor(Math.random() * WATERCOLORS.length);
+                var useInk = d < 0.4 && Math.random() > 0.5;
+                drips.push({
+                    x: Math.random() * W,
+                    y: -10 + Math.random() * H * 0.5,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: 20 + Math.random() * 60,
+                    radius: 1 + Math.random() * 4,
+                    life: 1,
+                    decay: 0.2 + Math.random() * 0.5,
+                    color: useInk ? 'ink' : WATERCOLORS[wcIdx],
+                    trail: []
+                });
+            }
+
+            // Update and draw
+            for (var i = drips.length - 1; i >= 0; i--) {
+                var p = drips[i];
+                p.x += p.vx * dt;
+                p.vy += 40 * dt; // gravity
+                p.y += p.vy * dt;
+                p.life -= p.decay * dt;
+
+                // Store trail points
+                if (p.trail.length < 8) {
+                    p.trail.push({ x: p.x, y: p.y });
+                } else {
+                    p.trail.shift();
+                    p.trail.push({ x: p.x, y: p.y });
+                }
+
+                if (p.life <= 0 || p.y > H + 20) {
+                    drips.splice(i, 1);
+                    continue;
+                }
+
+                var col = p.color === 'ink' ? PALETTE.ink : PALETTE[p.color];
+                var alpha = p.life * clamp((d - 0.15) * 5, 0, 1);
+
+                // Draw trail
+                if (p.trail.length > 1) {
+                    ctx.strokeStyle = rgba(col, alpha * 0.3);
+                    ctx.lineWidth = p.radius * 0.5;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(p.trail[0].x, p.trail[0].y);
+                    for (var ti = 1; ti < p.trail.length; ti++) {
+                        ctx.lineTo(p.trail[ti].x, p.trail[ti].y);
+                    }
+                    ctx.stroke();
+                }
+
+                // Draw drop
+                ctx.fillStyle = rgba(col, alpha);
+                ctx.beginPath();
+                // Elongated drop shape
+                ctx.ellipse(p.x, p.y, p.radius * 0.7, p.radius * (1 + p.vy * 0.005), 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // -- Draw ghost fragments (end section) --
+        function drawGhosts(ctx, d, time) {
+            if (d < 0.8) return;
+
+            var ghostIntensity = clamp((d - 0.8) / 0.2, 0, 1);
+
+            for (var i = 0; i < ghosts.length; i++) {
+                var g = ghosts[i];
+
+                // Drift upward and sideways
+                g.y -= g.driftSpeed * 0.016 * ghostIntensity;
+                g.x += Math.sin(time * 0.5 + g.phase) * 0.5;
+
+                // Wrap
+                if (g.y < -20) { g.y = H + 20; g.x = Math.random() * W; }
+
+                var alpha = ghostIntensity * 0.15 * (0.5 + Math.sin(time + g.phase) * 0.5);
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = rgba(PALETTE.ghost, 1);
+                ctx.fillStyle = rgba(PALETTE.ghost, 0.5);
+                ctx.lineWidth = 0.5;
+
+                if (g.type === 'line') {
+                    // Ghost staff line fragment
+                    ctx.beginPath();
+                    ctx.moveTo(g.x, g.y);
+                    ctx.lineTo(g.x + g.w, g.y + Math.sin(time + g.phase) * 3);
+                    ctx.stroke();
+                } else {
+                    // Ghost note
+                    ctx.beginPath();
+                    ctx.arc(g.x, g.y, g.w * 0.15, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // -- Draw decorative frame (classical border) --
+        function drawFrame(ctx, d) {
+            if (d > 0.7) return;
+
+            var alpha = (1 - d * 1.3) * 0.3;
+            if (alpha < 0.01) return;
+
+            var margin = W * 0.06;
+            var cornerR = 10;
+            var lineColor = lerpColor(PALETTE.gold, PALETTE.ghost, d);
+
+            ctx.save();
+            ctx.strokeStyle = rgba(lineColor, alpha);
+            ctx.lineWidth = d < 0.3 ? 2 : lerp(2, 0.5, (d - 0.3) / 0.4);
+
+            // Outer frame — warps with dissolution
+            ctx.beginPath();
+            var warp = d * 20;
+            var points = [
+                { x: margin + Math.sin(elapsedTime * 0.3) * warp, y: margin + Math.cos(elapsedTime * 0.4) * warp },
+                { x: W - margin + Math.sin(elapsedTime * 0.35 + 1) * warp, y: margin + Math.cos(elapsedTime * 0.45 + 1) * warp },
+                { x: W - margin + Math.sin(elapsedTime * 0.4 + 2) * warp, y: H - margin + Math.cos(elapsedTime * 0.5 + 2) * warp },
+                { x: margin + Math.sin(elapsedTime * 0.45 + 3) * warp, y: H - margin + Math.cos(elapsedTime * 0.55 + 3) * warp }
+            ];
+            ctx.moveTo(points[0].x, points[0].y);
+            for (var i = 1; i <= 4; i++) {
+                var p = points[i % 4];
+                ctx.lineTo(p.x, p.y);
+            }
+            ctx.closePath();
+            ctx.stroke();
+
+            // Inner decorative line
+            var inner = margin + 8;
+            if (d < 0.4) {
+                ctx.strokeStyle = rgba(lineColor, alpha * 0.5);
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.rect(inner, inner, W - inner * 2, H - inner * 2);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // -- Draw title text --
+        function drawTitle(ctx, d, time) {
+            // Title fades in at start, melts in middle, ghosts at end
+            var alpha;
+            if (d < 0.05) {
+                alpha = clamp(elapsedTime / 3, 0, 0.8);
+            } else if (d < 0.5) {
+                alpha = 0.8 - d * 0.6;
+            } else if (d < 0.85) {
+                alpha = 0.5 * (1 - (d - 0.5) / 0.35);
+            } else {
+                alpha = 0.15 * clamp((1 - d) * 6, 0, 1);
+            }
+
+            if (alpha < 0.01) return;
+
+            var fontSize = Math.max(14, Math.min(W * 0.035, 40));
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Title warps with dissolution
+            var titleY = H * 0.5;
+            var warpY = d * Math.sin(time * 0.7) * 30;
+            var warpX = d * Math.cos(time * 0.5) * 20;
+
+            var titleColor;
+            if (d < 0.4) {
+                titleColor = lerpColor(PALETTE.ink, PALETTE.gold, 0.3);
+            } else if (d < 0.7) {
+                titleColor = lerpColor(PALETTE.gold, PALETTE.lavender, (d - 0.4) / 0.3);
+            } else {
+                titleColor = lerpColor(PALETTE.lavender, PALETTE.ghost, (d - 0.7) / 0.3);
+            }
+
+            // Letter spacing increases with dissolution
+            var text = 'Sonata in C';
+            var spacing = d * 4;
+
+            ctx.font = '700 ' + fontSize + 'px "Playfair Display", serif';
+            ctx.fillStyle = rgba(titleColor, alpha);
+
+            // Draw each letter with increasing scatter
+            var totalWidth = ctx.measureText(text).width + spacing * (text.length - 1);
+            var startX = W / 2 - totalWidth / 2 + warpX;
+
+            for (var i = 0; i < text.length; i++) {
+                var ch = text[i];
+                var charW = ctx.measureText(ch).width;
+                var charOffY = d > 0.3 ? Math.sin(time * 2 + i * 0.8) * d * 15 : 0;
+                var charRot = d > 0.4 ? Math.sin(time * 1.5 + i) * d * 0.3 : 0;
+
+                ctx.save();
+                ctx.translate(startX + charW / 2, titleY + warpY + charOffY);
+                ctx.rotate(charRot);
+                ctx.fillText(ch, 0, 0);
+                ctx.restore();
+
+                startX += charW + spacing;
+            }
+
+            // Subtitle
+            if (d > 0.1 && alpha > 0.05) {
+                var subAlpha = alpha * 0.5 * clamp((d - 0.1) * 5, 0, 1);
+                ctx.font = 'italic ' + (fontSize * 0.5) + 'px "EB Garamond", serif';
+                ctx.fillStyle = rgba(titleColor, subAlpha);
+                ctx.fillText('(Dissolving)', W / 2 + warpX * 0.5, titleY + fontSize * 0.8 + warpY * 0.5);
+            }
+
+            ctx.restore();
+        }
+
+        // -- Draw treble/bass clef symbols (simplified geometric) --
+        function drawClefSymbols(ctx, d, time) {
+            if (d > 0.6) return;
+            var alpha = (1 - d * 1.5) * 0.4;
+            if (alpha < 0.01) return;
+
+            var col = lerpColor(PALETTE.ink, PALETTE.gold, 0.4 + d * 0.3);
+            ctx.save();
+            ctx.strokeStyle = rgba(col, alpha);
+            ctx.lineWidth = 2 * (1 - d);
+
+            // Treble clef area (simplified as spiral-like curves)
+            var setSpacing = H / (STAFF_SETS + 1);
+            for (var s = 0; s < STAFF_SETS; s++) {
+                var cx = W * 0.1 + d * Math.sin(time + s) * 15;
+                var cy = setSpacing * (s + 1) + d * Math.cos(time * 0.7 + s) * 10;
+
+                ctx.beginPath();
+                // Simple decorative S curve
+                ctx.moveTo(cx, cy - 15);
+                ctx.bezierCurveTo(cx + 8, cy - 10, cx - 5, cy + 5, cx + 3, cy + 15);
+                ctx.stroke();
+
+                // Small dot
+                ctx.fillStyle = rgba(col, alpha * 0.6);
+                ctx.beginPath();
+                ctx.arc(cx + 2, cy + 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // -- Grid overlay for classical order --
+        function drawOrderGrid(ctx, d) {
+            if (d > 0.4) return;
+            var alpha = 0.04 * (1 - d * 2.5);
+            if (alpha < 0.002) return;
+
+            ctx.strokeStyle = rgba(PALETTE.ink, alpha);
+            ctx.lineWidth = 0.5;
+
+            // Vertical barlines
+            var numBars = 12;
+            for (var i = 0; i <= numBars; i++) {
+                var x = W * 0.1 + (W * 0.8) * (i / numBars);
+                ctx.beginPath();
+                ctx.moveTo(x, H * 0.1);
+                ctx.lineTo(x, H * 0.9);
+                ctx.stroke();
+            }
+        }
+
+        // -- Init --
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            dissolution = 0;
+            targetDissolution = 0;
+            lastBeat = -1;
+            beatPulse = 0;
+            elapsedTime = 0;
+            lastSeqIndex = -1;
+            drips = [];
+            seed = 42;
+
+            initStaffLines();
+            initOrderElements();
+            initNotes();
+            initBlobs();
+            initGhosts();
+        }
+
+        // -- Resize --
+        function resize(width, height) {
+            W = width; H = height;
+            seed = 42;
+            initStaffLines();
+            initOrderElements();
+            initNotes();
+        }
+
+        // -- Main render --
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+
+            elapsedTime += dt;
+
+            // -- Background --
+            var bg = getBgColor(dissolution);
+            ctx.fillStyle = rgba(bg, 1);
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: pristine classical state
+                dissolution = 0;
+                drawOrderGrid(ctx, 0);
+                drawFrame(ctx, 0);
+                drawStaffLines(ctx, 0, 0, elapsedTime);
+                drawClefSymbols(ctx, 0, elapsedTime);
+                drawNotes(ctx, 0, 0, elapsedTime, 0);
+                drawTitle(ctx, 0, elapsedTime);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // -- Update dissolution target from sequence position --
+            targetDissolution = mapDissolution(seqIdx);
+
+            // Smooth dissolution transition
+            var dissSpeed = 2;
+            dissolution += (targetDissolution - dissolution) * (1 - Math.exp(-dissSpeed * dt));
+
+            // -- Beat pulse --
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+                lastBeat = beat;
+            }
+            beatPulse *= Math.exp(-6 * dt);
+
+            var d = dissolution;
+            var time = elapsedTime;
+
+            // -- Draw layers back to front --
+
+            // 1. Order grid (fades first)
+            drawOrderGrid(ctx, d);
+
+            // 2. Watercolor blobs (appear mid-dissolution)
+            drawBlobs(ctx, d, energy, time);
+
+            // 3. Classical frame
+            drawFrame(ctx, d);
+
+            // 4. Staff lines (warp and bend)
+            drawStaffLines(ctx, d, energy, time);
+
+            // 5. Clef symbols
+            drawClefSymbols(ctx, d, time);
+
+            // 6. Order elements (rectangles melt)
+            drawOrderElements(ctx, d, energy, time);
+
+            // 7. Musical notes (slide and drip)
+            drawNotes(ctx, d, energy, time, beat);
+
+            // 8. Drip particles
+            updateAndDrawDrips(ctx, d, energy, dt, time);
+
+            // 9. Ghost fragments (end)
+            drawGhosts(ctx, d, time);
+
+            // 10. Title
+            drawTitle(ctx, d, time);
+
+            // 11. Beat flash at high dissolution + energy
+            if (d > 0.5 && beatPulse > 0.3) {
+                var flashCol = d > 0.8 ? PALETTE.ghost : PALETTE[WATERCOLORS[Math.floor(time) % WATERCOLORS.length]];
+                ctx.save();
+                ctx.globalAlpha = beatPulse * 0.08 * energy;
+                ctx.fillStyle = rgba(flashCol, 1);
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // 12. Vignette that intensifies with dissolution
+            if (d > 0.4) {
+                var vigAlpha = (d - 0.4) * 0.5;
+                var vigGrad = ctx.createRadialGradient(W / 2, H / 2, W * 0.2, W / 2, H / 2, W * 0.8);
+                vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                vigGrad.addColorStop(1, 'rgba(0,0,0,' + vigAlpha + ')');
+                ctx.fillStyle = vigGrad;
+                ctx.fillRect(0, 0, W, H);
+            }
+        }
+
+        return {
+            name: 'Sonata in C (Dissolving)',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // -- Page bootstrap --
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('sonata-dissolving');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/sonata-in-c-dissolving.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
