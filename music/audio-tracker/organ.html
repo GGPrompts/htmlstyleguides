@@ -1401,6 +1401,16 @@
             opt.textContent = songs[i].title + (composerBadge[songs[i].composer] || '');
             songSelect.appendChild(opt);
           }
+          // Auto-select song from URL param (e.g. ?song=crystal-caves.json)
+          var urlParams = new URLSearchParams(window.location.search);
+          var autoSong = urlParams.get('song');
+          if (autoSong) {
+            songSelect.value = autoSong;
+            if (songSelect.value === autoSong) {
+              loadSong(autoSong);
+              trackerLink.href = 'index.html?song=' + encodeURIComponent(autoSong);
+            }
+          }
         })
         .catch(function () {
           songSelect.innerHTML = '<option value="">No songs found</option>';
