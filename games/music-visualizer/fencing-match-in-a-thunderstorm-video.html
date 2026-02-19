@@ -489,7 +489,7 @@
         // ── Fencer position update ──
         function updateFencerPosition(fig, stance, baseX, dt, energy) {
             if (fig.mode === 'ragdoll') return;
-            var lungeOffset = stance * W * 0.06;
+            var lungeOffset = stance * Math.min(W * 0.06, fig.figH * 0.4);
             var targetX = baseX + lungeOffset * fig.facing;
             fig.x = lerpExp(fig.x, targetX, 6, dt);
         }
@@ -672,8 +672,10 @@
             roofY = H * ROOF_Y_RATIO;
 
             var figH = H * 0.3;
-            fencerBaseXA = W * 0.38;
-            fencerBaseXB = W * 0.62;
+            var maxGap = figH * 1.8;
+            var gap = Math.min(W * 0.24, maxGap);
+            fencerBaseXA = W * 0.5 - gap * 0.5;
+            fencerBaseXB = W * 0.5 + gap * 0.5;
 
             fencerA = StickFight.create({
                 x: fencerBaseXA, y: roofY,
@@ -716,10 +718,13 @@
         function resize(width, height) {
             W = width; H = height;
             roofY = H * ROOF_Y_RATIO;
-            fencerBaseXA = W * 0.38;
-            fencerBaseXB = W * 0.62;
-            if (fencerA) { fencerA.figH = H * 0.3; fencerA.y = roofY; }
-            if (fencerB) { fencerB.figH = H * 0.3; fencerB.y = roofY; }
+            var figH = H * 0.3;
+            var maxGap = figH * 1.8;
+            var gap = Math.min(W * 0.24, maxGap);
+            fencerBaseXA = W * 0.5 - gap * 0.5;
+            fencerBaseXB = W * 0.5 + gap * 0.5;
+            if (fencerA) { fencerA.figH = figH; fencerA.y = roofY; }
+            if (fencerB) { fencerB.figH = figH; fencerB.y = roofY; }
             initRain();
             initClouds();
         }
