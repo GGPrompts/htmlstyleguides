@@ -687,7 +687,8 @@
                 // Wrap around when risen off screen
                 if (fig.y < -80) {
                     fig.y = H + 40 + Math.random() * 60;
-                    fig.x = W * 0.1 + Math.random() * W * 0.8;
+                    var spawnRange = Math.min(W * 0.8, fig.figH * 8);
+                    fig.x = W * 0.5 - spawnRange * 0.5 + Math.random() * spawnRange;
                 }
 
                 // Sway
@@ -695,7 +696,8 @@
                 fig.x += Math.sin(fig.swayPhase) * fig.swayAmp * dt;
 
                 // Keep in bounds
-                fig.x = Math.max(W * 0.05, Math.min(W * 0.95, fig.x));
+                var clampRange = Math.min(W * 0.45, fig.figH * 5);
+                fig.x = Math.max(W * 0.5 - clampRange, Math.min(W * 0.5 + clampRange, fig.x));
 
                 // Breathing
                 fig.breathPhase += dt * (1.8 + energy * 0.5);

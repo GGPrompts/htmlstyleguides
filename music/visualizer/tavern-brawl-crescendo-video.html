@@ -172,12 +172,12 @@
         var candleFlicker = [0, 0, 0, 0, 0]; // random flicker values for 5 candles
 
         // ── Patron creation ──
-        function createPatron(x, y, colorIdx, pairId, isLeader) {
+        function createPatron(x, y, colorIdx, pairId, isLeader, figH) {
             var color = PATRON_COLORS[colorIdx % PATRON_COLORS.length];
             var fig = StickFight.create({
                 x: x,
                 y: y,
-                figH: 100, // will be set in update
+                figH: figH,
                 facing: isLeader ? 1 : -1,
                 color: color,
                 lineWidth: 2.5,
@@ -189,7 +189,7 @@
             fig.pairId = pairId;
             fig.isLeader = isLeader;
             fig.waltzPhase = pairId * Math.PI * 0.5;
-            fig.waltzRadius = 20 + Math.random() * 15;
+            fig.waltzRadius = figH * 0.15 + Math.random() * figH * 0.12;
             fig.legPhase = 0;
             fig.headTilt = 0;
             fig.throwTimer = 0;
@@ -201,13 +201,15 @@
 
         function initPatrons() {
             patrons = [];
-            var spacing = W * 0.7 / (NUM_PAIRS + 1);
-            var startX = W * 0.15;
+            var figH = H * 0.28;
+            var spacing = Math.min(W * 0.7 / (NUM_PAIRS + 1), figH * 1.8);
+            var startX = (W - spacing * (NUM_PAIRS + 1)) * 0.5;
             for (var i = 0; i < NUM_PAIRS; i++) {
                 var cx = startX + spacing * (i + 1);
                 var cy = floorY - 5;
-                patrons.push(createPatron(cx - 15, cy, i * 2, i, true));
-                patrons.push(createPatron(cx + 15, cy, i * 2 + 1, i, false));
+                var pairOffset = figH * 0.12;
+                patrons.push(createPatron(cx - pairOffset, cy, i * 2, i, true, figH));
+                patrons.push(createPatron(cx + pairOffset, cy, i * 2 + 1, i, false, figH));
             }
         }
 
@@ -424,10 +426,13 @@
         // ── Draw tables ──
         var tables = [];
         function initTables() {
+            var figH = H * 0.28;
+            var tw = Math.min(W * 0.08, figH * 0.6);
+            var th = (floorY - ceilingY) * 0.2;
             tables = [
-                { x: W * 0.2, y: floorY, w: W * 0.08, h: (floorY - ceilingY) * 0.2, flipped: false, flipAngle: 0 },
-                { x: W * 0.45, y: floorY, w: W * 0.08, h: (floorY - ceilingY) * 0.2, flipped: false, flipAngle: 0 },
-                { x: W * 0.65, y: floorY, w: W * 0.08, h: (floorY - ceilingY) * 0.2, flipped: false, flipAngle: 0 }
+                { x: W * 0.2, y: floorY, w: tw, h: th, flipped: false, flipAngle: 0 },
+                { x: W * 0.45, y: floorY, w: tw, h: th, flipped: false, flipAngle: 0 },
+                { x: W * 0.65, y: floorY, w: tw, h: th, flipped: false, flipAngle: 0 }
             ];
         }
 
@@ -868,7 +873,7 @@
                     p.sheepish = 0;
                     var chaos = intensity;
                     p.x = p.baseX + Math.sin(p.waltzPhase * 3 + ui) * p.waltzRadius * chaos * 2;
-                    p.y = p.baseY + Math.cos(p.waltzPhase * 2.5 + ui * 0.7) * 10 * chaos;
+                    p.y = p.baseY + Math.cos(p.waltzPhase * 2.5 + ui * 0.7) * p.figH * 0.04 * chaos;
                     p.legPhase += 8 * chaos * dt;
 
                     // Brawl poses

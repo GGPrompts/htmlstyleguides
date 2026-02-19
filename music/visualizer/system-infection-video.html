@@ -393,9 +393,9 @@
             // Alternate sides so enemies don't cluster on one side
             _lastSpawnSide *= -1;
             var side = _lastSpawnSide;
-            var spawnX = side < 0 ? arenaLeft - 50 : arenaRight + 50;
             var figH = H * 0.28 * (figHMult || 1);
             if (isBoss) figH = H * 0.42;
+            var spawnX = side < 0 ? arenaLeft - figH * 0.5 : arenaRight + figH * 0.5;
 
             var fig = StickFight.create({
                 x: spawnX,
@@ -412,7 +412,7 @@
                 fig.targets.swordLen = 0.3;
             }
 
-            fig._walkTarget = hero ? hero.x + rand(-80, 80) : W * 0.5;
+            fig._walkTarget = hero ? hero.x + rand(-figH * 0.7, figH * 0.7) : W * 0.5;
             fig._isBoss = isBoss || false;
 
             StickFight.setPose(fig, 'guard');
@@ -499,7 +499,7 @@
                 if (enemy._retreating) {
                     enemy._retreatTimer -= dt;
                     var retreatDir = -faceDir; // step away from hero
-                    enemy.x += retreatDir * 160 * dt;
+                    enemy.x += retreatDir * enemy.figH * 1.4 * dt;
                     if (!enemy.attacking) {
                         StickFight.setPose(enemy, 'guard');
                         StickFight.setTarget(enemy, 'lean', -0.1);
@@ -540,7 +540,7 @@
                 } else if (canMelee && absDist > attackRange && isActiveAttacker) {
                     // Active attacker approaching cautiously
                     meleeSlots[sideKey]++;
-                    var walkSpeed = enemy._isBoss ? 80 : 70; // slow cautious approach
+                    var walkSpeed = enemy._isBoss ? enemy.figH * 0.7 : enemy.figH * 0.6; // slow cautious approach
                     enemy.x += faceDir * walkSpeed * dt;
                     if (!enemy.attacking) {
                         StickFight.setPose(enemy, 'guard');
@@ -548,11 +548,11 @@
                     }
                 } else {
                     // Hanging back — threatening idle at staggered distances
-                    var hangDist = attackRange + 60 + ai * 40;
+                    var hangDist = attackRange + enemy.figH * 0.5 + ai * enemy.figH * 0.35;
                     var idealX = hero.x + enemy._side * hangDist;
-                    var driftSpeed = 45;
+                    var driftSpeed = enemy.figH * 0.4;
                     var dToIdeal = idealX - enemy.x;
-                    if (Math.abs(dToIdeal) > 15) {
+                    if (Math.abs(dToIdeal) > enemy.figH * 0.12) {
                         enemy.x += (dToIdeal > 0 ? 1 : -1) * driftSpeed * dt;
                     }
                     if (!enemy.attacking) {
@@ -705,7 +705,7 @@
                 // Step back and block pose
                 if (near.fig) {
                     var dodgeDir = near.fig.x > hero.x ? -1 : 1;
-                    hero.x += dodgeDir * 200 * dt;
+                    hero.x += dodgeDir * hero.figH * 1.8 * dt;
                 }
                 if (!hero.attacking) {
                     StickFight.setPose(hero, 'block');
@@ -736,7 +736,7 @@
             if (near.dist > attackRange) {
                 // DASH to the next enemy aggressively
                 heroState = 'seeking';
-                var dashSpeed = near.dist > hero.figH * 1.5 ? 350 : 240; // faster dash for far enemies
+                var dashSpeed = near.dist > hero.figH * 1.5 ? hero.figH * 3.0 : hero.figH * 2.0; // faster dash for far enemies
                 hero.x += hero.facing * dashSpeed * dt;
                 if (!hero.attacking) {
                     StickFight.setPose(hero, 'guard');
@@ -1056,10 +1056,12 @@
             W = width; H = height;
             analysis = anal;
             groundY = H * GROUND_Y_RATIO;
-            arenaLeft = W * 0.05;
-            arenaRight = W * 0.95;
 
             var figH = H * 0.3;
+            var maxArenaHalf = figH * 6;
+            var arenaCenter = W * 0.5;
+            arenaLeft = Math.max(W * 0.05, arenaCenter - maxArenaHalf);
+            arenaRight = Math.min(W * 0.95, arenaCenter + maxArenaHalf);
             hero = StickFight.create({
                 x: W * 0.5,
                 y: groundY,
@@ -1116,9 +1118,12 @@
         function resize(width, height) {
             W = width; H = height;
             groundY = H * GROUND_Y_RATIO;
-            arenaLeft = W * 0.05;
-            arenaRight = W * 0.95;
-            if (hero) { hero.figH = H * 0.3; hero.y = groundY; }
+            var figH = H * 0.3;
+            var maxArenaHalf = figH * 6;
+            var arenaCenter = W * 0.5;
+            arenaLeft = Math.max(W * 0.05, arenaCenter - maxArenaHalf);
+            arenaRight = Math.min(W * 0.95, arenaCenter + maxArenaHalf);
+            if (hero) { hero.figH = figH; hero.y = groundY; }
             initCrowd();
         }
 
@@ -1227,8 +1232,8 @@
 
             // ── Clamp hero to arena ──
             if (hero) {
-                if (hero.x < arenaLeft + 30) hero.x = arenaLeft + 30;
-                if (hero.x > arenaRight - 30) hero.x = arenaRight - 30;
+                if (hero.x < arenaLeft + hero.figH * 0.3) hero.x = arenaLeft + hero.figH * 0.3;
+                if (hero.x > arenaRight - hero.figH * 0.3) hero.x = arenaRight - hero.figH * 0.3;
 
                 // Hero idle bounce when not attacking
                 if (!hero.attacking && section !== 'breakdown') {

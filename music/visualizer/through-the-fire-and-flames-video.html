@@ -944,7 +944,7 @@
             }
 
             // Keep warriors on screen
-            var margin = W * 0.08;
+            var margin = figH * 0.5;
             warrior1.x = Math.max(margin, Math.min(W - margin, warrior1.x));
             warrior2.x = Math.max(margin, Math.min(W - margin, warrior2.x));
 
@@ -1310,8 +1310,10 @@
 
             var figH = H * 0.22;
             var groundY = H * 0.78;
-            warrior1 = StickFight.create({ x: W * 0.3, y: groundY, figH: figH, facing: 1, color: COL.steel, lineWidth: 3, poseSpeed: 12 });
-            warrior2 = StickFight.create({ x: W * 0.7, y: groundY, figH: figH, facing: -1, color: COL.steel, lineWidth: 3, poseSpeed: 12 });
+            var fightCenter = W * 0.5;
+            var fightSpread = figH * 2.0;
+            warrior1 = StickFight.create({ x: fightCenter - fightSpread, y: groundY, figH: figH, facing: 1, color: COL.steel, lineWidth: 3, poseSpeed: 12 });
+            warrior2 = StickFight.create({ x: fightCenter + fightSpread, y: groundY, figH: figH, facing: -1, color: COL.steel, lineWidth: 3, poseSpeed: 12 });
             // Give both warriors swords
             warrior1.params.swordLen = 0.35;
             warrior1.targets.swordLen = 0.35;
@@ -1360,18 +1362,19 @@
 
         // ── Resize ──
         function resize(width, height) {
-            var oldW = W || width;
             W = width; H = height;
             if (warrior1) {
-                // Scale X position proportionally instead of hard-resetting
-                warrior1.x = (warrior1.x / oldW) * W;
+                var figH = H * 0.22;
+                var fightCenter = W * 0.5;
+                var fightSpread = figH * 2.0;
                 warrior1.y = H * 0.78;
-                warrior1.figH = H * 0.22;
-            }
-            if (warrior2) {
-                warrior2.x = (warrior2.x / oldW) * W;
+                warrior1.figH = figH;
                 warrior2.y = H * 0.78;
-                warrior2.figH = H * 0.22;
+                warrior2.figH = figH;
+                // Recalculate from center + figH spread, clamped to screen
+                var margin = figH * 0.5;
+                warrior1.x = Math.max(margin, Math.min(W - margin, fightCenter - fightSpread));
+                warrior2.x = Math.max(margin, Math.min(W - margin, fightCenter + fightSpread));
             }
             dragon.x = W * 0.55;
             dragon.y = H * 0.2;
@@ -1463,7 +1466,8 @@
             }
 
             // Dragon movement
-            dragon.x = W * 0.5 + Math.sin(globalTime * 0.5) * W * 0.2;
+            var dragonFigH = warrior1 ? warrior1.figH : H * 0.22;
+            dragon.x = W * 0.5 + Math.sin(globalTime * 0.5) * Math.min(W * 0.2, dragonFigH * 4);
             dragon.y = H * 0.18 + Math.sin(globalTime * 0.8) * H * 0.05;
 
             // ── Determine intensity multiplier ──
