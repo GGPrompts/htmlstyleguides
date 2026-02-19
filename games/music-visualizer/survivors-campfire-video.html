@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survivors: Campfire Rest — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #06080e;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(6,8,14,0.92);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(18px, 4.5vw, 44px);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #f5a623;
+            text-shadow: 0 0 30px rgba(245,166,35,0.5), 0 0 60px rgba(245,100,20,0.25);
+            margin-bottom: 10px;
+        }
+        .play-sub {
+            font-size: clamp(11px, 2vw, 16px);
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #f5a623;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #f5a623;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245,166,35,0.35); }
+            50% { box-shadow: 0 0 0 20px rgba(245,166,35,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Survivors: Campfire Rest</div>
+        <div class="play-sub">town hub theme</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Survivors: Campfire Rest Video Renderer ─────────────────────
+    window.Renderers['campfire-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Palette ──
+        var SKY_TOP = '#030510';
+        var SKY_BOTTOM = '#0a0f1e';
+        var GROUND_COLOR = '#0c0e08';
+        var FIRE_ORANGE = '#f5a623';
+        var FIRE_YELLOW = '#ffd566';
+        var FIRE_RED = '#e85820';
+        var EMBER_COLOR = '#ff6a2a';
+        var STAR_COLOR = '#ffffff';
+        var SILHOUETTE = '#08090c';
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var time = 0;
+        var groundY = 0;
+        var fireX = 0;
+        var fireBaseY = 0;
+
+        // Stars
+        var stars = [];
+        var NUM_STARS = 180;
+
+        // Embers
+        var embers = [];
+        var MAX_EMBERS = 40;
+
+        // Shooting stars
+        var shootingStars = [];
+        var shootingStarTimer = 0;
+
+        // Figures (survivors sitting around fire)
+        var figureSeats = []; // {x, y, facingRight, headBobPhase}
+
+        // Trees / hills
+        var hills = [];
+        var trees = [];
+
+        // Section tracking
+        var lastSeqIndex = -1;
+        var sectionMood = 'intro'; // intro, verse, bridge, transition
+
+        // ── Helpers ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+        function hexToRgb(hex) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return { r: r, g: g, b: b };
+        }
+
+        function rgba(hex, a) {
+            var c = hexToRgb(hex);
+            return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+        }
+
+        // ── Init stars ──
+        function initStars() {
+            stars = [];
+            for (var i = 0; i < NUM_STARS; i++) {
+                stars.push({
+                    x: Math.random() * W,
+                    y: Math.random() * groundY * 0.85,
+                    size: 0.5 + Math.random() * 2,
+                    baseAlpha: 0.2 + Math.random() * 0.6,
+                    twinklePhase: Math.random() * Math.PI * 2,
+                    twinkleSpeed: 0.5 + Math.random() * 2,
+                    beatFlash: 0
+                });
+            }
+        }
+
+        // ── Init figures ──
+        function initFigures() {
+            figureSeats = [];
+            var fireRadius = W * 0.12;
+            // 4 survivors arranged in a semicircle facing the fire
+            var angles = [-0.65, -0.25, 0.25, 0.65];
+            for (var i = 0; i < 4; i++) {
+                var angle = angles[i];
+                var dist = fireRadius * (0.9 + Math.random() * 0.3);
+                figureSeats.push({
+                    x: fireX + Math.sin(angle * Math.PI) * dist,
+                    y: fireBaseY + Math.abs(Math.cos(angle * Math.PI)) * dist * 0.25 + 5,
+                    facingRight: angle < 0,
+                    headBobPhase: Math.random() * Math.PI * 2,
+                    headBobAmount: 0,
+                    armRaise: i === 1 ? 0.3 : 0 // one survivor gesturing (storyteller)
+                });
+            }
+        }
+
+        // ── Init hills and trees ──
+        function initLandscape() {
+            hills = [];
+            // Layer of rolling hills behind trees
+            var numHills = 5;
+            for (var i = 0; i < numHills; i++) {
+                hills.push({
+                    cx: (i / (numHills - 1)) * W,
+                    w: W * (0.25 + Math.random() * 0.2),
+                    h: groundY * (0.08 + Math.random() * 0.1)
+                });
+            }
+
+            trees = [];
+            var numTrees = 12;
+            for (var j = 0; j < numTrees; j++) {
+                var tx = (j / (numTrees - 1)) * W * 1.1 - W * 0.05;
+                // Gap in the middle for the campfire scene
+                var distFromCenter = Math.abs(tx - fireX) / (W * 0.5);
+                if (distFromCenter < 0.3) continue;
+                trees.push({
+                    x: tx,
+                    h: H * (0.1 + Math.random() * 0.15),
+                    w: 8 + Math.random() * 12,
+                    crownW: 20 + Math.random() * 25,
+                    crownH: 30 + Math.random() * 40
+                });
+            }
+        }
+
+        // ── Init embers ──
+        function spawnEmber() {
+            embers.push({
+                x: fireX + (Math.random() - 0.5) * 20,
+                y: fireBaseY - 10,
+                vx: (Math.random() - 0.5) * 30,
+                vy: -(20 + Math.random() * 60),
+                life: 1.0,
+                decay: 0.2 + Math.random() * 0.4,
+                size: 1 + Math.random() * 2.5
+            });
+        }
+
+        // ── Section mapping ──
+        function mapSection(seqIndex) {
+            // Song has 15 sequence entries (0-14)
+            // Pattern names: Intro, Verse A, Verse B, Verse A, Bridge Night Sky,
+            //   Verse A', Verse C, Verse B, Bridge Night Sky, Bridge B Settling,
+            //   Transition Crackle, Verse A', Verse C, Bridge B Settling, Transition Crackle
+            if (seqIndex <= 0) return 'intro';
+            if (seqIndex <= 3) return 'verse';
+            if (seqIndex === 4) return 'bridge';
+            if (seqIndex <= 7) return 'verse';
+            if (seqIndex <= 9) return 'bridge';
+            if (seqIndex === 10) return 'transition';
+            if (seqIndex <= 12) return 'verse';
+            if (seqIndex <= 13) return 'bridge';
+            return 'transition';
+        }
+
+        // ── Draw sky gradient ──
+        function drawSky(ctx) {
+            var grad = ctx.createLinearGradient(0, 0, 0, groundY);
+            grad.addColorStop(0, SKY_TOP);
+            grad.addColorStop(1, SKY_BOTTOM);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, groundY);
+        }
+
+        // ── Draw stars ──
+        function drawStars(ctx, dt, energy) {
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                s.twinklePhase += s.twinkleSpeed * dt;
+                s.beatFlash *= Math.exp(-4 * dt);
+
+                var twinkle = 0.5 + 0.5 * Math.sin(s.twinklePhase);
+                var alpha = s.baseAlpha * twinkle + s.beatFlash;
+                alpha = clamp(alpha, 0, 1);
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = STAR_COLOR;
+                ctx.shadowColor = STAR_COLOR;
+                ctx.shadowBlur = s.size * 3;
+
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Cross sparkle on brighter stars
+                if (s.size > 1.2 && alpha > 0.5) {
+                    ctx.strokeStyle = STAR_COLOR;
+                    ctx.lineWidth = 0.5;
+                    ctx.globalAlpha = alpha * 0.4;
+                    var len = s.size * 3;
+                    ctx.beginPath();
+                    ctx.moveTo(s.x - len, s.y);
+                    ctx.lineTo(s.x + len, s.y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(s.x, s.y - len);
+                    ctx.lineTo(s.x, s.y + len);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // ── Beat-triggered star twinkle ──
+        function flashRandomStars(count) {
+            for (var i = 0; i < count; i++) {
+                var idx = Math.floor(Math.random() * stars.length);
+                stars[idx].beatFlash = 0.5 + Math.random() * 0.5;
+            }
+        }
+
+        // ── Draw shooting star ──
+        function updateAndDrawShootingStars(ctx, dt) {
+            for (var i = shootingStars.length - 1; i >= 0; i--) {
+                var ss = shootingStars[i];
+                ss.x += ss.vx * dt;
+                ss.y += ss.vy * dt;
+                ss.life -= dt * 0.8;
+
+                if (ss.life <= 0) {
+                    shootingStars.splice(i, 1);
+                    continue;
+                }
+
+                var alpha = ss.life;
+                var tailLen = 60 * alpha;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                var grad = ctx.createLinearGradient(
+                    ss.x, ss.y,
+                    ss.x - (ss.vx / Math.abs(ss.vx)) * tailLen, ss.y - (ss.vy / Math.abs(ss.vy)) * tailLen
+                );
+                grad.addColorStop(0, 'rgba(255,255,255,0.9)');
+                grad.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 2;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(ss.x, ss.y);
+                ctx.lineTo(ss.x - (ss.vx * 0.06), ss.y - (ss.vy * 0.06));
+                ctx.stroke();
+
+                // Head glow
+                ctx.fillStyle = '#fff';
+                ctx.shadowColor = '#fff';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(ss.x, ss.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function spawnShootingStar() {
+            var startX = Math.random() * W * 0.6 + W * 0.2;
+            var startY = Math.random() * groundY * 0.3;
+            var angle = Math.PI * 0.15 + Math.random() * 0.3;
+            var speed = 200 + Math.random() * 200;
+            shootingStars.push({
+                x: startX,
+                y: startY,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: 1.0
+            });
+        }
+
+        // ── Draw hills silhouette ──
+        function drawHills(ctx) {
+            ctx.save();
+            ctx.fillStyle = '#0a0d14';
+            for (var i = 0; i < hills.length; i++) {
+                var h = hills[i];
+                ctx.beginPath();
+                ctx.ellipse(h.cx, groundY, h.w, h.h, 0, Math.PI, 0);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw tree silhouettes ──
+        function drawTrees(ctx) {
+            ctx.save();
+            ctx.fillStyle = SILHOUETTE;
+            for (var i = 0; i < trees.length; i++) {
+                var t = trees[i];
+                var baseY = groundY;
+                // Trunk
+                ctx.fillRect(t.x - t.w / 2, baseY - t.h, t.w, t.h);
+                // Crown (triangular pine shape)
+                ctx.beginPath();
+                ctx.moveTo(t.x, baseY - t.h - t.crownH);
+                ctx.lineTo(t.x - t.crownW, baseY - t.h + 10);
+                ctx.lineTo(t.x + t.crownW, baseY - t.h + 10);
+                ctx.closePath();
+                ctx.fill();
+                // Second crown layer
+                ctx.beginPath();
+                ctx.moveTo(t.x, baseY - t.h - t.crownH * 0.6);
+                ctx.lineTo(t.x - t.crownW * 1.2, baseY - t.h + t.crownH * 0.3);
+                ctx.lineTo(t.x + t.crownW * 1.2, baseY - t.h + t.crownH * 0.3);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw ground ──
+        function drawGround(ctx, energy) {
+            ctx.save();
+            ctx.fillStyle = GROUND_COLOR;
+            ctx.fillRect(0, groundY, W, H - groundY);
+
+            // Subtle fire reflection on ground
+            var glowRadius = W * 0.2 * (0.8 + energy * 0.4 + beatPulse * 0.2);
+            var grad = ctx.createRadialGradient(
+                fireX, groundY, 0,
+                fireX, groundY, glowRadius
+            );
+            grad.addColorStop(0, rgba(FIRE_ORANGE, 0.08 + energy * 0.04));
+            grad.addColorStop(0.5, rgba(FIRE_RED, 0.03));
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, groundY, W, H - groundY);
+            ctx.restore();
+        }
+
+        // ── Draw campfire ──
+        function drawCampfire(ctx, energy) {
+            var baseW = W * 0.04;
+            var flameH = H * 0.08 * (0.7 + energy * 0.5 + beatPulse * 0.3);
+
+            // Log base
+            ctx.save();
+            ctx.fillStyle = '#2a1a0a';
+            ctx.strokeStyle = '#1a0f05';
+            ctx.lineWidth = 2;
+            // Two crossing logs
+            ctx.beginPath();
+            ctx.moveTo(fireX - baseW * 1.5, fireBaseY);
+            ctx.lineTo(fireX + baseW * 0.5, fireBaseY - 6);
+            ctx.lineTo(fireX + baseW * 0.7, fireBaseY - 2);
+            ctx.lineTo(fireX - baseW * 1.3, fireBaseY + 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(fireX + baseW * 1.5, fireBaseY);
+            ctx.lineTo(fireX - baseW * 0.5, fireBaseY - 6);
+            ctx.lineTo(fireX - baseW * 0.7, fireBaseY - 2);
+            ctx.lineTo(fireX + baseW * 1.3, fireBaseY + 4);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Fire glow (radial)
+            var glowR = flameH * 3;
+            var grad = ctx.createRadialGradient(
+                fireX, fireBaseY - flameH * 0.4, 0,
+                fireX, fireBaseY - flameH * 0.4, glowR
+            );
+            grad.addColorStop(0, rgba(FIRE_YELLOW, 0.12 + beatPulse * 0.06));
+            grad.addColorStop(0.3, rgba(FIRE_ORANGE, 0.06 + beatPulse * 0.03));
+            grad.addColorStop(0.6, rgba(FIRE_RED, 0.02));
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = grad;
+            ctx.fillRect(fireX - glowR, fireBaseY - flameH - glowR, glowR * 2, glowR * 2);
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Flames (multiple triangular flickering shapes)
+            var numFlames = 5;
+            for (var i = 0; i < numFlames; i++) {
+                var t = i / (numFlames - 1);
+                var fx = fireX + (t - 0.5) * baseW * 1.8;
+                var fh = flameH * (0.5 + 0.5 * Math.sin(time * 6 + i * 1.3)) * (0.6 + t * 0.4 * (1 - t) * 4);
+                var fw = baseW * (0.3 + 0.15 * Math.sin(time * 8 + i * 2));
+                var wobble = Math.sin(time * 5 + i * 1.7) * fw * 0.4;
+
+                // Outer flame (orange/red)
+                ctx.save();
+                ctx.globalAlpha = 0.7 + beatPulse * 0.2;
+                var flameGrad = ctx.createLinearGradient(fx, fireBaseY, fx, fireBaseY - fh);
+                flameGrad.addColorStop(0, FIRE_RED);
+                flameGrad.addColorStop(0.4, FIRE_ORANGE);
+                flameGrad.addColorStop(0.8, FIRE_YELLOW);
+                flameGrad.addColorStop(1, rgba(FIRE_YELLOW, 0.2));
+                ctx.fillStyle = flameGrad;
+
+                ctx.beginPath();
+                ctx.moveTo(fx - fw, fireBaseY);
+                ctx.quadraticCurveTo(fx - fw * 0.3 + wobble * 0.5, fireBaseY - fh * 0.5, fx + wobble, fireBaseY - fh);
+                ctx.quadraticCurveTo(fx + fw * 0.3 + wobble * 0.5, fireBaseY - fh * 0.5, fx + fw, fireBaseY);
+                ctx.closePath();
+                ctx.fill();
+
+                // Inner flame (bright yellow/white core)
+                if (i % 2 === 0) {
+                    ctx.globalAlpha = 0.5 + beatPulse * 0.3;
+                    ctx.fillStyle = FIRE_YELLOW;
+                    ctx.beginPath();
+                    ctx.moveTo(fx - fw * 0.4, fireBaseY);
+                    ctx.quadraticCurveTo(fx + wobble * 0.3, fireBaseY - fh * 0.4, fx + wobble * 0.5, fireBaseY - fh * 0.6);
+                    ctx.quadraticCurveTo(fx + wobble * 0.3, fireBaseY - fh * 0.4, fx + fw * 0.4, fireBaseY);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            // Bright core glow
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var coreGrad = ctx.createRadialGradient(
+                fireX, fireBaseY - flameH * 0.2, 0,
+                fireX, fireBaseY - flameH * 0.2, baseW
+            );
+            coreGrad.addColorStop(0, rgba('#ffffff', 0.15 + beatPulse * 0.1));
+            coreGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = coreGrad;
+            ctx.fillRect(fireX - baseW, fireBaseY - flameH, baseW * 2, flameH);
+            ctx.restore();
+
+            ctx.restore();
+        }
+
+        // ── Draw embers ──
+        function updateAndDrawEmbers(ctx, dt, energy) {
+            // Spawn embers
+            if (Math.random() < (0.3 + energy * 0.5) * dt * 60) {
+                spawnEmber();
+            }
+            // Extra embers on beat
+            if (beatPulse > 0.5) {
+                for (var s = 0; s < 2; s++) spawnEmber();
+            }
+
+            // Cap
+            while (embers.length > MAX_EMBERS) embers.shift();
+
+            for (var i = embers.length - 1; i >= 0; i--) {
+                var e = embers[i];
+                e.x += e.vx * dt;
+                e.y += e.vy * dt;
+                e.vy -= 5 * dt; // float upward more
+                e.vx += (Math.random() - 0.5) * 40 * dt; // wander
+                e.life -= e.decay * dt;
+
+                if (e.life <= 0) {
+                    embers.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = e.life * 0.8;
+                ctx.fillStyle = e.life > 0.5 ? FIRE_YELLOW : EMBER_COLOR;
+                ctx.shadowColor = EMBER_COLOR;
+                ctx.shadowBlur = 4;
+                ctx.beginPath();
+                ctx.arc(e.x, e.y, e.size * e.life, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ── Draw sitting survivor silhouette ──
+        function drawSurvivor(ctx, fig, energy) {
+            var x = fig.x;
+            var y = fig.y;
+            var dir = fig.facingRight ? 1 : -1;
+            var scale = H * 0.0008;
+
+            // Head bob synced to beat
+            var bob = Math.sin(fig.headBobPhase) * fig.headBobAmount * 3;
+
+            ctx.save();
+            ctx.fillStyle = SILHOUETTE;
+            ctx.strokeStyle = SILHOUETTE;
+            ctx.lineWidth = 3 * scale;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // Body sitting pose
+            var bodyH = 35 * scale;
+            var headR = 8 * scale;
+
+            // Torso (leaning slightly toward fire)
+            var torsoLean = dir * 3 * scale;
+            var hipX = x;
+            var hipY = y;
+            var shoulderX = hipX + torsoLean;
+            var shoulderY = hipY - bodyH * 0.55;
+            var neckX = shoulderX + torsoLean * 0.3;
+            var neckY = shoulderY - bodyH * 0.1;
+            var headX = neckX + torsoLean * 0.2;
+            var headY = neckY - headR + bob;
+
+            // Legs (sitting cross-legged or knees up)
+            var kneeX = hipX + dir * bodyH * 0.3;
+            var kneeY = hipY - bodyH * 0.15;
+            var footX = hipX + dir * bodyH * 0.05;
+            var footY = hipY + bodyH * 0.05;
+
+            var kneeX2 = hipX - dir * bodyH * 0.15;
+            var kneeY2 = hipY - bodyH * 0.1;
+            var footX2 = hipX + dir * bodyH * 0.2;
+            var footY2 = hipY + bodyH * 0.05;
+
+            // Draw legs
+            ctx.beginPath();
+            ctx.moveTo(hipX, hipY);
+            ctx.lineTo(kneeX, kneeY);
+            ctx.lineTo(footX, footY);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(hipX, hipY);
+            ctx.lineTo(kneeX2, kneeY2);
+            ctx.lineTo(footX2, footY2);
+            ctx.stroke();
+
+            // Draw torso
+            ctx.beginPath();
+            ctx.moveTo(hipX, hipY);
+            ctx.lineTo(shoulderX, shoulderY);
+            ctx.stroke();
+
+            // Arms
+            var elbowX = shoulderX + dir * bodyH * 0.2;
+            var elbowY = shoulderY + bodyH * 0.15;
+            var handX, handY;
+
+            if (fig.armRaise > 0.1) {
+                // Storyteller gesture - arm raised
+                handX = elbowX + dir * bodyH * 0.15;
+                handY = elbowY - bodyH * 0.2 * fig.armRaise + bob * 0.5;
+            } else {
+                // Resting on knee
+                handX = kneeX;
+                handY = kneeY;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(shoulderX, shoulderY);
+            ctx.lineTo(elbowX, elbowY);
+            ctx.lineTo(handX, handY);
+            ctx.stroke();
+
+            // Other arm resting
+            var elbow2X = shoulderX - dir * bodyH * 0.15;
+            var elbow2Y = shoulderY + bodyH * 0.2;
+            ctx.beginPath();
+            ctx.moveTo(shoulderX, shoulderY);
+            ctx.lineTo(elbow2X, elbow2Y);
+            ctx.lineTo(kneeX2, kneeY2);
+            ctx.stroke();
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(headX, headY, headR, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+
+            // Firelight rim on the fire-facing side
+            ctx.save();
+            var rimSide = fig.facingRight ? 1 : -1;
+            var distToFire = Math.abs(x - fireX);
+            var rimAlpha = clamp(0.15 - distToFire / (W * 0.5) * 0.1 + beatPulse * 0.05, 0, 0.3);
+            ctx.globalAlpha = rimAlpha;
+            ctx.strokeStyle = FIRE_ORANGE;
+            ctx.lineWidth = 2;
+            ctx.shadowColor = FIRE_ORANGE;
+            ctx.shadowBlur = 6;
+
+            // Rim on head
+            ctx.beginPath();
+            ctx.arc(headX, headY, headR + 1, -Math.PI * 0.5 + (rimSide > 0 ? 0 : -Math.PI * 0.3), Math.PI * 0.5 + (rimSide > 0 ? 0 : -Math.PI * 0.3));
+            ctx.stroke();
+
+            // Rim on shoulder
+            ctx.beginPath();
+            ctx.moveTo(shoulderX, shoulderY);
+            ctx.lineTo(shoulderX + rimSide * 2, shoulderY - 5);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Draw firelight ambient glow ──
+        function drawFirelightGlow(ctx, energy) {
+            var radius = W * 0.35 * (0.8 + energy * 0.3 + beatPulse * 0.15);
+            var grad = ctx.createRadialGradient(
+                fireX, fireBaseY - H * 0.04, 0,
+                fireX, fireBaseY - H * 0.04, radius
+            );
+            grad.addColorStop(0, rgba(FIRE_ORANGE, 0.04 + energy * 0.02 + beatPulse * 0.02));
+            grad.addColorStop(0.4, rgba(FIRE_RED, 0.015));
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Draw long shadows from figures ──
+        function drawShadows(ctx, energy) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            for (var i = 0; i < figureSeats.length; i++) {
+                var fig = figureSeats[i];
+                var dx = fig.x - fireX;
+                var shadowLen = (W * 0.15 + energy * W * 0.05) * (dx > 0 ? 1 : -1);
+                var shadowDir = dx / Math.abs(dx || 1);
+
+                ctx.beginPath();
+                ctx.moveTo(fig.x - 5, fig.y + 5);
+                ctx.lineTo(fig.x + 5, fig.y + 5);
+                ctx.lineTo(fig.x + shadowLen, fig.y + 15);
+                ctx.lineTo(fig.x + shadowLen - 10 * shadowDir, fig.y + 15);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw title ──
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            var fontSize = Math.max(14, Math.min(W * 0.028, 36));
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = '700 ' + fontSize + 'px "JetBrains Mono", monospace';
+            ctx.globalAlpha = titleAlpha * 0.7;
+            ctx.fillStyle = FIRE_ORANGE;
+            ctx.shadowColor = FIRE_ORANGE;
+            ctx.shadowBlur = 20;
+            ctx.fillText('SURVIVORS: CAMPFIRE REST', W / 2, H * 0.08);
+
+            ctx.font = '400 ' + (fontSize * 0.55) + 'px "JetBrains Mono", monospace';
+            ctx.globalAlpha = titleAlpha * 0.4;
+            ctx.shadowBlur = 10;
+            ctx.fillText('town hub theme', W / 2, H * 0.08 + fontSize * 1.2);
+            ctx.restore();
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            groundY = H * 0.72;
+            fireX = W * 0.5;
+            fireBaseY = groundY;
+            time = 0;
+            lastBeat = -1;
+            beatPulse = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'intro';
+            titleAlpha = 0;
+            titleTarget = 0;
+            shootingStarTimer = 0;
+            embers = [];
+            shootingStars = [];
+
+            initStars();
+            initFigures();
+            initLandscape();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+            groundY = H * 0.72;
+            fireX = W * 0.5;
+            fireBaseY = groundY;
+            initStars();
+            initFigures();
+            initLandscape();
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+            time += dt;
+
+            // Background
+            drawSky(ctx);
+
+            if (!cursor) {
+                // Idle state: peaceful static scene
+                drawStars(ctx, dt, 0);
+                drawHills(ctx);
+                drawTrees(ctx);
+                drawGround(ctx, 0);
+                drawCampfire(ctx, 0.3);
+                updateAndDrawEmbers(ctx, dt, 0.2);
+                for (var fi = 0; fi < figureSeats.length; fi++) {
+                    drawSurvivor(ctx, figureSeats[fi], 0);
+                }
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0.3;
+
+            // Section tracking
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = mapSection(seqIdx);
+                lastSeqIndex = seqIdx;
+            }
+
+            // Beat handling
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+
+                // Twinkle stars on beats
+                flashRandomStars(3 + Math.floor(energy * 8));
+
+                // Head bob trigger
+                for (var hi = 0; hi < figureSeats.length; hi++) {
+                    figureSeats[hi].headBobAmount = 0.3 + energy * 0.7;
+                }
+
+                // Storyteller gesture changes
+                if (Math.random() < 0.3) {
+                    var storyteller = Math.floor(Math.random() * figureSeats.length);
+                    for (var gi = 0; gi < figureSeats.length; gi++) {
+                        figureSeats[gi].armRaise = gi === storyteller ? 0.3 + Math.random() * 0.4 : 0;
+                    }
+                }
+
+                lastBeat = beat;
+            }
+
+            // Decay beat pulse
+            beatPulse *= Math.exp(-5 * dt);
+
+            // Update head bob phases
+            for (var ui = 0; ui < figureSeats.length; ui++) {
+                figureSeats[ui].headBobPhase += (3 + energy * 2) * dt;
+                figureSeats[ui].headBobAmount *= Math.exp(-2 * dt);
+            }
+
+            // Shooting star timer
+            shootingStarTimer -= dt;
+            if (shootingStarTimer <= 0) {
+                spawnShootingStar();
+                shootingStarTimer = 5 + Math.random() * 15;
+            }
+            // Extra shooting stars during bridge sections
+            if (sectionMood === 'bridge' && Math.random() < 0.002) {
+                spawnShootingStar();
+            }
+
+            // Title: show during intro and bridge
+            titleTarget = (sectionMood === 'intro' || sectionMood === 'bridge') ? 1 : 0;
+            titleAlpha += (titleTarget - titleAlpha) * (1 - Math.exp(-2 * dt));
+
+            // ── Draw scene (back to front) ──
+
+            // 1. Stars
+            drawStars(ctx, dt, energy);
+
+            // 2. Shooting stars
+            updateAndDrawShootingStars(ctx, dt);
+
+            // 3. Title (behind landscape)
+            drawTitle(ctx);
+
+            // 4. Hills
+            drawHills(ctx);
+
+            // 5. Trees
+            drawTrees(ctx);
+
+            // 6. Firelight ambient glow (affects whole scene)
+            drawFirelightGlow(ctx, energy);
+
+            // 7. Ground
+            drawGround(ctx, energy);
+
+            // 8. Shadows
+            drawShadows(ctx, energy);
+
+            // 9. Survivors
+            for (var si = 0; si < figureSeats.length; si++) {
+                drawSurvivor(ctx, figureSeats[si], energy);
+            }
+
+            // 10. Campfire (in front of survivors for depth)
+            drawCampfire(ctx, energy);
+
+            // 11. Embers (topmost, floating above)
+            updateAndDrawEmbers(ctx, dt, energy);
+        }
+
+        return {
+            name: 'Survivors: Campfire Rest',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('campfire-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/survivors-campfire.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
