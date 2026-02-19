@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orbital Lounge — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #06050e;
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(6,5,14,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(22px, 5vw, 52px);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #d4a04a;
+            text-shadow: 0 0 30px rgba(212,160,74,0.5), 0 0 60px rgba(212,160,74,0.2);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 40px;
+            font-style: italic;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #d4a04a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #d4a04a;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(212,160,74,0.35); }
+            50% { box-shadow: 0 0 0 20px rgba(212,160,74,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+            font-family: sans-serif;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Orbital Lounge</div>
+        <div class="play-sub">a space station jazz club</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Orbital Lounge Video Renderer ─────────────────────────────────
+    window.Renderers['orbital-lounge-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Colors ──
+        var BG_DEEP = '#06050e';
+        var AMBER = '#d4a04a';
+        var AMBER_DIM = '#8a6528';
+        var PURPLE_WARM = '#3d1f5c';
+        var PURPLE_DEEP = '#1a0e2e';
+        var BLUE_SPACE = '#1a3a6a';
+        var BLUE_EARTH = '#4488cc';
+        var STAR_WHITE = '#e8e4f0';
+
+        // ── Layout ratios ──
+        var FLOOR_Y = 0.78;
+        var CEILING_Y = 0.12;
+        var WINDOW_LEFT = 0.58;
+        var PORTHOLE_X = 0.15;
+        var PORTHOLE_Y = 0.38;
+        var PORTHOLE_R = 0.08;
+
+        // ── State ──
+        var floorY = 0, ceilingY = 0;
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var lastSeqIndex = -1;
+        var sectionMood = 'intro'; // intro, groove, solo, head, coda, outro
+
+        // Stars
+        var stars = [];
+        var starRotation = 0;
+
+        // Smoke particles
+        var smokeParticles = [];
+        var MAX_SMOKE = 120;
+
+        // Earth glow
+        var earthPhase = 0;
+
+        // Musicians (silhouettes) - positions as ratios
+        var musicians = {
+            bass:   { x: 0.22, instrument: 'bass',  phase: 0, bobAmp: 0 },
+            piano:  { x: 0.35, instrument: 'piano', phase: 0.5, bobAmp: 0 },
+            drums:  { x: 0.48, instrument: 'drums', phase: 0.25, bobAmp: 0 },
+            sax:    { x: 0.38, instrument: 'sax',   phase: 0.75, bobAmp: 0 }
+        };
+
+        // Title
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        // Fade
+        var introFade = 0;
+        var outroFade = 1;
+
+        // Ambient light flicker
+        var ambientFlicker = 0;
+
+        // ── Lerp ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function lerpExp(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+
+        // ── Section mapping ──
+        // Sequence has 42 entries. Map to moods.
+        // 0-1: Intro, 2-7: Groove A, 8-9: Bridge B, 10-14: Solo,
+        // 15-19: Head return A, 20-23: Groove reprise, 24-25: Bridge,
+        // 26-29: Head return, 30-33: Groove, 34: Transition, 35-41: Coda
+        function mapSection(seqIdx) {
+            if (seqIdx <= 1) return 'intro';
+            if (seqIdx <= 7) return 'groove';
+            if (seqIdx <= 9) return 'bridge';
+            if (seqIdx <= 14) return 'solo';
+            if (seqIdx <= 19) return 'head';
+            if (seqIdx <= 23) return 'groove';
+            if (seqIdx <= 25) return 'bridge';
+            if (seqIdx <= 29) return 'head';
+            if (seqIdx <= 33) return 'groove';
+            if (seqIdx <= 34) return 'bridge';
+            if (seqIdx <= 38) return 'coda';
+            return 'outro';
+        }
+
+        // ── Stars ──
+        function initStars() {
+            stars = [];
+            for (var i = 0; i < 200; i++) {
+                var angle = Math.random() * Math.PI * 2;
+                var dist = 0.1 + Math.random() * 0.9;
+                stars.push({
+                    angle: angle,
+                    dist: dist,
+                    size: 0.5 + Math.random() * 2.0,
+                    brightness: 0.3 + Math.random() * 0.7,
+                    twinkleSpeed: 1 + Math.random() * 3,
+                    twinklePhase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // ── Smoke system ──
+        function spawnSmoke(x, y, vx, vy, size) {
+            if (smokeParticles.length >= MAX_SMOKE) return;
+            smokeParticles.push({
+                x: x, y: y,
+                vx: vx + (Math.random() - 0.5) * 8,
+                vy: vy - 10 - Math.random() * 15,
+                size: size || (3 + Math.random() * 6),
+                alpha: 0.25 + Math.random() * 0.2,
+                life: 1.0,
+                decay: 0.08 + Math.random() * 0.12,
+                curl: (Math.random() - 0.5) * 2
+            });
+        }
+
+        function updateSmoke(dt) {
+            for (var i = smokeParticles.length - 1; i >= 0; i--) {
+                var p = smokeParticles[i];
+                // Zero-g: slow upward drift with curling
+                p.vy *= 0.98;
+                p.vx += Math.sin(p.y * 0.01 + p.curl) * 0.3;
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.size += dt * 4;
+                p.life -= p.decay * dt;
+                if (p.life <= 0 || p.y < -20) {
+                    smokeParticles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawSmoke(ctx) {
+            ctx.save();
+            for (var i = 0; i < smokeParticles.length; i++) {
+                var p = smokeParticles[i];
+                var a = p.alpha * p.life * introFade * outroFade;
+                if (a < 0.005) continue;
+                var grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size);
+                grad.addColorStop(0, 'rgba(180,160,140,' + (a * 0.6) + ')');
+                grad.addColorStop(0.5, 'rgba(140,120,100,' + (a * 0.3) + ')');
+                grad.addColorStop(1, 'rgba(100,80,60,0)');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw starfield through windows ──
+        function drawStarfield(ctx, time, energy) {
+            var winLeft = W * WINDOW_LEFT;
+            var winTop = ceilingY;
+            var winW = W - winLeft;
+            var winH = floorY - winTop;
+            var cx = winLeft + winW * 0.5;
+            var cy = winTop + winH * 0.5;
+            var maxR = Math.sqrt(winW * winW + winH * winH) * 0.6;
+
+            ctx.save();
+            // Clip to window area
+            ctx.beginPath();
+            ctx.rect(winLeft, winTop, winW, winH);
+            ctx.clip();
+
+            // Deep space background
+            var spaceGrad = ctx.createLinearGradient(winLeft, winTop, winLeft, floorY);
+            spaceGrad.addColorStop(0, '#04030a');
+            spaceGrad.addColorStop(0.5, '#080618');
+            spaceGrad.addColorStop(1, '#0a0814');
+            ctx.fillStyle = spaceGrad;
+            ctx.fillRect(winLeft, winTop, winW, winH);
+
+            // Stars rotate slowly
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                var a = s.angle + starRotation;
+                var r = s.dist * maxR;
+                var sx = cx + Math.cos(a) * r;
+                var sy = cy + Math.sin(a) * r;
+
+                if (sx < winLeft || sx > W || sy < winTop || sy > floorY) continue;
+
+                var twinkle = 0.5 + 0.5 * Math.sin(time * s.twinkleSpeed + s.twinklePhase);
+                var bright = s.brightness * twinkle * (0.6 + energy * 0.4);
+                var sz = s.size * (0.8 + energy * 0.4);
+
+                ctx.globalAlpha = bright * introFade * outroFade;
+                ctx.fillStyle = STAR_WHITE;
+                ctx.beginPath();
+                ctx.arc(sx, sy, sz, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Bright star glow
+                if (s.brightness > 0.7 && sz > 1.2) {
+                    ctx.globalAlpha = bright * 0.2 * introFade;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, sz * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            ctx.restore();
+        }
+
+        // ── Earth through porthole ──
+        function drawEarth(ctx, time, energy) {
+            var px = W * PORTHOLE_X;
+            var py = H * PORTHOLE_Y;
+            var pr = Math.min(W, H) * PORTHOLE_R;
+
+            ctx.save();
+
+            // Porthole frame
+            ctx.strokeStyle = '#3a3540';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(px, py, pr + 4, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Inner ring
+            ctx.strokeStyle = '#2a2530';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(px, py, pr + 8, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Clip to porthole
+            ctx.beginPath();
+            ctx.arc(px, py, pr, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Space background
+            ctx.fillStyle = '#03020a';
+            ctx.fillRect(px - pr, py - pr, pr * 2, pr * 2);
+
+            // Earth - gentle blue orb, partially visible
+            var earthR = pr * 1.4;
+            var earthX = px + pr * 0.3;
+            var earthY = py + pr * 0.5;
+            var earthGlow = 0.4 + energy * 0.2 + Math.sin(earthPhase) * 0.05;
+
+            // Atmosphere glow
+            var atmosGrad = ctx.createRadialGradient(earthX, earthY, earthR * 0.85, earthX, earthY, earthR * 1.3);
+            atmosGrad.addColorStop(0, 'rgba(68,136,220,' + (earthGlow * 0.4) + ')');
+            atmosGrad.addColorStop(0.5, 'rgba(68,136,220,' + (earthGlow * 0.15) + ')');
+            atmosGrad.addColorStop(1, 'rgba(68,136,220,0)');
+            ctx.fillStyle = atmosGrad;
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earthR * 1.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Earth body
+            var earthGrad = ctx.createRadialGradient(
+                earthX - earthR * 0.2, earthY - earthR * 0.2, 0,
+                earthX, earthY, earthR
+            );
+            earthGrad.addColorStop(0, 'rgba(60,120,180,' + earthGlow + ')');
+            earthGrad.addColorStop(0.4, 'rgba(40,90,150,' + (earthGlow * 0.8) + ')');
+            earthGrad.addColorStop(0.7, 'rgba(20,60,110,' + (earthGlow * 0.5) + ')');
+            earthGrad.addColorStop(1, 'rgba(10,30,60,' + (earthGlow * 0.2) + ')');
+            ctx.fillStyle = earthGrad;
+            ctx.beginPath();
+            ctx.arc(earthX, earthY, earthR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Terminator shadow
+            ctx.fillStyle = 'rgba(0,0,0,0.4)';
+            ctx.beginPath();
+            ctx.ellipse(earthX + earthR * 0.3, earthY, earthR * 0.8, earthR, 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Porthole glass reflection
+            ctx.globalAlpha = 0.06;
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.ellipse(px - pr * 0.3, py - pr * 0.3, pr * 0.4, pr * 0.15, -0.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // ── Window frame structure ──
+        function drawWindowFrame(ctx) {
+            var winLeft = W * WINDOW_LEFT;
+
+            ctx.save();
+            // Vertical dividers
+            ctx.strokeStyle = '#2a2530';
+            ctx.lineWidth = 3;
+
+            // Main vertical frame
+            ctx.beginPath();
+            ctx.moveTo(winLeft, ceilingY);
+            ctx.lineTo(winLeft, floorY);
+            ctx.stroke();
+
+            // Cross beams
+            var numBeams = 3;
+            for (var i = 1; i < numBeams; i++) {
+                var bx = winLeft + (W - winLeft) * (i / numBeams);
+                ctx.beginPath();
+                ctx.moveTo(bx, ceilingY);
+                ctx.lineTo(bx, floorY);
+                ctx.stroke();
+            }
+
+            // Horizontal mid-beam
+            var midY = (ceilingY + floorY) * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(winLeft, midY);
+            ctx.lineTo(W, midY);
+            ctx.stroke();
+
+            // Frame highlight
+            ctx.strokeStyle = 'rgba(80,70,90,0.3)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(winLeft + 1, ceilingY);
+            ctx.lineTo(winLeft + 1, floorY);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Club interior ──
+        function drawClubInterior(ctx, energy) {
+            ctx.save();
+
+            // Ceiling
+            var ceilGrad = ctx.createLinearGradient(0, 0, 0, ceilingY);
+            ceilGrad.addColorStop(0, '#0a0814');
+            ceilGrad.addColorStop(1, PURPLE_DEEP);
+            ctx.fillStyle = ceilGrad;
+            ctx.fillRect(0, 0, W * WINDOW_LEFT, ceilingY);
+            ctx.fillRect(0, 0, W, ceilingY * 0.5);
+
+            // Walls (left of window)
+            var wallGrad = ctx.createLinearGradient(0, ceilingY, 0, floorY);
+            wallGrad.addColorStop(0, PURPLE_DEEP);
+            wallGrad.addColorStop(0.5, '#140e22');
+            wallGrad.addColorStop(1, '#100c1a');
+            ctx.fillStyle = wallGrad;
+            ctx.fillRect(0, ceilingY, W * WINDOW_LEFT, floorY - ceilingY);
+
+            // Floor
+            var floorGrad = ctx.createLinearGradient(0, floorY, 0, H);
+            floorGrad.addColorStop(0, '#100c18');
+            floorGrad.addColorStop(1, '#06050e');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, floorY, W, H - floorY);
+
+            // Floor reflection line
+            ctx.strokeStyle = 'rgba(212,160,74,' + (0.08 + energy * 0.06) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, floorY);
+            ctx.lineTo(W, floorY);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Ambient warm lighting ──
+        function drawAmbientLighting(ctx, energy) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Warm overhead lamp glow (jazz club pendant light)
+            var lampX = W * 0.35;
+            var lampY = ceilingY + 10;
+            var lampIntensity = (0.06 + energy * 0.04 + ambientFlicker * 0.02) * introFade * outroFade;
+
+            var lampGrad = ctx.createRadialGradient(lampX, lampY, 0, lampX, lampY, H * 0.6);
+            lampGrad.addColorStop(0, 'rgba(212,160,74,' + lampIntensity + ')');
+            lampGrad.addColorStop(0.3, 'rgba(180,120,50,' + (lampIntensity * 0.4) + ')');
+            lampGrad.addColorStop(1, 'rgba(100,60,20,0)');
+            ctx.fillStyle = lampGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Second lamp
+            var lamp2X = W * 0.2;
+            var lamp2Intensity = lampIntensity * 0.5;
+            var lamp2Grad = ctx.createRadialGradient(lamp2X, lampY, 0, lamp2X, lampY, H * 0.4);
+            lamp2Grad.addColorStop(0, 'rgba(200,140,60,' + lamp2Intensity + ')');
+            lamp2Grad.addColorStop(0.5, 'rgba(160,100,40,' + (lamp2Intensity * 0.3) + ')');
+            lamp2Grad.addColorStop(1, 'rgba(80,40,10,0)');
+            ctx.fillStyle = lamp2Grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Cool blue from windows
+            var winGlow = (0.03 + energy * 0.02) * introFade * outroFade;
+            var winGrad = ctx.createLinearGradient(W, 0, W * 0.4, 0);
+            winGrad.addColorStop(0, 'rgba(40,80,140,' + winGlow + ')');
+            winGrad.addColorStop(1, 'rgba(20,40,80,0)');
+            ctx.fillStyle = winGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            ctx.restore();
+        }
+
+        // ── Musician silhouettes ──
+        function drawMusician(ctx, type, x, y, h, bob, energy, beatP) {
+            ctx.save();
+            ctx.translate(x, y + bob);
+            var s = h / 100; // scale factor
+
+            ctx.fillStyle = 'rgba(10,8,18,0.9)';
+            ctx.strokeStyle = 'rgba(10,8,18,0.9)';
+            ctx.lineWidth = 2 * s;
+            ctx.lineCap = 'round';
+
+            if (type === 'bass') {
+                // Standing bass player with upright bass
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(0, -55 * s, 10 * s, 14 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Head
+                ctx.beginPath();
+                ctx.arc(0, -75 * s, 8 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Legs
+                ctx.beginPath();
+                ctx.moveTo(-3 * s, -42 * s);
+                ctx.lineTo(-6 * s, 0);
+                ctx.moveTo(3 * s, -42 * s);
+                ctx.lineTo(8 * s, 0);
+                ctx.stroke();
+                // Arms reaching to bass
+                ctx.beginPath();
+                ctx.moveTo(-8 * s, -60 * s);
+                ctx.lineTo(-20 * s, -50 * s);
+                ctx.moveTo(8 * s, -60 * s);
+                ctx.lineTo(15 * s, -45 * s);
+                ctx.stroke();
+                // Upright bass body
+                ctx.beginPath();
+                ctx.ellipse(-22 * s, -35 * s, 12 * s, 20 * s, 0.1, 0, Math.PI * 2);
+                ctx.fill();
+                // Bass neck
+                ctx.beginPath();
+                ctx.moveTo(-22 * s, -55 * s);
+                ctx.lineTo(-18 * s, -90 * s);
+                ctx.stroke();
+                // Bass highlight on beat
+                if (beatP > 0.2) {
+                    ctx.globalAlpha = beatP * 0.3 * energy;
+                    ctx.strokeStyle = AMBER;
+                    ctx.lineWidth = 1.5 * s;
+                    ctx.beginPath();
+                    ctx.ellipse(-22 * s, -35 * s, 13 * s, 21 * s, 0.1, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            } else if (type === 'piano') {
+                // Seated pianist
+                // Body (seated)
+                ctx.beginPath();
+                ctx.ellipse(0, -40 * s, 10 * s, 12 * s, -0.1, 0, Math.PI * 2);
+                ctx.fill();
+                // Head (slightly forward, concentrating)
+                ctx.beginPath();
+                ctx.arc(4 * s, -58 * s, 8 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Legs on bench
+                ctx.beginPath();
+                ctx.moveTo(-5 * s, -28 * s);
+                ctx.lineTo(-8 * s, -10 * s);
+                ctx.lineTo(-4 * s, 0);
+                ctx.moveTo(5 * s, -28 * s);
+                ctx.lineTo(8 * s, -10 * s);
+                ctx.lineTo(12 * s, 0);
+                ctx.stroke();
+                // Arms to keyboard
+                var armBob = Math.sin(beatP * Math.PI) * 3 * s * energy;
+                ctx.beginPath();
+                ctx.moveTo(-8 * s, -42 * s);
+                ctx.lineTo(-18 * s, -30 * s + armBob);
+                ctx.moveTo(8 * s, -42 * s);
+                ctx.lineTo(20 * s, -30 * s - armBob);
+                ctx.stroke();
+                // Piano body (simplified block)
+                ctx.fillRect(14 * s, -40 * s, 30 * s, 14 * s);
+                // Keyboard highlight
+                if (beatP > 0.1) {
+                    ctx.globalAlpha = beatP * 0.4 * energy;
+                    ctx.fillStyle = AMBER;
+                    ctx.fillRect(14 * s, -28 * s, 30 * s, 2 * s);
+                }
+            } else if (type === 'drums') {
+                // Seated drummer with brushes
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(0, -38 * s, 10 * s, 12 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Head
+                ctx.beginPath();
+                ctx.arc(0, -56 * s, 8 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Legs
+                ctx.beginPath();
+                ctx.moveTo(-6 * s, -26 * s);
+                ctx.lineTo(-10 * s, 0);
+                ctx.moveTo(6 * s, -26 * s);
+                ctx.lineTo(10 * s, 0);
+                ctx.stroke();
+                // Arms with brushes
+                var brushSwing = Math.sin(beatP * Math.PI * 2) * 8 * s * energy;
+                ctx.beginPath();
+                ctx.moveTo(-8 * s, -42 * s);
+                ctx.lineTo(-18 * s + brushSwing, -25 * s);
+                ctx.lineTo(-22 * s + brushSwing, -20 * s);
+                ctx.moveTo(8 * s, -42 * s);
+                ctx.lineTo(16 * s - brushSwing, -22 * s);
+                ctx.lineTo(20 * s - brushSwing, -18 * s);
+                ctx.stroke();
+                // Hi-hat
+                ctx.beginPath();
+                ctx.ellipse(-20 * s, -18 * s, 10 * s, 3 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Snare
+                ctx.beginPath();
+                ctx.ellipse(2 * s, -18 * s, 10 * s, 4 * s, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // Ride
+                ctx.beginPath();
+                ctx.ellipse(20 * s, -22 * s, 12 * s, 3 * s, 0.2, 0, Math.PI * 2);
+                ctx.fill();
+                // Cymbal shimmer on beat
+                if (beatP > 0.3) {
+                    ctx.globalAlpha = beatP * 0.25;
+                    ctx.strokeStyle = AMBER;
+                    ctx.lineWidth = 1 * s;
+                    ctx.beginPath();
+                    ctx.ellipse(20 * s, -22 * s, 14 * s, 4 * s, 0.2, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            } else if (type === 'sax') {
+                // Standing sax player
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(0, -50 * s, 10 * s, 14 * s, 0.05, 0, Math.PI * 2);
+                ctx.fill();
+                // Head (tilted back slightly for playing)
+                ctx.beginPath();
+                ctx.arc(-2 * s, -70 * s, 8 * s, 0, Math.PI * 2);
+                ctx.fill();
+                // Legs
+                ctx.beginPath();
+                ctx.moveTo(-4 * s, -36 * s);
+                ctx.lineTo(-6 * s, 0);
+                ctx.moveTo(4 * s, -36 * s);
+                ctx.lineTo(8 * s, 0);
+                ctx.stroke();
+                // Arms holding sax
+                ctx.beginPath();
+                ctx.moveTo(-8 * s, -55 * s);
+                ctx.lineTo(-12 * s, -40 * s);
+                ctx.moveTo(8 * s, -55 * s);
+                ctx.lineTo(14 * s, -42 * s);
+                ctx.stroke();
+                // Saxophone
+                ctx.lineWidth = 3 * s;
+                ctx.beginPath();
+                ctx.moveTo(-2 * s, -64 * s); // mouthpiece
+                ctx.quadraticCurveTo(10 * s, -55 * s, 14 * s, -40 * s); // body curve
+                ctx.quadraticCurveTo(16 * s, -30 * s, 12 * s, -20 * s); // bell curve
+                ctx.stroke();
+                // Bell
+                ctx.beginPath();
+                ctx.ellipse(12 * s, -18 * s, 6 * s, 4 * s, 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                // Sax glow on beat (notes coming out)
+                if (beatP > 0.15 && energy > 0.2) {
+                    ctx.globalAlpha = beatP * 0.5 * energy;
+                    ctx.fillStyle = AMBER;
+                    var noteR = (3 + energy * 4) * s;
+                    ctx.beginPath();
+                    ctx.arc(16 * s, -16 * s, noteR, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            ctx.restore();
+        }
+
+        // ── Draw all musicians ──
+        function drawMusicians(ctx, energy, time) {
+            var musH = (floorY - ceilingY) * 0.6;
+            var baseY = floorY;
+
+            // Bass player - left side
+            var bassBob = Math.sin(time * 1.5 + musicians.bass.phase) * 3 * (0.3 + energy * 0.5);
+            drawMusician(ctx, 'bass', W * musicians.bass.x, baseY, musH, bassBob, energy, beatPulse);
+
+            // Piano - center-left
+            var pianoBob = Math.sin(time * 1.2 + musicians.piano.phase) * 2 * (0.2 + energy * 0.3);
+            drawMusician(ctx, 'piano', W * musicians.piano.x, baseY, musH * 0.85, pianoBob, energy, beatPulse);
+
+            // Drums - center-right
+            var drumBob = Math.sin(time * 2.0 + musicians.drums.phase) * 2 * (0.2 + energy * 0.4);
+            drawMusician(ctx, 'drums', W * musicians.drums.x, baseY, musH * 0.8, drumBob, energy, beatPulse);
+
+            // Sax - front and center (slightly forward/larger)
+            var saxBob = Math.sin(time * 1.0 + musicians.sax.phase) * 4 * (0.3 + energy * 0.6);
+            drawMusician(ctx, 'sax', W * musicians.sax.x, baseY + musH * 0.05, musH * 1.0, saxBob, energy, beatPulse);
+        }
+
+        // ── Pendant lamp fixtures ──
+        function drawLampFixtures(ctx, energy) {
+            ctx.save();
+            var lamps = [
+                { x: W * 0.2, w: 20 },
+                { x: W * 0.35, w: 24 },
+                { x: W * 0.5, w: 18 }
+            ];
+
+            for (var i = 0; i < lamps.length; i++) {
+                var lx = lamps[i].x;
+                var lw = lamps[i].w;
+
+                // Cord
+                ctx.strokeStyle = '#2a2530';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(lx, 0);
+                ctx.lineTo(lx, ceilingY + 15);
+                ctx.stroke();
+
+                // Shade (trapezoid)
+                ctx.fillStyle = '#1a1525';
+                ctx.beginPath();
+                ctx.moveTo(lx - lw * 0.4, ceilingY + 15);
+                ctx.lineTo(lx + lw * 0.4, ceilingY + 15);
+                ctx.lineTo(lx + lw * 0.6, ceilingY + 28);
+                ctx.lineTo(lx - lw * 0.6, ceilingY + 28);
+                ctx.closePath();
+                ctx.fill();
+
+                // Warm glow underneath
+                var glowAlpha = (0.15 + energy * 0.1 + ambientFlicker * 0.05) * introFade * outroFade;
+                ctx.fillStyle = 'rgba(212,160,74,' + glowAlpha + ')';
+                ctx.beginPath();
+                ctx.arc(lx, ceilingY + 28, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Title overlay ──
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            ctx.save();
+            var fontSize = Math.max(16, Math.min(W * 0.04, 44));
+            ctx.font = '700 ' + fontSize + 'px "Playfair Display", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var tx = W * 0.5;
+            var ty = H * 0.14;
+
+            // Warm glow
+            ctx.globalAlpha = titleAlpha * 0.5;
+            ctx.shadowColor = AMBER;
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = AMBER;
+            ctx.fillText('ORBITAL LOUNGE', tx, ty);
+
+            // Main text
+            ctx.globalAlpha = titleAlpha;
+            ctx.shadowBlur = 20;
+            ctx.fillText('ORBITAL LOUNGE', tx, ty);
+
+            ctx.restore();
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            floorY = H * FLOOR_Y;
+            ceilingY = H * CEILING_Y;
+
+            initStars();
+            smokeParticles = [];
+            starRotation = 0;
+            earthPhase = 0;
+            lastBeat = -1;
+            beatPulse = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'intro';
+            titleAlpha = 0;
+            titleTarget = 0;
+            introFade = 0;
+            outroFade = 1;
+            ambientFlicker = 0;
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+            floorY = H * FLOOR_Y;
+            ceilingY = H * CEILING_Y;
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            // Background
+            ctx.fillStyle = BG_DEEP;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: static scene, no music
+                introFade = lerpExp(introFade, 0.4, 2, dt);
+                drawClubInterior(ctx, 0);
+                drawStarfield(ctx, 0, 0.2);
+                drawEarth(ctx, 0, 0.1);
+                drawWindowFrame(ctx);
+                drawLampFixtures(ctx, 0.1);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+            var elapsed = cursor.elapsed || 0;
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+                lastSeqIndex = seqIdx;
+            }
+
+            // ── Intro / outro fade ──
+            if (sectionMood === 'intro') {
+                introFade = Math.min(1, introFade + dt * 0.25);
+            } else {
+                introFade = Math.min(1, introFade + dt * 0.5);
+            }
+
+            if (sectionMood === 'outro') {
+                outroFade = Math.max(0, outroFade - dt * 0.12);
+            } else {
+                outroFade = 1;
+            }
+
+            // ── Beat pulse ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+
+                // Spawn smoke puffs from instruments on beat
+                var smokeCount = Math.floor(1 + energy * 3);
+                for (var si = 0; si < smokeCount; si++) {
+                    var sx = W * (0.18 + Math.random() * 0.35);
+                    var sy = floorY - (floorY - ceilingY) * (0.3 + Math.random() * 0.3);
+                    spawnSmoke(sx, sy, (Math.random() - 0.5) * 5, -5 - energy * 10, 2 + Math.random() * 4);
+                }
+
+                lastBeat = beat;
+            }
+
+            beatPulse *= Math.exp(-6 * dt);
+
+            // ── Ambient flicker ──
+            ambientFlicker = Math.sin(elapsed * 3.7) * 0.3 + Math.sin(elapsed * 7.3) * 0.2;
+
+            // ── Star rotation ──
+            starRotation += dt * 0.003 * (1 + energy * 0.5);
+
+            // ── Earth phase ──
+            earthPhase += dt * 0.2;
+
+            // ── Title logic ──
+            if (sectionMood === 'intro' || sectionMood === 'solo') {
+                titleTarget = 1;
+            } else if (sectionMood === 'coda' || sectionMood === 'outro') {
+                titleTarget = 0.7;
+            } else {
+                titleTarget = 0;
+            }
+            titleAlpha = lerpExp(titleAlpha, titleTarget, 3, dt);
+
+            // ── Update smoke ──
+            updateSmoke(dt);
+
+            // ── Draw scene (back to front) ──
+
+            // 1. Club interior (walls, floor, ceiling)
+            drawClubInterior(ctx, energy);
+
+            // 2. Starfield through windows
+            drawStarfield(ctx, elapsed, energy);
+
+            // 3. Earth through porthole
+            drawEarth(ctx, elapsed, energy);
+
+            // 4. Window frame
+            drawWindowFrame(ctx);
+
+            // 5. Ambient lighting
+            drawAmbientLighting(ctx, energy);
+
+            // 6. Lamp fixtures
+            drawLampFixtures(ctx, energy);
+
+            // 7. Smoke (behind musicians)
+            drawSmoke(ctx);
+
+            // 8. Musicians
+            drawMusicians(ctx, energy, elapsed);
+
+            // 9. Title
+            drawTitle(ctx);
+
+            // 10. Subtle vignette
+            ctx.save();
+            var vigGrad = ctx.createRadialGradient(W * 0.4, H * 0.5, W * 0.15, W * 0.5, H * 0.5, W * 0.75);
+            vigGrad.addColorStop(0, 'rgba(6,5,14,0)');
+            vigGrad.addColorStop(1, 'rgba(6,5,14,' + (0.4 * outroFade + (1 - outroFade) * 0.9) + ')');
+            ctx.fillStyle = vigGrad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        return {
+            name: 'Orbital Lounge Jazz Club',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('orbital-lounge-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/orbital-lounge.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
