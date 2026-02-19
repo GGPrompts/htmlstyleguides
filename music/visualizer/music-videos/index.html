@@ -1201,6 +1201,28 @@
                 </div>
             </a>
 
+            <!-- Neon Jackpot -->
+            <a href="../neon-jackpot-video.html" class="video-card">
+                <div class="video-preview" style="background: linear-gradient(180deg, #0a0614 0%, #2a1050 40%, #1a0630 100%);">
+                    <canvas class="video-preview-art" id="neon-jackpot-preview"></canvas>
+                    <span class="vhs-rec">REC</span>
+                    <span class="vhs-timestamp">00:04:30</span>
+                    <div class="video-play-icon"><div class="play-triangle"></div></div>
+                </div>
+                <div class="video-info">
+                    <div class="video-title">NEON JACKPOT</div>
+                    <div class="video-song">Neon Jackpot</div>
+                    <p class="video-description">A night on the Vegas strip rendered in neon and gold. Smoky lounges give way to spinning slots and high-stakes poker before the ultimate jackpot eruption of coins, confetti, and light. Dawn breaks over the skyline as the neon signs flicker off one by one.</p>
+                    <div class="video-tags">
+                        <span class="video-tag highlight">JAZZ</span>
+                        <span class="video-tag highlight">CASINO</span>
+                        <span class="video-tag">NEON</span>
+                        <span class="video-tag">CANVAS</span>
+                        <span class="video-tag">BEAT SYNC</span>
+                    </div>
+                </div>
+            </a>
+
             <!-- Oasis of the Forgotten King -->
             <a href="../oasis-forgotten-king-video.html" class="video-card">
                 <div class="video-preview" style="background: linear-gradient(180deg, #1a1000, #3a2800, #4a8a40);">
@@ -1730,7 +1752,7 @@
             <div class="footer-readouts">
                 <div class="readout">
                     <span class="readout-label">TAPES</span>
-                    <span class="readout-value">051</span>
+                    <span class="readout-value">052</span>
                 </div>
                 <div class="readout">
                     <span class="readout-label">DECK</span>
@@ -3674,6 +3696,89 @@
         ctx.moveTo(bikeX + 16, bikeY);
         ctx.lineTo(bikeX - 16, bikeY - 1);
         ctx.stroke();
+    }
+    draw();
+    window.addEventListener('resize', draw);
+})();
+
+// neon-jackpot-preview — Neon Jackpot (casino neon, gold coin, slot machine 777, purple/gold)
+(function() {
+    var canvas = document.getElementById('neon-jackpot-preview');
+    if (!canvas) return;
+    function draw() {
+        var w = canvas.clientWidth;
+        var h = canvas.clientHeight;
+        var dpr = window.devicePixelRatio || 1;
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        var ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        // Purple/gold gradient bg
+        var bg = ctx.createLinearGradient(0, 0, 0, h);
+        bg.addColorStop(0, '#1a0a30');
+        bg.addColorStop(0.5, '#2a1050');
+        bg.addColorStop(1, '#0a0418');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+        // Light rays
+        ctx.save();
+        ctx.translate(w * 0.5, h * 0.45);
+        for (var i = 0; i < 8; i++) {
+            var a = (i / 8) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(a - 0.1) * w, Math.sin(a - 0.1) * w);
+            ctx.lineTo(Math.cos(a + 0.1) * w, Math.sin(a + 0.1) * w);
+            ctx.closePath();
+            ctx.fillStyle = 'rgba(255,215,0,0.04)';
+            ctx.fill();
+        }
+        ctx.restore();
+        // Gold coin
+        ctx.beginPath();
+        ctx.arc(w * 0.5, h * 0.42, h * 0.16, 0, Math.PI * 2);
+        var cg = ctx.createRadialGradient(w * 0.45, h * 0.36, 0, w * 0.5, h * 0.42, h * 0.16);
+        cg.addColorStop(0, '#fff0a0');
+        cg.addColorStop(0.5, '#ffd700');
+        cg.addColorStop(1, '#b8960f');
+        ctx.fillStyle = cg;
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        // $ on coin
+        ctx.fillStyle = 'rgba(122,96,8,0.5)';
+        ctx.font = 'bold ' + Math.floor(h * 0.18) + 'px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('$', w * 0.5, h * 0.43);
+        // Slot machine outline
+        var sw = w * 0.24, sh = h * 0.2;
+        var sx = w * 0.5 - sw / 2, sy = h * 0.34;
+        ctx.strokeStyle = 'rgba(255,215,0,0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(sx, sy, sw, sh);
+        // 7 7 7
+        ctx.fillStyle = '#cc2222';
+        ctx.font = 'bold ' + Math.floor(sh * 0.5) + 'px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('7  7  7', w * 0.5, sy + sh * 0.5);
+        // Neon text
+        ctx.shadowColor = '#ff2d78';
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = '#ff2d78';
+        ctx.font = 'bold ' + Math.floor(h * 0.09) + 'px monospace';
+        ctx.fillText('JACKPOT!', w * 0.5, h * 0.14);
+        ctx.shadowBlur = 0;
+        // Small confetti dots
+        var confColors = ['#ff2d78', '#00ccff', '#ffd700', '#44ff44', '#6b2fa0'];
+        for (var c = 0; c < 20; c++) {
+            ctx.fillStyle = confColors[c % confColors.length];
+            ctx.globalAlpha = 0.4 + Math.random() * 0.3;
+            ctx.fillRect(Math.random() * w, Math.random() * h, 2, 4);
+        }
+        ctx.globalAlpha = 1;
     }
     draw();
     window.addEventListener('resize', draw);

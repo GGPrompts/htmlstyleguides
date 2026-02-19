@@ -1,0 +1,3163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Jackpot — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0a0614;
+            color: #fff;
+            font-family: 'Playfair Display', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(10,6,20,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(22px, 5vw, 52px);
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255,215,0,0.5), 0 0 60px rgba(255,215,0,0.2);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 40px;
+            font-style: italic;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #ffd700;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #ffd700;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,215,0,0.35); }
+            50% { box-shadow: 0 0 0 20px rgba(255,215,0,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+            font-family: sans-serif;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="music-videos/index.html" class="back-link">&larr; Music Videos</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">NEON JACKPOT</div>
+        <div class="play-sub">a night on the strip</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Neon Jackpot Video Renderer ─────────────────────────────────
+    window.Renderers['neon-jackpot-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Colors ──
+        var BG_DEEP = '#0a0614';
+        var NEON_PINK = '#ff2d78';
+        var NEON_BLUE = '#00ccff';
+        var GOLD = '#ffd700';
+        var GOLD_DIM = '#b8960f';
+        var GOLD_LIGHT = '#fff0a0';
+        var AMBER = '#d4a04a';
+        var FELT_GREEN = '#1a6b3c';
+        var CARD_RED = '#cc2222';
+        var PURPLE_GLOW = '#6b2fa0';
+        var DAWN_ORANGE = '#ff8844';
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var lastSeqIndex = -1;
+        var currentScene = 0;
+        var prevScene = 0;
+        var sceneTransition = 0;
+        var sceneTime = 0;
+
+        // ── Coin state ──
+        var coinAngle = 0;
+        var coinSpin = 0.5;
+        var coinBounce = 0;
+        var coinShine = 0.5;
+
+        // ── Particle system ──
+        var particles = [];
+        var MAX_PARTICLES = 400;
+
+        // ── Star field ──
+        var stars = [];
+
+        // ── Neon signs (Strip scene) ──
+        var neonSigns = [];
+        var signsLitCount = 0;
+        var lastNoteForSign = -1;
+
+        // ── Title ──
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        // ── Strip scene ──
+        var stripZoom = 1.0;
+        var reflectionAlpha = 0;
+
+        // ── Flash ──
+        var flashAlpha = 0;
+
+        // ── Current notes (set each frame from frameData) ──
+        var currentNotes = [null, null, null, null];
+
+        // ── Lounge scene state ──
+        var loungeSmoke = [];
+        var MAX_LOUNGE_SMOKE = 80;
+        var loungeMusicians = [
+            { type: 'bass',    ch: 2, x: 0.12, bobPhase: 0,    bobAmp: 0 },
+            { type: 'piano',   ch: 1, x: 0.24, bobPhase: 0.5,  bobAmp: 0 },
+            { type: 'drums',   ch: 3, x: 0.32, bobPhase: 0.25, bobAmp: 0 },
+            { type: 'trumpet', ch: 0, x: 0.40, bobPhase: 0.75, bobAmp: 0 }
+        ];
+        var loungeFlicker = 0;
+
+        // ── Casino floor state ──
+        var slotMachines = [];
+        var flyingCards = [];
+        var MAX_FLYING_CARDS = 30;
+        var casinoChipStacks = [];
+        var slotSymbols = ['\u2660', '\u2666', '\u2663', '\u2665', '7', '\u2605', '$'];
+        var casinoCoinX = 0;
+        var casinoCoinVY = 0;
+
+        // ── Table scene state (Scene 3) ──
+        var tableCards = [];         // community cards {value, suit, faceUp, flipProgress, dealProgress, targetX, targetY}
+        var tableHoleCards = [];     // other players' face-down pairs [{x, y}]
+        var tablePotChips = [];      // chips in the pot {x, y, color, size}
+        var tableCardsDeal = 0;      // how many cards have been dealt so far
+        var tableLastBeatForDeal = -1;
+        var tableDealerAngle = 0;    // rotation for dealer chip indicator
+        var tableFeltShimmer = 0;
+
+        // ── All In scene state (Scene 4) ──
+        var allInEyes = [];          // watching eyes {x, y, blinkTimer, blinkDur, open}
+        var allInSweatDrops = [];    // {x, y, vy, alpha, life}
+        var allInDustMotes = [];     // {x, y, vx, vy, size, alpha, life}
+        var allInHeartbeat = 0;      // phase for heartbeat pulsing
+        var allInSpotlightSway = 0;  // slight sway offset
+        var allInChipPush = 0;       // animation progress for chip push
+        var allInBuildIntensity = 0; // rises through seq 14-17
+
+        // ── Jackpot scene state (Scene 5) ──
+        var jackpotCoins = [];       // falling gold coins {x, y, vy, size, spin, spinSpeed, alpha}
+        var jackpotConfetti = [];    // fluttering confetti {x, y, vy, vx, w, h, color, angle, angSpeed, driftPhase, alpha}
+        var jackpotRayAngle = 0;     // rotating light rays
+        var jackpotFlash = 0;        // beat-synced flash overlay
+        var jackpotCoinPile = [];    // coins settled at bottom {x, y, size}
+        var MAX_JACKPOT_COINS = 300;
+        var MAX_JACKPOT_CONFETTI = 200;
+        var jackpotNeonPhase = 0;    // neon color cycling
+        var jackpotSlotSpin = 0;     // reel animation offset
+
+        // ── Dawn scene state (Scene 6) ──
+        var dawnProgress = 0;        // 0-1 how far into dawn we are
+        var dawnSignsOff = 0;        // how many signs have turned off
+        var dawnCoinY = 0;           // descending coin Y position
+        var dawnCoinSpin = 0;        // slowing spin
+        var dawnFade = 0;            // final fade to black 0-1
+        var dawnStarAlpha = 1;       // fading stars
+
+        // ── Helpers ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function lerpExp(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+        function clamp(v, mn, mx) { return Math.max(mn, Math.min(mx, v)); }
+
+        function hexToRgb(hex) {
+            var r = parseInt(hex.slice(1, 3), 16);
+            var g = parseInt(hex.slice(3, 5), 16);
+            var b = parseInt(hex.slice(5, 7), 16);
+            return { r: r, g: g, b: b };
+        }
+
+        function rgba(hex, a) {
+            var c = hexToRgb(hex);
+            return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+        }
+
+        // ── Scene mapping ──
+        function getScene(seqIdx) {
+            if (seqIdx <= 1) return 0;   // The Strip (intro)
+            if (seqIdx <= 5) return 1;   // Smoky Lounge (verse A)
+            if (seqIdx <= 9) return 2;   // Casino Floor (chorus)
+            if (seqIdx <= 13) return 3;  // The Table (verse B)
+            if (seqIdx <= 17) return 4;  // All In (bridge)
+            if (seqIdx <= 23) return 5;  // JACKPOT! (final chorus)
+            return 6;                    // Neon Dawn (outro)
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── NEON TEXT SYSTEM ──
+        // ══════════════════════════════════════════════════════════════
+
+        function drawNeonText(ctx, text, x, y, size, color, glowIntensity) {
+            ctx.save();
+            ctx.font = '700 ' + size + 'px "Share Tech Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var gi = clamp(glowIntensity, 0, 1);
+
+            // Outer glow layers
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 30 * gi;
+            ctx.fillStyle = rgba(color, 0.15 * gi);
+            ctx.fillText(text, x, y);
+
+            ctx.shadowBlur = 18 * gi;
+            ctx.fillStyle = rgba(color, 0.4 * gi);
+            ctx.fillText(text, x, y);
+
+            // Core text
+            ctx.shadowBlur = 8 * gi;
+            ctx.fillStyle = rgba(color, 0.7 * gi + 0.3);
+            ctx.fillText(text, x, y);
+
+            // Bright center
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = '#ffffff';
+            ctx.fillStyle = rgba('#ffffff', 0.3 * gi);
+            ctx.fillText(text, x, y);
+
+            ctx.restore();
+        }
+
+        function drawNeonRect(ctx, x, y, w, h, color, glowIntensity) {
+            ctx.save();
+            var gi = clamp(glowIntensity, 0, 1);
+
+            // Outer glow
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 20 * gi;
+            ctx.strokeStyle = rgba(color, 0.5 * gi);
+            ctx.lineWidth = 4;
+            ctx.strokeRect(x, y, w, h);
+
+            // Inner bright line
+            ctx.shadowBlur = 8 * gi;
+            ctx.strokeStyle = rgba(color, 0.8 * gi + 0.2);
+            ctx.lineWidth = 2;
+            ctx.strokeRect(x, y, w, h);
+
+            // White core
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = rgba('#ffffff', 0.15 * gi);
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+
+            ctx.restore();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── PARTICLE SYSTEM ──
+        // ══════════════════════════════════════════════════════════════
+
+        function spawnParticles(count, x, y, opts) {
+            opts = opts || {};
+            var color = opts.color || GOLD;
+            var speedMin = opts.speedMin || 20;
+            var speedMax = opts.speedMax || 80;
+            var sizeMin = opts.sizeMin || 1;
+            var sizeMax = opts.sizeMax || 3;
+            var decayMin = opts.decayMin || 0.3;
+            var decayMax = opts.decayMax || 0.8;
+            var dirAngle = opts.dirAngle !== undefined ? opts.dirAngle : null;
+            var dirSpread = opts.dirSpread !== undefined ? opts.dirSpread : Math.PI * 2;
+            var gravity = opts.gravity !== undefined ? opts.gravity : 0;
+
+            for (var i = 0; i < count; i++) {
+                if (particles.length >= MAX_PARTICLES) break;
+                var angle = dirAngle !== null
+                    ? dirAngle + (Math.random() - 0.5) * dirSpread
+                    : Math.random() * Math.PI * 2;
+                var speed = speedMin + Math.random() * (speedMax - speedMin);
+                particles.push({
+                    x: x + (Math.random() - 0.5) * 4,
+                    y: y + (Math.random() - 0.5) * 4,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    size: sizeMin + Math.random() * (sizeMax - sizeMin),
+                    alpha: 0.7 + Math.random() * 0.3,
+                    life: 1.0,
+                    decay: decayMin + Math.random() * (decayMax - decayMin),
+                    color: color,
+                    gravity: gravity
+                });
+            }
+        }
+
+        function updateParticles(dt) {
+            for (var i = particles.length - 1; i >= 0; i--) {
+                var p = particles[i];
+                p.vy += p.gravity * dt;
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= p.decay * dt;
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+
+        function drawParticles(ctx) {
+            ctx.save();
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                var a = p.alpha * p.life;
+                if (a < 0.01) continue;
+                ctx.globalAlpha = a;
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = p.color;
+                ctx.shadowBlur = p.size * 2;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+            ctx.restore();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── STAR FIELD ──
+        // ══════════════════════════════════════════════════════════════
+
+        function initStars() {
+            stars = [];
+            for (var i = 0; i < 150; i++) {
+                stars.push({
+                    x: Math.random(),
+                    y: Math.random() * 0.55,
+                    size: 0.5 + Math.random() * 2.0,
+                    brightness: 0.3 + Math.random() * 0.7,
+                    twinkleSpeed: 1.5 + Math.random() * 3,
+                    twinklePhase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function drawStarField(ctx, time, energy, alpha) {
+            if (alpha < 0.01) return;
+            ctx.save();
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                var twinkle = 0.5 + 0.5 * Math.sin(time * s.twinkleSpeed + s.twinklePhase);
+                var bright = s.brightness * twinkle * (0.6 + energy * 0.4) * alpha;
+                if (bright < 0.02) continue;
+
+                var sx = s.x * W;
+                var sy = s.y * H;
+                var sz = s.size * (0.8 + energy * 0.3);
+
+                ctx.globalAlpha = bright;
+                ctx.fillStyle = '#e8e0ff';
+                ctx.beginPath();
+                ctx.arc(sx, sy, sz, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Bright star glow
+                if (s.brightness > 0.75 && sz > 1.2) {
+                    ctx.globalAlpha = bright * 0.15;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, sz * 3.5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── GOLD COIN ──
+        // ══════════════════════════════════════════════════════════════
+
+        function drawCoin(ctx, x, y, r, angle, shine, pulse) {
+            var scaleX = Math.abs(Math.cos(angle));
+            if (scaleX < 0.1) scaleX = 0.1;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scaleX, 1);
+
+            // Outer ring with gold gradient
+            var grad = ctx.createRadialGradient(0, -r * 0.3, r * 0.1, 0, 0, r);
+            grad.addColorStop(0, GOLD_LIGHT);
+            grad.addColorStop(0.4, GOLD);
+            grad.addColorStop(0.75, GOLD_DIM);
+            grad.addColorStop(1, '#7a6008');
+
+            ctx.beginPath();
+            ctx.arc(0, 0, r, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.shadowColor = GOLD;
+            ctx.shadowBlur = 15 + pulse * 25;
+            ctx.fill();
+
+            // Inner ring
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(0, 0, r * 0.82, 0, Math.PI * 2);
+            ctx.strokeStyle = rgba(GOLD_DIM, 0.6);
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Dollar sign
+            ctx.fillStyle = rgba('#7a6008', 0.5 + shine * 0.3);
+            ctx.font = 'bold ' + Math.floor(r * 1.2) + 'px serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('$', 0, 1);
+
+            // Shine highlight
+            if (shine > 0) {
+                ctx.beginPath();
+                ctx.arc(-r * 0.25, -r * 0.25, r * 0.35 * shine, 0, Math.PI * 2);
+                ctx.fillStyle = rgba('#ffffff', 0.35 * shine);
+                ctx.fill();
+            }
+
+            ctx.restore();
+
+            // Glint rays on strong beats
+            if (pulse > 0.3) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.strokeStyle = rgba(GOLD_LIGHT, pulse * 0.6);
+                ctx.lineWidth = 2;
+                for (var i = 0; i < 6; i++) {
+                    var a = (i / 6) * Math.PI * 2 + angle * 2;
+                    var inner = r * 1.2;
+                    var outer = r * (1.5 + pulse * 0.6);
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(a) * inner, Math.sin(a) * inner);
+                    ctx.lineTo(Math.cos(a) * outer, Math.sin(a) * outer);
+                    ctx.stroke();
+                }
+                ctx.restore();
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── NEON SIGN DEFINITIONS (Strip Scene) ──
+        // ══════════════════════════════════════════════════════════════
+
+        function initNeonSigns() {
+            neonSigns = [
+                { text: 'CASINO',   x: 0.12, y: 0.38, size: 0.035, color: NEON_PINK, borderW: 0.09, borderH: 0.06, lit: 0, flicker: 0 },
+                { text: 'JACKPOT',  x: 0.35, y: 0.32, size: 0.030, color: GOLD,      borderW: 0.10, borderH: 0.05, lit: 0, flicker: 0 },
+                { text: '777',      x: 0.55, y: 0.42, size: 0.045, color: NEON_BLUE,  borderW: 0.06, borderH: 0.07, lit: 0, flicker: 0 },
+                { text: 'SLOTS',    x: 0.78, y: 0.35, size: 0.028, color: NEON_PINK,  borderW: 0.08, borderH: 0.05, lit: 0, flicker: 0 },
+                { text: '\u2660\u2666\u2663\u2665', x: 0.90, y: 0.45, size: 0.030, color: CARD_RED, borderW: 0.08, borderH: 0.05, lit: 0, flicker: 0 },
+                { text: 'LUCKY',    x: 0.22, y: 0.48, size: 0.024, color: NEON_BLUE,  borderW: 0.07, borderH: 0.04, lit: 0, flicker: 0 },
+                { text: 'BAR',      x: 0.65, y: 0.50, size: 0.032, color: PURPLE_GLOW, borderW: 0.06, borderH: 0.05, lit: 0, flicker: 0 }
+            ];
+            signsLitCount = 0;
+            lastNoteForSign = -1;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── SCENE 0: THE STRIP (seq 0-1) ──
+        // ══════════════════════════════════════════════════════════════
+
+        function drawStripScene(ctx, dt, cursor, energy, bp) {
+            var elapsed = cursor ? cursor.elapsed : 0;
+            var seqIdx = cursor ? cursor.seqIndex : 0;
+
+            // ── Night sky gradient ──
+            var skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.6);
+            skyGrad.addColorStop(0, '#050210');
+            skyGrad.addColorStop(0.4, '#0a0614');
+            skyGrad.addColorStop(0.7, '#120a24');
+            skyGrad.addColorStop(1, '#1a0e30');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Stars ──
+            drawStarField(ctx, elapsed, energy, 1);
+
+            // ── Purple atmospheric haze along horizon ──
+            var hazeGrad = ctx.createLinearGradient(0, H * 0.35, 0, H * 0.65);
+            hazeGrad.addColorStop(0, 'rgba(107,47,160,0)');
+            hazeGrad.addColorStop(0.5, rgba(PURPLE_GLOW, 0.06 + energy * 0.04));
+            hazeGrad.addColorStop(1, 'rgba(107,47,160,0)');
+            ctx.fillStyle = hazeGrad;
+            ctx.fillRect(0, H * 0.35, W, H * 0.3);
+
+            // ── Zoom effect in seq 1 ──
+            var targetZoom = seqIdx >= 1 ? 1.06 : 1.0;
+            stripZoom = lerpExp(stripZoom, targetZoom, 0.8, dt);
+
+            ctx.save();
+            // Apply subtle zoom centered on bottom-center
+            var zoomCX = W * 0.5;
+            var zoomCY = H * 0.75;
+            ctx.translate(zoomCX, zoomCY);
+            ctx.scale(stripZoom, stripZoom);
+            ctx.translate(-zoomCX, -zoomCY);
+
+            // ── Vegas skyline silhouette ──
+            drawSkyline(ctx, elapsed, energy);
+
+            // ── Neon signs on buildings ──
+            drawNeonSigns(ctx, elapsed, energy, bp, cursor);
+
+            ctx.restore();
+
+            // ── Ground / road ──
+            var groundY = H * 0.72;
+            var groundGrad = ctx.createLinearGradient(0, groundY, 0, H);
+            groundGrad.addColorStop(0, '#0c0818');
+            groundGrad.addColorStop(0.3, '#08050f');
+            groundGrad.addColorStop(1, '#040208');
+            ctx.fillStyle = groundGrad;
+            ctx.fillRect(0, groundY, W, H - groundY);
+
+            // ── Road center line ──
+            ctx.strokeStyle = rgba(GOLD_DIM, 0.15);
+            ctx.lineWidth = 2;
+            ctx.setLineDash([20, 15]);
+            ctx.beginPath();
+            ctx.moveTo(0, groundY + (H - groundY) * 0.5);
+            ctx.lineTo(W, groundY + (H - groundY) * 0.5);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // ── Neon reflections on ground ──
+            var targetReflection = seqIdx >= 1 ? 0.5 : 0.15;
+            reflectionAlpha = lerpExp(reflectionAlpha, targetReflection, 2, dt);
+            drawGroundReflections(ctx, groundY, energy);
+
+            // ── Gold coin in the sky (like a rising moon) ──
+            var coinR = Math.min(W, H) * 0.045;
+            var coinTargetY = seqIdx >= 1 ? H * 0.18 : H * 0.14;
+            var coinX = W * 0.5;
+            var coinY = coinTargetY + Math.sin(elapsed * 0.7) * 8;
+            drawCoin(ctx, coinX, coinY, coinR, coinAngle, coinShine, bp);
+
+            // ── Title card ──
+            drawStripTitle(ctx, elapsed, seqIdx);
+
+            // ── Particles (sparkles near signs) ──
+            drawParticles(ctx);
+        }
+
+        function drawSkyline(ctx, time, energy) {
+            var groundY = H * 0.72;
+
+            // Building definitions: x position (ratio), width (ratio), height (ratio from ground)
+            var buildings = [
+                { x: 0.00, w: 0.08, h: 0.22, type: 'block' },
+                { x: 0.07, w: 0.06, h: 0.30, type: 'tower' },
+                { x: 0.12, w: 0.10, h: 0.26, type: 'casino' },
+                { x: 0.21, w: 0.05, h: 0.18, type: 'block' },
+                { x: 0.25, w: 0.08, h: 0.35, type: 'tower' },
+                { x: 0.32, w: 0.12, h: 0.28, type: 'casino' },
+                { x: 0.43, w: 0.06, h: 0.20, type: 'block' },
+                { x: 0.48, w: 0.10, h: 0.38, type: 'tower' },
+                { x: 0.57, w: 0.08, h: 0.24, type: 'block' },
+                { x: 0.64, w: 0.11, h: 0.32, type: 'casino' },
+                { x: 0.74, w: 0.06, h: 0.26, type: 'tower' },
+                { x: 0.79, w: 0.09, h: 0.22, type: 'block' },
+                { x: 0.87, w: 0.07, h: 0.30, type: 'tower' },
+                { x: 0.93, w: 0.08, h: 0.20, type: 'block' }
+            ];
+
+            for (var i = 0; i < buildings.length; i++) {
+                var b = buildings[i];
+                var bx = b.x * W;
+                var bw = b.w * W;
+                var bh = b.h * H;
+                var by = groundY - bh;
+
+                // Building body - dark silhouette with slight purple tint
+                var bGrad = ctx.createLinearGradient(bx, by, bx, groundY);
+                bGrad.addColorStop(0, '#0e0820');
+                bGrad.addColorStop(0.5, '#0a0618');
+                bGrad.addColorStop(1, '#080412');
+                ctx.fillStyle = bGrad;
+
+                if (b.type === 'tower') {
+                    // Pointy tower top
+                    ctx.beginPath();
+                    ctx.moveTo(bx + bw * 0.35, by);
+                    ctx.lineTo(bx + bw * 0.5, by - bh * 0.12);
+                    ctx.lineTo(bx + bw * 0.65, by);
+                    ctx.lineTo(bx + bw, by);
+                    ctx.lineTo(bx + bw, groundY);
+                    ctx.lineTo(bx, groundY);
+                    ctx.lineTo(bx, by);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (b.type === 'casino') {
+                    // Casino with decorative rooftop
+                    ctx.fillRect(bx, by, bw, bh);
+                    // Rooftop ornament
+                    ctx.beginPath();
+                    ctx.moveTo(bx, by);
+                    ctx.lineTo(bx + bw * 0.2, by - bh * 0.06);
+                    ctx.lineTo(bx + bw * 0.5, by - bh * 0.08);
+                    ctx.lineTo(bx + bw * 0.8, by - bh * 0.06);
+                    ctx.lineTo(bx + bw, by);
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    // Simple block
+                    ctx.fillRect(bx, by, bw, bh);
+                }
+
+                // Window lights (small dots)
+                var windowRows = Math.floor(bh / 18);
+                var windowCols = Math.floor(bw / 14);
+                for (var wy = 0; wy < windowRows; wy++) {
+                    for (var wx = 0; wx < windowCols; wx++) {
+                        // Some windows lit, some dark
+                        var hash = (i * 17 + wy * 7 + wx * 31) % 10;
+                        if (hash < 4) continue;
+                        var winX = bx + 5 + wx * (bw - 10) / Math.max(1, windowCols);
+                        var winY = by + 8 + wy * (bh - 12) / Math.max(1, windowRows);
+                        var winAlpha = 0.1 + Math.sin(time * 0.5 + hash) * 0.05 + energy * 0.05;
+                        var winColor = hash > 7 ? NEON_PINK : hash > 5 ? NEON_BLUE : AMBER;
+                        ctx.fillStyle = rgba(winColor, winAlpha);
+                        ctx.fillRect(winX, winY, 3, 4);
+                    }
+                }
+
+                // Building edge highlight
+                ctx.strokeStyle = rgba(PURPLE_GLOW, 0.08 + energy * 0.04);
+                ctx.lineWidth = 1;
+                ctx.strokeRect(bx, by, bw, bh);
+            }
+        }
+
+        function drawNeonSigns(ctx, time, energy, bp, cursor) {
+            var seqIdx = cursor ? cursor.seqIndex : 0;
+            var currentNotes = null;
+
+            // In seq 0, light signs one by one with melody notes
+            if (seqIdx === 0 && cursor) {
+                // Check if channel 0 (melody) has a note on this row
+                var timelineIdx = cursor.timelineIndex;
+                if (analysis && analysis.timeline[timelineIdx]) {
+                    var melodyNote = analysis.timeline[timelineIdx][0];
+                    if (melodyNote && timelineIdx !== lastNoteForSign) {
+                        lastNoteForSign = timelineIdx;
+                        if (signsLitCount < neonSigns.length) {
+                            neonSigns[signsLitCount].lit = 0.01; // start lighting
+                            signsLitCount++;
+                        }
+                    }
+                }
+            } else if (seqIdx >= 1) {
+                // All signs on in seq 1+
+                for (var k = 0; k < neonSigns.length; k++) {
+                    if (neonSigns[k].lit < 0.01) {
+                        neonSigns[k].lit = 0.01;
+                    }
+                }
+                signsLitCount = neonSigns.length;
+            }
+
+            // Update and draw each sign
+            for (var i = 0; i < neonSigns.length; i++) {
+                var sign = neonSigns[i];
+                if (sign.lit <= 0) continue;
+
+                // Ramp up brightness
+                sign.lit = Math.min(1, sign.lit + dt * 1.5);
+
+                // Flicker effect (occasional)
+                sign.flicker = sign.flicker * 0.95;
+                if (Math.random() < 0.005) {
+                    sign.flicker = 0.5 + Math.random() * 0.5;
+                }
+
+                var intensity = sign.lit * (1 - sign.flicker * 0.3);
+                // Pulse on beat
+                intensity += bp * 0.3 * sign.lit;
+                intensity = clamp(intensity, 0, 1);
+
+                var sx = sign.x * W;
+                var sy = sign.y * H;
+                var fontSize = sign.size * Math.min(W, H);
+
+                // Draw border if defined
+                if (sign.borderW) {
+                    var bw = sign.borderW * W;
+                    var bh = sign.borderH * H;
+                    drawNeonRect(ctx, sx - bw * 0.5, sy - bh * 0.5, bw, bh, sign.color, intensity * 0.6);
+                }
+
+                // Draw sign text
+                drawNeonText(ctx, sign.text, sx, sy, fontSize, sign.color, intensity);
+
+                // Spawn sparkle on strong beats near lit signs
+                if (bp > 0.5 && sign.lit > 0.5 && Math.random() < 0.4) {
+                    spawnParticles(1, sx + (Math.random() - 0.5) * 30, sy + (Math.random() - 0.5) * 20, {
+                        color: sign.color,
+                        speedMin: 5,
+                        speedMax: 20,
+                        sizeMin: 1,
+                        sizeMax: 2,
+                        decayMin: 0.8,
+                        decayMax: 1.5,
+                        gravity: 15
+                    });
+                }
+            }
+        }
+
+        function drawGroundReflections(ctx, groundY, energy) {
+            if (reflectionAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (var i = 0; i < neonSigns.length; i++) {
+                var sign = neonSigns[i];
+                if (sign.lit < 0.1) continue;
+
+                var sx = sign.x * W;
+                var reflY = groundY + (H - groundY) * 0.3;
+                var reflSize = H * 0.18;
+
+                var reflGrad = ctx.createRadialGradient(sx, reflY, 0, sx, reflY, reflSize);
+                var alpha = reflectionAlpha * sign.lit * 0.08;
+                reflGrad.addColorStop(0, rgba(sign.color, alpha));
+                reflGrad.addColorStop(0.5, rgba(sign.color, alpha * 0.3));
+                reflGrad.addColorStop(1, rgba(sign.color, 0));
+                ctx.fillStyle = reflGrad;
+                ctx.fillRect(sx - reflSize, reflY - reflSize * 0.5, reflSize * 2, reflSize);
+            }
+
+            ctx.restore();
+        }
+
+        function drawStripTitle(ctx, elapsed, seqIdx) {
+            // Fade in during seq 0, fade out during seq 1
+            var target = 0;
+            if (seqIdx === 0) {
+                target = Math.min(1, elapsed * 0.5);
+            } else if (seqIdx === 1) {
+                target = 0;
+            }
+            titleTarget = target;
+            titleAlpha = lerpExp(titleAlpha, titleTarget, 3, 1 / 60);
+
+            if (titleAlpha < 0.01) return;
+
+            ctx.save();
+            var fontSize = Math.max(20, Math.min(W * 0.06, 64));
+
+            // "NEON JACKPOT" in glowing neon style
+            ctx.font = '700 ' + fontSize + 'px "Share Tech Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var tx = W * 0.5;
+            var ty = H * 0.28;
+
+            // Pink neon glow
+            ctx.globalAlpha = titleAlpha;
+            ctx.shadowColor = NEON_PINK;
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = rgba(NEON_PINK, 0.3);
+            ctx.fillText('NEON JACKPOT', tx, ty);
+
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = rgba(NEON_PINK, 0.7);
+            ctx.fillText('NEON JACKPOT', tx, ty);
+
+            // White core
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#ffffff';
+            ctx.fillStyle = rgba('#ffffff', 0.5 * titleAlpha);
+            ctx.fillText('NEON JACKPOT', tx, ty);
+
+            // Subtitle
+            var subSize = Math.max(10, Math.min(W * 0.02, 20));
+            ctx.font = subSize + 'px "Share Tech Mono", monospace';
+            ctx.shadowColor = NEON_BLUE;
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = rgba(NEON_BLUE, 0.6 * titleAlpha);
+            ctx.fillText('a night on the strip', tx, ty + fontSize * 0.7);
+
+            ctx.restore();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── CARD DRAWING HELPER ──
+        // ══════════════════════════════════════════════════════════════
+
+        function drawCard(ctx, x, y, w, h, faceUp, value, suit, flipProgress) {
+            // flipProgress: 0 = face down, 1 = face up
+            // scaleX simulates the flip rotation
+            var fp = clamp(flipProgress, 0, 1);
+            var showFace = fp > 0.5;
+            var scaleX = Math.abs(showFace ? (fp - 0.5) * 2 : (0.5 - fp) * 2);
+            if (scaleX < 0.05) scaleX = 0.05;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(scaleX, 1);
+
+            // Card body with rounded corners
+            var r = Math.min(w, h) * 0.08;
+            ctx.beginPath();
+            ctx.moveTo(-w * 0.5 + r, -h * 0.5);
+            ctx.lineTo(w * 0.5 - r, -h * 0.5);
+            ctx.quadraticCurveTo(w * 0.5, -h * 0.5, w * 0.5, -h * 0.5 + r);
+            ctx.lineTo(w * 0.5, h * 0.5 - r);
+            ctx.quadraticCurveTo(w * 0.5, h * 0.5, w * 0.5 - r, h * 0.5);
+            ctx.lineTo(-w * 0.5 + r, h * 0.5);
+            ctx.quadraticCurveTo(-w * 0.5, h * 0.5, -w * 0.5, h * 0.5 - r);
+            ctx.lineTo(-w * 0.5, -h * 0.5 + r);
+            ctx.quadraticCurveTo(-w * 0.5, -h * 0.5, -w * 0.5 + r, -h * 0.5);
+            ctx.closePath();
+
+            if (showFace) {
+                // Face up: white card
+                ctx.fillStyle = '#f0eadf';
+                ctx.fill();
+                ctx.strokeStyle = '#999';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Value and suit
+                var isRed = (suit === '\u2665' || suit === '\u2666');
+                var suitColor = isRed ? CARD_RED : '#1a1a1a';
+                var fontSize = Math.floor(h * 0.22);
+
+                // Top-left corner
+                ctx.fillStyle = suitColor;
+                ctx.font = 'bold ' + fontSize + 'px "Share Tech Mono", monospace';
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                ctx.fillText(value, -w * 0.38, -h * 0.4);
+                ctx.font = Math.floor(fontSize * 0.8) + 'px serif';
+                ctx.fillText(suit, -w * 0.38, -h * 0.4 + fontSize * 1.0);
+
+                // Center suit (large)
+                ctx.font = Math.floor(h * 0.35) + 'px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(suit, 0, 0);
+            } else {
+                // Face down: dark card back with pattern
+                var backGrad = ctx.createLinearGradient(-w * 0.5, -h * 0.5, w * 0.5, h * 0.5);
+                backGrad.addColorStop(0, '#1a0a3a');
+                backGrad.addColorStop(0.5, '#2a1248');
+                backGrad.addColorStop(1, '#1a0a3a');
+                ctx.fillStyle = backGrad;
+                ctx.fill();
+
+                // Diamond pattern on back
+                ctx.strokeStyle = rgba(GOLD_DIM, 0.3);
+                ctx.lineWidth = 0.5;
+                var patternStep = w * 0.2;
+                for (var pi = -3; pi <= 3; pi++) {
+                    ctx.beginPath();
+                    ctx.moveTo(pi * patternStep, -h * 0.5);
+                    ctx.lineTo(pi * patternStep + h * 0.3, h * 0.5);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(pi * patternStep, -h * 0.5);
+                    ctx.lineTo(pi * patternStep - h * 0.3, h * 0.5);
+                    ctx.stroke();
+                }
+
+                // Border
+                ctx.strokeStyle = GOLD_DIM;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── SCENE STUBS (for other agents) ──
+        // ══════════════════════════════════════════════════════════════
+
+        function drawLoungeScene(ctx, dt, cursor, energy, bp) {
+            var elapsed = cursor ? cursor.elapsed : 0;
+
+            // ── Dark amber interior background ──
+            var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, '#1a0e08');
+            bgGrad.addColorStop(0.15, '#201208');
+            bgGrad.addColorStop(0.5, '#18100a');
+            bgGrad.addColorStop(1, '#0c0804');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Low ceiling line ──
+            var ceilY = H * 0.14;
+            ctx.fillStyle = '#0e0806';
+            ctx.fillRect(0, 0, W, ceilY);
+            ctx.strokeStyle = rgba(AMBER, 0.15);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, ceilY);
+            ctx.lineTo(W, ceilY);
+            ctx.stroke();
+
+            // ── Stage platform (left 40%) ──
+            var stageRight = W * 0.48;
+            var stageY = H * 0.78;
+            var stageGrad = ctx.createLinearGradient(0, stageY - 6, 0, stageY + 4);
+            stageGrad.addColorStop(0, '#2a1a0e');
+            stageGrad.addColorStop(0.5, '#1e1208');
+            stageGrad.addColorStop(1, '#140e06');
+            ctx.fillStyle = stageGrad;
+            ctx.fillRect(0, stageY - 4, stageRight, 10);
+
+            // ── Floor ──
+            var floorGrad = ctx.createLinearGradient(0, stageY, 0, H);
+            floorGrad.addColorStop(0, '#100c08');
+            floorGrad.addColorStop(1, '#080604');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, stageY + 6, W, H - stageY);
+
+            // ── Amber spotlight cones from ceiling ──
+            loungeFlicker = Math.sin(elapsed * 3.7) * 0.15 + Math.sin(elapsed * 7.1) * 0.08;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Main spotlight
+            var spot1X = W * 0.22;
+            var spotIntensity = (0.06 + energy * 0.05 + loungeFlicker * 0.02) * (0.7 + bp * 0.3);
+            var spotGrad = ctx.createRadialGradient(spot1X, ceilY, 0, spot1X, stageY, H * 0.5);
+            spotGrad.addColorStop(0, rgba(AMBER, spotIntensity * 1.5));
+            spotGrad.addColorStop(0.3, rgba(AMBER, spotIntensity * 0.6));
+            spotGrad.addColorStop(0.7, rgba('#8a5a20', spotIntensity * 0.15));
+            spotGrad.addColorStop(1, 'rgba(100,60,20,0)');
+            ctx.fillStyle = spotGrad;
+            ctx.beginPath();
+            ctx.moveTo(spot1X - 5, ceilY);
+            ctx.lineTo(spot1X - H * 0.35, stageY + H * 0.2);
+            ctx.lineTo(spot1X + H * 0.35, stageY + H * 0.2);
+            ctx.lineTo(spot1X + 5, ceilY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Second smaller spotlight
+            var spot2X = W * 0.36;
+            var spot2Grad = ctx.createRadialGradient(spot2X, ceilY, 0, spot2X, stageY, H * 0.35);
+            spot2Grad.addColorStop(0, rgba(AMBER, spotIntensity * 0.8));
+            spot2Grad.addColorStop(0.4, rgba(AMBER, spotIntensity * 0.3));
+            spot2Grad.addColorStop(1, 'rgba(100,60,20,0)');
+            ctx.fillStyle = spot2Grad;
+            ctx.beginPath();
+            ctx.moveTo(spot2X - 4, ceilY);
+            ctx.lineTo(spot2X - H * 0.22, stageY + H * 0.1);
+            ctx.lineTo(spot2X + H * 0.22, stageY + H * 0.1);
+            ctx.lineTo(spot2X + 4, ceilY);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+
+            // ── Bar area (right side) ──
+            var barLeft = W * 0.62;
+            var barTop = stageY - H * 0.06;
+            var barH = H * 0.06;
+
+            // Bar counter
+            ctx.fillStyle = '#2a1a0a';
+            ctx.fillRect(barLeft, barTop, W - barLeft - W * 0.04, barH);
+            ctx.strokeStyle = rgba(AMBER, 0.2);
+            ctx.lineWidth = 1;
+            ctx.strokeRect(barLeft, barTop, W - barLeft - W * 0.04, barH);
+
+            // Bar top highlight
+            ctx.fillStyle = rgba(GOLD_DIM, 0.15 + bp * 0.1);
+            ctx.fillRect(barLeft, barTop, W - barLeft - W * 0.04, 2);
+
+            // ── Bottle silhouettes on shelves behind bar ──
+            var shelfY1 = stageY - H * 0.22;
+            var shelfY2 = stageY - H * 0.36;
+
+            // Shelf lines
+            ctx.strokeStyle = rgba(AMBER, 0.08);
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(barLeft + 10, shelfY1);
+            ctx.lineTo(W - W * 0.06, shelfY1);
+            ctx.moveTo(barLeft + 10, shelfY2);
+            ctx.lineTo(W - W * 0.06, shelfY2);
+            ctx.stroke();
+
+            // Bottles (simple rectangles with round tops)
+            ctx.fillStyle = '#0e0a06';
+            var bottlePositions = [0.66, 0.70, 0.74, 0.79, 0.83, 0.88, 0.92];
+            for (var bi = 0; bi < bottlePositions.length; bi++) {
+                var bx = W * bottlePositions[bi];
+                var bw = W * 0.02;
+                var shelfBase = bi < 4 ? shelfY1 : shelfY2;
+                var bh = H * (0.06 + (bi % 3) * 0.015);
+                ctx.fillRect(bx, shelfBase - bh, bw, bh);
+                // Neck
+                ctx.fillRect(bx + bw * 0.25, shelfBase - bh - H * 0.02, bw * 0.5, H * 0.02);
+                // Label highlight
+                ctx.fillStyle = rgba(AMBER, 0.06);
+                ctx.fillRect(bx + 1, shelfBase - bh * 0.6, bw - 2, bh * 0.2);
+                ctx.fillStyle = '#0e0a06';
+            }
+
+            // ── Cocktail glasses on bar ──
+            ctx.strokeStyle = rgba(AMBER, 0.12);
+            ctx.lineWidth = 1;
+            // Glass 1 - martini
+            var g1x = W * 0.68;
+            ctx.beginPath();
+            ctx.moveTo(g1x - 8, barTop - 2);
+            ctx.lineTo(g1x, barTop - H * 0.04);
+            ctx.lineTo(g1x + 8, barTop - 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(g1x, barTop - 2);
+            ctx.lineTo(g1x, barTop);
+            ctx.stroke();
+            // Glass 2 - short tumbler
+            var g2x = W * 0.78;
+            ctx.strokeRect(g2x - 5, barTop - H * 0.025, 10, H * 0.025);
+
+            // ── Smoke system ──
+            // Spawn smoke near stage
+            if (Math.random() < 0.3 + energy * 0.4) {
+                if (loungeSmoke.length < MAX_LOUNGE_SMOKE) {
+                    loungeSmoke.push({
+                        x: W * (0.08 + Math.random() * 0.38),
+                        y: stageY - H * (0.1 + Math.random() * 0.3),
+                        vx: (Math.random() - 0.5) * 6,
+                        vy: -8 - Math.random() * 12,
+                        size: 3 + Math.random() * 5,
+                        alpha: 0.15 + Math.random() * 0.12,
+                        life: 1.0,
+                        decay: 0.06 + Math.random() * 0.1,
+                        curl: (Math.random() - 0.5) * 2
+                    });
+                }
+            }
+            // Extra smoke burst on beat
+            if (bp > 0.7 && loungeSmoke.length < MAX_LOUNGE_SMOKE - 3) {
+                for (var sb = 0; sb < 3; sb++) {
+                    loungeSmoke.push({
+                        x: W * (0.1 + Math.random() * 0.35),
+                        y: stageY - H * (0.2 + Math.random() * 0.2),
+                        vx: (Math.random() - 0.5) * 10,
+                        vy: -12 - Math.random() * 15,
+                        size: 4 + Math.random() * 6,
+                        alpha: 0.2 + Math.random() * 0.15,
+                        life: 1.0,
+                        decay: 0.08 + Math.random() * 0.1,
+                        curl: (Math.random() - 0.5) * 3
+                    });
+                }
+            }
+
+            // Update smoke
+            for (var si = loungeSmoke.length - 1; si >= 0; si--) {
+                var sp = loungeSmoke[si];
+                sp.vy *= 0.98;
+                sp.vx += Math.sin(sp.y * 0.008 + sp.curl + elapsed * 0.5) * 0.4;
+                sp.x += sp.vx * dt;
+                sp.y += sp.vy * dt;
+                sp.size += dt * 3.5;
+                sp.life -= sp.decay * dt;
+                if (sp.life <= 0 || sp.y < ceilY - 20) {
+                    loungeSmoke.splice(si, 1);
+                }
+            }
+
+            // Draw smoke
+            ctx.save();
+            for (var sdi = 0; sdi < loungeSmoke.length; sdi++) {
+                var sd = loungeSmoke[sdi];
+                var sa = sd.alpha * sd.life;
+                if (sa < 0.005) continue;
+                var sGrad = ctx.createRadialGradient(sd.x, sd.y, 0, sd.x, sd.y, sd.size);
+                sGrad.addColorStop(0, 'rgba(180,155,120,' + (sa * 0.5) + ')');
+                sGrad.addColorStop(0.5, 'rgba(140,120,90,' + (sa * 0.25) + ')');
+                sGrad.addColorStop(1, 'rgba(100,80,60,0)');
+                ctx.fillStyle = sGrad;
+                ctx.beginPath();
+                ctx.arc(sd.x, sd.y, sd.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // ── Musician silhouettes on stage ──
+            var musH = (stageY - ceilY) * 0.55;
+            var musBaseY = stageY - 4;
+
+            for (var mi = 0; mi < loungeMusicians.length; mi++) {
+                var mus = loungeMusicians[mi];
+                var note = currentNotes[mus.ch];
+                var targetAmp = note ? 1.0 : 0.2;
+                mus.bobAmp = lerpExp(mus.bobAmp, targetAmp, 6, dt);
+
+                var mx = W * mus.x;
+                var bob = Math.sin(elapsed * 1.5 + mus.bobPhase * Math.PI * 2) * 3 * mus.bobAmp;
+                var sway = Math.sin(elapsed * 0.8 + mus.bobPhase * Math.PI * 2) * 2 * mus.bobAmp;
+                var s = musH / 100;
+
+                ctx.save();
+                ctx.translate(mx + sway, musBaseY + bob);
+                ctx.fillStyle = 'rgba(12,8,4,0.92)';
+                ctx.strokeStyle = 'rgba(12,8,4,0.92)';
+                ctx.lineWidth = 2 * s;
+                ctx.lineCap = 'round';
+
+                if (mus.type === 'bass') {
+                    // Standing bass player with upright bass
+                    // Head
+                    ctx.beginPath();
+                    ctx.arc(0, -78 * s, 7 * s, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Body
+                    ctx.beginPath();
+                    ctx.ellipse(0, -58 * s, 9 * s, 14 * s, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Legs
+                    ctx.beginPath();
+                    ctx.moveTo(-3 * s, -44 * s);
+                    ctx.lineTo(-6 * s, 0);
+                    ctx.moveTo(3 * s, -44 * s);
+                    ctx.lineTo(7 * s, 0);
+                    ctx.stroke();
+                    // Arms
+                    ctx.beginPath();
+                    ctx.moveTo(-7 * s, -62 * s);
+                    ctx.lineTo(-20 * s, -52 * s);
+                    ctx.moveTo(7 * s, -62 * s);
+                    ctx.lineTo(14 * s, -48 * s);
+                    ctx.stroke();
+                    // Upright bass
+                    ctx.beginPath();
+                    ctx.ellipse(-22 * s, -38 * s, 11 * s, 18 * s, 0.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(-22 * s, -56 * s);
+                    ctx.lineTo(-18 * s, -90 * s);
+                    ctx.stroke();
+                    // Glow on note
+                    if (note) {
+                        ctx.globalAlpha = mus.bobAmp * 0.25;
+                        ctx.strokeStyle = AMBER;
+                        ctx.lineWidth = 1.5 * s;
+                        ctx.beginPath();
+                        ctx.ellipse(-22 * s, -38 * s, 12 * s, 19 * s, 0.1, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else if (mus.type === 'piano') {
+                    // Seated pianist
+                    ctx.beginPath();
+                    ctx.arc(3 * s, -56 * s, 7 * s, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(0, -40 * s, 9 * s, 12 * s, -0.1, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Legs on bench
+                    ctx.beginPath();
+                    ctx.moveTo(-4 * s, -28 * s);
+                    ctx.lineTo(-7 * s, -10 * s);
+                    ctx.lineTo(-4 * s, 0);
+                    ctx.moveTo(4 * s, -28 * s);
+                    ctx.lineTo(7 * s, -10 * s);
+                    ctx.lineTo(10 * s, 0);
+                    ctx.stroke();
+                    // Arms to keyboard
+                    var armBob = Math.sin(bp * Math.PI) * 3 * s * mus.bobAmp;
+                    ctx.beginPath();
+                    ctx.moveTo(-7 * s, -42 * s);
+                    ctx.lineTo(-16 * s, -30 * s + armBob);
+                    ctx.moveTo(7 * s, -42 * s);
+                    ctx.lineTo(18 * s, -30 * s - armBob);
+                    ctx.stroke();
+                    // Piano body
+                    ctx.fillRect(12 * s, -42 * s, 28 * s, 14 * s);
+                    // Keyboard glow
+                    if (note) {
+                        ctx.globalAlpha = mus.bobAmp * 0.35;
+                        ctx.fillStyle = AMBER;
+                        ctx.fillRect(12 * s, -30 * s, 28 * s, 2 * s);
+                    }
+                } else if (mus.type === 'drums') {
+                    // Seated drummer
+                    ctx.beginPath();
+                    ctx.arc(0, -54 * s, 7 * s, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(0, -38 * s, 9 * s, 11 * s, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(-5 * s, -27 * s);
+                    ctx.lineTo(-9 * s, 0);
+                    ctx.moveTo(5 * s, -27 * s);
+                    ctx.lineTo(9 * s, 0);
+                    ctx.stroke();
+                    // Arms with sticks
+                    var stickSwing = Math.sin(bp * Math.PI * 2) * 6 * s * mus.bobAmp;
+                    ctx.beginPath();
+                    ctx.moveTo(-7 * s, -42 * s);
+                    ctx.lineTo(-16 * s + stickSwing, -24 * s);
+                    ctx.lineTo(-20 * s + stickSwing, -20 * s);
+                    ctx.moveTo(7 * s, -42 * s);
+                    ctx.lineTo(14 * s - stickSwing, -22 * s);
+                    ctx.lineTo(18 * s - stickSwing, -18 * s);
+                    ctx.stroke();
+                    // Drums
+                    ctx.beginPath();
+                    ctx.ellipse(-18 * s, -18 * s, 9 * s, 3 * s, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(2 * s, -17 * s, 9 * s, 3.5 * s, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(18 * s, -21 * s, 10 * s, 3 * s, 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Cymbal shimmer
+                    if (note) {
+                        ctx.globalAlpha = mus.bobAmp * 0.2;
+                        ctx.strokeStyle = AMBER;
+                        ctx.lineWidth = 1 * s;
+                        ctx.beginPath();
+                        ctx.ellipse(18 * s, -21 * s, 12 * s, 4 * s, 0.2, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                } else if (mus.type === 'trumpet') {
+                    // Standing trumpet player
+                    ctx.beginPath();
+                    ctx.arc(-2 * s, -72 * s, 7 * s, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.ellipse(0, -52 * s, 9 * s, 14 * s, 0.05, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(-4 * s, -38 * s);
+                    ctx.lineTo(-5 * s, 0);
+                    ctx.moveTo(4 * s, -38 * s);
+                    ctx.lineTo(7 * s, 0);
+                    ctx.stroke();
+                    // Arms holding trumpet up
+                    ctx.beginPath();
+                    ctx.moveTo(-7 * s, -56 * s);
+                    ctx.lineTo(-10 * s, -50 * s);
+                    ctx.lineTo(5 * s, -62 * s);
+                    ctx.moveTo(7 * s, -56 * s);
+                    ctx.lineTo(12 * s, -55 * s);
+                    ctx.lineTo(5 * s, -62 * s);
+                    ctx.stroke();
+                    // Trumpet body
+                    ctx.lineWidth = 2.5 * s;
+                    ctx.beginPath();
+                    ctx.moveTo(5 * s, -62 * s);
+                    ctx.lineTo(25 * s, -60 * s);
+                    ctx.stroke();
+                    // Bell
+                    ctx.beginPath();
+                    ctx.ellipse(27 * s, -60 * s, 4 * s, 6 * s, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Sound glow when playing
+                    if (note) {
+                        ctx.globalAlpha = mus.bobAmp * 0.4;
+                        ctx.fillStyle = AMBER;
+                        var noteR = (3 + energy * 4) * s;
+                        ctx.beginPath();
+                        ctx.arc(30 * s, -60 * s, noteR, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                ctx.restore();
+            }
+
+            // ── Neon "LOUNGE" sign above bar ──
+            var signX = W * 0.75;
+            var signY = stageY - H * 0.42;
+            var signSize = Math.max(12, Math.min(W * 0.022, 22));
+            var signGlow = 0.6 + bp * 0.4;
+            drawNeonText(ctx, 'LOUNGE', signX, signY, signSize, NEON_PINK, signGlow);
+            drawNeonRect(ctx, signX - signSize * 2.5, signY - signSize * 0.8, signSize * 5, signSize * 1.6, NEON_BLUE, signGlow * 0.4);
+
+            // ── Gold coin on the bar counter ──
+            var coinR = Math.min(W, H) * 0.025;
+            var barCoinX = W * 0.72;
+            var barCoinY = barTop - coinR - 2;
+            // Shine pulse on beat
+            var barCoinShine = 0.3 + bp * 0.7;
+            drawCoin(ctx, barCoinX, barCoinY, coinR, coinAngle, barCoinShine, bp * 0.5);
+
+            // ── Sparkle particles near spotlights ──
+            if (bp > 0.4 && Math.random() < 0.5) {
+                spawnParticles(1, spot1X + (Math.random() - 0.5) * 40, ceilY + H * 0.1 + Math.random() * H * 0.2, {
+                    color: AMBER,
+                    speedMin: 3,
+                    speedMax: 15,
+                    sizeMin: 0.5,
+                    sizeMax: 1.5,
+                    decayMin: 0.6,
+                    decayMax: 1.2,
+                    gravity: 8
+                });
+            }
+
+            drawParticles(ctx);
+        }
+
+        function drawCasinoFloorScene(ctx, dt, cursor, energy, bp) {
+            var elapsed = cursor ? cursor.elapsed : 0;
+
+            // ── Background: dark floor fading to neon distance ──
+            var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, '#0a0414');
+            bgGrad.addColorStop(0.1, '#0e0618');
+            bgGrad.addColorStop(0.5, '#08041a');
+            bgGrad.addColorStop(1, '#040210');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Ceiling with recessed lighting pattern ──
+            var ceilY = H * 0.10;
+            ctx.fillStyle = '#060312';
+            ctx.fillRect(0, 0, W, ceilY);
+
+            // Recessed light strips
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var lightCount = 8;
+            for (var lc = 0; lc < lightCount; lc++) {
+                var lx = W * (lc + 0.5) / lightCount;
+                var lightAlpha = (0.03 + energy * 0.03 + bp * 0.04);
+                var lightGrad = ctx.createRadialGradient(lx, ceilY, 0, lx, ceilY, H * 0.3);
+                lightGrad.addColorStop(0, rgba(NEON_PINK, lightAlpha * 0.6));
+                lightGrad.addColorStop(0.3, rgba(NEON_BLUE, lightAlpha * 0.3));
+                lightGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = lightGrad;
+                ctx.fillRect(lx - H * 0.3, ceilY, H * 0.6, H * 0.3);
+            }
+            ctx.restore();
+
+            // ── Floor line ──
+            var floorY = H * 0.80;
+            var floorGrad = ctx.createLinearGradient(0, floorY, 0, H);
+            floorGrad.addColorStop(0, '#0c0616');
+            floorGrad.addColorStop(1, '#04020a');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, floorY, W, H - floorY);
+
+            // ── Floor reflections (polished floor) ──
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            // Pink/blue neon reflection pools on the floor
+            for (var fri = 0; fri < 5; fri++) {
+                var frx = W * (0.1 + fri * 0.2);
+                var frAlpha = (0.02 + bp * 0.03) * energy;
+                var frColor = fri % 2 === 0 ? NEON_PINK : NEON_BLUE;
+                var frGrad = ctx.createRadialGradient(frx, floorY + H * 0.06, 0, frx, floorY + H * 0.06, W * 0.08);
+                frGrad.addColorStop(0, rgba(frColor, frAlpha));
+                frGrad.addColorStop(1, rgba(frColor, 0));
+                ctx.fillStyle = frGrad;
+                ctx.fillRect(frx - W * 0.08, floorY, W * 0.16, H * 0.12);
+            }
+            ctx.restore();
+
+            // ── Background neon signs ──
+            var signGlow = 0.5 + bp * 0.5;
+            drawNeonText(ctx, 'SLOTS', W * 0.15, H * 0.18, Math.max(10, W * 0.025), NEON_PINK, signGlow);
+            drawNeonText(ctx, '$$$', W * 0.50, H * 0.14, Math.max(12, W * 0.030), GOLD, signGlow * 0.9);
+            drawNeonText(ctx, 'WIN', W * 0.82, H * 0.20, Math.max(14, W * 0.035), NEON_BLUE, signGlow);
+            drawNeonText(ctx, 'JACKPOT', W * 0.35, H * 0.22, Math.max(8, W * 0.018), NEON_PINK, signGlow * 0.7);
+            drawNeonText(ctx, '\u2660\u2665\u2666\u2663', W * 0.70, H * 0.17, Math.max(10, W * 0.020), CARD_RED, signGlow * 0.6);
+
+            // ── Crowd hints (faint silhouettes at machines) ──
+            ctx.fillStyle = 'rgba(8,4,16,0.7)';
+            var crowdPositions = [0.05, 0.22, 0.42, 0.60, 0.78, 0.93];
+            for (var cp = 0; cp < crowdPositions.length; cp++) {
+                var cx = W * crowdPositions[cp];
+                var cy = floorY;
+                var ch = H * (0.08 + (cp % 3) * 0.02);
+                // Simple seated/standing silhouette
+                ctx.beginPath();
+                ctx.ellipse(cx, cy - ch * 0.55, ch * 0.22, ch * 0.35, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(cx, cy - ch * 0.9, ch * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // ── Slot machines ──
+            var slotW = W * 0.10;
+            var slotH = H * 0.28;
+            var slotBaseY = floorY - slotH * 0.15;
+
+            for (var smi = 0; smi < slotMachines.length; smi++) {
+                var sm = slotMachines[smi];
+                var smx = W * sm.x;
+                var smy = slotBaseY;
+
+                // Update reels
+                for (var ri = 0; ri < 3; ri++) {
+                    var reel = sm.reels[ri];
+                    if (reel.spinning) {
+                        reel.offset += reel.spinSpeed * dt;
+                        reel.spinSpeed *= Math.exp(-1.5 * dt);
+                        if (reel.spinSpeed < 0.5) {
+                            reel.spinning = false;
+                            reel.offset = Math.round(reel.offset) % slotSymbols.length;
+                        }
+                    }
+                }
+
+                // Spin reels on beat
+                if (bp > 0.8 && !sm.reels[0].spinning) {
+                    for (var rsi = 0; rsi < 3; rsi++) {
+                        sm.reels[rsi].spinning = true;
+                        sm.reels[rsi].spinSpeed = 8 + Math.random() * 6 + rsi * 2;
+                    }
+                    sm.leverPull = 1;
+                }
+                sm.leverPull *= Math.exp(-5 * dt);
+
+                // Machine body
+                var bodyGrad = ctx.createLinearGradient(smx - slotW * 0.5, smy - slotH, smx + slotW * 0.5, smy);
+                bodyGrad.addColorStop(0, '#1a0828');
+                bodyGrad.addColorStop(0.5, '#120620');
+                bodyGrad.addColorStop(1, '#0a0414');
+                ctx.fillStyle = bodyGrad;
+                ctx.fillRect(smx - slotW * 0.5, smy - slotH, slotW, slotH);
+
+                // Neon trim
+                var trimGlow = 0.3 + bp * 0.3;
+                drawNeonRect(ctx, smx - slotW * 0.5, smy - slotH, slotW, slotH, smi % 2 === 0 ? NEON_PINK : NEON_BLUE, trimGlow);
+
+                // Screen area (3 reel windows)
+                var screenY = smy - slotH * 0.7;
+                var screenH = slotH * 0.35;
+                var screenW = slotW * 0.8;
+                ctx.fillStyle = '#04020a';
+                ctx.fillRect(smx - screenW * 0.5, screenY, screenW, screenH);
+
+                // Draw reel symbols
+                ctx.save();
+                ctx.beginPath();
+                ctx.rect(smx - screenW * 0.5, screenY, screenW, screenH);
+                ctx.clip();
+
+                var reelW = screenW / 3;
+                var symbolSize = Math.max(8, Math.min(reelW * 0.6, 18));
+                ctx.font = symbolSize + 'px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                for (var rdi = 0; rdi < 3; rdi++) {
+                    var rdReel = sm.reels[rdi];
+                    var rdx = smx - screenW * 0.5 + reelW * (rdi + 0.5);
+                    var symIdx = Math.floor(rdReel.offset) % slotSymbols.length;
+                    if (symIdx < 0) symIdx += slotSymbols.length;
+
+                    // Draw 3 visible symbols per reel (for scroll effect)
+                    var fracOff = rdReel.offset - Math.floor(rdReel.offset);
+                    for (var svi = -1; svi <= 1; svi++) {
+                        var drawIdx = (symIdx + svi + slotSymbols.length) % slotSymbols.length;
+                        var drawY = screenY + screenH * 0.5 + svi * screenH * 0.35 - fracOff * screenH * 0.35;
+                        if (drawY < screenY - symbolSize || drawY > screenY + screenH + symbolSize) continue;
+                        ctx.fillStyle = svi === 0 ? GOLD : rgba(GOLD, 0.4);
+                        ctx.fillText(slotSymbols[drawIdx], rdx, drawY);
+                    }
+                }
+                ctx.restore();
+
+                // Lever
+                var leverX = smx + slotW * 0.5 + 4;
+                var leverTopY = smy - slotH * 0.6;
+                var leverLen = slotH * 0.25;
+                var leverAngle = -0.3 + sm.leverPull * 0.6;
+                ctx.strokeStyle = '#444';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(leverX, leverTopY);
+                ctx.lineTo(leverX + Math.sin(leverAngle) * leverLen, leverTopY + Math.cos(leverAngle) * leverLen);
+                ctx.stroke();
+                // Lever ball
+                ctx.fillStyle = CARD_RED;
+                ctx.beginPath();
+                ctx.arc(leverX + Math.sin(leverAngle) * leverLen, leverTopY + Math.cos(leverAngle) * leverLen, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // ── Chip stacks ──
+            for (var csi = 0; csi < casinoChipStacks.length; csi++) {
+                var stack = casinoChipStacks[csi];
+                stack.bounce = stack.bounce * Math.exp(-6 * dt);
+                if (bp > 0.6) stack.bounce = 1;
+
+                var stackX = W * stack.x;
+                var stackBaseY = floorY - 4;
+                var chipH = 4;
+                var chipW = 16;
+                var numChips = stack.baseHeight + Math.floor(energy * 3);
+                var bounceOff = stack.bounce * 3;
+
+                for (var chi = 0; chi < numChips; chi++) {
+                    var chipY = stackBaseY - chi * chipH - (chi > 0 ? bounceOff * (chi / numChips) : 0);
+                    var chipColor = stack.color;
+                    ctx.fillStyle = rgba(chipColor, 0.7);
+                    ctx.beginPath();
+                    ctx.ellipse(stackX, chipY, chipW * 0.5, chipH * 0.6, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Edge highlight
+                    ctx.strokeStyle = rgba(chipColor, 0.3);
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                }
+            }
+
+            // ── Flying cards ──
+            // Spawn cards on beat
+            if (bp > 0.6) {
+                var cardCount = 1 + Math.floor(energy * 2);
+                for (var fci = 0; fci < cardCount; fci++) {
+                    if (flyingCards.length >= MAX_FLYING_CARDS) break;
+                    var fromLeft = Math.random() > 0.5;
+                    flyingCards.push({
+                        x: fromLeft ? -20 : W + 20,
+                        y: H * (0.2 + Math.random() * 0.4),
+                        vx: (fromLeft ? 1 : -1) * (150 + Math.random() * 200),
+                        vy: (Math.random() - 0.5) * 60,
+                        rotation: Math.random() * Math.PI * 2,
+                        rotSpeed: (Math.random() - 0.5) * 8,
+                        suit: ['\u2660', '\u2665', '\u2666', '\u2663'][Math.floor(Math.random() * 4)],
+                        life: 1.0,
+                        decay: 0.3 + Math.random() * 0.2,
+                        w: 14 + Math.random() * 6,
+                        h: 20 + Math.random() * 8
+                    });
+                }
+            }
+
+            // Update flying cards
+            for (var uci = flyingCards.length - 1; uci >= 0; uci--) {
+                var card = flyingCards[uci];
+                card.x += card.vx * dt;
+                card.y += card.vy * dt;
+                card.rotation += card.rotSpeed * dt;
+                card.life -= card.decay * dt;
+                if (card.life <= 0 || card.x < -50 || card.x > W + 50) {
+                    flyingCards.splice(uci, 1);
+                }
+            }
+
+            // Draw flying cards
+            ctx.save();
+            for (var dci = 0; dci < flyingCards.length; dci++) {
+                var dc = flyingCards[dci];
+                var cardAlpha = dc.life;
+                if (cardAlpha < 0.02) continue;
+
+                ctx.save();
+                ctx.translate(dc.x, dc.y);
+                ctx.rotate(dc.rotation);
+                ctx.globalAlpha = cardAlpha;
+
+                // Card background
+                ctx.fillStyle = '#f0e8d8';
+                ctx.fillRect(-dc.w * 0.5, -dc.h * 0.5, dc.w, dc.h);
+
+                // Card border
+                ctx.strokeStyle = '#888';
+                ctx.lineWidth = 0.5;
+                ctx.strokeRect(-dc.w * 0.5, -dc.h * 0.5, dc.w, dc.h);
+
+                // Suit symbol
+                var suitColor = (dc.suit === '\u2665' || dc.suit === '\u2666') ? CARD_RED : '#222';
+                ctx.fillStyle = suitColor;
+                ctx.font = Math.floor(dc.w * 0.6) + 'px serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dc.suit, 0, 0);
+
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // ── Gold coin bouncing across the floor ──
+            casinoCoinX += W * 0.04 * dt;
+            if (casinoCoinX > W + 40) casinoCoinX = -40;
+            casinoCoinVY += bp * 5;
+            casinoCoinVY *= Math.exp(-3 * dt);
+
+            var coinR = Math.min(W, H) * 0.035;
+            var coinY = floorY - coinR - 10 - Math.abs(Math.sin(elapsed * 4 + casinoCoinX * 0.01)) * (20 + casinoCoinVY * 5);
+            drawCoin(ctx, casinoCoinX, coinY, coinR, coinAngle * 1.5, coinShine, bp);
+
+            // ── Extra neon glow bursts on strong beats ──
+            if (bp > 0.3) {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                var burstAlpha = bp * 0.03 * energy;
+                var burstGrad = ctx.createRadialGradient(W * 0.5, H * 0.4, 0, W * 0.5, H * 0.4, W * 0.5);
+                burstGrad.addColorStop(0, rgba(NEON_PINK, burstAlpha));
+                burstGrad.addColorStop(0.5, rgba(NEON_BLUE, burstAlpha * 0.5));
+                burstGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = burstGrad;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // ── Sparkle particles ──
+            if (bp > 0.3 && Math.random() < 0.6 + energy * 0.4) {
+                var sparkColor = [NEON_PINK, NEON_BLUE, GOLD][Math.floor(Math.random() * 3)];
+                spawnParticles(2, W * Math.random(), H * (0.15 + Math.random() * 0.5), {
+                    color: sparkColor,
+                    speedMin: 10,
+                    speedMax: 40,
+                    sizeMin: 1,
+                    sizeMax: 2.5,
+                    decayMin: 0.5,
+                    decayMax: 1.2,
+                    gravity: 20
+                });
+            }
+
+            drawParticles(ctx);
+        }
+
+        function drawTableScene(ctx, dt, cursor, energy, bp) {
+            var elapsed = cursor ? cursor.elapsed : 0;
+            var seqIdx = cursor ? cursor.seqIndex : 0;
+
+            // ── Dark room background ──
+            var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, '#060408');
+            bgGrad.addColorStop(0.3, '#0a0810');
+            bgGrad.addColorStop(0.7, '#080610');
+            bgGrad.addColorStop(1, '#040306');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Overhead light on table ──
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var lightX = W * 0.5;
+            var lightY = H * 0.38;
+            var lightR = Math.min(W, H) * 0.55;
+            var lightAlpha = 0.06 + energy * 0.04 + bp * 0.02;
+            var lightGrad = ctx.createRadialGradient(lightX, lightY, 0, lightX, lightY, lightR);
+            lightGrad.addColorStop(0, rgba(AMBER, lightAlpha * 1.5));
+            lightGrad.addColorStop(0.4, rgba(AMBER, lightAlpha * 0.5));
+            lightGrad.addColorStop(0.8, rgba('#5a3a1a', lightAlpha * 0.15));
+            lightGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = lightGrad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+
+            // ── TABLE: perspective oval (wider at bottom, narrower at top) ──
+            var tableW = W * 0.78;
+            var tableH = H * 0.52;
+            var tableCX = W * 0.5;
+            var tableCY = H * 0.46;
+
+            // Dark wood rail (outer)
+            ctx.save();
+            ctx.beginPath();
+            ctx.ellipse(tableCX, tableCY, tableW * 0.52, tableH * 0.52, 0, 0, Math.PI * 2);
+            var railGrad = ctx.createLinearGradient(tableCX - tableW * 0.5, tableCY, tableCX + tableW * 0.5, tableCY);
+            railGrad.addColorStop(0, '#2a1408');
+            railGrad.addColorStop(0.3, '#3a2010');
+            railGrad.addColorStop(0.5, '#4a2a14');
+            railGrad.addColorStop(0.7, '#3a2010');
+            railGrad.addColorStop(1, '#2a1408');
+            ctx.fillStyle = railGrad;
+            ctx.fill();
+            // Wood edge highlight
+            ctx.strokeStyle = rgba(AMBER, 0.2);
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            ctx.restore();
+
+            // Green felt surface (inner)
+            ctx.save();
+            ctx.beginPath();
+            ctx.ellipse(tableCX, tableCY, tableW * 0.46, tableH * 0.46, 0, 0, Math.PI * 2);
+            var feltGrad = ctx.createRadialGradient(tableCX, tableCY - tableH * 0.1, 0, tableCX, tableCY, tableW * 0.46);
+            feltGrad.addColorStop(0, '#1f7a45');
+            feltGrad.addColorStop(0.5, FELT_GREEN);
+            feltGrad.addColorStop(1, '#145830');
+            ctx.fillStyle = feltGrad;
+            ctx.fill();
+            ctx.restore();
+
+            // ── Felt texture / shimmer ──
+            tableFeltShimmer = lerpExp(tableFeltShimmer, energy, 3, dt);
+            if (tableFeltShimmer > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = tableFeltShimmer * 0.08;
+                ctx.globalCompositeOperation = 'lighter';
+                var shimGrad = ctx.createRadialGradient(
+                    tableCX + Math.sin(elapsed * 0.8) * tableW * 0.1,
+                    tableCY + Math.cos(elapsed * 0.6) * tableH * 0.08,
+                    0, tableCX, tableCY, tableW * 0.4
+                );
+                shimGrad.addColorStop(0, '#44cc66');
+                shimGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = shimGrad;
+                ctx.beginPath();
+                ctx.ellipse(tableCX, tableCY, tableW * 0.46, tableH * 0.46, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // ── Felt grain lines (subtle) ──
+            ctx.save();
+            ctx.beginPath();
+            ctx.ellipse(tableCX, tableCY, tableW * 0.46, tableH * 0.46, 0, 0, Math.PI * 2);
+            ctx.clip();
+            ctx.strokeStyle = rgba('#0a3a1c', 0.15);
+            ctx.lineWidth = 0.5;
+            for (var gi = 0; gi < 20; gi++) {
+                var gy = tableCY - tableH * 0.4 + gi * tableH * 0.04;
+                ctx.beginPath();
+                ctx.moveTo(tableCX - tableW * 0.5, gy + Math.sin(gi * 1.3) * 2);
+                ctx.lineTo(tableCX + tableW * 0.5, gy + Math.sin(gi * 1.7 + 1) * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // ── Player positions (face-down hole cards around perimeter) ──
+            var playerAngles = [-0.55, -0.25, 0.25, 0.55, 0];  // bottom-left, left, right, bottom-right, top(dealer)
+            var hcW = Math.min(W, H) * 0.035;
+            var hcH = hcW * 1.4;
+            for (var pi = 0; pi < playerAngles.length; pi++) {
+                var pa = playerAngles[pi] * Math.PI + Math.PI * 0.5;
+                var pDist = (pi === 4) ? 0.48 : 0.50;
+                var px = tableCX + Math.cos(pa) * tableW * pDist;
+                var py = tableCY + Math.sin(pa) * tableH * pDist;
+
+                if (pi < 4) {
+                    // Two face-down hole cards, slightly overlapping and angled
+                    drawCard(ctx, px - hcW * 0.35, py, hcW, hcH, false, '', '', 0);
+                    drawCard(ctx, px + hcW * 0.35, py, hcW, hcH, false, '', '', 0);
+                }
+
+                // Dealer chip at dealer position (top)
+                if (pi === 4) {
+                    ctx.save();
+                    tableDealerAngle += dt * 0.3;
+                    ctx.beginPath();
+                    ctx.arc(px, py, hcW * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = '#eee';
+                    ctx.fill();
+                    ctx.strokeStyle = '#888';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                    ctx.fillStyle = '#333';
+                    ctx.font = 'bold ' + Math.floor(hcW * 0.55) + 'px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('D', px, py + 1);
+                    ctx.restore();
+                }
+            }
+
+            // ── Deal community cards on beats ──
+            var dealerX = tableCX;
+            var dealerY = tableCY - tableH * 0.35;
+            var cardW = Math.min(W, H) * 0.06;
+            var cardH = cardW * 1.45;
+            var cardSpacing = cardW * 1.25;
+            var cardsStartX = tableCX - cardSpacing * 2;
+
+            // Progress dealing based on scene time and beats
+            var sceneProgress = (seqIdx - 10) / 4.0; // 0 to ~1 across seq 10-13
+            var targetDealt = Math.min(5, Math.floor(sceneProgress * 8) + 1);
+
+            // Deal new cards on beat
+            if (bp > 0.7 && tableCardsDeal < targetDealt && tableCardsDeal < 5) {
+                var cardValues = ['A', 'K', 'Q', 'J', '10'];
+                var cardSuits = ['\u2660', '\u2665', '\u2666', '\u2663', '\u2660'];
+                var ci = tableCardsDeal;
+                var targetX = cardsStartX + ci * cardSpacing;
+                var targetY = tableCY - cardH * 0.1;
+                tableCards.push({
+                    value: cardValues[ci],
+                    suit: cardSuits[ci],
+                    faceUp: false,
+                    flipProgress: 0,
+                    dealProgress: 0,
+                    startX: dealerX,
+                    startY: dealerY,
+                    targetX: targetX,
+                    targetY: targetY
+                });
+                tableCardsDeal++;
+            }
+
+            // Update and draw community cards
+            for (var tci = 0; tci < tableCards.length; tci++) {
+                var tc = tableCards[tci];
+
+                // Animate deal (slide in from dealer)
+                tc.dealProgress = Math.min(1, tc.dealProgress + dt * 3.0);
+                var dealEase = 1 - Math.pow(1 - tc.dealProgress, 3); // ease-out cubic
+                var cx = lerp(tc.startX, tc.targetX, dealEase);
+                var cy = lerp(tc.startY, tc.targetY, dealEase);
+
+                // Start flip after deal completes
+                if (tc.dealProgress > 0.8 && !tc.faceUp) {
+                    tc.flipProgress = Math.min(1, tc.flipProgress + dt * 2.5);
+                    if (tc.flipProgress >= 1) tc.faceUp = true;
+                }
+
+                drawCard(ctx, cx, cy, cardW, cardH, true, tc.value, tc.suit, tc.faceUp ? 1 : tc.flipProgress);
+
+                // Sparkle when card flips
+                if (tc.flipProgress > 0.4 && tc.flipProgress < 0.6) {
+                    spawnParticles(2, cx, cy, {
+                        color: GOLD,
+                        speedMin: 15,
+                        speedMax: 40,
+                        sizeMin: 1,
+                        sizeMax: 2,
+                        decayMin: 1.0,
+                        decayMax: 1.5,
+                        gravity: 10
+                    });
+                }
+            }
+
+            // ── Pot chips in the center ──
+            // Grow pot over time
+            var potSize = Math.floor(3 + sceneProgress * 8 + energy * 3);
+            while (tablePotChips.length < potSize && tablePotChips.length < 20) {
+                var chipColors = [CARD_RED, NEON_BLUE, GOLD, '#2a8a4a', PURPLE_GLOW];
+                tablePotChips.push({
+                    x: tableCX + (Math.random() - 0.5) * cardSpacing * 1.5,
+                    y: tableCY + cardH * 0.5 + Math.random() * cardH * 0.4,
+                    color: chipColors[Math.floor(Math.random() * chipColors.length)],
+                    size: 6 + Math.random() * 4
+                });
+            }
+
+            // Draw pot chips
+            for (var pci = 0; pci < tablePotChips.length; pci++) {
+                var pc = tablePotChips[pci];
+                var chipBounce = bp > 0.5 ? Math.sin(bp * Math.PI) * 2 : 0;
+                ctx.save();
+                ctx.beginPath();
+                ctx.ellipse(pc.x, pc.y - chipBounce, pc.size, pc.size * 0.45, 0, 0, Math.PI * 2);
+                ctx.fillStyle = rgba(pc.color, 0.8);
+                ctx.fill();
+                ctx.strokeStyle = rgba('#ffffff', 0.2);
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+                // Stripe on chip
+                ctx.beginPath();
+                ctx.ellipse(pc.x, pc.y - chipBounce, pc.size * 0.6, pc.size * 0.28, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = rgba('#ffffff', 0.15);
+                ctx.lineWidth = 1;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // ── Gold coin resting among pot chips ──
+            var potCoinR = Math.min(W, H) * 0.025;
+            var potCoinX = tableCX + cardSpacing * 0.3;
+            var potCoinY = tableCY + cardH * 0.6;
+            var potCoinPulse = bp * 0.5;
+            drawCoin(ctx, potCoinX, potCoinY, potCoinR, coinAngle, 0.5 + bp * 0.5, potCoinPulse);
+
+            // ── Chips sliding to pot on beat ──
+            if (bp > 0.6 && Math.random() < 0.4) {
+                var slideFrom = playerAngles[Math.floor(Math.random() * 4)];
+                var sfAngle = slideFrom * Math.PI + Math.PI * 0.5;
+                var sfx = tableCX + Math.cos(sfAngle) * tableW * 0.35;
+                var sfy = tableCY + Math.sin(sfAngle) * tableH * 0.35;
+                spawnParticles(3, sfx, sfy, {
+                    color: [CARD_RED, GOLD, NEON_BLUE][Math.floor(Math.random() * 3)],
+                    speedMin: 30,
+                    speedMax: 60,
+                    sizeMin: 2,
+                    sizeMax: 4,
+                    decayMin: 0.8,
+                    decayMax: 1.2,
+                    dirAngle: Math.atan2(tableCY - sfy, tableCX - sfx),
+                    dirSpread: 0.4,
+                    gravity: 5
+                });
+            }
+
+            // ── Vignette (darker edges for focused table feel) ──
+            var vigGrad = ctx.createRadialGradient(tableCX, tableCY, tableW * 0.25, tableCX, tableCY, W * 0.7);
+            vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            vigGrad.addColorStop(1, 'rgba(4,3,6,0.7)');
+            ctx.fillStyle = vigGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            drawParticles(ctx);
+        }
+
+        function drawAllInScene(ctx, dt, cursor, energy, bp) {
+            var elapsed = cursor ? cursor.elapsed : 0;
+            var seqIdx = cursor ? cursor.seqIndex : 0;
+
+            // Build intensity rises through seq 14-17 (0.0 to 1.0)
+            var seqProgress = clamp((seqIdx - 14) / 3.0, 0, 1);
+            allInBuildIntensity = lerpExp(allInBuildIntensity, seqProgress, 1.5, dt);
+
+            // ── Near-black background ──
+            ctx.fillStyle = '#020104';
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Heartbeat effect ──
+            allInHeartbeat += dt * (1.2 + allInBuildIntensity * 1.0); // speeds up as tension builds
+            var heartPhase = Math.sin(allInHeartbeat * Math.PI);
+            var heartGlow = Math.max(0, heartPhase) * (0.3 + allInBuildIntensity * 0.4);
+
+            // Heartbeat ambient pulse
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var heartR = Math.min(W, H) * (0.3 + heartGlow * 0.15);
+            var heartGrad = ctx.createRadialGradient(W * 0.5, H * 0.45, 0, W * 0.5, H * 0.45, heartR);
+            heartGrad.addColorStop(0, rgba(CARD_RED, heartGlow * 0.04));
+            heartGrad.addColorStop(0.5, rgba(CARD_RED, heartGlow * 0.015));
+            heartGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = heartGrad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+
+            // ── Spotlight cone from above ──
+            allInSpotlightSway = Math.sin(elapsed * 0.4) * W * 0.015;
+            var spotX = W * 0.5 + allInSpotlightSway;
+            var spotY = H * 0.42;
+            var spotR = Math.min(W, H) * (0.18 + allInBuildIntensity * 0.06 + heartGlow * 0.03);
+
+            // Spotlight beam (cone shape from top)
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var beamGrad = ctx.createRadialGradient(spotX, -H * 0.1, 0, spotX, spotY, spotR * 2.5);
+            beamGrad.addColorStop(0, rgba(GOLD_LIGHT, 0.02 + allInBuildIntensity * 0.02));
+            beamGrad.addColorStop(0.3, rgba(AMBER, 0.015 + allInBuildIntensity * 0.01));
+            beamGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = beamGrad;
+            ctx.beginPath();
+            ctx.moveTo(spotX - 15, 0);
+            ctx.lineTo(spotX - spotR * 1.5, H * 0.7);
+            ctx.lineTo(spotX + spotR * 1.5, H * 0.7);
+            ctx.lineTo(spotX + 15, 0);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // Spotlight pool on surface
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var poolGrad = ctx.createRadialGradient(spotX, spotY, 0, spotX, spotY, spotR);
+            var poolAlpha = 0.12 + allInBuildIntensity * 0.08 + bp * 0.04;
+            poolGrad.addColorStop(0, rgba(GOLD_LIGHT, poolAlpha));
+            poolGrad.addColorStop(0.3, rgba(AMBER, poolAlpha * 0.6));
+            poolGrad.addColorStop(0.7, rgba(AMBER, poolAlpha * 0.15));
+            poolGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = poolGrad;
+            ctx.beginPath();
+            ctx.ellipse(spotX, spotY, spotR, spotR * 0.7, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // ── Dust motes floating in spotlight beam ──
+            var dustTarget = 8 + Math.floor(allInBuildIntensity * 20);
+            if (allInDustMotes.length < dustTarget && Math.random() < 0.3 + allInBuildIntensity * 0.5) {
+                allInDustMotes.push({
+                    x: spotX + (Math.random() - 0.5) * spotR * 1.2,
+                    y: H * (0.05 + Math.random() * 0.55),
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: 2 + Math.random() * 5,
+                    size: 0.5 + Math.random() * 1.5,
+                    alpha: 0.3 + Math.random() * 0.5,
+                    life: 1.0,
+                    decay: 0.08 + Math.random() * 0.12
+                });
+            }
+
+            // Update dust
+            for (var di = allInDustMotes.length - 1; di >= 0; di--) {
+                var dm = allInDustMotes[di];
+                dm.x += dm.vx * dt;
+                dm.y += dm.vy * dt;
+                dm.vx += Math.sin(elapsed * 0.5 + di * 0.7) * 0.3 * dt;
+                dm.life -= dm.decay * dt;
+                if (dm.life <= 0 || dm.y > H * 0.7) {
+                    allInDustMotes.splice(di, 1);
+                }
+            }
+
+            // Draw dust
+            ctx.save();
+            for (var ddi = 0; ddi < allInDustMotes.length; ddi++) {
+                var dd = allInDustMotes[ddi];
+                // Only visible when inside the spotlight cone
+                var distFromSpot = Math.abs(dd.x - spotX) / (spotR * 1.5);
+                var inBeam = clamp(1 - distFromSpot, 0, 1);
+                var da = dd.alpha * dd.life * inBeam;
+                if (da < 0.02) continue;
+                ctx.globalAlpha = da;
+                ctx.fillStyle = GOLD_LIGHT;
+                ctx.beginPath();
+                ctx.arc(dd.x, dd.y, dd.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // ── The winning hand: two large cards in the spotlight ──
+            var handCardW = Math.min(W, H) * 0.09;
+            var handCardH = handCardW * 1.45;
+            var handSpacing = handCardW * 0.7;
+            var handY = spotY + Math.sin(elapsed * 0.6) * 3; // subtle float
+            var handX1 = spotX - handSpacing;
+            var handX2 = spotX + handSpacing;
+
+            // Slight card shadow
+            ctx.save();
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.ellipse(spotX, handY + handCardH * 0.55, handCardW * 1.5, handCardH * 0.12, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            drawCard(ctx, handX1, handY, handCardW, handCardH, true, 'A', '\u2660', 1);
+            drawCard(ctx, handX2, handY, handCardW, handCardH, true, 'A', '\u2665', 1);
+
+            // ── Chip stack being pushed to center (all-in moment) ──
+            allInChipPush = Math.min(1, allInChipPush + dt * 0.15);
+            var chipPushEase = 1 - Math.pow(1 - allInChipPush, 2);
+            var chipStackBaseX = lerp(W * 0.25, spotX - handSpacing * 1.5, chipPushEase);
+            var chipStackBaseY = spotY + handCardH * 0.4;
+            var chipColors = [CARD_RED, NEON_BLUE, GOLD, '#2a8a4a', PURPLE_GLOW];
+            var numStackChips = 8;
+
+            for (var sci = 0; sci < numStackChips; sci++) {
+                var scx = chipStackBaseX + (sci % 3) * 10 - 10;
+                var scy = chipStackBaseY - Math.floor(sci / 3) * 4;
+                var scColor = chipColors[sci % chipColors.length];
+                ctx.save();
+                ctx.beginPath();
+                ctx.ellipse(scx, scy, 8, 3.5, 0, 0, Math.PI * 2);
+                ctx.fillStyle = rgba(scColor, 0.7 * chipPushEase);
+                ctx.fill();
+                ctx.strokeStyle = rgba('#ffffff', 0.15 * chipPushEase);
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // ── Gold coin in spotlight, spinning slowly ──
+            var allInCoinR = Math.min(W, H) * 0.03;
+            var allInCoinX = spotX + handSpacing * 1.2;
+            var allInCoinY = spotY + handCardH * 0.15;
+            drawCoin(ctx, allInCoinX, allInCoinY, allInCoinR, coinAngle * 0.4, 0.6 + heartGlow * 0.4, heartGlow * 0.3);
+
+            // ── Watching eyes in the darkness ──
+            // Initialize eyes if needed
+            while (allInEyes.length < 12) {
+                var eyeAngle = (allInEyes.length / 12) * Math.PI * 2;
+                var eyeDist = 0.35 + Math.random() * 0.12;
+                allInEyes.push({
+                    x: W * 0.5 + Math.cos(eyeAngle) * W * eyeDist,
+                    y: H * 0.4 + Math.sin(eyeAngle) * H * eyeDist * 0.6,
+                    blinkTimer: Math.random() * 5,
+                    blinkDur: 0.15 + Math.random() * 0.1,
+                    open: true,
+                    spacing: 4 + Math.random() * 3
+                });
+            }
+
+            // Update eyes
+            for (var ei = 0; ei < allInEyes.length; ei++) {
+                var eye = allInEyes[ei];
+                eye.blinkTimer -= dt;
+                if (eye.blinkTimer <= 0) {
+                    if (eye.open) {
+                        eye.open = false;
+                        eye.blinkTimer = eye.blinkDur;
+                    } else {
+                        eye.open = true;
+                        eye.blinkTimer = 3 + Math.random() * 5;
+                    }
+                }
+            }
+
+            // Draw eyes
+            ctx.save();
+            for (var edi = 0; edi < allInEyes.length; edi++) {
+                var ed = allInEyes[edi];
+                if (!ed.open) continue;
+                // Skip eyes that would be inside the spotlight
+                var distToSpot = Math.sqrt(Math.pow(ed.x - spotX, 2) + Math.pow(ed.y - spotY, 2));
+                if (distToSpot < spotR * 1.2) continue;
+
+                var eyeAlpha = 0.25 + allInBuildIntensity * 0.15;
+                ctx.fillStyle = rgba('#ffffff', eyeAlpha);
+                ctx.beginPath();
+                ctx.arc(ed.x - ed.spacing * 0.5, ed.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(ed.x + ed.spacing * 0.5, ed.y, 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // ── Sweat drops (tension indicator) ──
+            if (Math.random() < 0.02 + allInBuildIntensity * 0.04) {
+                allInSweatDrops.push({
+                    x: spotX + (Math.random() - 0.5) * spotR * 0.6,
+                    y: spotY - handCardH * 0.8,
+                    vy: 20 + Math.random() * 30,
+                    alpha: 0.5 + Math.random() * 0.3,
+                    life: 1.0,
+                    size: 1.5 + Math.random() * 1.5
+                });
+            }
+
+            // Update sweat drops
+            for (var swi = allInSweatDrops.length - 1; swi >= 0; swi--) {
+                var sw = allInSweatDrops[swi];
+                sw.y += sw.vy * dt;
+                sw.vy += 80 * dt; // gravity
+                sw.life -= dt * 0.8;
+                if (sw.life <= 0 || sw.y > H) {
+                    allInSweatDrops.splice(swi, 1);
+                }
+            }
+
+            // Draw sweat drops
+            ctx.save();
+            for (var swd = 0; swd < allInSweatDrops.length; swd++) {
+                var drop = allInSweatDrops[swd];
+                ctx.globalAlpha = drop.alpha * drop.life;
+                ctx.fillStyle = rgba(NEON_BLUE, 0.6);
+                // Teardrop shape
+                ctx.beginPath();
+                ctx.moveTo(drop.x, drop.y - drop.size);
+                ctx.quadraticCurveTo(drop.x + drop.size, drop.y, drop.x, drop.y + drop.size * 0.8);
+                ctx.quadraticCurveTo(drop.x - drop.size, drop.y, drop.x, drop.y - drop.size);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // ── Heavy vignette (most of screen in darkness) ──
+            var heavyVig = ctx.createRadialGradient(spotX, spotY, spotR * 0.4, spotX, spotY, W * 0.6);
+            heavyVig.addColorStop(0, 'rgba(2,1,4,0)');
+            heavyVig.addColorStop(0.4, rgba('#020104', 0.4));
+            heavyVig.addColorStop(0.7, rgba('#020104', 0.85));
+            heavyVig.addColorStop(1, 'rgba(2,1,4,0.95)');
+            ctx.fillStyle = heavyVig;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Final rows flash of white (approaching seq 17) ──
+            if (seqIdx === 17 && cursor) {
+                var rowProgress = cursor.rowIndex / 32; // approx rows per seq
+                if (rowProgress > 0.7) {
+                    var whiteFlash = (rowProgress - 0.7) / 0.3;
+                    ctx.save();
+                    ctx.globalAlpha = whiteFlash * whiteFlash * 0.6;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.restore();
+                }
+            }
+
+            drawParticles(ctx);
+        }
+
+        function drawJackpotScene(ctx, dt, cursor, energy, bp) {
+            var elapsed = cursor ? cursor.elapsed : 0;
+            var seqIdx = cursor ? cursor.seqIndex : 0;
+
+            // ── Rich purple/gold gradient background ──
+            var bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+            bgGrad.addColorStop(0, '#1a0a30');
+            bgGrad.addColorStop(0.3, '#2a1050');
+            bgGrad.addColorStop(0.6, '#1e0e38');
+            bgGrad.addColorStop(0.85, '#140828');
+            bgGrad.addColorStop(1, '#0a0418');
+            ctx.fillStyle = bgGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Pulsing gold wash on beats
+            if (bp > 0.1) {
+                ctx.save();
+                ctx.globalAlpha = bp * 0.15;
+                var washGrad = ctx.createRadialGradient(W * 0.5, H * 0.4, 0, W * 0.5, H * 0.4, W * 0.7);
+                washGrad.addColorStop(0, GOLD);
+                washGrad.addColorStop(0.5, GOLD_DIM);
+                washGrad.addColorStop(1, 'transparent');
+                ctx.fillStyle = washGrad;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // ── Rotating light rays from center ──
+            jackpotRayAngle += dt * 0.15;
+            var rayCount = 14;
+            var rayCX = W * 0.5;
+            var rayCY = H * 0.42;
+            var rayLen = Math.max(W, H) * 0.9;
+            ctx.save();
+            ctx.translate(rayCX, rayCY);
+            for (var ri = 0; ri < rayCount; ri++) {
+                var rAngle = jackpotRayAngle + (ri / rayCount) * Math.PI * 2;
+                var rayAlpha = (0.06 + bp * 0.12) * (0.6 + 0.4 * Math.sin(elapsed * 2 + ri));
+                ctx.save();
+                ctx.rotate(rAngle);
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                var spread = Math.PI / (rayCount * 1.8);
+                ctx.lineTo(Math.cos(spread) * rayLen, Math.sin(spread) * rayLen);
+                ctx.lineTo(Math.cos(-spread) * rayLen, Math.sin(-spread) * rayLen);
+                ctx.closePath();
+                var rayGrad = ctx.createLinearGradient(0, 0, rayLen, 0);
+                rayGrad.addColorStop(0, rgba(GOLD_LIGHT, rayAlpha));
+                rayGrad.addColorStop(0.3, rgba(GOLD, rayAlpha * 0.7));
+                rayGrad.addColorStop(1, 'rgba(255,240,160,0)');
+                ctx.fillStyle = rayGrad;
+                ctx.fill();
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // ── HUGE gold coin behind slot machine ──
+            var bigCoinR = Math.min(W, H) * 0.18;
+            var bigCoinX = W * 0.5;
+            var bigCoinY = H * 0.42;
+            var bigPulse = 0.5 + bp * 0.5 + Math.sin(elapsed * 3) * 0.15;
+
+            // Radiating glow rings
+            ctx.save();
+            for (var gr = 3; gr >= 0; gr--) {
+                var glowR = bigCoinR * (1.4 + gr * 0.25) + bp * 20;
+                var glowA = (0.08 - gr * 0.015) * (0.7 + bp * 0.3);
+                ctx.beginPath();
+                ctx.arc(bigCoinX, bigCoinY, glowR, 0, Math.PI * 2);
+                ctx.fillStyle = rgba(GOLD, glowA);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            drawCoin(ctx, bigCoinX, bigCoinY, bigCoinR, coinAngle, coinShine, bigPulse);
+
+            // ── Slot machine (center) showing 7 7 7 ──
+            var slotW = W * 0.28;
+            var slotH = H * 0.26;
+            var slotX = W * 0.5 - slotW / 2;
+            var slotY = H * 0.32;
+
+            // Machine body
+            ctx.save();
+            ctx.shadowColor = GOLD;
+            ctx.shadowBlur = 20 + bp * 30;
+            var slotGrad = ctx.createLinearGradient(slotX, slotY, slotX, slotY + slotH);
+            slotGrad.addColorStop(0, '#3a1050');
+            slotGrad.addColorStop(0.5, '#2a0840');
+            slotGrad.addColorStop(1, '#1a0630');
+            ctx.fillStyle = slotGrad;
+            ctx.beginPath();
+            ctx.moveTo(slotX + 8, slotY);
+            ctx.lineTo(slotX + slotW - 8, slotY);
+            ctx.quadraticCurveTo(slotX + slotW, slotY, slotX + slotW, slotY + 8);
+            ctx.lineTo(slotX + slotW, slotY + slotH - 8);
+            ctx.quadraticCurveTo(slotX + slotW, slotY + slotH, slotX + slotW - 8, slotY + slotH);
+            ctx.lineTo(slotX + 8, slotY + slotH);
+            ctx.quadraticCurveTo(slotX, slotY + slotH, slotX, slotY + slotH - 8);
+            ctx.lineTo(slotX, slotY + 8);
+            ctx.quadraticCurveTo(slotX, slotY, slotX + 8, slotY);
+            ctx.closePath();
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Gold border
+            ctx.strokeStyle = rgba(GOLD, 0.7 + bp * 0.3);
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.restore();
+
+            // Reel display area
+            var reelPad = slotW * 0.08;
+            var reelAreaW = slotW - reelPad * 2;
+            var reelAreaH = slotH * 0.45;
+            var reelAreaX = slotX + reelPad;
+            var reelAreaY = slotY + slotH * 0.22;
+
+            ctx.fillStyle = '#050210';
+            ctx.fillRect(reelAreaX, reelAreaY, reelAreaW, reelAreaH);
+
+            // Three 7s
+            var reelCellW = reelAreaW / 3;
+            jackpotSlotSpin += dt * 0.3;
+            var slotGlow = 0.7 + bp * 0.3 + Math.sin(elapsed * 4) * 0.15;
+            for (var si = 0; si < 3; si++) {
+                var cellCX = reelAreaX + reelCellW * si + reelCellW / 2;
+                var cellCY = reelAreaY + reelAreaH / 2;
+                // Glow behind each 7
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cellCX, cellCY, reelAreaH * 0.35, 0, Math.PI * 2);
+                ctx.fillStyle = rgba(GOLD, 0.15 * slotGlow);
+                ctx.fill();
+                ctx.restore();
+
+                // The lucky 7
+                ctx.save();
+                ctx.font = 'bold ' + Math.floor(reelAreaH * 0.7) + 'px "Share Tech Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor = CARD_RED;
+                ctx.shadowBlur = 12 * slotGlow;
+                ctx.fillStyle = rgba(CARD_RED, slotGlow);
+                ctx.fillText('7', cellCX, cellCY);
+                ctx.shadowBlur = 4;
+                ctx.shadowColor = '#ffffff';
+                ctx.fillStyle = rgba('#ffffff', 0.3 * slotGlow);
+                ctx.fillText('7', cellCX, cellCY);
+                ctx.restore();
+
+                // Divider lines between reels
+                if (si < 2) {
+                    ctx.strokeStyle = rgba(GOLD_DIM, 0.4);
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(reelAreaX + reelCellW * (si + 1), reelAreaY + 4);
+                    ctx.lineTo(reelAreaX + reelCellW * (si + 1), reelAreaY + reelAreaH - 4);
+                    ctx.stroke();
+                }
+            }
+
+            // ── "JACKPOT!" neon text at top ──
+            jackpotNeonPhase += dt * 3;
+            var jpColors = [NEON_PINK, GOLD, NEON_BLUE, PURPLE_GLOW];
+            var jpColorIdx = Math.floor(jackpotNeonPhase) % jpColors.length;
+            var jpNextIdx = (jpColorIdx + 1) % jpColors.length;
+            var jpBlend = jackpotNeonPhase % 1;
+            // Flash between colors on beats
+            var jpColor = bp > 0.5 ? jpColors[(jpColorIdx + 2) % jpColors.length] : jpColors[jpColorIdx];
+            var jpSize = Math.min(W * 0.08, H * 0.1);
+            var jpGlow = 0.7 + bp * 0.3;
+            drawNeonText(ctx, 'JACKPOT!', W * 0.5, H * 0.12, jpSize, jpColor, jpGlow);
+
+            // ── "WINNER!" flashing text ──
+            var winnerFlash = Math.sin(elapsed * 8) > 0 ? 1 : 0.3;
+            if (bp > 0.3) winnerFlash = 1;
+            drawNeonText(ctx, 'WINNER!', W * 0.5, H * 0.72, jpSize * 0.55, NEON_PINK, winnerFlash);
+
+            // ── All neon signs blazing ──
+            var signTexts = ['CASINO', 'LUCKY', '777', 'SLOTS', 'BAR'];
+            var signPositions = [
+                { x: 0.08, y: 0.25 }, { x: 0.88, y: 0.28 },
+                { x: 0.15, y: 0.65 }, { x: 0.85, y: 0.62 },
+                { x: 0.05, y: 0.48 }
+            ];
+            var signColors = [NEON_PINK, NEON_BLUE, GOLD, PURPLE_GLOW, NEON_PINK];
+            for (var ni = 0; ni < signTexts.length; ni++) {
+                var sp = signPositions[ni];
+                var nFlicker = bp > 0.3 ? 1 : (0.6 + 0.4 * Math.sin(elapsed * 5 + ni * 1.7));
+                var nColor = signColors[(ni + jpColorIdx) % signColors.length];
+                drawNeonText(ctx, signTexts[ni], sp.x * W, sp.y * H, jpSize * 0.35, nColor, nFlicker);
+            }
+
+            // ── Spawn and update coins ──
+            var coinSpawnRate = 8 + energy * 25 + bp * 40;
+            var coinsToSpawn = Math.floor(coinSpawnRate * dt);
+            for (var ci = 0; ci < coinsToSpawn; ci++) {
+                if (jackpotCoins.length >= MAX_JACKPOT_COINS) break;
+                jackpotCoins.push({
+                    x: Math.random() * W,
+                    y: -10 - Math.random() * 40,
+                    vy: 80 + Math.random() * 180,
+                    size: 3 + Math.random() * 6,
+                    spin: Math.random() * Math.PI * 2,
+                    spinSpeed: 2 + Math.random() * 6,
+                    alpha: 0.7 + Math.random() * 0.3
+                });
+            }
+
+            // Beat burst — extra coins from center
+            if (bp > 0.7) {
+                for (var bb = 0; bb < 12; bb++) {
+                    if (jackpotCoins.length >= MAX_JACKPOT_COINS) break;
+                    var burstAngle = Math.random() * Math.PI * 2;
+                    var burstSpeed = 100 + Math.random() * 200;
+                    jackpotCoins.push({
+                        x: W * 0.5 + Math.cos(burstAngle) * 30,
+                        y: H * 0.42 + Math.sin(burstAngle) * 30,
+                        vy: Math.sin(burstAngle) * burstSpeed,
+                        vx: Math.cos(burstAngle) * burstSpeed,
+                        size: 4 + Math.random() * 5,
+                        spin: Math.random() * Math.PI * 2,
+                        spinSpeed: 3 + Math.random() * 8,
+                        alpha: 0.9
+                    });
+                }
+            }
+
+            // Update coins
+            for (var ci2 = jackpotCoins.length - 1; ci2 >= 0; ci2--) {
+                var c = jackpotCoins[ci2];
+                c.vy += 120 * dt; // gravity
+                c.y += c.vy * dt;
+                if (c.vx) c.x += c.vx * dt;
+                c.spin += c.spinSpeed * dt;
+
+                // Coins pile up at bottom
+                if (c.y > H - 20) {
+                    if (jackpotCoinPile.length < 150) {
+                        jackpotCoinPile.push({ x: c.x, y: H - 5 - Math.random() * 18, size: c.size * 0.8 });
+                    }
+                    jackpotCoins.splice(ci2, 1);
+                } else if (c.y > H + 50 || c.x < -50 || c.x > W + 50) {
+                    jackpotCoins.splice(ci2, 1);
+                }
+            }
+
+            // Draw coin pile at bottom
+            ctx.save();
+            for (var pi = 0; pi < jackpotCoinPile.length; pi++) {
+                var pc = jackpotCoinPile[pi];
+                var pcShine = 0.3 + 0.2 * Math.sin(elapsed * 2 + pi * 0.5);
+                ctx.beginPath();
+                ctx.arc(pc.x, pc.y, pc.size, 0, Math.PI * 2);
+                var pcGrad = ctx.createRadialGradient(pc.x - pc.size * 0.3, pc.y - pc.size * 0.3, 0, pc.x, pc.y, pc.size);
+                pcGrad.addColorStop(0, GOLD_LIGHT);
+                pcGrad.addColorStop(0.5, GOLD);
+                pcGrad.addColorStop(1, GOLD_DIM);
+                ctx.fillStyle = pcGrad;
+                ctx.globalAlpha = 0.8;
+                ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            ctx.restore();
+
+            // Draw falling coins
+            ctx.save();
+            for (var ci3 = 0; ci3 < jackpotCoins.length; ci3++) {
+                var fc = jackpotCoins[ci3];
+                var coinScaleX = Math.abs(Math.cos(fc.spin));
+                if (coinScaleX < 0.15) coinScaleX = 0.15;
+                ctx.save();
+                ctx.translate(fc.x, fc.y);
+                ctx.scale(coinScaleX, 1);
+                ctx.globalAlpha = fc.alpha;
+                var fcGrad = ctx.createRadialGradient(-fc.size * 0.3, -fc.size * 0.3, 0, 0, 0, fc.size);
+                fcGrad.addColorStop(0, GOLD_LIGHT);
+                fcGrad.addColorStop(0.5, GOLD);
+                fcGrad.addColorStop(1, GOLD_DIM);
+                ctx.beginPath();
+                ctx.arc(0, 0, fc.size, 0, Math.PI * 2);
+                ctx.fillStyle = fcGrad;
+                ctx.shadowColor = GOLD;
+                ctx.shadowBlur = 4;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                // Tiny $ on larger coins
+                if (fc.size > 5) {
+                    ctx.fillStyle = rgba('#7a6008', 0.5);
+                    ctx.font = 'bold ' + Math.floor(fc.size * 0.9) + 'px serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('$', 0, 0);
+                }
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // ── Spawn and update confetti ──
+            var confettiSpawnRate = 6 + energy * 15 + bp * 25;
+            var confettiToSpawn = Math.floor(confettiSpawnRate * dt);
+            var confettiColors = [NEON_PINK, NEON_BLUE, GOLD, '#44ff44', PURPLE_GLOW, '#ff4488', '#ffaa00'];
+            for (var cfi = 0; cfi < confettiToSpawn; cfi++) {
+                if (jackpotConfetti.length >= MAX_JACKPOT_CONFETTI) break;
+                jackpotConfetti.push({
+                    x: Math.random() * W,
+                    y: -5 - Math.random() * 30,
+                    vy: 30 + Math.random() * 80,
+                    vx: (Math.random() - 0.5) * 40,
+                    w: 3 + Math.random() * 5,
+                    h: 6 + Math.random() * 10,
+                    color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                    angle: Math.random() * Math.PI * 2,
+                    angSpeed: 2 + Math.random() * 5,
+                    driftPhase: Math.random() * Math.PI * 2,
+                    alpha: 0.7 + Math.random() * 0.3
+                });
+            }
+
+            // Beat burst confetti
+            if (bp > 0.6) {
+                for (var cfb = 0; cfb < 15; cfb++) {
+                    if (jackpotConfetti.length >= MAX_JACKPOT_CONFETTI) break;
+                    jackpotConfetti.push({
+                        x: W * 0.5 + (Math.random() - 0.5) * W * 0.6,
+                        y: H * 0.3 + (Math.random() - 0.5) * H * 0.2,
+                        vy: -40 + Math.random() * 120,
+                        vx: (Math.random() - 0.5) * 120,
+                        w: 4 + Math.random() * 6,
+                        h: 8 + Math.random() * 12,
+                        color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                        angle: Math.random() * Math.PI * 2,
+                        angSpeed: 3 + Math.random() * 7,
+                        driftPhase: Math.random() * Math.PI * 2,
+                        alpha: 0.9
+                    });
+                }
+            }
+
+            // Update confetti
+            for (var cfi2 = jackpotConfetti.length - 1; cfi2 >= 0; cfi2--) {
+                var cf = jackpotConfetti[cfi2];
+                cf.vy += 30 * dt; // lighter gravity than coins
+                cf.y += cf.vy * dt;
+                cf.x += cf.vx * dt + Math.sin(elapsed * 2 + cf.driftPhase) * 20 * dt; // sinusoidal drift
+                cf.angle += cf.angSpeed * dt;
+                if (cf.y > H + 20) {
+                    jackpotConfetti.splice(cfi2, 1);
+                }
+            }
+
+            // Draw confetti
+            ctx.save();
+            for (var cfi3 = 0; cfi3 < jackpotConfetti.length; cfi3++) {
+                var cfd = jackpotConfetti[cfi3];
+                ctx.save();
+                ctx.translate(cfd.x, cfd.y);
+                ctx.rotate(cfd.angle);
+                ctx.globalAlpha = cfd.alpha;
+                ctx.fillStyle = cfd.color;
+                ctx.shadowColor = cfd.color;
+                ctx.shadowBlur = 3;
+                ctx.fillRect(-cfd.w / 2, -cfd.h / 2, cfd.w, cfd.h);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // ── Beat-synced flash strobe ──
+            jackpotFlash = bp > 0.7 ? bp * 0.35 : jackpotFlash * Math.exp(-8 * dt);
+            if (jackpotFlash > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = jackpotFlash;
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // ── Existing particle system (sparkles) ──
+            if (bp > 0.4) {
+                spawnParticles(Math.floor(5 + bp * 15), W * 0.5, H * 0.42, {
+                    color: GOLD_LIGHT,
+                    speedMin: 40,
+                    speedMax: 200,
+                    sizeMin: 1,
+                    sizeMax: 4,
+                    decayMin: 0.5,
+                    decayMax: 1.2,
+                    gravity: -20
+                });
+            }
+            drawParticles(ctx);
+        }
+
+        function drawDawnScene(ctx, dt, cursor, energy, bp) {
+            var elapsed = cursor ? cursor.elapsed : 0;
+            var seqIdx = cursor ? cursor.seqIndex : 0;
+
+            // Progress through the dawn (seq 24 = first half, seq 25 = second half)
+            var seqProgress = (seqIdx === 25) ? 0.5 : 0;
+            if (cursor && cursor.rowIndex !== undefined) {
+                var rowFrac = cursor.rowIndex / 64; // approximate rows per seq
+                seqProgress += rowFrac * 0.5;
+            }
+            dawnProgress = lerpExp(dawnProgress, Math.min(seqProgress + sceneTime * 0.05, 1), 1.5, dt);
+
+            // Fade to black in last ~25% of seq 25
+            var fadeStart = 0.75;
+            if (dawnProgress > fadeStart) {
+                dawnFade = lerpExp(dawnFade, (dawnProgress - fadeStart) / (1 - fadeStart), 2, dt);
+            } else {
+                dawnFade = lerpExp(dawnFade, 0, 3, dt);
+            }
+
+            // ── Dawn sky gradient ──
+            // Transitions from deep purple (top) through warm orange/pink to golden horizon
+            var skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.7);
+            var purpleDark = lerp(0.02, 0.05, dawnProgress);
+            var orangeStop = lerp(0.65, 0.45, dawnProgress);
+
+            // Deep purple at top, gradually lightening
+            skyGrad.addColorStop(0, 'rgb(' +
+                Math.floor(lerp(5, 15, dawnProgress)) + ',' +
+                Math.floor(lerp(2, 5, dawnProgress)) + ',' +
+                Math.floor(lerp(16, 35, dawnProgress)) + ')');
+            // Mid: purple-to-warm transition
+            skyGrad.addColorStop(0.35, 'rgb(' +
+                Math.floor(lerp(20, 80, dawnProgress)) + ',' +
+                Math.floor(lerp(10, 30, dawnProgress)) + ',' +
+                Math.floor(lerp(40, 55, dawnProgress)) + ')');
+            // Orange/pink band
+            skyGrad.addColorStop(0.6, 'rgb(' +
+                Math.floor(lerp(30, 200, dawnProgress)) + ',' +
+                Math.floor(lerp(15, 100, dawnProgress)) + ',' +
+                Math.floor(lerp(30, 60, dawnProgress)) + ')');
+            // Golden horizon
+            skyGrad.addColorStop(0.78, 'rgb(' +
+                Math.floor(lerp(25, 230, dawnProgress)) + ',' +
+                Math.floor(lerp(15, 170, dawnProgress)) + ',' +
+                Math.floor(lerp(20, 50, dawnProgress)) + ')');
+            skyGrad.addColorStop(1, 'rgb(' +
+                Math.floor(lerp(10, 180, dawnProgress)) + ',' +
+                Math.floor(lerp(8, 130, dawnProgress)) + ',' +
+                Math.floor(lerp(15, 30, dawnProgress)) + ')');
+
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Stars fading ──
+            dawnStarAlpha = lerpExp(dawnStarAlpha, Math.max(0, 1 - dawnProgress * 2.5), 2, dt);
+            if (dawnStarAlpha > 0.02) {
+                drawStarField(ctx, elapsed, energy * 0.3, dawnStarAlpha);
+            }
+
+            // ── Vegas skyline silhouette (reuse building data from Scene 0) ──
+            var groundY = H * 0.72;
+            var buildings = [
+                { x: 0.00, w: 0.08, h: 0.22, type: 'block' },
+                { x: 0.07, w: 0.06, h: 0.30, type: 'tower' },
+                { x: 0.12, w: 0.10, h: 0.26, type: 'casino' },
+                { x: 0.21, w: 0.05, h: 0.18, type: 'block' },
+                { x: 0.25, w: 0.08, h: 0.35, type: 'tower' },
+                { x: 0.32, w: 0.12, h: 0.28, type: 'casino' },
+                { x: 0.43, w: 0.06, h: 0.20, type: 'block' },
+                { x: 0.48, w: 0.10, h: 0.38, type: 'tower' },
+                { x: 0.57, w: 0.08, h: 0.24, type: 'block' },
+                { x: 0.64, w: 0.11, h: 0.32, type: 'casino' },
+                { x: 0.74, w: 0.06, h: 0.26, type: 'tower' },
+                { x: 0.79, w: 0.09, h: 0.22, type: 'block' },
+                { x: 0.87, w: 0.07, h: 0.30, type: 'tower' },
+                { x: 0.93, w: 0.08, h: 0.20, type: 'block' }
+            ];
+
+            // Dark silhouettes against dawn sky
+            for (var i = 0; i < buildings.length; i++) {
+                var b = buildings[i];
+                var bx = b.x * W;
+                var bw = b.w * W;
+                var bh = b.h * H;
+                var by = groundY - bh;
+
+                // Silhouette color: very dark with slight warm edge
+                var silColor = 'rgb(' +
+                    Math.floor(lerp(8, 20, dawnProgress)) + ',' +
+                    Math.floor(lerp(4, 10, dawnProgress)) + ',' +
+                    Math.floor(lerp(12, 18, dawnProgress)) + ')';
+                ctx.fillStyle = silColor;
+
+                if (b.type === 'tower') {
+                    ctx.beginPath();
+                    ctx.moveTo(bx + bw * 0.35, by);
+                    ctx.lineTo(bx + bw * 0.5, by - bh * 0.12);
+                    ctx.lineTo(bx + bw * 0.65, by);
+                    ctx.lineTo(bx + bw, by);
+                    ctx.lineTo(bx + bw, groundY);
+                    ctx.lineTo(bx, groundY);
+                    ctx.lineTo(bx, by);
+                    ctx.closePath();
+                    ctx.fill();
+                } else if (b.type === 'casino') {
+                    ctx.fillRect(bx, by, bw, bh);
+                    ctx.beginPath();
+                    ctx.moveTo(bx, by);
+                    ctx.lineTo(bx + bw * 0.2, by - bh * 0.06);
+                    ctx.lineTo(bx + bw * 0.5, by - bh * 0.08);
+                    ctx.lineTo(bx + bw * 0.8, by - bh * 0.06);
+                    ctx.lineTo(bx + bw, by);
+                    ctx.closePath();
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(bx, by, bw, bh);
+                }
+            }
+
+            // ── Neon signs dimming and flickering off one by one ──
+            var signsToShow = neonSigns.length;
+            // Turn off signs progressively through the scene
+            dawnSignsOff = Math.floor(dawnProgress * (neonSigns.length + 1));
+            for (var si = 0; si < neonSigns.length; si++) {
+                var sign = neonSigns[si];
+                if (si < dawnSignsOff) {
+                    // This sign is off — occasionally flicker it briefly
+                    var offFlicker = Math.sin(elapsed * 12 + si * 3) > 0.97 ? 0.15 : 0;
+                    if (offFlicker > 0) {
+                        drawNeonText(ctx, sign.text, sign.x * W, sign.y * H,
+                            sign.size * Math.min(W, H), sign.color, offFlicker);
+                    }
+                } else {
+                    // Still on but dimming
+                    var dimLevel = Math.max(0.1, 1 - dawnProgress * 1.5);
+                    var signFlicker = 0.7 + 0.3 * Math.sin(elapsed * 3 + si * 2.1);
+                    drawNeonText(ctx, sign.text, sign.x * W, sign.y * H,
+                        sign.size * Math.min(W, H), sign.color, dimLevel * signFlicker);
+                }
+            }
+
+            // ── Ground / dark foreground ──
+            var gndGrad = ctx.createLinearGradient(0, groundY, 0, H);
+            gndGrad.addColorStop(0, 'rgb(' +
+                Math.floor(lerp(8, 15, dawnProgress)) + ',' +
+                Math.floor(lerp(5, 8, dawnProgress)) + ',' +
+                Math.floor(lerp(12, 15, dawnProgress)) + ')');
+            gndGrad.addColorStop(1, 'rgb(' +
+                Math.floor(lerp(4, 8, dawnProgress)) + ',' +
+                Math.floor(lerp(2, 4, dawnProgress)) + ',' +
+                Math.floor(lerp(8, 6, dawnProgress)) + ')');
+            ctx.fillStyle = gndGrad;
+            ctx.fillRect(0, groundY, W, H - groundY);
+
+            // Faint last reflections on ground
+            if (dawnProgress < 0.7) {
+                ctx.save();
+                ctx.globalAlpha = 0.08 * (1 - dawnProgress * 1.4);
+                for (var ri = 0; ri < neonSigns.length; ri++) {
+                    if (ri >= dawnSignsOff) {
+                        var rs = neonSigns[ri];
+                        var refY = groundY + 10 + Math.random() * 20;
+                        ctx.fillStyle = rs.color;
+                        ctx.fillRect(rs.x * W - 15, refY, 30, 3);
+                    }
+                }
+                ctx.restore();
+            }
+
+            // ── The gold coin descending and slowing ──
+            var coinTargetY = lerp(H * 0.2, H * 0.65, dawnProgress);
+            dawnCoinY = lerpExp(dawnCoinY || H * 0.2, coinTargetY, 1.2, dt);
+            dawnCoinSpin = lerpExp(dawnCoinSpin || 2, 0.1, 1.5, dt);
+            coinAngle += dawnCoinSpin * dt;
+
+            var dawnCoinR = Math.min(W, H) * 0.04;
+            var dawnCoinGlow = lerp(0.8, 0.2, dawnProgress);
+            var dawnCoinShine = lerp(0.7, 0.2, dawnProgress);
+            drawCoin(ctx, W * 0.5, dawnCoinY, dawnCoinR, coinAngle, dawnCoinShine, dawnCoinGlow * bp);
+
+            // ── Sparse remaining particles from jackpot settling ──
+            if (jackpotConfetti.length > 0) {
+                // Let remaining confetti continue falling
+                for (var cfi = jackpotConfetti.length - 1; cfi >= 0; cfi--) {
+                    var cf = jackpotConfetti[cfi];
+                    cf.vy += 15 * dt;
+                    cf.y += cf.vy * dt;
+                    cf.x += Math.sin(elapsed + cf.driftPhase) * 10 * dt;
+                    cf.angle += cf.angSpeed * dt * 0.5;
+                    cf.alpha *= 0.995;
+                    if (cf.y > H + 10 || cf.alpha < 0.05) {
+                        jackpotConfetti.splice(cfi, 1);
+                    }
+                }
+                ctx.save();
+                for (var cfi2 = 0; cfi2 < jackpotConfetti.length; cfi2++) {
+                    var cfd = jackpotConfetti[cfi2];
+                    ctx.save();
+                    ctx.translate(cfd.x, cfd.y);
+                    ctx.rotate(cfd.angle);
+                    ctx.globalAlpha = cfd.alpha * 0.5;
+                    ctx.fillStyle = cfd.color;
+                    ctx.fillRect(-cfd.w / 2, -cfd.h / 2, cfd.w, cfd.h);
+                    ctx.restore();
+                }
+                ctx.restore();
+            }
+
+            // Sparse remaining coins
+            if (jackpotCoins.length > 0) {
+                for (var jci = jackpotCoins.length - 1; jci >= 0; jci--) {
+                    var jc = jackpotCoins[jci];
+                    jc.vy += 80 * dt;
+                    jc.y += jc.vy * dt;
+                    jc.spin += jc.spinSpeed * dt * 0.3;
+                    if (jc.y > H + 20) {
+                        jackpotCoins.splice(jci, 1);
+                    }
+                }
+            }
+
+            // Draw existing particles (fading)
+            drawParticles(ctx);
+
+            // ── Final fade to black ──
+            if (dawnFade > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = clamp(dawnFade, 0, 1);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── VIGNETTE ──
+        // ══════════════════════════════════════════════════════════════
+
+        function drawVignette(ctx, intensity) {
+            ctx.save();
+            var vigGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, W * 0.2, W * 0.5, H * 0.5, W * 0.75);
+            vigGrad.addColorStop(0, 'rgba(10,6,20,0)');
+            vigGrad.addColorStop(1, rgba(BG_DEEP, intensity));
+            ctx.fillStyle = vigGrad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── INIT ──
+        // ══════════════════════════════════════════════════════════════
+
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+
+            lastBeat = -1;
+            beatPulse = 0;
+            lastSeqIndex = -1;
+            currentScene = 0;
+            prevScene = 0;
+            sceneTransition = 0;
+            sceneTime = 0;
+
+            coinAngle = 0;
+            coinSpin = 0.5;
+            coinBounce = 0;
+            coinShine = 0.5;
+
+            particles = [];
+            titleAlpha = 0;
+            titleTarget = 0;
+            stripZoom = 1.0;
+            reflectionAlpha = 0;
+            flashAlpha = 0;
+
+            initStars();
+            initNeonSigns();
+
+            // Lounge scene init
+            loungeSmoke = [];
+            loungeFlicker = 0;
+            for (var li = 0; li < loungeMusicians.length; li++) {
+                loungeMusicians[li].bobAmp = 0;
+            }
+
+            // Table scene init
+            tableCards = [];
+            tableHoleCards = [];
+            tablePotChips = [];
+            tableCardsDeal = 0;
+            tableLastBeatForDeal = -1;
+            tableDealerAngle = 0;
+            tableFeltShimmer = 0;
+
+            // All In scene init
+            allInEyes = [];
+            allInSweatDrops = [];
+            allInDustMotes = [];
+            allInHeartbeat = 0;
+            allInSpotlightSway = 0;
+            allInChipPush = 0;
+            allInBuildIntensity = 0;
+
+            // Jackpot scene init
+            jackpotCoins = [];
+            jackpotConfetti = [];
+            jackpotRayAngle = 0;
+            jackpotFlash = 0;
+            jackpotCoinPile = [];
+            jackpotNeonPhase = 0;
+            jackpotSlotSpin = 0;
+
+            // Dawn scene init
+            dawnProgress = 0;
+            dawnSignsOff = 0;
+            dawnCoinY = 0;
+            dawnCoinSpin = 2;
+            dawnFade = 0;
+            dawnStarAlpha = 1;
+
+            // Casino floor init
+            slotMachines = [];
+            flyingCards = [];
+            casinoCoinX = 0;
+            casinoCoinVY = 0;
+            casinoChipStacks = [];
+            var slotCount = 5;
+            for (var si = 0; si < slotCount; si++) {
+                var reels = [];
+                for (var ri = 0; ri < 3; ri++) {
+                    reels.push({
+                        offset: Math.random() * slotSymbols.length,
+                        spinning: false,
+                        spinSpeed: 0,
+                        landTimer: 0
+                    });
+                }
+                slotMachines.push({
+                    x: 0.12 + si * 0.18,
+                    reels: reels,
+                    leverPull: 0
+                });
+            }
+            for (var ci = 0; ci < 6; ci++) {
+                casinoChipStacks.push({
+                    x: 0.08 + ci * 0.17,
+                    baseHeight: 3 + Math.floor(Math.random() * 5),
+                    bounce: 0,
+                    color: [NEON_PINK, NEON_BLUE, GOLD, PURPLE_GLOW, CARD_RED, FELT_GREEN][ci]
+                });
+            }
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+        }
+
+        // ══════════════════════════════════════════════════════════════
+        // ── MAIN RENDER ──
+        // ══════════════════════════════════════════════════════════════
+
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+
+            // Background fill
+            ctx.fillStyle = BG_DEEP;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle state: gentle stars + spinning coin
+                coinAngle += dt * 0.5;
+                coinShine = 0.5 + Math.sin(coinAngle * 2) * 0.3;
+                drawStarField(ctx, coinAngle, 0.2, 0.5);
+                var idleCoinR = Math.min(W, H) * 0.05;
+                drawCoin(ctx, W * 0.5, H * 0.5, idleCoinR, coinAngle, coinShine, 0);
+                drawVignette(ctx, 0.5);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+            var elapsed = cursor.elapsed || 0;
+
+            // ── Scene transitions ──
+            var newScene = getScene(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                if (newScene !== currentScene) {
+                    prevScene = currentScene;
+                    currentScene = newScene;
+                    sceneTransition = 1;
+                    flashAlpha = 0.25;
+                    sceneTime = 0;
+                }
+                lastSeqIndex = seqIdx;
+            }
+
+            sceneTransition = Math.max(0, sceneTransition - dt * 1.5);
+            flashAlpha *= Math.exp(-4 * dt);
+            sceneTime += dt;
+
+            // ── Beat pulse ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+                coinSpin += 0.3 + energy * 1.2;
+                lastBeat = beat;
+            }
+            beatPulse *= Math.exp(-7 * dt);
+
+            // ── Coin physics ──
+            coinAngle += coinSpin * dt;
+            coinSpin = lerpExp(coinSpin, 0.5, 2, dt);
+            coinBounce = Math.sin(elapsed * 3) * beatPulse * 6;
+            coinShine = 0.4 + beatPulse * 0.6;
+
+            // ── Store currentNotes for scene access ──
+            currentNotes = frameData.currentNotes || [null, null, null, null];
+
+            // ── Update particles ──
+            updateParticles(dt);
+
+            // ── Draw scene with crossfade ──
+            if (sceneTransition > 0.01) {
+                // Draw previous scene fading out
+                ctx.save();
+                ctx.globalAlpha = sceneTransition;
+                drawSceneByIndex(prevScene, ctx, dt, cursor, energy, beatPulse);
+                ctx.restore();
+
+                // Draw current scene fading in
+                ctx.save();
+                ctx.globalAlpha = 1 - sceneTransition;
+                drawSceneByIndex(currentScene, ctx, dt, cursor, energy, beatPulse);
+                ctx.restore();
+            } else {
+                drawSceneByIndex(currentScene, ctx, dt, cursor, energy, beatPulse);
+            }
+
+            // ── Vignette ──
+            drawVignette(ctx, 0.4 + sceneTransition * 0.3);
+
+            // ── Flash overlay (on scene change) ──
+            if (flashAlpha > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = flashAlpha;
+                ctx.fillStyle = GOLD_LIGHT;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+        }
+
+        function drawSceneByIndex(sceneIdx, ctx, dt, cursor, energy, bp) {
+            switch (sceneIdx) {
+                case 0: drawStripScene(ctx, dt, cursor, energy, bp); break;
+                case 1: drawLoungeScene(ctx, dt, cursor, energy, bp); break;
+                case 2: drawCasinoFloorScene(ctx, dt, cursor, energy, bp); break;
+                case 3: drawTableScene(ctx, dt, cursor, energy, bp); break;
+                case 4: drawAllInScene(ctx, dt, cursor, energy, bp); break;
+                case 5: drawJackpotScene(ctx, dt, cursor, energy, bp); break;
+                case 6: drawDawnScene(ctx, dt, cursor, energy, bp); break;
+            }
+        }
+
+        return {
+            name: 'Neon Jackpot',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('neon-jackpot-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/neon-jackpot.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
