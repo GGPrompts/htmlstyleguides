@@ -19,6 +19,7 @@ Master mapping of all 105 style guides and their usage across tech guides and st
 | bauhaus | | The Last Semester |
 | blueprint | Kubernetes | |
 | brutalist-web | systemd | The Concrete Dream |
+| bubbles | | |
 | byzantine | Active Directory & IAM | |
 | celtic | Go | |
 | chalkboard | | |

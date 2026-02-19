@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bubbles — HTML Style Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&family=Comfortaa:wght@300;400;700&family=Quicksand:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           BUBBLES DESIGN SYSTEM
+           A playful, bubbly style for little ones
+           who love popping bubbles!
+           ============================================ */
+
+        :root {
+            /* Bubble Palette */
+            --bubble-pink: #F2A1C7;
+            --bubble-blue: #7EC8E3;
+            --bubble-purple: #C9A0DC;
+            --bubble-mint: #98E4C8;
+            --bubble-sunshine: #FFE066;
+            --bubble-peach: #FFCBA8;
+            --bubble-lavender: #D4B3FF;
+
+            /* Background & Surface */
+            --bg-sky: #E8F4FD;
+            --bg-sky-light: #D4ECFB;
+            --bg-sky-lightest: #F0F8FF;
+            --bg-sky-gradient: linear-gradient(180deg, var(--bg-sky-light) 0%, var(--bg-sky) 40%, var(--bg-sky-lightest) 100%);
+            --bg-grass: #C8F0C8;
+            --bg-sky-deep: #B8DEFF;
+            --surface: rgba(255, 255, 255, 0.7);
+            --surface-strong: rgba(255, 255, 255, 0.85);
+
+            /* Text */
+            --text-primary: #2D1B4E;
+            --text-secondary: #5B4A7A;
+            --text-muted: #8B7AAA;
+            --text-on-bubble: #FFFFFF;
+
+            /* Semantic */
+            --success: #6ECB8B;
+            --warning: #FFD166;
+            --danger: #FF7EB3;
+            --info: #7EC8E3;
+
+            /* Semantic Text (dark for contrast on light alert backgrounds) */
+            --success-text: #2D7A4A;
+            --warning-text: #6B5518;
+            --danger-text: #9B3A5E;
+            --info-text: #2A6E87;
+
+            /* Typography */
+            --font-display: 'Baloo 2', cursive;
+            --font-body: 'Quicksand', sans-serif;
+            --font-accent: 'Comfortaa', sans-serif;
+
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --space-4xl: 96px;
+
+            /* Border Radius */
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --radius-xl: 40px;
+            --radius-pill: 9999px;
+            --radius-circle: 50%;
+
+            /* Shadows */
+            --shadow-sm: 0 2px 8px rgba(126, 200, 227, 0.2);
+            --shadow-md: 0 4px 20px rgba(126, 200, 227, 0.25);
+            --shadow-lg: 0 8px 40px rgba(126, 200, 227, 0.3);
+            --shadow-bubble: 0 8px 32px rgba(201, 160, 220, 0.3), inset 0 1px 0 rgba(255,255,255,0.7);
+            --shadow-glow-pink: 0 0 20px rgba(242, 161, 199, 0.4);
+            --shadow-glow-blue: 0 0 20px rgba(126, 200, 227, 0.4);
+
+            /* Transitions */
+            --transition-fast: 0.2s ease;
+            --transition-base: 0.3s ease;
+            --transition-bounce: 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        /* ============================================
+           RESET & BASE
+           ============================================ */
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-sky-gradient);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           BACKGROUND BUBBLES ANIMATION
+           ============================================ */
+
+        .bg-bubbles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .bg-bubble {
+            position: absolute;
+            bottom: -120px;
+            border-radius: var(--radius-circle);
+            opacity: 0.35;
+            animation: bubble-rise linear infinite;
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%),
+                radial-gradient(circle at 70% 70%, rgba(242,161,199,0.3) 0%, rgba(242,161,199,0) 50%),
+                radial-gradient(circle at 50% 50%, rgba(126,200,227,0.4) 0%, rgba(201,160,220,0.3) 60%, rgba(255,255,255,0.1) 100%);
+            box-shadow:
+                inset 0 -4px 12px rgba(126,200,227,0.2),
+                inset 0 2px 8px rgba(255,255,255,0.6),
+                0 2px 12px rgba(201,160,220,0.15);
+        }
+
+        .bg-bubble:nth-child(1)  { width: 60px;  height: 60px;  left: 5%;   animation-duration: 10s;  animation-delay: 0s; }
+        .bg-bubble:nth-child(2)  { width: 40px;  height: 40px;  left: 12%;  animation-duration: 13s;  animation-delay: 2s; }
+        .bg-bubble:nth-child(3)  { width: 80px;  height: 80px;  left: 20%;  animation-duration: 9s;   animation-delay: 1s; }
+        .bg-bubble:nth-child(4)  { width: 35px;  height: 35px;  left: 28%;  animation-duration: 14s;  animation-delay: 4s; }
+        .bg-bubble:nth-child(5)  { width: 100px; height: 100px; left: 35%;  animation-duration: 11s;  animation-delay: 0.5s; }
+        .bg-bubble:nth-child(6)  { width: 50px;  height: 50px;  left: 42%;  animation-duration: 8s;   animation-delay: 3s; }
+        .bg-bubble:nth-child(7)  { width: 70px;  height: 70px;  left: 50%;  animation-duration: 12s;  animation-delay: 1.5s; }
+        .bg-bubble:nth-child(8)  { width: 30px;  height: 30px;  left: 58%;  animation-duration: 15s;  animation-delay: 5s; }
+        .bg-bubble:nth-child(9)  { width: 90px;  height: 90px;  left: 65%;  animation-duration: 10s;  animation-delay: 2.5s; }
+        .bg-bubble:nth-child(10) { width: 45px;  height: 45px;  left: 72%;  animation-duration: 7s;   animation-delay: 0s; }
+        .bg-bubble:nth-child(11) { width: 65px;  height: 65px;  left: 78%;  animation-duration: 11s;  animation-delay: 3.5s; }
+        .bg-bubble:nth-child(12) { width: 55px;  height: 55px;  left: 85%;  animation-duration: 13s;  animation-delay: 1s; }
+        .bg-bubble:nth-child(13) { width: 75px;  height: 75px;  left: 92%;  animation-duration: 9s;   animation-delay: 4.5s; }
+        .bg-bubble:nth-child(14) { width: 38px;  height: 38px;  left: 3%;   animation-duration: 6s;   animation-delay: 6s; }
+
+        @keyframes bubble-rise {
+            0% {
+                transform: translateY(0) translateX(0) scale(1);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.35;
+            }
+            50% {
+                transform: translateY(-55vh) translateX(20px) scale(1.05);
+            }
+            90% {
+                opacity: 0.35;
+            }
+            100% {
+                transform: translateY(-120vh) translateX(-15px) scale(0.95);
+                opacity: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bg-bubble {
+                animation: none;
+                opacity: 0.15;
+                bottom: auto;
+                top: 20%;
+            }
+        }
+
+        /* ============================================
+           CONTAINER & LAYOUT
+           ============================================ */
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: var(--space-xl) var(--space-lg);
+            position: relative;
+            z-index: 1;
+        }
+
+        section {
+            background: var(--surface-strong);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-lg);
+            padding: var(--space-2xl);
+            margin-bottom: var(--space-xl);
+            box-shadow: var(--shadow-md);
+            transition: box-shadow var(--transition-base);
+        }
+
+        section:hover {
+            box-shadow: var(--shadow-lg);
+        }
+
+        .section-number {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-on-bubble);
+            background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-purple));
+            padding: 4px 16px;
+            border-radius: var(--radius-pill);
+            margin-bottom: var(--space-sm);
+            letter-spacing: 0.5px;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+            line-height: 1.2;
+        }
+
+        .section-desc {
+            font-family: var(--font-body);
+            font-size: 18px;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-xl);
+            max-width: 600px;
+        }
+
+        /* ============================================
+           HEADER
+           ============================================ */
+
+        header {
+            text-align: center;
+            padding: var(--space-3xl) var(--space-lg) var(--space-2xl);
+            margin-bottom: var(--space-xl);
+        }
+
+        header h1 {
+            font-family: var(--font-display);
+            font-size: 64px;
+            font-weight: 800;
+            line-height: 1.1;
+            color: var(--text-primary);
+            margin-bottom: var(--space-md);
+            letter-spacing: -1px;
+        }
+
+        header h1 span {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-blue), var(--bubble-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-tagline {
+            font-family: var(--font-accent);
+            font-size: 22px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            max-width: 500px;
+            margin: 0 auto var(--space-lg);
+        }
+
+        .header-bubbles {
+            display: flex;
+            justify-content: center;
+            gap: var(--space-md);
+            flex-wrap: wrap;
+        }
+
+        .header-bubble {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-circle);
+            box-shadow: var(--shadow-bubble);
+            transition: transform var(--transition-bounce);
+            cursor: default;
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 35%),
+                radial-gradient(circle at 65% 65%, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0) 50%);
+        }
+
+        .header-bubble:nth-child(1) { background-color: var(--bubble-pink); }
+        .header-bubble:nth-child(2) { background-color: var(--bubble-blue); }
+        .header-bubble:nth-child(3) { background-color: var(--bubble-purple); }
+        .header-bubble:nth-child(4) { background-color: var(--bubble-mint); }
+        .header-bubble:nth-child(5) { background-color: var(--bubble-sunshine); }
+        .header-bubble:nth-child(6) { background-color: var(--bubble-peach); }
+        .header-bubble:nth-child(7) { background-color: var(--bubble-lavender); }
+
+        .header-bubble:hover {
+            transform: scale(1.3);
+        }
+
+        /* ============================================
+           01. COLOR PALETTE
+           ============================================ */
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: var(--space-lg);
+        }
+
+        .color-swatch {
+            text-align: center;
+            transition: transform var(--transition-bounce);
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.08);
+        }
+
+        .swatch-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: var(--radius-circle);
+            margin: 0 auto var(--space-sm);
+            box-shadow: var(--shadow-bubble);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            background-repeat: no-repeat;
+        }
+
+        .swatch-circle::after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            border-radius: var(--radius-circle);
+            background: radial-gradient(circle at 30% 25%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 40%);
+        }
+
+        .swatch-name {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+
+        .swatch-hex {
+            font-family: var(--font-accent);
+            font-size: 13px;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+        }
+
+        .color-group-label {
+            grid-column: 1 / -1;
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-top: var(--space-md);
+            padding-bottom: var(--space-sm);
+            border-bottom: 2px dashed rgba(201, 160, 220, 0.3);
+        }
+
+        .color-group-label:first-child {
+            margin-top: 0;
+        }
+
+        /* ============================================
+           02. TYPOGRAPHY
+           ============================================ */
+
+        .type-specimen {
+            margin-bottom: var(--space-xl);
+            padding-bottom: var(--space-xl);
+            border-bottom: 2px dashed rgba(201, 160, 220, 0.2);
+        }
+
+        .type-specimen:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .type-label {
+            display: inline-block;
+            font-family: var(--font-accent);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-muted);
+            margin-bottom: var(--space-sm);
+            background: rgba(201, 160, 220, 0.12);
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+        }
+
+        .type-sample-display {
+            font-family: var(--font-display);
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin-bottom: var(--space-sm);
+        }
+
+        .type-sample-heading {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.3;
+            margin-bottom: var(--space-sm);
+        }
+
+        .type-sample-body {
+            font-family: var(--font-body);
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-width: 600px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .type-sample-accent {
+            font-family: var(--font-accent);
+            font-size: 16px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            letter-spacing: 0.3px;
+            margin-bottom: var(--space-sm);
+        }
+
+        .type-sample-caption {
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 400;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .type-meta {
+            font-family: var(--font-accent);
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: var(--space-xs);
+        }
+
+        .type-weights {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-lg);
+            margin-top: var(--space-md);
+        }
+
+        .type-weight-sample {
+            font-size: 24px;
+            color: var(--text-primary);
+        }
+
+        .type-weight-sample span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted);
+            font-family: var(--font-accent);
+            font-weight: 400;
+            margin-top: 4px;
+        }
+
+        /* ============================================
+           03. SPACING
+           ============================================ */
+
+        .spacing-scale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-md);
+        }
+
+        .spacing-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .spacing-label {
+            font-family: var(--font-accent);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .spacing-bar {
+            height: 32px;
+            border-radius: var(--radius-pill);
+            background: linear-gradient(135deg, var(--bubble-blue), var(--bubble-purple));
+            opacity: 0.7;
+            transition: opacity var(--transition-fast), transform var(--transition-bounce);
+            position: relative;
+        }
+
+        .spacing-bar::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            right: 40%;
+            height: 8px;
+            border-radius: var(--radius-pill);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .spacing-bar:hover {
+            opacity: 1;
+            transform: scaleY(1.15);
+        }
+
+        .spacing-value {
+            font-family: var(--font-accent);
+            font-size: 13px;
+            color: var(--text-muted);
+            min-width: 50px;
+        }
+
+        /* ============================================
+           04. BUTTONS
+           ============================================ */
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .button-group-label {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+            width: 100%;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-display);
+            font-weight: 700;
+            border: 2px solid transparent;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            text-decoration: none;
+            transition:
+                transform var(--transition-bounce),
+                box-shadow var(--transition-base),
+                background var(--transition-fast),
+                border-color var(--transition-fast);
+            -webkit-user-select: none;
+            user-select: none;
+            white-space: nowrap;
+            line-height: 1;
+        }
+
+        .btn:hover {
+            transform: scale(1.07);
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn:focus-visible {
+            outline: 3px solid var(--bubble-purple);
+            outline-offset: 3px;
+        }
+
+        /* Sizes */
+        .btn-sm {
+            height: 32px;
+            padding: 0 var(--space-md);
+            font-size: 13px;
+        }
+
+        .btn-md {
+            height: 44px;
+            padding: 0 var(--space-xl);
+            font-size: 16px;
+        }
+
+        .btn-lg {
+            height: 56px;
+            padding: 0 var(--space-2xl);
+            font-size: 20px;
+        }
+
+        /* Primary */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--bubble-pink), #E87BAF);
+            color: var(--text-on-bubble);
+            box-shadow: var(--shadow-glow-pink);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #F5B0D3, var(--bubble-pink));
+            box-shadow: 0 0 30px rgba(242, 161, 199, 0.5);
+        }
+
+        /* Secondary */
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--bubble-blue), #5FB8D9);
+            color: var(--text-on-bubble);
+            box-shadow: var(--shadow-glow-blue);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #96D4EA, var(--bubble-blue));
+            box-shadow: 0 0 30px rgba(126, 200, 227, 0.5);
+        }
+
+        /* Outline */
+        .btn-outline {
+            background: transparent;
+            color: var(--bubble-purple);
+            border-color: var(--bubble-purple);
+        }
+
+        .btn-outline:hover {
+            background: rgba(201, 160, 220, 0.1);
+            border-color: var(--bubble-lavender);
+            color: var(--text-primary);
+        }
+
+        /* Ghost */
+        .btn-ghost {
+            background: transparent;
+            color: var(--text-secondary);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(201, 160, 220, 0.1);
+            color: var(--text-primary);
+        }
+
+        /* Disabled */
+        .btn:disabled,
+        .btn[disabled],
+        .btn-disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none;
+        }
+
+        /* ============================================
+           05. FORMS
+           ============================================ */
+
+        .form-group {
+            margin-bottom: var(--space-lg);
+        }
+
+        .form-label {
+            display: block;
+            font-family: var(--font-accent);
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+            letter-spacing: 0.3px;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            min-height: 44px;
+            padding: var(--space-sm) var(--space-md);
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-primary);
+            background: var(--surface-strong);
+            border: 2px solid rgba(201, 160, 220, 0.3);
+            border-radius: var(--radius-pill);
+            outline: none;
+            transition:
+                border-color var(--transition-fast),
+                box-shadow var(--transition-base),
+                transform var(--transition-bounce);
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .form-textarea {
+            border-radius: var(--radius-md);
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .form-input:hover,
+        .form-select:hover,
+        .form-textarea:hover {
+            border-color: var(--bubble-purple);
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: var(--bubble-blue);
+            box-shadow: 0 0 0 4px rgba(126, 200, 227, 0.25), var(--shadow-sm);
+            transform: scale(1.01);
+        }
+
+        .form-select {
+            padding-right: var(--space-2xl);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%235B4A7A' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            cursor: pointer;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--space-md);
+        }
+
+        /* Bubble Checkboxes */
+        .bubble-check {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            cursor: pointer;
+            padding: var(--space-xs) 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .bubble-check input[type="checkbox"],
+        .bubble-check input[type="radio"] {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .bubble-check-indicator {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border-radius: var(--radius-circle);
+            border: 2px solid rgba(201, 160, 220, 0.4);
+            background: var(--surface-strong);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition:
+                background var(--transition-fast),
+                border-color var(--transition-fast),
+                transform var(--transition-bounce),
+                box-shadow var(--transition-base);
+        }
+
+        .bubble-check-indicator::after {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border-radius: var(--radius-circle);
+            background: var(--text-on-bubble);
+            transform: scale(0);
+            transition: transform var(--transition-bounce);
+        }
+
+        .bubble-check:hover .bubble-check-indicator {
+            border-color: var(--bubble-purple);
+            transform: scale(1.1);
+        }
+
+        .bubble-check input:checked + .bubble-check-indicator {
+            background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-purple));
+            border-color: transparent;
+            box-shadow: var(--shadow-glow-pink);
+            animation: bubble-pop-in 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .bubble-check input:checked + .bubble-check-indicator::after {
+            transform: scale(1);
+        }
+
+        .bubble-check input:focus-visible + .bubble-check-indicator {
+            outline: 3px solid var(--bubble-purple);
+            outline-offset: 3px;
+        }
+
+        .bubble-check-label {
+            font-family: var(--font-accent);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        @keyframes bubble-pop-in {
+            0% { transform: scale(0.6); }
+            50% { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+
+        .check-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-md) var(--space-xl);
+        }
+
+        /* ============================================
+           06. CARDS / PANELS
+           ============================================ */
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .card {
+            background: var(--surface-strong);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-sm);
+            transition:
+                transform var(--transition-bounce),
+                box-shadow var(--transition-base);
+        }
+
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-sm);
+        }
+
+        .card-text {
+            font-family: var(--font-body);
+            font-size: 15px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: var(--space-md);
+        }
+
+        .card-tag {
+            display: inline-block;
+            font-family: var(--font-accent);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            background: rgba(201, 160, 220, 0.12);
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+        }
+
+        /* Featured card */
+        .card-featured {
+            border: 2px solid transparent;
+            background-image:
+                linear-gradient(var(--surface-strong), var(--surface-strong)),
+                linear-gradient(135deg, var(--bubble-pink), var(--bubble-blue), var(--bubble-purple), var(--bubble-mint));
+            background-origin: border-box;
+            background-clip: padding-box, border-box;
+            position: relative;
+        }
+
+        .card-featured::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-blue), var(--bubble-purple), var(--bubble-mint));
+            z-index: -1;
+            opacity: 0.5;
+            filter: blur(8px);
+            transition: opacity var(--transition-base);
+        }
+
+        .card-featured:hover::before {
+            opacity: 0.8;
+        }
+
+        .card-featured-badge {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-on-bubble);
+            background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-purple));
+            padding: 4px 14px;
+            border-radius: var(--radius-pill);
+            margin-bottom: var(--space-sm);
+        }
+
+        /* Card with image area */
+        .card-image {
+            width: 100%;
+            height: 120px;
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-md);
+            background: linear-gradient(135deg, rgba(126,200,227,0.3), rgba(201,160,220,0.3), rgba(242,161,199,0.3));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .card-image-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-circle);
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 40%),
+                linear-gradient(135deg, var(--bubble-blue), var(--bubble-purple));
+            opacity: 0.6;
+        }
+
+        /* ============================================
+           07. ALERTS / NOTIFICATIONS
+           ============================================ */
+
+        .alert {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-pill);
+            margin-bottom: var(--space-md);
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 600;
+            position: relative;
+            transition: transform var(--transition-bounce);
+        }
+
+        .alert:hover {
+            transform: scale(1.02);
+        }
+
+        .alert-icon {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            border-radius: var(--radius-circle);
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+
+        .alert-text {
+            flex: 1;
+        }
+
+        .alert-dismiss {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            border: none;
+            background: rgba(255, 255, 255, 0.4);
+            border-radius: var(--radius-circle);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: inherit;
+            opacity: 0.6;
+            transition:
+                opacity var(--transition-fast),
+                transform var(--transition-bounce),
+                background var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .alert-dismiss:hover {
+            opacity: 1;
+            transform: scale(1.15);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .alert-dismiss:focus-visible {
+            outline: 3px solid var(--bubble-purple);
+            outline-offset: 2px;
+            opacity: 1;
+        }
+
+        .alert-success {
+            background: rgba(110, 203, 139, 0.2);
+            color: var(--success-text);
+            border: 1px solid rgba(110, 203, 139, 0.3);
+        }
+
+        .alert-success .alert-icon {
+            background: var(--success);
+        }
+
+        .alert-warning {
+            background: rgba(255, 209, 102, 0.2);
+            color: var(--warning-text);
+            border: 1px solid rgba(255, 209, 102, 0.3);
+        }
+
+        .alert-warning .alert-icon {
+            background: var(--warning);
+        }
+
+        .alert-error {
+            background: rgba(255, 126, 179, 0.2);
+            color: var(--danger-text);
+            border: 1px solid rgba(255, 126, 179, 0.3);
+        }
+
+        .alert-error .alert-icon {
+            background: var(--danger);
+        }
+
+        .alert-info {
+            background: rgba(126, 200, 227, 0.2);
+            color: var(--info-text);
+            border: 1px solid rgba(126, 200, 227, 0.3);
+        }
+
+        .alert-info .alert-icon {
+            background: var(--info);
+        }
+
+        /* ============================================
+           08. BUBBLE PLAYGROUND
+           ============================================ */
+
+        .playground-area {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            border-radius: var(--radius-lg);
+            background: linear-gradient(180deg, var(--bg-sky-deep) 0%, var(--bg-sky-light) 40%, var(--bg-sky) 70%, var(--bg-grass) 100%);
+            overflow: hidden;
+            cursor: crosshair;
+            touch-action: manipulation;
+        }
+
+        .playground-bubble {
+            position: absolute;
+            border-radius: var(--radius-circle);
+            cursor: pointer;
+            background:
+                radial-gradient(circle at 30% 25%, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0) 40%),
+                radial-gradient(circle at 65% 70%, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0) 50%);
+            box-shadow:
+                inset 0 -4px 12px rgba(126,200,227,0.2),
+                inset 0 2px 8px rgba(255,255,255,0.6),
+                0 4px 16px rgba(201,160,220,0.2);
+            transition: none;
+            will-change: transform;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .playground-bubble:focus-visible {
+            outline: 3px solid var(--bubble-purple);
+            outline-offset: 3px;
+        }
+
+        .playground-bubble.popping {
+            animation: bubble-pop 0.4s ease-out forwards;
+            pointer-events: none;
+        }
+
+        @keyframes bubble-pop {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            30% {
+                transform: scale(1.4);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(2);
+                opacity: 0;
+            }
+        }
+
+        .pop-ring {
+            position: absolute;
+            border-radius: var(--radius-circle);
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            pointer-events: none;
+            animation: ring-expand 0.5s ease-out forwards;
+        }
+
+        @keyframes ring-expand {
+            0% {
+                transform: scale(0.5);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3);
+                opacity: 0;
+            }
+        }
+
+        .playground-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .pop-counter {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+        }
+
+        .pop-counter span {
+            background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* ============================================
+           09. DESIGN PRINCIPLES
+           ============================================ */
+
+        .principles-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--space-lg);
+        }
+
+        .principle-bubble {
+            text-align: center;
+            padding: var(--space-xl) var(--space-lg);
+            border-radius: var(--radius-xl);
+            background:
+                radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%),
+                var(--surface-strong);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: var(--shadow-bubble);
+            transition: transform var(--transition-bounce), box-shadow var(--transition-base);
+        }
+
+        .principle-bubble:hover {
+            transform: translateY(-4px) scale(1.03);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .principle-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-circle);
+            margin: 0 auto var(--space-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            line-height: 1;
+        }
+
+        .principle-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: var(--space-xs);
+        }
+
+        .principle-desc {
+            font-family: var(--font-body);
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .site-footer {
+            text-align: center;
+            padding: var(--space-2xl) var(--space-lg);
+            margin-top: var(--space-xl);
+        }
+
+        .footer-name {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-blue), var(--bubble-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--space-xs);
+        }
+
+        .footer-tagline {
+            font-family: var(--font-accent);
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .container {
+                padding: var(--space-md);
+            }
+
+            header {
+                padding: var(--space-2xl) var(--space-md) var(--space-xl);
+            }
+
+            header h1 {
+                font-size: 40px;
+            }
+
+            .header-tagline {
+                font-size: 18px;
+            }
+
+            section {
+                padding: var(--space-xl) var(--space-lg);
+                border-radius: var(--radius-md);
+            }
+
+            .section-title {
+                font-size: 26px;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: var(--space-md);
+            }
+
+            .swatch-circle {
+                width: 72px;
+                height: 72px;
+            }
+
+            .type-sample-display {
+                font-size: 36px;
+            }
+
+            .type-sample-heading {
+                font-size: 24px;
+            }
+
+            .spacing-item {
+                gap: var(--space-md);
+            }
+
+            .spacing-label {
+                min-width: 70px;
+                font-size: 12px;
+            }
+
+            .button-group {
+                gap: var(--space-sm);
+            }
+
+            .btn-lg {
+                height: 48px;
+                padding: 0 var(--space-xl);
+                font-size: 18px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .alert {
+                border-radius: var(--radius-lg);
+                padding: var(--space-md);
+                font-size: 14px;
+            }
+
+            .playground-area {
+                height: 300px;
+            }
+
+            .playground-controls {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .principles-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Floating Bubbles -->
+    <div class="bg-bubbles" aria-hidden="true">
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+        <div class="bg-bubble"></div>
+    </div>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <header>
+            <h1><span>Bubbles!</span></h1>
+            <p class="header-tagline">A soft, bouncy design system made for little ones who love popping bubbles</p>
+            <div class="header-bubbles">
+                <div class="header-bubble"></div>
+                <div class="header-bubble"></div>
+                <div class="header-bubble"></div>
+                <div class="header-bubble"></div>
+                <div class="header-bubble"></div>
+                <div class="header-bubble"></div>
+                <div class="header-bubble"></div>
+            </div>
+        </header>
+
+        <!-- 01. COLOR PALETTE -->
+        <section>
+            <span class="section-number">01</span>
+            <h2 class="section-title">Color Palette</h2>
+            <p class="section-desc">Soft, iridescent colors inspired by the shimmer of soap bubbles floating through sunshine.</p>
+
+            <div class="color-grid">
+                <div class="color-group-label">Bubble Colors</div>
+
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bubble-pink);"></div>
+                    <div class="swatch-name">Pink</div>
+                    <div class="swatch-hex">#F2A1C7</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bubble-blue);"></div>
+                    <div class="swatch-name">Blue</div>
+                    <div class="swatch-hex">#7EC8E3</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bubble-purple);"></div>
+                    <div class="swatch-name">Purple</div>
+                    <div class="swatch-hex">#C9A0DC</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bubble-mint);"></div>
+                    <div class="swatch-name">Mint</div>
+                    <div class="swatch-hex">#98E4C8</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bubble-sunshine);"></div>
+                    <div class="swatch-name">Sunshine</div>
+                    <div class="swatch-hex">#FFE066</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bubble-peach);"></div>
+                    <div class="swatch-name">Peach</div>
+                    <div class="swatch-hex">#FFCBA8</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bubble-lavender);"></div>
+                    <div class="swatch-name">Lavender</div>
+                    <div class="swatch-hex">#D4B3FF</div>
+                </div>
+
+                <div class="color-group-label">Backgrounds & Surfaces</div>
+
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--bg-sky);"></div>
+                    <div class="swatch-name">Sky</div>
+                    <div class="swatch-hex">#E8F4FD</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: #FFFFFF; border: 2px dashed rgba(201,160,220,0.3);"></div>
+                    <div class="swatch-name">Surface</div>
+                    <div class="swatch-hex">rgba 255,255,255</div>
+                </div>
+
+                <div class="color-group-label">Text</div>
+
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--text-primary);"></div>
+                    <div class="swatch-name">Primary</div>
+                    <div class="swatch-hex">#2D1B4E</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--text-secondary);"></div>
+                    <div class="swatch-name">Secondary</div>
+                    <div class="swatch-hex">#5B4A7A</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--text-muted);"></div>
+                    <div class="swatch-name">Muted</div>
+                    <div class="swatch-hex">#8B7AAA</div>
+                </div>
+
+                <div class="color-group-label">Semantic</div>
+
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--success);"></div>
+                    <div class="swatch-name">Success</div>
+                    <div class="swatch-hex">#6ECB8B</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--warning);"></div>
+                    <div class="swatch-name">Warning</div>
+                    <div class="swatch-hex">#FFD166</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--danger);"></div>
+                    <div class="swatch-name">Danger</div>
+                    <div class="swatch-hex">#FF7EB3</div>
+                </div>
+                <div class="color-swatch">
+                    <div class="swatch-circle" style="background-color: var(--info);"></div>
+                    <div class="swatch-name">Info</div>
+                    <div class="swatch-hex">#7EC8E3</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 02. TYPOGRAPHY -->
+        <section>
+            <span class="section-number">02</span>
+            <h2 class="section-title">Typography</h2>
+            <p class="section-desc">Rounded, friendly typefaces that feel as soft and approachable as a bubble wand.</p>
+
+            <div class="type-specimen">
+                <div class="type-label">Display &mdash; Baloo 2</div>
+                <div class="type-sample-display">Pop! Pop! Pop!</div>
+                <div class="type-meta">Baloo 2 &middot; 48px &middot; Weight 800 &middot; Line-height 1.2</div>
+                <div class="type-weights">
+                    <div class="type-weight-sample" style="font-family: var(--font-display); font-weight: 400;">Bubbles <span>400 Regular</span></div>
+                    <div class="type-weight-sample" style="font-family: var(--font-display); font-weight: 600;">Bubbles <span>600 SemiBold</span></div>
+                    <div class="type-weight-sample" style="font-family: var(--font-display); font-weight: 800;">Bubbles <span>800 ExtraBold</span></div>
+                </div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-label">Heading &mdash; Baloo 2</div>
+                <div class="type-sample-heading">Shimmery, Floaty, Wonderful</div>
+                <div class="type-meta">Baloo 2 &middot; 32px &middot; Weight 700 &middot; Line-height 1.3</div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-label">Body &mdash; Quicksand</div>
+                <div class="type-sample-body">Blow gently through the wand and watch the bubbles appear. Big ones, tiny ones, wobbly ones that drift and dance in the breeze. Each one catches the sunlight and sparkles with all the colors of the rainbow before it goes pop!</div>
+                <div class="type-meta">Quicksand &middot; 18px &middot; Weight 500 &middot; Line-height 1.7</div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-label">Accent &mdash; Comfortaa</div>
+                <div class="type-sample-accent">Comfortaa feels perfectly round and bubbly, just right for labels, tags, and small details that need a touch of playfulness.</div>
+                <div class="type-meta">Comfortaa &middot; 16px &middot; Weight 400 &middot; Line-height 1.6</div>
+            </div>
+
+            <div class="type-specimen">
+                <div class="type-label">Caption</div>
+                <div class="type-sample-caption">Tiny text for little notes, like how many bubbles you popped today.</div>
+                <div class="type-meta">Quicksand &middot; 14px &middot; Weight 400 &middot; Line-height 1.5</div>
+            </div>
+        </section>
+
+        <!-- 03. SPACING -->
+        <section>
+            <span class="section-number">03</span>
+            <h2 class="section-title">Spacing</h2>
+            <p class="section-desc">A gentle 4px base scale that keeps everything feeling airy and light, like the space between floating bubbles.</p>
+
+            <div class="spacing-scale">
+                <div class="spacing-item">
+                    <div class="spacing-label">xs</div>
+                    <div class="spacing-bar" style="width: 4px;"></div>
+                    <div class="spacing-value">4px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">sm</div>
+                    <div class="spacing-bar" style="width: 16px;"></div>
+                    <div class="spacing-value">8px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">md</div>
+                    <div class="spacing-bar" style="width: 48px;"></div>
+                    <div class="spacing-value">16px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">lg</div>
+                    <div class="spacing-bar" style="width: 80px;"></div>
+                    <div class="spacing-value">24px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">xl</div>
+                    <div class="spacing-bar" style="width: 120px;"></div>
+                    <div class="spacing-value">32px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">2xl</div>
+                    <div class="spacing-bar" style="width: 200px;"></div>
+                    <div class="spacing-value">48px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">3xl</div>
+                    <div class="spacing-bar" style="width: 300px;"></div>
+                    <div class="spacing-value">64px</div>
+                </div>
+                <div class="spacing-item">
+                    <div class="spacing-label">4xl</div>
+                    <div class="spacing-bar" style="width: 440px;"></div>
+                    <div class="spacing-value">96px</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 04. BUTTONS -->
+        <section>
+            <span class="section-number">04</span>
+            <h2 class="section-title">Buttons</h2>
+            <p class="section-desc">Pill-shaped, bouncy buttons that are fun to tap. They wiggle when you hover and squish when you press!</p>
+
+            <div class="button-group">
+                <div class="button-group-label">Primary</div>
+                <button class="btn btn-primary btn-sm">Small Pop</button>
+                <button class="btn btn-primary btn-md">Medium Pop</button>
+                <button class="btn btn-primary btn-lg">Big Pop!</button>
+            </div>
+
+            <div class="button-group">
+                <div class="button-group-label">Secondary</div>
+                <button class="btn btn-secondary btn-sm">Small Splash</button>
+                <button class="btn btn-secondary btn-md">Medium Splash</button>
+                <button class="btn btn-secondary btn-lg">Big Splash!</button>
+            </div>
+
+            <div class="button-group">
+                <div class="button-group-label">Outline</div>
+                <button class="btn btn-outline btn-sm">Small Bubble</button>
+                <button class="btn btn-outline btn-md">Medium Bubble</button>
+                <button class="btn btn-outline btn-lg">Big Bubble!</button>
+            </div>
+
+            <div class="button-group">
+                <div class="button-group-label">Ghost</div>
+                <button class="btn btn-ghost btn-sm">Small Whisper</button>
+                <button class="btn btn-ghost btn-md">Medium Whisper</button>
+                <button class="btn btn-ghost btn-lg">Big Whisper!</button>
+            </div>
+
+            <div class="button-group">
+                <div class="button-group-label">Disabled</div>
+                <button class="btn btn-primary btn-md" disabled>Can't Pop</button>
+                <button class="btn btn-secondary btn-md" disabled>Can't Splash</button>
+                <button class="btn btn-outline btn-md" disabled>Can't Bubble</button>
+                <button class="btn btn-ghost btn-md" disabled>Can't Whisper</button>
+            </div>
+        </section>
+
+        <!-- 05. FORMS -->
+        <section>
+            <span class="section-number">05</span>
+            <h2 class="section-title">Forms</h2>
+            <p class="section-desc">Soft, rounded inputs that feel friendly to tap. Big touch targets and gentle focus glows make filling things in feel easy-peasy.</p>
+
+            <form onsubmit="return false;" autocomplete="off">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label" for="form-name">Your Name</label>
+                        <input class="form-input" type="text" id="form-name" placeholder="Bubbly McBubbleface">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="form-email">Your Email</label>
+                        <input class="form-input" type="email" id="form-email" placeholder="bubbles@popmail.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-color">Favorite Bubble Color</label>
+                    <select class="form-select" id="form-color">
+                        <option value="">Pick a color...</option>
+                        <option value="pink">Pink</option>
+                        <option value="blue">Blue</option>
+                        <option value="purple">Purple</option>
+                        <option value="mint">Mint</option>
+                        <option value="sunshine">Sunshine</option>
+                        <option value="rainbow">All of them (rainbow!)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="form-message">Tell us about your bubbles</label>
+                    <textarea class="form-textarea" id="form-message" placeholder="I once blew a bubble as big as my head..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label">What do you like?</div>
+                    <div class="check-group">
+                        <label class="bubble-check">
+                            <input type="checkbox" name="likes" value="blowing">
+                            <span class="bubble-check-indicator"></span>
+                            <span class="bubble-check-label">Blowing bubbles</span>
+                        </label>
+                        <label class="bubble-check">
+                            <input type="checkbox" name="likes" value="popping">
+                            <span class="bubble-check-indicator"></span>
+                            <span class="bubble-check-label">Popping bubbles</span>
+                        </label>
+                        <label class="bubble-check">
+                            <input type="checkbox" name="likes" value="watching">
+                            <span class="bubble-check-indicator"></span>
+                            <span class="bubble-check-label">Watching them float</span>
+                        </label>
+                        <label class="bubble-check">
+                            <input type="checkbox" name="likes" value="chasing">
+                            <span class="bubble-check-indicator"></span>
+                            <span class="bubble-check-label">Chasing them</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-label">Bubble size preference</div>
+                    <div class="check-group">
+                        <label class="bubble-check">
+                            <input type="radio" name="size" value="tiny">
+                            <span class="bubble-check-indicator"></span>
+                            <span class="bubble-check-label">Tiny bubbles</span>
+                        </label>
+                        <label class="bubble-check">
+                            <input type="radio" name="size" value="medium">
+                            <span class="bubble-check-indicator"></span>
+                            <span class="bubble-check-label">Medium bubbles</span>
+                        </label>
+                        <label class="bubble-check">
+                            <input type="radio" name="size" value="huge">
+                            <span class="bubble-check-indicator"></span>
+                            <span class="bubble-check-label">Huge bubbles!</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary btn-lg" type="submit">Send Bubbles!</button>
+            </form>
+        </section>
+
+        <!-- 06. CARDS / PANELS -->
+        <section>
+            <span class="section-number">06</span>
+            <h2 class="section-title">Cards &amp; Panels</h2>
+            <p class="section-desc">Floaty containers with soft glass edges. Perfect for holding little bits of content like bubbles hold air.</p>
+
+            <div class="card-grid">
+                <div class="card">
+                    <div class="card-title">Soap Bubbles</div>
+                    <div class="card-text">Mix dish soap with water and glycerin for the stretchiest, most rainbow-shimmer bubbles ever.</div>
+                    <span class="card-tag">Recipe</span>
+                </div>
+
+                <div class="card card-featured">
+                    <span class="card-featured-badge">Featured</span>
+                    <div class="card-title">Giant Bubble Wand</div>
+                    <div class="card-text">Two sticks, some string, and a bucket of solution. That is all you need to make bubbles bigger than you!</div>
+                    <span class="card-tag">Project</span>
+                </div>
+
+                <div class="card">
+                    <div class="card-image">
+                        <div class="card-image-icon"></div>
+                    </div>
+                    <div class="card-title">Bubble Science</div>
+                    <div class="card-text">Why are bubbles always round? It is because the soap film pulls itself into the smallest possible shape.</div>
+                    <span class="card-tag">Learn</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 07. ALERTS / NOTIFICATIONS -->
+        <section>
+            <span class="section-number">07</span>
+            <h2 class="section-title">Alerts &amp; Notifications</h2>
+            <p class="section-desc">Friendly little pill-shaped messages that pop up to tell you something. Each one has its own bubble color!</p>
+
+            <div class="alert alert-success">
+                <div class="alert-icon"></div>
+                <span class="alert-text">Hooray! You blew the biggest bubble ever! It floated all the way to the clouds.</span>
+                <button class="alert-dismiss" aria-label="Dismiss">&times;</button>
+            </div>
+
+            <div class="alert alert-warning">
+                <div class="alert-icon"></div>
+                <span class="alert-text">Careful! That bubble is getting really big. It might pop any second now!</span>
+                <button class="alert-dismiss" aria-label="Dismiss">&times;</button>
+            </div>
+
+            <div class="alert alert-error">
+                <div class="alert-icon"></div>
+                <span class="alert-text">Oh no! The bubble popped before it could fly away. Try blowing more gently next time.</span>
+                <button class="alert-dismiss" aria-label="Dismiss">&times;</button>
+            </div>
+
+            <div class="alert alert-info">
+                <div class="alert-icon"></div>
+                <span class="alert-text">Did you know? A bubble is actually a thin film of soapy water filled with air. Science is cool!</span>
+                <button class="alert-dismiss" aria-label="Dismiss">&times;</button>
+            </div>
+        </section>
+
+        <!-- 08. BUBBLE PLAYGROUND -->
+        <section>
+            <span class="section-number">08</span>
+            <h2 class="section-title">Bubble Playground</h2>
+            <p class="section-desc">Click or tap to pop the floating bubbles! How many can you pop?</p>
+
+            <div class="playground-area" id="playground" role="application" aria-label="Bubble popping game"></div>
+
+            <div class="playground-controls">
+                <div class="pop-counter" aria-live="polite">Popped: <span id="pop-count">0</span></div>
+                <button class="btn btn-primary btn-lg" id="blow-more">Blow More Bubbles!</button>
+            </div>
+        </section>
+
+        <!-- 09. DESIGN PRINCIPLES -->
+        <section>
+            <span class="section-number">09</span>
+            <h2 class="section-title">Design Principles</h2>
+            <p class="section-desc">The four guiding ideas behind every bubbly decision in this design system.</p>
+
+            <div class="principles-grid">
+                <div class="principle-bubble">
+                    <div class="principle-icon" style="background: linear-gradient(135deg, var(--bubble-pink), var(--bubble-peach));">
+                        <span aria-hidden="true">&#9711;</span>
+                    </div>
+                    <div class="principle-title">Round &amp; Soft</div>
+                    <div class="principle-desc">No sharp edges, everything flows. Pill shapes, circles, and generous border-radius create a world where corners do not exist.</div>
+                </div>
+
+                <div class="principle-bubble">
+                    <div class="principle-icon" style="background: linear-gradient(135deg, var(--bubble-sunshine), var(--bubble-peach));">
+                        <span aria-hidden="true">&#9734;</span>
+                    </div>
+                    <div class="principle-title">Playful &amp; Joyful</div>
+                    <div class="principle-desc">Bouncy animations, bright colors, and whimsical language. Every interaction should make you smile and want to do it again.</div>
+                </div>
+
+                <div class="principle-bubble">
+                    <div class="principle-icon" style="background: linear-gradient(135deg, var(--bubble-blue), var(--bubble-purple));">
+                        <span aria-hidden="true">&#10024;</span>
+                    </div>
+                    <div class="principle-title">Iridescent &amp; Magical</div>
+                    <div class="principle-desc">Shimmer effects, rainbow highlights, and glassmorphism that captures the magical quality of real soap bubbles in sunlight.</div>
+                </div>
+
+                <div class="principle-bubble">
+                    <div class="principle-icon" style="background: linear-gradient(135deg, var(--bubble-mint), var(--bubble-blue));">
+                        <span aria-hidden="true">&#9995;</span>
+                    </div>
+                    <div class="principle-title">Touch-Friendly</div>
+                    <div class="principle-desc">Big targets (44px minimum), satisfying feedback on every tap, and generous spacing. Designed for little fingers and big imaginations.</div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="site-footer">
+        <div class="footer-name">Bubbles!</div>
+        <div class="footer-tagline">Made with bubbles &amp; love</div>
+    </footer>
+
+    <script>
+    (function() {
+        'use strict';
+
+        /* ---- Alert Dismiss ---- */
+        document.querySelectorAll('.alert-dismiss').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var alert = this.closest('.alert');
+                alert.style.transform = 'scale(0.8)';
+                alert.style.opacity = '0';
+                alert.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                setTimeout(function() { alert.style.display = 'none'; }, 300);
+            });
+        });
+
+        /* ---- Bubble Playground ---- */
+        var playground = document.getElementById('playground');
+        var popCountEl = document.getElementById('pop-count');
+        var blowMoreBtn = document.getElementById('blow-more');
+
+        if (!playground) return;
+
+        var popCount = 0;
+        var bubbles = [];
+        var MAX_BUBBLES = 20;
+        var animFrameId = null;
+        var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        var COLORS = [
+            'var(--bubble-pink)',
+            'var(--bubble-blue)',
+            'var(--bubble-purple)',
+            'var(--bubble-mint)',
+            'var(--bubble-sunshine)',
+            'var(--bubble-peach)',
+            'var(--bubble-lavender)'
+        ];
+
+        function randomBetween(min, max) {
+            return min + Math.random() * (max - min);
+        }
+
+        function createBubbleEl(size, x, y) {
+            var el = document.createElement('div');
+            el.className = 'playground-bubble';
+            var color = COLORS[Math.floor(Math.random() * COLORS.length)];
+            el.style.width = size + 'px';
+            el.style.height = size + 'px';
+            el.style.left = x + 'px';
+            el.style.bottom = y + 'px';
+            el.style.backgroundColor = color;
+            el.style.opacity = '0';
+            el.setAttribute('role', 'button');
+            el.setAttribute('aria-label', 'Pop this bubble');
+            el.setAttribute('tabindex', '0');
+            return el;
+        }
+
+        function spawnBubble() {
+            if (bubbles.length >= MAX_BUBBLES) return null;
+
+            var rect = playground.getBoundingClientRect();
+            var size = randomBetween(30, 60);
+            var x = randomBetween(size, rect.width - size);
+            var y = -size;
+
+            var el = createBubbleEl(size, x, y);
+            playground.appendChild(el);
+
+            var bubble = {
+                el: el,
+                x: x,
+                y: y,
+                size: size,
+                speedY: prefersReducedMotion ? 0 : randomBetween(0.5, 1.5),
+                wobbleOffset: Math.random() * Math.PI * 2,
+                wobbleSpeed: randomBetween(0.01, 0.03),
+                wobbleAmp: randomBetween(8, 20),
+                baseX: x,
+                opacity: 0,
+                alive: true
+            };
+
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                popBubble(bubble);
+            });
+            el.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                popBubble(bubble);
+            }, { passive: false });
+            el.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    popBubble(bubble);
+                }
+            });
+
+            bubbles.push(bubble);
+            return bubble;
+        }
+
+        function popBubble(bubble) {
+            if (!bubble.alive) return;
+            bubble.alive = false;
+            bubble.el.classList.add('popping');
+
+            /* Ripple rings */
+            for (var r = 0; r < 2; r++) {
+                var ring = document.createElement('div');
+                ring.className = 'pop-ring';
+                var half = bubble.size / 2;
+                ring.style.width = bubble.size + 'px';
+                ring.style.height = bubble.size + 'px';
+                ring.style.left = (parseFloat(bubble.el.style.left) + half - half) + 'px';
+                ring.style.bottom = (parseFloat(bubble.el.style.bottom) + half - half) + 'px';
+                ring.style.animationDelay = (r * 0.1) + 's';
+                playground.appendChild(ring);
+                (function(ringEl) {
+                    setTimeout(function() { if (ringEl.parentNode) ringEl.parentNode.removeChild(ringEl); }, 600);
+                })(ring);
+            }
+
+            popCount++;
+            popCountEl.textContent = popCount;
+
+            setTimeout(function() {
+                if (bubble.el.parentNode) bubble.el.parentNode.removeChild(bubble.el);
+                var idx = bubbles.indexOf(bubble);
+                if (idx > -1) bubbles.splice(idx, 1);
+            }, 400);
+        }
+
+        function removeBubble(bubble) {
+            bubble.alive = false;
+            if (bubble.el.parentNode) bubble.el.parentNode.removeChild(bubble.el);
+            var idx = bubbles.indexOf(bubble);
+            if (idx > -1) bubbles.splice(idx, 1);
+        }
+
+        var lastSpawn = 0;
+        var SPAWN_INTERVAL = 1500;
+
+        function tick(timestamp) {
+            var rect = playground.getBoundingClientRect();
+
+            /* Auto-spawn */
+            if (timestamp - lastSpawn > SPAWN_INTERVAL && bubbles.length < MAX_BUBBLES) {
+                spawnBubble();
+                lastSpawn = timestamp;
+            }
+
+            /* Update each bubble */
+            for (var i = bubbles.length - 1; i >= 0; i--) {
+                var b = bubbles[i];
+                if (!b.alive) continue;
+
+                b.y += b.speedY;
+                b.wobbleOffset += b.wobbleSpeed;
+                var wobbleX = Math.sin(b.wobbleOffset) * b.wobbleAmp;
+                b.x = b.baseX + wobbleX;
+
+                /* Fade in */
+                if (b.opacity < 0.85) {
+                    b.opacity = Math.min(0.85, b.opacity + 0.015);
+                }
+
+                b.el.style.bottom = b.y + 'px';
+                b.el.style.left = b.x + 'px';
+                b.el.style.opacity = b.opacity;
+
+                /* Remove if off top */
+                if (b.y > rect.height + b.size) {
+                    removeBubble(b);
+                }
+            }
+
+            animFrameId = requestAnimationFrame(tick);
+        }
+
+        /* Reduced motion: place bubbles statically */
+        if (prefersReducedMotion) {
+            for (var s = 0; s < 8; s++) {
+                var sb = spawnBubble();
+                if (sb) {
+                    sb.y = randomBetween(40, playground.getBoundingClientRect().height - 80);
+                    sb.opacity = 0.7;
+                    sb.el.style.bottom = sb.y + 'px';
+                    sb.el.style.opacity = sb.opacity;
+                }
+            }
+        } else {
+            /* Seed initial bubbles */
+            for (var j = 0; j < 6; j++) {
+                var ib = spawnBubble();
+                if (ib) {
+                    ib.y = randomBetween(20, playground.getBoundingClientRect().height * 0.6);
+                    ib.opacity = 0.7;
+                    ib.el.style.bottom = ib.y + 'px';
+                    ib.el.style.opacity = ib.opacity;
+                }
+            }
+            animFrameId = requestAnimationFrame(tick);
+        }
+
+        /* Blow more button */
+        blowMoreBtn.addEventListener('click', function() {
+            var count = Math.min(6, MAX_BUBBLES - bubbles.length);
+            for (var k = 0; k < count; k++) {
+                var nb = spawnBubble();
+                if (nb && prefersReducedMotion) {
+                    nb.y = randomBetween(40, playground.getBoundingClientRect().height - 80);
+                    nb.opacity = 0.7;
+                    nb.el.style.bottom = nb.y + 'px';
+                    nb.el.style.opacity = nb.opacity;
+                }
+            }
+        });
+
+        /* Pause when not visible */
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                if (animFrameId) cancelAnimationFrame(animFrameId);
+            } else if (!prefersReducedMotion) {
+                animFrameId = requestAnimationFrame(tick);
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
