@@ -104,6 +104,7 @@
 
     <script src="../audio-tracker/playback-engine.js"></script>
     <script src="engine.js"></script>
+    <script src="stick-fight-engine.js"></script>
     <script>
     // ── Survivors: Cosmic Void Video Renderer ─────────────────────────
     window.Renderers['survivors-cosmic-video'] = (function() {
@@ -141,15 +142,12 @@
         var NUM_CLOUDS = 8;
 
         // ── Survivor ──
-        var survivor = {
-            x: 0, y: 0,
-            angle: 0,         // facing direction
-            attackTimer: 0,    // counts down from 1
-            attackArm: 1,      // 1 or -1, which arm swings
-            weaponGlow: 0,
-            dashTrail: [],
-            shieldPulse: 0
-        };
+        var survivor = null; // StickFight figure
+        var survivorAngle = 0;
+        var survivorAttackTimer = 0;
+        var survivorAttackArm = 1;
+        var survivorDashTrail = [];
+        var survivorShieldPulse = 0;
 
         // ── Enemies ──
         var enemies = [];
@@ -339,19 +337,17 @@
             ctx.restore();
         }
 
-        // ── Survivor drawing ──
+        // ── Survivor drawing (StickFight + cosmic extras) ──
         function drawSurvivor(ctx, energy) {
             var sx = survivor.x, sy = survivor.y;
-            var figH = Math.min(W, H) * 0.08;
-            var atk = survivor.attackTimer;
-            var arm = survivor.attackArm;
+            var figH = survivor.figH;
 
             ctx.save();
             ctx.translate(sx, sy);
 
             // Shield pulse (on high energy)
-            if (survivor.shieldPulse > 0.01) {
-                var sp = survivor.shieldPulse;
+            if (survivorShieldPulse > 0.01) {
+                var sp = survivorShieldPulse;
                 ctx.save();
                 ctx.globalAlpha = sp * 0.3;
                 ctx.strokeStyle = IRIDESCENT2;
@@ -378,115 +374,66 @@
             ctx.fill();
             ctx.restore();
 
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = STAR_WHITE;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = IRIDESCENT1;
-
-            // Head
-            var headY = -figH * 0.55;
-            var headR = figH * 0.12;
-            ctx.beginPath();
-            ctx.arc(0, headY, headR, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.fillStyle = 'rgba(240,240,255,0.3)';
-            ctx.fill();
-
-            // Visor (helmet line)
-            ctx.save();
-            ctx.strokeStyle = IRIDESCENT2;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.arc(0, headY, headR * 0.9, -Math.PI * 0.3, Math.PI * 0.3);
-            ctx.stroke();
             ctx.restore();
 
-            // Torso
+            // Draw the StickFight figure
+            StickFight.drawFigure(ctx, survivor);
+
+            // Draw visor and extras on top
+            var joints = StickFight.computeJoints(survivor);
+            ctx.save();
+            ctx.translate(sx, sy);
+
+            // Visor (helmet line)
+            ctx.strokeStyle = IRIDESCENT2;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = IRIDESCENT1;
             ctx.beginPath();
-            ctx.moveTo(0, headY + headR);
-            ctx.lineTo(0, figH * 0.05);
+            ctx.arc(joints.head.x, joints.head.y, joints.headR * 0.9, -Math.PI * 0.3, Math.PI * 0.3);
             ctx.stroke();
 
-            // Shoulders
-            var shoulderY = headY + headR + figH * 0.08;
-            var shoulderW = figH * 0.2;
+            // Head fill
+            ctx.fillStyle = 'rgba(240,240,255,0.3)';
             ctx.beginPath();
-            ctx.moveTo(-shoulderW, shoulderY);
-            ctx.lineTo(shoulderW, shoulderY);
-            ctx.stroke();
+            ctx.arc(joints.head.x, joints.head.y, joints.headR, 0, Math.PI * 2);
+            ctx.fill();
 
-            // Arms
-            var baseArmAngle = Math.PI * 0.35;
-            var atkSwing = atk * 1.8;
-            var lArmAngle = baseArmAngle + (arm < 0 ? atkSwing : 0);
-            var rArmAngle = baseArmAngle + (arm > 0 ? atkSwing : 0);
-            var armLen = figH * 0.22;
-
-            // Left arm
-            var lEx = -shoulderW + Math.sin(-lArmAngle) * armLen;
-            var lEy = shoulderY + Math.cos(lArmAngle) * armLen;
-            ctx.beginPath();
-            ctx.moveTo(-shoulderW, shoulderY);
-            ctx.lineTo(lEx, lEy);
-            ctx.lineTo(lEx + Math.sin(-lArmAngle - 0.3) * armLen * 0.9, lEy + Math.cos(lArmAngle + 0.3) * armLen * 0.9);
-            ctx.stroke();
-
-            // Right arm
-            var rEx = shoulderW + Math.sin(rArmAngle) * armLen;
-            var rEy = shoulderY + Math.cos(rArmAngle) * armLen;
-            ctx.beginPath();
-            ctx.moveTo(shoulderW, shoulderY);
-            ctx.lineTo(rEx, rEy);
-            ctx.lineTo(rEx + Math.sin(rArmAngle + 0.3) * armLen * 0.9, rEy + Math.cos(rArmAngle + 0.3) * armLen * 0.9);
-            ctx.stroke();
-
-            // Weapon glow on attacking hand
-            if (atk > 0.1) {
-                var wx = arm > 0 ? rEx + Math.sin(rArmAngle + 0.3) * armLen * 0.9 : lEx + Math.sin(-lArmAngle - 0.3) * armLen * 0.9;
-                var wy = arm > 0 ? rEy + Math.cos(rArmAngle + 0.3) * armLen * 0.9 : lEy + Math.cos(lArmAngle + 0.3) * armLen * 0.9;
+            // Weapon glow on attacking hand (energy blade)
+            if (survivorAttackTimer > 0.1) {
+                var atk = survivorAttackTimer;
+                var hand = survivorAttackArm > 0 ? joints.handR : joints.handL;
+                var elbow = survivorAttackArm > 0 ? joints.elbowR : joints.elbowL;
+                var dx = hand.x - elbow.x;
+                var dy = hand.y - elbow.y;
+                var bladeAngle = Math.atan2(dy, dx);
+                var bladeLen = figH * 0.3 * atk;
                 ctx.save();
                 ctx.globalCompositeOperation = 'lighter';
-                // Energy blade
-                var bladeLen = figH * 0.3 * atk;
-                var bladeAngle = arm > 0 ? rArmAngle + 0.3 : -lArmAngle - 0.3;
                 ctx.strokeStyle = STAR_GOLD;
                 ctx.lineWidth = 4 * atk;
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = STAR_GOLD;
                 ctx.beginPath();
-                ctx.moveTo(wx, wy);
-                ctx.lineTo(wx + Math.sin(bladeAngle) * bladeLen, wy + Math.cos(bladeAngle) * bladeLen);
+                ctx.moveTo(hand.x, hand.y);
+                ctx.lineTo(hand.x + Math.cos(bladeAngle) * bladeLen, hand.y + Math.sin(bladeAngle) * bladeLen);
                 ctx.stroke();
                 ctx.restore();
             }
-
-            // Legs
-            var hipY = figH * 0.05;
-            var legLen = figH * 0.2;
-            // Floating bob
-            var legSpread = 0.15 + Math.sin(time * 1.5) * 0.05;
-            ctx.beginPath();
-            ctx.moveTo(0, hipY);
-            ctx.lineTo(-figH * legSpread, hipY + legLen);
-            ctx.lineTo(-figH * (legSpread + 0.03), hipY + legLen * 2);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, hipY);
-            ctx.lineTo(figH * legSpread, hipY + legLen);
-            ctx.lineTo(figH * (legSpread + 0.03), hipY + legLen * 2);
-            ctx.stroke();
 
             // Jetpack thrusters (small glow under feet)
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
             ctx.globalAlpha = 0.2 + energy * 0.3 + beatPulse * 0.2;
-            var thrustGrad = ctx.createRadialGradient(0, hipY + legLen * 2 + 5, 0, 0, hipY + legLen * 2 + 5, figH * 0.2);
+            var ankleCenter = {
+                x: (joints.ankleL.x + joints.ankleR.x) * 0.5,
+                y: Math.max(joints.ankleL.y, joints.ankleR.y)
+            };
+            var thrustGrad = ctx.createRadialGradient(ankleCenter.x, ankleCenter.y + 5, 0, ankleCenter.x, ankleCenter.y + 5, figH * 0.2);
             thrustGrad.addColorStop(0, 'rgba(96,208,240,0.6)');
             thrustGrad.addColorStop(1, 'rgba(96,208,240,0)');
             ctx.fillStyle = thrustGrad;
-            ctx.fillRect(-figH * 0.25, hipY + legLen * 2, figH * 0.5, figH * 0.3);
+            ctx.fillRect(ankleCenter.x - figH * 0.25, ankleCenter.y, figH * 0.5, figH * 0.3);
             ctx.restore();
 
             ctx.restore();
@@ -494,8 +441,8 @@
 
         // ── Dash trail ──
         function drawDashTrail(ctx) {
-            for (var i = 0; i < survivor.dashTrail.length; i++) {
-                var t = survivor.dashTrail[i];
+            for (var i = 0; i < survivorDashTrail.length; i++) {
+                var t = survivorDashTrail[i];
                 ctx.save();
                 ctx.globalAlpha = t.alpha * 0.4;
                 ctx.strokeStyle = IRIDESCENT1;
@@ -593,7 +540,7 @@
                 e.y += (dy / d * e.speed + wobbleY * 0.3) * dt;
 
                 // Kill when survivor attacks nearby enemy
-                if (survivor.attackTimer > 0.3 && dist(e.x, e.y, tx, ty) < e.size + 40) {
+                if (survivorAttackTimer > 0.3 && dist(e.x, e.y, tx, ty) < e.size + 40) {
                     e.dying = true;
                     e.deathTimer = 0.15;
                 }
@@ -896,8 +843,19 @@
             W = width; H = height;
             analysis = anal;
 
-            survivor.x = W * 0.5;
-            survivor.y = H * 0.5;
+            var figH = Math.min(W, H) * 0.08;
+            survivor = StickFight.create({
+                x: W * 0.5, y: H * 0.5,
+                figH: figH, facing: 1,
+                color: STAR_WHITE, lineWidth: 3, poseSpeed: 10
+            });
+            StickFight.setPose(survivor, 'idle');
+            StickFight.setTarget(survivor, 'legSpread', 0.15);
+            survivorAngle = 0;
+            survivorAttackTimer = 0;
+            survivorAttackArm = 1;
+            survivorDashTrail = [];
+            survivorShieldPulse = 0;
 
             initStars();
             initNebulae();
@@ -909,7 +867,6 @@
             constellationLines = [];
             particles = [];
             bursts = [];
-            survivor.dashTrail = [];
 
             lastBeat = -1;
             beatPulse = 0;
@@ -925,8 +882,11 @@
         // ── Resize ──
         function resize(width, height) {
             W = width; H = height;
-            survivor.x = W * 0.5;
-            survivor.y = H * 0.5;
+            if (survivor) {
+                survivor.x = W * 0.5;
+                survivor.y = H * 0.5;
+                survivor.figH = Math.min(W, H) * 0.08;
+            }
         }
 
         // ── Main render ──
@@ -987,14 +947,23 @@
 
                 // Survivor attacks on beats during chorus/build
                 if (sectionMood === 'chorus' || sectionMood === 'build') {
-                    survivor.attackTimer = 1;
-                    survivor.attackArm *= -1;
-                    survivor.shieldPulse = 0.8;
+                    survivorAttackTimer = 1;
+                    survivorAttackArm *= -1;
+                    survivorShieldPulse = 0.8;
+                    StickFight.setPose(survivor, 'punch');
+                    if (survivorAttackArm > 0) {
+                        StickFight.setTarget(survivor, 'armRAngle', -0.3);
+                        StickFight.setTarget(survivor, 'elbowRBend', 0.1);
+                    } else {
+                        StickFight.setTarget(survivor, 'armLAngle', -0.3);
+                        StickFight.setTarget(survivor, 'elbowLBend', 0.1);
+                    }
                 } else if (sectionMood === 'verse' && energy > 0.4) {
                     // Lighter attacks in verse
                     if (beat % 2 === 0) {
-                        survivor.attackTimer = 0.8;
-                        survivor.attackArm *= -1;
+                        survivorAttackTimer = 0.8;
+                        survivorAttackArm *= -1;
+                        StickFight.setPose(survivor, 'punch');
                     }
                 }
 
@@ -1014,9 +983,15 @@
 
             beatPulse *= Math.exp(-8 * dt);
             flashAlpha *= Math.exp(-5 * dt);
-            survivor.attackTimer *= Math.exp(-6 * dt);
-            survivor.shieldPulse *= Math.exp(-4 * dt);
+            survivorAttackTimer *= Math.exp(-6 * dt);
+            survivorShieldPulse *= Math.exp(-4 * dt);
             lastBeat = beat;
+
+            // Return to idle when attack fades
+            if (survivorAttackTimer < 0.15) {
+                StickFight.setPose(survivor, 'idle');
+                StickFight.setTarget(survivor, 'legSpread', 0.15 + Math.sin(time * 1.5) * 0.05);
+            }
 
             // ── Title ──
             titleTarget = (sectionMood === 'chorus') ? 1 : 0;
@@ -1027,9 +1002,9 @@
             var cx = W * 0.5, cy = H * 0.5;
             var orbitR = Math.min(W, H) * 0.06;
             var orbitSpeed = sectionMood === 'chorus' ? 1.2 : sectionMood === 'bridge' ? 0.3 : 0.6;
-            survivor.angle += orbitSpeed * dt;
-            var targetX = cx + Math.cos(survivor.angle) * orbitR;
-            var targetY = cy + Math.sin(survivor.angle * 0.7) * orbitR * 0.6;
+            survivorAngle += orbitSpeed * dt;
+            var targetX = cx + Math.cos(survivorAngle) * orbitR;
+            var targetY = cy + Math.sin(survivorAngle * 0.7) * orbitR * 0.6;
             // Float bob
             targetY += Math.sin(time * 1.2) * 8;
             survivor.x += (targetX - survivor.x) * 3 * dt;
@@ -1037,16 +1012,18 @@
 
             // Dash trail
             if (sectionMood === 'chorus' || sectionMood === 'build') {
-                survivor.dashTrail.push({ x: survivor.x, y: survivor.y, alpha: 0.6 });
-                if (survivor.dashTrail.length > 12) survivor.dashTrail.shift();
+                survivorDashTrail.push({ x: survivor.x, y: survivor.y, alpha: 0.6 });
+                if (survivorDashTrail.length > 12) survivorDashTrail.shift();
             } else {
-                if (survivor.dashTrail.length > 0) {
-                    survivor.dashTrail.shift();
+                if (survivorDashTrail.length > 0) {
+                    survivorDashTrail.shift();
                 }
             }
-            for (var di = 0; di < survivor.dashTrail.length; di++) {
-                survivor.dashTrail[di].alpha *= 0.95;
+            for (var di = 0; di < survivorDashTrail.length; di++) {
+                survivorDashTrail[di].alpha *= 0.95;
             }
+
+            StickFight.updateFigure(survivor, dt);
 
             // ── Update ──
             updateEnemies(dt, energy);

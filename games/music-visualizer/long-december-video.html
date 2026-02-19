@@ -103,6 +103,7 @@
 
     <script src="../audio-tracker/playback-engine.js"></script>
     <script src="engine.js"></script>
+    <script src="stick-fight-engine.js"></script>
     <script>
     // -- Long December Video Renderer --
     window.Renderers['long-december-video'] = (function() {
@@ -148,7 +149,8 @@
         var lamps = [];
         var NUM_LAMPS = 4;
 
-        // Walking figure
+        // Walking figure (StickFight)
+        var walkerFig = null;
         var figureX = 0;
         var figureSpeed = 0;
         var figureTargetSpeed = 0;
@@ -498,63 +500,55 @@
             ctx.fill();
         }
 
-        // -- Walking figure --
+        // -- Walking figure (StickFight + scarf extra) --
+        function initWalker(groundY) {
+            walkerFig = StickFight.create({
+                x: figureX, y: groundY,
+                figH: H * 0.08, facing: 1,
+                color: 'rgba(15,20,30,0.9)', lineWidth: 2.5, poseSpeed: 8
+            });
+            StickFight.setPose(walkerFig, 'idle');
+        }
+
         function drawFigure(ctx, groundY) {
             if (!figureVisible) return;
-            var fx = figureX;
-            var fy = groundY;
-            var fh = H * 0.08;
+            if (!walkerFig) initWalker(groundY);
 
-            // Silhouette color
+            // Update walker position and height
+            walkerFig.x = figureX;
+            walkerFig.y = groundY;
+            walkerFig.figH = H * 0.08;
+
+            // Animate walking via leg/arm swing from figureLegPhase
+            var legSwing = Math.sin(figureLegPhase) * 0.25;
+            var armSwing = Math.sin(figureLegPhase + Math.PI) * 0.3;
+            var bodyBob = Math.abs(Math.sin(figureLegPhase * 2)) * 0.08;
+
+            StickFight.setTarget(walkerFig, 'kneeL', legSwing);
+            StickFight.setTarget(walkerFig, 'kneeR', -legSwing);
+            StickFight.setTarget(walkerFig, 'legSpread', 0.15);
+            StickFight.setTarget(walkerFig, 'armLAngle', 0.3 + armSwing);
+            StickFight.setTarget(walkerFig, 'armRAngle', 0.3 - armSwing);
+            StickFight.setTarget(walkerFig, 'elbowLBend', 0.2);
+            StickFight.setTarget(walkerFig, 'elbowRBend', 0.2);
+            StickFight.setTarget(walkerFig, 'bounce', bodyBob);
+
+            StickFight.updateFigure(walkerFig, 1/60);
+            StickFight.drawFigure(ctx, walkerFig);
+
+            // Scarf trailing (scene-specific extra)
+            var joints = StickFight.computeJoints(walkerFig);
             ctx.save();
-            ctx.fillStyle = 'rgba(15,20,30,0.9)';
-            ctx.strokeStyle = 'rgba(15,20,30,0.9)';
-            ctx.lineWidth = 2.5;
-            ctx.lineCap = 'round';
-
-            var legSwing = Math.sin(figureLegPhase) * 8;
-            var armSwing = Math.sin(figureLegPhase + Math.PI) * 6;
-            var bodyBob = Math.abs(Math.sin(figureLegPhase * 2)) * 2;
-
-            // Head
-            ctx.beginPath();
-            ctx.arc(fx, fy - fh + bodyBob, fh * 0.1, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Body
-            ctx.beginPath();
-            ctx.moveTo(fx, fy - fh * 0.85 + bodyBob);
-            ctx.lineTo(fx, fy - fh * 0.4 + bodyBob);
-            ctx.stroke();
-
-            // Legs
-            ctx.beginPath();
-            ctx.moveTo(fx, fy - fh * 0.4 + bodyBob);
-            ctx.lineTo(fx + legSwing, fy);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(fx, fy - fh * 0.4 + bodyBob);
-            ctx.lineTo(fx - legSwing, fy);
-            ctx.stroke();
-
-            // Arms
-            ctx.beginPath();
-            ctx.moveTo(fx, fy - fh * 0.75 + bodyBob);
-            ctx.lineTo(fx + armSwing, fy - fh * 0.5 + bodyBob);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(fx, fy - fh * 0.75 + bodyBob);
-            ctx.lineTo(fx - armSwing, fy - fh * 0.5 + bodyBob);
-            ctx.stroke();
-
-            // Scarf trailing
+            ctx.translate(walkerFig.x, walkerFig.y);
             ctx.strokeStyle = 'rgba(140,50,50,0.6)';
             ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            var neckX = joints.neck.x;
+            var neckY = joints.neck.y;
             ctx.beginPath();
-            ctx.moveTo(fx, fy - fh * 0.8 + bodyBob);
-            ctx.quadraticCurveTo(fx - 10 - windStrength * 15, fy - fh * 0.7 + bodyBob, fx - 18 - windStrength * 25, fy - fh * 0.65 + bodyBob);
+            ctx.moveTo(neckX, neckY);
+            ctx.quadraticCurveTo(neckX - 10 - windStrength * 15, neckY + walkerFig.figH * 0.1, neckX - 18 - windStrength * 25, neckY + walkerFig.figH * 0.15);
             ctx.stroke();
-
             ctx.restore();
         }
 
@@ -753,6 +747,7 @@
             figureTargetSpeed = 30;
             figureLegPhase = 0;
             figureVisible = false;
+            walkerFig = null; // lazy-init on first draw
 
             lastBeat = -1;
             beatPulse = 0;
@@ -771,6 +766,10 @@
         // -- Resize --
         function resize(width, height) {
             W = width; H = height;
+            if (walkerFig) {
+                walkerFig.figH = H * 0.08;
+                walkerFig.y = H * 0.78;
+            }
             initBuildings();
             initTrees();
             initLamps();

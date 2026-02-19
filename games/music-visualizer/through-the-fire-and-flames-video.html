@@ -106,6 +106,7 @@
 
     <script src="../audio-tracker/playback-engine.js"></script>
     <script src="engine.js"></script>
+    <script src="stick-fight-engine.js"></script>
     <script>
     // ── Through the Fire and Flames Video Renderer ─────────────────────
     window.Renderers['ttfaf-video'] = (function() {
@@ -149,8 +150,10 @@
         var chargeParticles = [];
 
         // ── Scene objects ──
-        var warrior1 = { x: 0, swordAngle: 0, swordTarget: 0, slashTimer: 0, facing: 1 };
-        var warrior2 = { x: 0, swordAngle: 0, swordTarget: 0, slashTimer: 0, facing: -1 };
+        var warrior1 = null;
+        var warrior2 = null;
+        var warriors = [];
+        var slashTimers = [0, 0]; // per-warrior slash trail timer
         var dragon = { x: 0, y: 0, wingAngle: 0, breathTimer: 0, breathActive: false, headAngle: 0 };
         var campfire = { flicker: 0, windDir: 0 };
 
@@ -460,117 +463,63 @@
             ctx.restore();
         }
 
-        // ── Warrior drawing ──
-        function drawWarrior(ctx, w, groundY, figH, energy, beat) {
+        // ── Warrior drawing (uses StickFight engine) ──
+        function drawWarriorExtras(ctx, fig, slashIdx, energy) {
+            var joints = StickFight.computeJoints(fig);
+
             ctx.save();
-            ctx.translate(w.x, groundY);
-            var scale = w.facing;
+            ctx.translate(fig.x, fig.y);
 
-            var headY = -figH;
-            var shoulderY = -figH * 0.82;
-            var hipY = -figH * 0.45;
-            var kneeY = -figH * 0.2;
-
-            // Bounce on beat
-            var bounce = beatPulse * 6 * energy;
-            headY -= bounce;
-            shoulderY -= bounce;
-            hipY -= bounce * 0.5;
-
-            ctx.strokeStyle = COL.steel;
+            // Helmet crest on head
+            var headR = joints.headR;
+            ctx.strokeStyle = fig.color;
             ctx.lineWidth = 3;
             ctx.shadowBlur = 8;
             ctx.shadowColor = COL.steelBright;
             ctx.lineCap = 'round';
-
-            // Legs
             ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(-figH * 0.08 * scale, kneeY);
-            ctx.lineTo(0, hipY);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(figH * 0.12 * scale, 0);
-            ctx.lineTo(figH * 0.06 * scale, kneeY);
-            ctx.lineTo(0, hipY);
+            ctx.moveTo(joints.head.x, joints.head.y - headR);
+            ctx.lineTo(joints.head.x + fig.facing * headR * 0.5, joints.head.y - headR - headR * 0.6);
+            ctx.lineTo(joints.head.x - fig.facing * headR * 0.3, joints.head.y - headR + headR * 0.3);
             ctx.stroke();
 
-            // Torso
-            ctx.beginPath();
-            ctx.moveTo(0, hipY);
-            ctx.lineTo(0, shoulderY);
-            ctx.stroke();
-
-            // Arms
-            var armLen = figH * 0.3;
-            // Sword arm
-            var swordArmX = Math.cos(w.swordAngle) * armLen * scale;
-            var swordArmY = shoulderY + Math.sin(w.swordAngle) * armLen;
-            ctx.beginPath();
-            ctx.moveTo(figH * 0.05 * scale, shoulderY);
-            ctx.lineTo(figH * 0.05 * scale + swordArmX, swordArmY);
-            ctx.stroke();
-
-            // Shield arm (away from camera side)
-            ctx.beginPath();
-            ctx.moveTo(-figH * 0.05 * scale, shoulderY);
-            ctx.lineTo(-figH * 0.18 * scale, shoulderY + figH * 0.12);
-            ctx.stroke();
-
-            // Sword blade
-            var swordLen = figH * 0.35;
-            var bladeEndX = figH * 0.05 * scale + swordArmX + Math.cos(w.swordAngle - 0.3) * swordLen * scale;
-            var bladeEndY = swordArmY + Math.sin(w.swordAngle - 0.3) * swordLen;
-            ctx.strokeStyle = COL.steelBright;
-            ctx.lineWidth = 2;
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#ffffff';
-            ctx.beginPath();
-            ctx.moveTo(figH * 0.05 * scale + swordArmX, swordArmY);
-            ctx.lineTo(bladeEndX, bladeEndY);
-            ctx.stroke();
-
-            // Sword slash trail
-            if (w.slashTimer > 0) {
+            // Slash trail effect
+            var slashTimer = slashTimers[slashIdx];
+            if (slashTimer > 0) {
+                var hand = joints.handL;
+                var sLen = fig.params.swordLen * fig.figH;
+                var sAng = fig.params.swordAngle;
                 ctx.globalCompositeOperation = 'lighter';
-                ctx.strokeStyle = rgba('#ff8800', w.slashTimer);
-                ctx.lineWidth = 4 + w.slashTimer * 8;
+                ctx.strokeStyle = rgba('#ff8800', slashTimer);
+                ctx.lineWidth = 4 + slashTimer * 8;
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = '#ff4400';
                 ctx.beginPath();
-                ctx.arc(figH * 0.05 * scale + swordArmX, swordArmY, swordLen * 0.8,
-                    w.swordAngle - 1.2 * scale, w.swordAngle + 0.5 * scale);
+                ctx.arc(hand.x, hand.y, sLen * 0.8,
+                    sAng - 1.2 * fig.facing, sAng + 0.5 * fig.facing);
                 ctx.stroke();
                 ctx.globalCompositeOperation = 'source-over';
             }
 
-            // Head
-            ctx.strokeStyle = COL.steel;
-            ctx.lineWidth = 3;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = COL.steelBright;
-            ctx.beginPath();
-            ctx.arc(0, headY + figH * 0.06, figH * 0.06, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Helmet crest
-            ctx.beginPath();
-            ctx.moveTo(0, headY);
-            ctx.lineTo(figH * 0.04 * scale, headY - figH * 0.04);
-            ctx.lineTo(-figH * 0.02 * scale, headY + figH * 0.02);
-            ctx.stroke();
-
             ctx.restore();
         }
 
-        function updateWarrior(w, dt, energy, beat) {
-            // Sword slashing
+        function updateWarrior(fig, slashIdx, dt, energy, beat) {
+            // Sword slashing on beat
             if (beat !== lastBeat && energy > 0.3) {
-                w.swordTarget = rand(-2.2, -0.3);
-                w.slashTimer = 0.7 + energy * 0.3;
+                var newSwordAngle = rand(-2.2, -0.3);
+                StickFight.setTarget(fig, 'swordAngle', newSwordAngle);
+                StickFight.setTarget(fig, 'armLAngle', newSwordAngle * 0.4);
+                StickFight.setTarget(fig, 'elbowLBend', 0.2 + Math.random() * 0.3);
+                slashTimers[slashIdx] = 0.7 + energy * 0.3;
+                // Bounce on beat
+                StickFight.setTarget(fig, 'bounce', 0.15 * energy);
             }
-            w.swordAngle += (w.swordTarget - w.swordAngle) * (1 - Math.exp(-12 * dt));
-            w.slashTimer = Math.max(0, w.slashTimer - dt * 3);
+            slashTimers[slashIdx] = Math.max(0, slashTimers[slashIdx] - dt * 3);
+            // Relax bounce
+            if (beatPulse < 0.2) {
+                StickFight.setTarget(fig, 'bounce', 0);
+            }
         }
 
         // ── Dragon drawing ──
@@ -929,8 +878,24 @@
             lastSeqIndex = -1;
             shakeAmount = 0;
 
-            warrior1.x = W * 0.3;
-            warrior2.x = W * 0.7;
+            var figH = H * 0.22;
+            var groundY = H * 0.78;
+            warrior1 = StickFight.create({ x: W * 0.3, y: groundY, figH: figH, facing: 1, color: COL.steel, lineWidth: 3, poseSpeed: 12 });
+            warrior2 = StickFight.create({ x: W * 0.7, y: groundY, figH: figH, facing: -1, color: COL.steel, lineWidth: 3, poseSpeed: 12 });
+            // Give both warriors swords
+            warrior1.params.swordLen = 0.35;
+            warrior1.targets.swordLen = 0.35;
+            warrior1.params.swordAngle = -0.8;
+            warrior1.targets.swordAngle = -0.8;
+            warrior2.params.swordLen = 0.35;
+            warrior2.targets.swordLen = 0.35;
+            warrior2.params.swordAngle = -0.8;
+            warrior2.targets.swordAngle = -0.8;
+            StickFight.setPose(warrior1, 'guard');
+            StickFight.setPose(warrior2, 'guard');
+            warriors = [warrior1, warrior2];
+            slashTimers = [0, 0];
+
             dragon.x = W * 0.55;
             dragon.y = H * 0.2;
 
@@ -946,8 +911,8 @@
         // ── Resize ──
         function resize(width, height) {
             W = width; H = height;
-            warrior1.x = W * 0.3;
-            warrior2.x = W * 0.7;
+            if (warrior1) { warrior1.x = W * 0.3; warrior1.y = H * 0.78; warrior1.figH = H * 0.22; }
+            if (warrior2) { warrior2.x = W * 0.7; warrior2.y = H * 0.78; warrior2.figH = H * 0.22; }
             dragon.x = W * 0.55;
             dragon.y = H * 0.2;
         }
@@ -1101,9 +1066,10 @@
             updateChargeParticles(dt, energy);
 
             if (showWarriors) {
-                updateWarrior(warrior1, dt, energy, beat);
-                updateWarrior(warrior2, dt, energy, beat);
+                updateWarrior(warrior1, 0, dt, energy, beat);
+                updateWarrior(warrior2, 1, dt, energy, beat);
             }
+            StickFight.updateAll(warriors, dt);
 
             // ── Draw scene ──
             ctx.save();
@@ -1134,10 +1100,9 @@
 
             // Warriors
             if (showWarriors) {
-                var groundY = H * 0.78;
-                var figH = H * 0.22;
-                drawWarrior(ctx, warrior1, groundY, figH, energy, beat);
-                drawWarrior(ctx, warrior2, groundY, figH, energy, beat);
+                StickFight.drawAll(ctx, warriors);
+                drawWarriorExtras(ctx, warrior1, 0, energy);
+                drawWarriorExtras(ctx, warrior2, 1, energy);
             }
 
             // Flames from bottom

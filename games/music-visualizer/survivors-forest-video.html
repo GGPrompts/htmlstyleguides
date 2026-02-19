@@ -102,6 +102,7 @@
 
     <script src="../audio-tracker/playback-engine.js"></script>
     <script src="engine.js"></script>
+    <script src="stick-fight-engine.js"></script>
     <script>
     // ── Survivors: Enchanted Forest Video Renderer ────────────────────
     window.Renderers['survivors-forest-video'] = (function() {
@@ -158,16 +159,11 @@
         var mushrooms = [];
 
         // ── Survivor ──
-        var survivor = {
-            x: 0, y: 0,
-            facing: 1, // 1=right, -1=left
-            swordAngle: 0,
-            swordTarget: 0,
-            attacking: false,
-            attackTimer: 0,
-            bobPhase: 0,
-            walkPhase: 0
-        };
+        var survivor = null; // StickFight figure
+        var survivorAttacking = false;
+        var survivorAttackTimer = 0;
+        var survivorBobPhase = 0;
+        var survivorWalkPhase = 0;
 
         // ── Enemies ──
         var enemies = []; // {type:'mush'|'tree'|'fairy', x, y, hp, maxHp, size, speed, dying, deathTimer, color}
@@ -576,117 +572,30 @@
             ctx.restore();
         }
 
-        // ── Survivor stick figure ──
+        // ── Survivor drawing (StickFight + extras) ──
         function drawSurvivor(ctx, energy) {
-            var s = survivor;
-            var bob = Math.sin(s.bobPhase) * 3;
-            var sx = s.x;
-            var sy = s.y + bob;
-            var fh = H * 0.12; // figure height
-            var facing = s.facing;
+            // Apply bounce bob
+            var bob = Math.sin(survivorBobPhase) * 3;
+            survivor.y = groundY + bob;
 
+            StickFight.drawFigure(ctx, survivor);
+
+            // Draw eyes on the head
+            var joints = StickFight.computeJoints(survivor);
             ctx.save();
-            ctx.translate(sx, sy);
-            ctx.scale(facing, 1);
-
-            var lw = 2.5;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = COL.survivor;
-            ctx.lineWidth = lw;
-            ctx.shadowBlur = 8;
-            ctx.shadowColor = COL.survivor;
-
-            var headR = fh * 0.08;
-            var neckY = -fh * 0.82;
-            var headY = neckY - headR * 1.5;
-            var hipY = -fh * 0.4;
-            var shoulderW = fh * 0.1;
-
-            // Legs with walking animation
-            var walkA = Math.sin(s.walkPhase) * 0.3;
-            var lAnkleX = -fh * 0.06 + Math.sin(walkA) * fh * 0.08;
-            var rAnkleX = fh * 0.06 - Math.sin(walkA) * fh * 0.08;
-            var lKneeX = -fh * 0.03;
-            var rKneeX = fh * 0.03;
-            var kneeY = hipY + fh * 0.2;
-
-            // Left leg
-            ctx.beginPath();
-            ctx.moveTo(0, hipY);
-            ctx.lineTo(lKneeX, kneeY);
-            ctx.lineTo(lAnkleX, 0);
-            ctx.stroke();
-
-            // Right leg
-            ctx.beginPath();
-            ctx.moveTo(0, hipY);
-            ctx.lineTo(rKneeX, kneeY);
-            ctx.lineTo(rAnkleX, 0);
-            ctx.stroke();
-
-            // Torso
-            ctx.beginPath();
-            ctx.moveTo(0, hipY);
-            ctx.lineTo(0, neckY);
-            ctx.stroke();
-
-            // Shoulders
-            ctx.beginPath();
-            ctx.moveTo(-shoulderW, neckY + fh * 0.02);
-            ctx.lineTo(shoulderW, neckY + fh * 0.02);
-            ctx.stroke();
-
-            // Left arm (shield arm, slight forward)
-            var laElbowX = -shoulderW - fh * 0.06;
-            var laElbowY = neckY + fh * 0.12;
-            var laHandX = -shoulderW - fh * 0.03;
-            var laHandY = neckY + fh * 0.22;
-            ctx.beginPath();
-            ctx.moveTo(-shoulderW, neckY + fh * 0.02);
-            ctx.lineTo(laElbowX, laElbowY);
-            ctx.lineTo(laHandX, laHandY);
-            ctx.stroke();
-
-            // Right arm (sword arm)
-            var swordArmAngle = s.swordAngle;
-            var raElbowX = shoulderW + Math.cos(swordArmAngle) * fh * 0.1;
-            var raElbowY = neckY + fh * 0.02 + Math.sin(swordArmAngle) * fh * 0.1;
-            var raHandX = raElbowX + Math.cos(swordArmAngle) * fh * 0.1;
-            var raHandY = raElbowY + Math.sin(swordArmAngle) * fh * 0.1;
-            ctx.beginPath();
-            ctx.moveTo(shoulderW, neckY + fh * 0.02);
-            ctx.lineTo(raElbowX, raElbowY);
-            ctx.lineTo(raHandX, raHandY);
-            ctx.stroke();
-
-            // Sword
-            var swordLen = fh * 0.2;
-            var swordEndX = raHandX + Math.cos(swordArmAngle - 0.3) * swordLen;
-            var swordEndY = raHandY + Math.sin(swordArmAngle - 0.3) * swordLen;
-            ctx.strokeStyle = COL.sword;
-            ctx.shadowColor = COL.sword;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(raHandX, raHandY);
-            ctx.lineTo(swordEndX, swordEndY);
-            ctx.stroke();
-
-            // Head
-            ctx.strokeStyle = COL.survivor;
-            ctx.shadowColor = COL.survivor;
-            ctx.lineWidth = lw;
-            ctx.beginPath();
-            ctx.arc(0, headY, headR, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.fillStyle = hexRGBA(COL.survivor, 0.2);
-            ctx.fill();
-
-            // Eyes (tiny dots)
+            ctx.translate(survivor.x, survivor.y);
             ctx.fillStyle = COL.survivor;
-            ctx.fillRect(headR * 0.15, headY - headR * 0.15, 1.5, 1.5);
-            ctx.fillRect(headR * 0.5, headY - headR * 0.15, 1.5, 1.5);
+            var headR = joints.headR;
+            var headX = joints.head.x;
+            var headY = joints.head.y;
+            ctx.fillRect(headX + headR * 0.15 * survivor.facing, headY - headR * 0.15, 1.5, 1.5);
+            ctx.fillRect(headX + headR * 0.5 * survivor.facing, headY - headR * 0.15, 1.5, 1.5);
 
+            // Light head fill
+            ctx.fillStyle = hexRGBA(COL.survivor, 0.2);
+            ctx.beginPath();
+            ctx.arc(headX, headY, headR, 0, Math.PI * 2);
+            ctx.fill();
             ctx.restore();
         }
 
@@ -1006,8 +915,8 @@
         function updateCombat(dt, beat, energy) {
             // Attack on beat
             if (beat !== lastBeat && enemies.length > 0) {
-                survivor.attacking = true;
-                survivor.attackTimer = 0.15;
+                survivorAttacking = true;
+                survivorAttackTimer = 0.15;
 
                 // Find nearest enemy
                 var nearest = null;
@@ -1027,9 +936,10 @@
                     // Face enemy
                     survivor.facing = nearest.x > survivor.x ? 1 : -1;
 
-                    // Swing sword
+                    // Swing sword via StickFight
                     var angle = Math.atan2(nearest.y - survivor.y, (nearest.x - survivor.x) * survivor.facing);
-                    survivor.swordTarget = angle - 1.2;
+                    StickFight.setPose(survivor, 'lunge');
+                    StickFight.setTarget(survivor, 'swordAngle', angle - 1.2);
 
                     // Spawn slash
                     spawnSlash(survivor.x + survivor.facing * 20, survivor.y - H * 0.06, angle);
@@ -1045,7 +955,8 @@
                     }
                 } else {
                     // Idle swing
-                    survivor.swordTarget = rng(-1.5, -0.5);
+                    StickFight.setPose(survivor, 'guard');
+                    StickFight.setTarget(survivor, 'swordAngle', rng(-1.5, -0.5));
                     if (nearest) {
                         survivor.facing = nearest.x > survivor.x ? 1 : -1;
                     }
@@ -1053,17 +964,18 @@
             }
 
             // Update attack state
-            if (survivor.attacking) {
-                survivor.attackTimer -= dt;
-                if (survivor.attackTimer <= 0) {
-                    survivor.attacking = false;
-                    survivor.swordTarget = -0.8; // rest position
+            if (survivorAttacking) {
+                survivorAttackTimer -= dt;
+                if (survivorAttackTimer <= 0) {
+                    survivorAttacking = false;
+                    StickFight.setPose(survivor, 'guard');
+                    StickFight.setTarget(survivor, 'swordAngle', -0.8);
                 }
             }
 
-            survivor.swordAngle = lerpSmooth(survivor.swordAngle, survivor.swordTarget, 20, dt);
-            survivor.bobPhase += dt * 3;
-            survivor.walkPhase += dt * 4 * (energy * 0.5 + 0.5);
+            survivorBobPhase += dt * 3;
+            survivorWalkPhase += dt * 4 * (energy * 0.5 + 0.5);
+            StickFight.updateFigure(survivor, dt);
         }
 
         function updateEffects(dt) {
@@ -1117,10 +1029,20 @@
             analysis = anal;
             groundY = H * GROUND_Y_RATIO;
 
-            survivor.x = W * 0.5;
-            survivor.y = groundY;
-            survivor.swordAngle = -0.8;
-            survivor.swordTarget = -0.8;
+            survivor = StickFight.create({
+                x: W * 0.5, y: groundY,
+                figH: H * 0.12, facing: 1,
+                color: COL.survivor, lineWidth: 2.5, poseSpeed: 20
+            });
+            survivor.params.swordLen = 0.2;
+            survivor.targets.swordLen = 0.2;
+            survivor.params.swordAngle = -0.8;
+            survivor.targets.swordAngle = -0.8;
+            StickFight.setPose(survivor, 'guard');
+            survivorAttacking = false;
+            survivorAttackTimer = 0;
+            survivorBobPhase = 0;
+            survivorWalkPhase = 0;
 
             lastBeat = -1;
             beatPulse = 0;
@@ -1148,8 +1070,11 @@
             W = width;
             H = height;
             groundY = H * GROUND_Y_RATIO;
-            survivor.x = W * 0.5;
-            survivor.y = groundY;
+            if (survivor) {
+                survivor.x = W * 0.5;
+                survivor.y = groundY;
+                survivor.figH = H * 0.12;
+            }
 
             initTrees();
             initGrass();

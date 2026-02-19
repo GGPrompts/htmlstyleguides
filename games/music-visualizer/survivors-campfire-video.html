@@ -101,6 +101,7 @@
 
     <script src="../audio-tracker/playback-engine.js"></script>
     <script src="engine.js"></script>
+    <script src="stick-fight-engine.js"></script>
     <script>
     // ── Survivors: Campfire Rest Video Renderer ─────────────────────
     window.Renderers['campfire-video'] = (function() {
@@ -141,7 +142,8 @@
         var shootingStarTimer = 0;
 
         // Figures (survivors sitting around fire)
-        var figureSeats = []; // {x, y, facingRight, headBobPhase}
+        var figureSeats = []; // StickFight figures
+        var figureMeta = []; // {facingRight, headBobPhase, headBobAmount, armRaise}
 
         // Trees / hills
         var hills = [];
@@ -186,19 +188,48 @@
         // ── Init figures ──
         function initFigures() {
             figureSeats = [];
+            figureMeta = [];
             var fireRadius = W * 0.12;
+            var figH = H * 0.06;
             // 4 survivors arranged in a semicircle facing the fire
             var angles = [-0.65, -0.25, 0.25, 0.65];
             for (var i = 0; i < 4; i++) {
                 var angle = angles[i];
                 var dist = fireRadius * (0.9 + Math.random() * 0.3);
-                figureSeats.push({
-                    x: fireX + Math.sin(angle * Math.PI) * dist,
-                    y: fireBaseY + Math.abs(Math.cos(angle * Math.PI)) * dist * 0.25 + 5,
-                    facingRight: angle < 0,
+                var fx = fireX + Math.sin(angle * Math.PI) * dist;
+                var fy = fireBaseY + Math.abs(Math.cos(angle * Math.PI)) * dist * 0.25 + 5;
+                var facingRight = angle < 0;
+
+                var fig = StickFight.create({
+                    x: fx, y: fy,
+                    figH: figH,
+                    facing: facingRight ? 1 : -1,
+                    color: SILHOUETTE,
+                    lineWidth: 3,
+                    poseSpeed: 6
+                });
+                // Set sitting/kneeling pose
+                StickFight.setPose(fig, 'kneel');
+                StickFight.setTarget(fig, 'bounce', -0.35);
+                StickFight.setTarget(fig, 'lean', 0.15);
+                StickFight.setTarget(fig, 'legSpread', 0.3);
+                StickFight.setTarget(fig, 'kneeL', 0.5);
+                StickFight.setTarget(fig, 'kneeR', 0.4);
+                StickFight.setTarget(fig, 'armLAngle', 0.5);
+                StickFight.setTarget(fig, 'armRAngle', 0.4);
+                StickFight.setTarget(fig, 'elbowLBend', 0.4);
+                StickFight.setTarget(fig, 'elbowRBend', 0.5);
+                // Copy targets to params so they start in position
+                for (var k in fig.targets) {
+                    if (fig.targets.hasOwnProperty(k)) fig.params[k] = fig.targets[k];
+                }
+
+                figureSeats.push(fig);
+                figureMeta.push({
+                    facingRight: facingRight,
                     headBobPhase: Math.random() * Math.PI * 2,
                     headBobAmount: 0,
-                    armRaise: i === 1 ? 0.3 : 0 // one survivor gesturing (storyteller)
+                    armRaise: i === 1 ? 0.3 : 0
                 });
             }
         }
@@ -578,125 +609,38 @@
             }
         }
 
-        // ── Draw sitting survivor silhouette ──
-        function drawSurvivor(ctx, fig, energy) {
-            var x = fig.x;
-            var y = fig.y;
-            var dir = fig.facingRight ? 1 : -1;
-            var scale = H * 0.0008;
-
-            // Head bob synced to beat
-            var bob = Math.sin(fig.headBobPhase) * fig.headBobAmount * 3;
-
-            ctx.save();
-            ctx.fillStyle = SILHOUETTE;
-            ctx.strokeStyle = SILHOUETTE;
-            ctx.lineWidth = 3 * scale;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-
-            // Body sitting pose
-            var bodyH = 35 * scale;
-            var headR = 8 * scale;
-
-            // Torso (leaning slightly toward fire)
-            var torsoLean = dir * 3 * scale;
-            var hipX = x;
-            var hipY = y;
-            var shoulderX = hipX + torsoLean;
-            var shoulderY = hipY - bodyH * 0.55;
-            var neckX = shoulderX + torsoLean * 0.3;
-            var neckY = shoulderY - bodyH * 0.1;
-            var headX = neckX + torsoLean * 0.2;
-            var headY = neckY - headR + bob;
-
-            // Legs (sitting cross-legged or knees up)
-            var kneeX = hipX + dir * bodyH * 0.3;
-            var kneeY = hipY - bodyH * 0.15;
-            var footX = hipX + dir * bodyH * 0.05;
-            var footY = hipY + bodyH * 0.05;
-
-            var kneeX2 = hipX - dir * bodyH * 0.15;
-            var kneeY2 = hipY - bodyH * 0.1;
-            var footX2 = hipX + dir * bodyH * 0.2;
-            var footY2 = hipY + bodyH * 0.05;
-
-            // Draw legs
-            ctx.beginPath();
-            ctx.moveTo(hipX, hipY);
-            ctx.lineTo(kneeX, kneeY);
-            ctx.lineTo(footX, footY);
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(hipX, hipY);
-            ctx.lineTo(kneeX2, kneeY2);
-            ctx.lineTo(footX2, footY2);
-            ctx.stroke();
-
-            // Draw torso
-            ctx.beginPath();
-            ctx.moveTo(hipX, hipY);
-            ctx.lineTo(shoulderX, shoulderY);
-            ctx.stroke();
-
-            // Arms
-            var elbowX = shoulderX + dir * bodyH * 0.2;
-            var elbowY = shoulderY + bodyH * 0.15;
-            var handX, handY;
-
-            if (fig.armRaise > 0.1) {
-                // Storyteller gesture - arm raised
-                handX = elbowX + dir * bodyH * 0.15;
-                handY = elbowY - bodyH * 0.2 * fig.armRaise + bob * 0.5;
-            } else {
-                // Resting on knee
-                handX = kneeX;
-                handY = kneeY;
-            }
-
-            ctx.beginPath();
-            ctx.moveTo(shoulderX, shoulderY);
-            ctx.lineTo(elbowX, elbowY);
-            ctx.lineTo(handX, handY);
-            ctx.stroke();
-
-            // Other arm resting
-            var elbow2X = shoulderX - dir * bodyH * 0.15;
-            var elbow2Y = shoulderY + bodyH * 0.2;
-            ctx.beginPath();
-            ctx.moveTo(shoulderX, shoulderY);
-            ctx.lineTo(elbow2X, elbow2Y);
-            ctx.lineTo(kneeX2, kneeY2);
-            ctx.stroke();
-
-            // Head
-            ctx.beginPath();
-            ctx.arc(headX, headY, headR, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.restore();
+        // ── Draw sitting survivor (StickFight + firelight rim) ──
+        function drawSurvivor(ctx, fig, meta, energy) {
+            // Draw the stick figure
+            StickFight.drawFigure(ctx, fig);
 
             // Firelight rim on the fire-facing side
-            ctx.save();
-            var rimSide = fig.facingRight ? 1 : -1;
-            var distToFire = Math.abs(x - fireX);
+            var joints = StickFight.computeJoints(fig);
+            var distToFire = Math.abs(fig.x - fireX);
             var rimAlpha = clamp(0.15 - distToFire / (W * 0.5) * 0.1 + beatPulse * 0.05, 0, 0.3);
+            if (rimAlpha < 0.01) return;
+
+            ctx.save();
+            ctx.translate(fig.x, fig.y);
             ctx.globalAlpha = rimAlpha;
             ctx.strokeStyle = FIRE_ORANGE;
             ctx.lineWidth = 2;
             ctx.shadowColor = FIRE_ORANGE;
             ctx.shadowBlur = 6;
 
+            var rimSide = meta.facingRight ? 1 : -1;
+
             // Rim on head
             ctx.beginPath();
-            ctx.arc(headX, headY, headR + 1, -Math.PI * 0.5 + (rimSide > 0 ? 0 : -Math.PI * 0.3), Math.PI * 0.5 + (rimSide > 0 ? 0 : -Math.PI * 0.3));
+            ctx.arc(joints.head.x, joints.head.y, joints.headR + 1,
+                -Math.PI * 0.5 + (rimSide > 0 ? 0 : -Math.PI * 0.3),
+                Math.PI * 0.5 + (rimSide > 0 ? 0 : -Math.PI * 0.3));
             ctx.stroke();
 
             // Rim on shoulder
             ctx.beginPath();
-            ctx.moveTo(shoulderX, shoulderY);
-            ctx.lineTo(shoulderX + rimSide * 2, shoulderY - 5);
+            ctx.moveTo(joints.neck.x, joints.neck.y);
+            ctx.lineTo(joints.neck.x + rimSide * 2, joints.neck.y - 5);
             ctx.stroke();
 
             ctx.restore();
@@ -725,16 +669,17 @@
             ctx.save();
             ctx.fillStyle = 'rgba(0,0,0,0.15)';
             for (var i = 0; i < figureSeats.length; i++) {
-                var fig = figureSeats[i];
-                var dx = fig.x - fireX;
+                var fx = figureSeats[i].x;
+                var fy = figureSeats[i].y;
+                var dx = fx - fireX;
                 var shadowLen = (W * 0.15 + energy * W * 0.05) * (dx > 0 ? 1 : -1);
                 var shadowDir = dx / Math.abs(dx || 1);
 
                 ctx.beginPath();
-                ctx.moveTo(fig.x - 5, fig.y + 5);
-                ctx.lineTo(fig.x + 5, fig.y + 5);
-                ctx.lineTo(fig.x + shadowLen, fig.y + 15);
-                ctx.lineTo(fig.x + shadowLen - 10 * shadowDir, fig.y + 15);
+                ctx.moveTo(fx - 5, fy + 5);
+                ctx.lineTo(fx + 5, fy + 5);
+                ctx.lineTo(fx + shadowLen, fy + 15);
+                ctx.lineTo(fx + shadowLen - 10 * shadowDir, fy + 15);
                 ctx.closePath();
                 ctx.fill();
             }
@@ -818,9 +763,7 @@
                 drawGround(ctx, 0);
                 drawCampfire(ctx, 0.3);
                 updateAndDrawEmbers(ctx, dt, 0.2);
-                for (var fi = 0; fi < figureSeats.length; fi++) {
-                    drawSurvivor(ctx, figureSeats[fi], 0);
-                }
+                StickFight.drawAll(ctx, figureSeats);
                 return;
             }
 
@@ -842,15 +785,23 @@
                 flashRandomStars(3 + Math.floor(energy * 8));
 
                 // Head bob trigger
-                for (var hi = 0; hi < figureSeats.length; hi++) {
-                    figureSeats[hi].headBobAmount = 0.3 + energy * 0.7;
+                for (var hi = 0; hi < figureMeta.length; hi++) {
+                    figureMeta[hi].headBobAmount = 0.3 + energy * 0.7;
+                    StickFight.setTarget(figureSeats[hi], 'bounce', -0.35 + (0.05 * energy));
                 }
 
                 // Storyteller gesture changes
                 if (Math.random() < 0.3) {
-                    var storyteller = Math.floor(Math.random() * figureSeats.length);
-                    for (var gi = 0; gi < figureSeats.length; gi++) {
-                        figureSeats[gi].armRaise = gi === storyteller ? 0.3 + Math.random() * 0.4 : 0;
+                    var storyteller = Math.floor(Math.random() * figureMeta.length);
+                    for (var gi = 0; gi < figureMeta.length; gi++) {
+                        figureMeta[gi].armRaise = gi === storyteller ? 0.3 + Math.random() * 0.4 : 0;
+                        if (gi === storyteller) {
+                            StickFight.setTarget(figureSeats[gi], 'armLAngle', -0.3 - Math.random() * 0.5);
+                            StickFight.setTarget(figureSeats[gi], 'elbowLBend', 0.3);
+                        } else {
+                            StickFight.setTarget(figureSeats[gi], 'armLAngle', 0.5);
+                            StickFight.setTarget(figureSeats[gi], 'elbowLBend', 0.4);
+                        }
                     }
                 }
 
@@ -860,11 +811,12 @@
             // Decay beat pulse
             beatPulse *= Math.exp(-5 * dt);
 
-            // Update head bob phases
-            for (var ui = 0; ui < figureSeats.length; ui++) {
-                figureSeats[ui].headBobPhase += (3 + energy * 2) * dt;
-                figureSeats[ui].headBobAmount *= Math.exp(-2 * dt);
+            // Update head bob phases and StickFight figures
+            for (var ui = 0; ui < figureMeta.length; ui++) {
+                figureMeta[ui].headBobPhase += (3 + energy * 2) * dt;
+                figureMeta[ui].headBobAmount *= Math.exp(-2 * dt);
             }
+            StickFight.updateAll(figureSeats, dt);
 
             // Shooting star timer
             shootingStarTimer -= dt;
@@ -909,7 +861,7 @@
 
             // 9. Survivors
             for (var si = 0; si < figureSeats.length; si++) {
-                drawSurvivor(ctx, figureSeats[si], energy);
+                drawSurvivor(ctx, figureSeats[si], figureMeta[si], energy);
             }
 
             // 10. Campfire (in front of survivors for depth)

@@ -105,6 +105,7 @@
 
     <script src="../audio-tracker/playback-engine.js"></script>
     <script src="engine.js"></script>
+    <script src="stick-fight-engine.js"></script>
     <script>
     // ── Survivors: Gothic Cathedral Video Renderer ─────────────────
     window.Renderers['survivors-gothic-video'] = (function() {
@@ -138,10 +139,9 @@
         var time = 0;
 
         // Survivor state
+        var survivorFig = null; // StickFight figure
         var survivorX = 0.5;
-        var survivorSwing = 0;
         var survivorSwingTarget = 0;
-        var weaponAngle = 0;
         var weaponSwinging = false;
         var weaponSwingTimer = 0;
 
@@ -564,121 +564,71 @@
             ctx.restore();
         }
 
-        // ── Survivor drawing ──
+        // ── Survivor drawing (StickFight + gothic extras) ──
         function drawSurvivor(ctx, energy, beatPulseVal) {
-            var sx = survivorX * W;
-            var sy = H * 0.72;
-            var figH = H * 0.14;
-            var headR = figH * 0.08;
+            // Update position
+            survivorFig.x = survivorX * W;
+            survivorFig.y = H * 0.72;
+
+            // Apply bounce
             var bounce = Math.sin(time * 6) * 3 * energy;
+            survivorFig.y += bounce;
 
+            StickFight.drawFigure(ctx, survivorFig);
+
+            // Draw extras
+            var joints = StickFight.computeJoints(survivorFig);
             ctx.save();
-            ctx.translate(sx, sy + bounce);
+            ctx.translate(survivorFig.x, survivorFig.y);
 
-            // Body (stick figure style)
+            var headR = joints.headR;
+
+            // Helmet / hood outline
             ctx.strokeStyle = RUBY;
             ctx.lineWidth = 3;
             ctx.shadowColor = RUBY;
             ctx.shadowBlur = 10;
             ctx.lineCap = 'round';
-
-            // Head
             ctx.beginPath();
-            ctx.arc(0, -figH * 0.85, headR, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Helmet / hood outline
-            ctx.beginPath();
-            ctx.arc(0, -figH * 0.85, headR * 1.3, -Math.PI * 0.9, -Math.PI * 0.1);
+            ctx.arc(joints.head.x, joints.head.y, headR * 1.3, -Math.PI * 0.9, -Math.PI * 0.1);
             ctx.stroke();
 
             // Eyes (determined)
             ctx.fillStyle = RUBY;
-            ctx.fillRect(-headR * 0.4, -figH * 0.87, headR * 0.2, headR * 0.15);
-            ctx.fillRect(headR * 0.2, -figH * 0.87, headR * 0.2, headR * 0.15);
+            ctx.fillRect(joints.head.x - headR * 0.4, joints.head.y - headR * 0.2, headR * 0.2, headR * 0.15);
+            ctx.fillRect(joints.head.x + headR * 0.2, joints.head.y - headR * 0.2, headR * 0.2, headR * 0.15);
 
-            // Neck to torso
-            ctx.beginPath();
-            ctx.moveTo(0, -figH * 0.77);
-            ctx.lineTo(0, -figH * 0.4);
-            ctx.stroke();
-
-            // Shoulders
-            ctx.beginPath();
-            ctx.moveTo(-figH * 0.12, -figH * 0.7);
-            ctx.lineTo(figH * 0.12, -figH * 0.7);
-            ctx.stroke();
-
-            // Left arm
-            ctx.beginPath();
-            ctx.moveTo(-figH * 0.12, -figH * 0.7);
-            ctx.lineTo(-figH * 0.18, -figH * 0.5);
-            ctx.lineTo(-figH * 0.12, -figH * 0.35);
-            ctx.stroke();
-
-            // Right arm + weapon
-            var wAngle = weaponAngle;
-            var elbowX = figH * 0.16;
-            var elbowY = -figH * 0.55;
-            ctx.beginPath();
-            ctx.moveTo(figH * 0.12, -figH * 0.7);
-            ctx.lineTo(elbowX, elbowY);
-            ctx.stroke();
-
-            // Weapon (sword)
-            var swordLen = figH * 0.35;
-            ctx.save();
-            ctx.translate(elbowX, elbowY);
-            ctx.rotate(wAngle);
-            ctx.strokeStyle = '#e8e0d0';
-            ctx.lineWidth = 2;
-            ctx.shadowColor = '#e8e0d0';
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(swordLen, 0);
-            ctx.stroke();
-            // Crossguard
-            ctx.beginPath();
-            ctx.moveTo(4, -5);
-            ctx.lineTo(4, 5);
-            ctx.stroke();
             // Blade glow on swing
-            if (weaponSwinging) {
+            if (weaponSwinging && survivorFig.params.swordLen > 0) {
+                var hand = joints.handL;
+                var sLen = survivorFig.params.swordLen * survivorFig.figH;
+                var sAng = survivorFig.params.swordAngle;
+                var tipX = hand.x + Math.cos(sAng) * sLen * survivorFig.facing;
+                var tipY = hand.y + Math.sin(sAng) * sLen;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
                 ctx.strokeStyle = rgba(RUBY, 0.4);
                 ctx.lineWidth = 6;
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = RUBY;
                 ctx.beginPath();
-                ctx.moveTo(4, 0);
-                ctx.lineTo(swordLen, 0);
+                ctx.moveTo(hand.x, hand.y);
+                ctx.lineTo(tipX, tipY);
                 ctx.stroke();
+                ctx.restore();
             }
-            ctx.restore();
-
-            ctx.strokeStyle = RUBY;
-            ctx.lineWidth = 3;
-            ctx.shadowColor = RUBY;
-
-            // Legs
-            var legSpread = figH * 0.08 + Math.abs(Math.sin(time * 4)) * figH * 0.03 * energy;
-            ctx.beginPath();
-            ctx.moveTo(0, -figH * 0.4);
-            ctx.lineTo(-legSpread, -figH * 0.2);
-            ctx.lineTo(-legSpread * 0.8, 0);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, -figH * 0.4);
-            ctx.lineTo(legSpread, -figH * 0.2);
-            ctx.lineTo(legSpread * 0.8, 0);
-            ctx.stroke();
 
             // Cloak flutter
             if (energy > 0.3) {
                 ctx.strokeStyle = rgba(RUBY, 0.3);
                 ctx.lineWidth = 1;
+                var neckX = joints.neck.x;
+                var neckY = joints.neck.y;
                 for (var c = 0; c < 3; c++) {
                     var cOff = Math.sin(time * 5 + c * 1.5) * 6 * energy;
                     ctx.beginPath();
-                    ctx.moveTo(-figH * 0.06, -figH * 0.7);
-                    ctx.quadraticCurveTo(-figH * 0.15 + cOff, -figH * 0.5, -figH * 0.1 + cOff * 1.5, -figH * 0.25);
+                    ctx.moveTo(neckX - survivorFig.figH * 0.06, neckY);
+                    ctx.quadraticCurveTo(neckX - survivorFig.figH * 0.15 + cOff, neckY + survivorFig.figH * 0.2, neckX - survivorFig.figH * 0.1 + cOff * 1.5, neckY + survivorFig.figH * 0.45);
                     ctx.stroke();
                 }
             }
@@ -686,91 +636,86 @@
             ctx.restore();
         }
 
-        // ── Skeleton drawing ──
+        // ── Skeleton drawing (StickFight + undead extras) ──
         function drawSkeleton(ctx, skel) {
-            var x = skel.x;
-            var y = skel.y;
-            var s = skel.size;
-            var figH = H * 0.1 * s;
-            var headR = figH * 0.09;
+            // Lazy-init a StickFight figure for each skeleton
+            if (!skel.fig) {
+                var figH = H * 0.1 * skel.size;
+                var facing = skel.vx < 0 ? -1 : 1;
+                skel.fig = StickFight.create({
+                    x: skel.x, y: skel.y, figH: figH,
+                    facing: facing, color: BONE_WHITE, lineWidth: 2, poseSpeed: 6
+                });
+                // Walking shamble pose
+                StickFight.setPose(skel.fig, 'idle');
+                StickFight.setTarget(skel.fig, 'armLAngle', -0.3);
+                StickFight.setTarget(skel.fig, 'armRAngle', -0.3);
+                StickFight.setTarget(skel.fig, 'elbowLBend', 0.2);
+                StickFight.setTarget(skel.fig, 'elbowRBend', 0.2);
+            }
+
             var walk = Math.sin(time * 5 + skel.phase) * 4;
+            skel.fig.x = skel.x;
+            skel.fig.y = skel.y + walk;
+            skel.fig.figH = H * 0.1 * skel.size;
+
+            // Animate arms reaching
+            var armReach = Math.sin(time * 3 + skel.phase) * 0.3;
+            StickFight.setTarget(skel.fig, 'armLAngle', -0.3 + armReach);
+            StickFight.setTarget(skel.fig, 'armRAngle', -0.3 + armReach);
+            var legPhase = Math.sin(time * 4 + skel.phase) * 0.15;
+            StickFight.setTarget(skel.fig, 'kneeL', legPhase);
+            StickFight.setTarget(skel.fig, 'kneeR', -legPhase);
+
             var alpha = skel.dying ? (1 - skel.deathTimer) : 1;
 
             ctx.save();
             ctx.globalAlpha = alpha;
-            ctx.translate(x, y + walk);
+            StickFight.updateFigure(skel.fig, 1/60);
+            StickFight.drawFigure(ctx, skel.fig);
+
+            // Draw skeleton extras (eye sockets, jaw, ribs)
+            var joints = StickFight.computeJoints(skel.fig);
+            ctx.translate(skel.fig.x, skel.fig.y);
+            var headR = joints.headR;
+
+            // Eye sockets
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(joints.head.x - headR * 0.3, joints.head.y - headR * 0.15, headR * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(joints.head.x + headR * 0.3, joints.head.y - headR * 0.15, headR * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Jaw
             ctx.strokeStyle = BONE_WHITE;
             ctx.lineWidth = 2;
             ctx.shadowColor = BONE_WHITE;
             ctx.shadowBlur = 4;
             ctx.lineCap = 'round';
-
-            // Skull
             ctx.beginPath();
-            ctx.arc(0, -figH * 0.85, headR, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Eye sockets (dark)
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(-headR * 0.3, -figH * 0.87, headR * 0.2, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(headR * 0.3, -figH * 0.87, headR * 0.2, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Jaw
-            ctx.strokeStyle = BONE_WHITE;
-            ctx.beginPath();
-            ctx.moveTo(-headR * 0.4, -figH * 0.82);
-            ctx.lineTo(0, -figH * 0.78 + Math.sin(time * 8 + skel.phase) * 1.5);
-            ctx.lineTo(headR * 0.4, -figH * 0.82);
-            ctx.stroke();
-
-            // Spine
-            ctx.beginPath();
-            ctx.moveTo(0, -figH * 0.77);
-            ctx.lineTo(0, -figH * 0.35);
+            ctx.moveTo(joints.head.x - headR * 0.4, joints.head.y + headR * 0.3);
+            ctx.lineTo(joints.head.x, joints.head.y + headR * 0.5 + Math.sin(time * 8 + skel.phase) * 1.5);
+            ctx.lineTo(joints.head.x + headR * 0.4, joints.head.y + headR * 0.3);
             ctx.stroke();
 
             // Ribs
+            var neckY = joints.neck.y;
+            var hipY = joints.hip.y;
+            var torsoMid = (neckY + hipY) * 0.5;
             for (var r = 0; r < 3; r++) {
-                var ribY = -figH * (0.7 - r * 0.1);
+                var ribY = neckY + (r + 1) * (torsoMid - neckY) / 3.5;
+                var ribW = skel.fig.figH * 0.07;
                 ctx.beginPath();
-                ctx.moveTo(-figH * 0.07, ribY);
-                ctx.quadraticCurveTo(-figH * 0.1, ribY + 3, -figH * 0.05, ribY + 5);
+                ctx.moveTo(joints.neck.x - ribW, ribY);
+                ctx.quadraticCurveTo(joints.neck.x - ribW * 1.3, ribY + 3, joints.neck.x - ribW * 0.7, ribY + 5);
                 ctx.stroke();
                 ctx.beginPath();
-                ctx.moveTo(figH * 0.07, ribY);
-                ctx.quadraticCurveTo(figH * 0.1, ribY + 3, figH * 0.05, ribY + 5);
+                ctx.moveTo(joints.neck.x + ribW, ribY);
+                ctx.quadraticCurveTo(joints.neck.x + ribW * 1.3, ribY + 3, joints.neck.x + ribW * 0.7, ribY + 5);
                 ctx.stroke();
             }
-
-            // Arms (reaching forward)
-            var armReach = Math.sin(time * 3 + skel.phase) * figH * 0.05;
-            ctx.beginPath();
-            ctx.moveTo(-figH * 0.08, -figH * 0.68);
-            ctx.lineTo(-figH * 0.15 + armReach, -figH * 0.55);
-            ctx.lineTo(-figH * 0.2 + armReach * 1.5, -figH * 0.5);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(figH * 0.08, -figH * 0.68);
-            ctx.lineTo(figH * 0.15 + armReach, -figH * 0.55);
-            ctx.lineTo(figH * 0.2 + armReach * 1.5, -figH * 0.5);
-            ctx.stroke();
-
-            // Legs (bone segments)
-            var legPhase = Math.sin(time * 4 + skel.phase);
-            ctx.beginPath();
-            ctx.moveTo(0, -figH * 0.35);
-            ctx.lineTo(-figH * 0.06 + legPhase * 2, -figH * 0.18);
-            ctx.lineTo(-figH * 0.04, 0);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(0, -figH * 0.35);
-            ctx.lineTo(figH * 0.06 - legPhase * 2, -figH * 0.18);
-            ctx.lineTo(figH * 0.04, 0);
-            ctx.stroke();
 
             // Death scatter effect
             if (skel.dying) {
@@ -780,7 +725,7 @@
                     var bx = Math.cos(b * 1.3 + skel.phase) * scatter * 40;
                     var by = Math.sin(b * 1.7 + skel.phase) * scatter * 30 - scatter * 20;
                     ctx.fillStyle = BONE_WHITE;
-                    ctx.fillRect(bx - 2, by - figH * 0.5 - 2, 4, 8);
+                    ctx.fillRect(bx - 2, by - skel.fig.figH * 0.5 - 2, 4, 8);
                 }
             }
 
@@ -1019,7 +964,16 @@
             sectionMood = 'intro';
 
             survivorX = 0.5;
-            weaponAngle = -Math.PI * 0.3;
+            survivorFig = StickFight.create({
+                x: survivorX * W, y: H * 0.72,
+                figH: H * 0.14, facing: 1,
+                color: RUBY, lineWidth: 3, poseSpeed: 12
+            });
+            survivorFig.params.swordLen = 0.35;
+            survivorFig.targets.swordLen = 0.35;
+            survivorFig.params.swordAngle = -Math.PI * 0.3;
+            survivorFig.targets.swordAngle = -Math.PI * 0.3;
+            StickFight.setPose(survivorFig, 'guard');
             weaponSwinging = false;
             weaponSwingTimer = 0;
 
@@ -1036,6 +990,15 @@
         // ── Resize ──
         function resize(width, height) {
             W = width; H = height;
+            if (survivorFig) {
+                survivorFig.x = survivorX * W;
+                survivorFig.y = H * 0.72;
+                survivorFig.figH = H * 0.14;
+            }
+            // Reset lazy-init skeleton figures so they pick up new dimensions
+            for (var si = 0; si < skeletons.length; si++) {
+                skeletons[si].fig = null;
+            }
             initArchitecture();
             initCandles();
             initOrganPipes();
@@ -1146,15 +1109,21 @@
                 var swingProg = weaponSwingTimer / swingDur;
                 if (swingProg >= 1) {
                     weaponSwinging = false;
-                    weaponAngle = -Math.PI * 0.3;
+                    StickFight.setPose(survivorFig, 'guard');
+                    StickFight.setTarget(survivorFig, 'swordAngle', -Math.PI * 0.3);
                 } else {
                     // Quick arc: raise then slash down
-                    weaponAngle = -Math.PI * 0.3 + Math.sin(swingProg * Math.PI) * Math.PI * 0.8;
+                    var swingAngle = -Math.PI * 0.3 + Math.sin(swingProg * Math.PI) * Math.PI * 0.8;
+                    StickFight.setTarget(survivorFig, 'swordAngle', swingAngle);
+                    StickFight.setPose(survivorFig, 'lunge');
                 }
             }
 
             // ── Survivor movement ──
             survivorX = lerp(survivorX, 0.5 + survivorSwingTarget, 1 - Math.exp(-3 * dt));
+
+            // Update StickFight figure
+            StickFight.updateFigure(survivorFig, dt);
 
             // ── Update enemies ──
             // Skeletons
