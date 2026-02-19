@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Diva's Aria — A Fifth Element Tribute</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #05051a;
+            color: #fff;
+            font-family: 'Cinzel', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(5,5,26,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(22px, 5vw, 52px);
+            font-weight: 900;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #6ec6ff;
+            text-shadow: 0 0 30px rgba(110,198,255,0.6), 0 0 60px rgba(110,198,255,0.3);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(12px, 2vw, 18px);
+            color: rgba(255,200,100,0.6);
+            margin-bottom: 40px;
+            font-weight: 400;
+            letter-spacing: 0.2em;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #6ec6ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #6ec6ff;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(110,198,255,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(110,198,255,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+            font-family: sans-serif;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&#8592; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">The Diva's Aria</div>
+        <div class="play-sub">a Fifth Element tribute</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── The Diva's Aria Video Renderer ─────────────────────────────────
+    window.Renderers['divas-aria-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Palette ──
+        var BG_TOP = '#05051a';
+        var BG_BOT = '#0a0520';
+        var DIVA_BLUE = '#4ca8e8';
+        var DIVA_SKIN = '#5bbcf5';
+        var DIVA_DARK = '#2a6a9e';
+        var GOLD_SPOT = '#ffd666';
+        var WARM_GOLD = '#e8a030';
+        var FIGHT_RED = '#ff3333';
+        var FIGHT_WHITE = '#ffffff';
+        var STAGE_EDGE = '#c8a050';
+
+        // ── Layout ratios ──
+        var STAGE_Y_RATIO = 0.48;   // diva stands here
+        var AUDIENCE_TOP_RATIO = 0.58; // audience starts
+        var FLOOR_Y_RATIO = 0.55;
+
+        // ── State ──
+        var stageY = 0;
+        var audienceTop = 0;
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var lastSeqIndex = -1;
+        var sectionMood = 'intro'; // intro, aria, coloratura, shift, action, climax, descent, coda
+
+        // Diva state
+        var divaArmAngle = 0;       // 0 = sides, 1 = raised
+        var divaArmTarget = 0;
+        var divaSway = 0;
+        var divaBreathPhase = 0;
+        var divaMouthOpen = 0;
+        var divaMouthTarget = 0;
+        var divaGlowIntensity = 0;
+
+        // Coloratura trails
+        var lightTrails = [];
+        var MAX_TRAILS = 120;
+
+        // Spotlight beams
+        var spotBeams = [];
+        var spotPhase = 0;
+
+        // Fog particles
+        var fogParticles = [];
+        var MAX_FOG = 60;
+
+        // Audience
+        var audienceMembers = [];
+        var MAX_AUDIENCE = 50;
+        var fightIntensity = 0;
+        var fightTarget = 0;
+
+        // Title
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        // Intro/outro
+        var curtainY = 1;           // 1 = closed, 0 = open
+        var curtainTarget = 1;
+        var fadeAlpha = 1;
+
+        // ── Section mapping based on song sequence ──
+        function mapSection(seqIdx) {
+            if (seqIdx <= 0) return 'intro';
+            if (seqIdx <= 2) return 'curtain';
+            if (seqIdx <= 6) return 'aria';
+            if (seqIdx <= 9) return 'coloratura';
+            if (seqIdx <= 11) return 'aria';       // aria return + yearning repeat
+            if (seqIdx <= 13) return 'coloratura';  // coloratura repeat
+            if (seqIdx <= 15) return 'shift';       // tension builds
+            if (seqIdx <= 19) return 'action';      // fight + action aria
+            if (seqIdx <= 24) return 'climax';      // climax peak
+            if (seqIdx <= 25) return 'descent';
+            return 'coda';
+        }
+
+        // ── Lerp ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function lerpSmooth(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+
+        // ── Hex to RGB ──
+        function hexRGB(hex) {
+            return {
+                r: parseInt(hex.slice(1, 3), 16),
+                g: parseInt(hex.slice(3, 5), 16),
+                b: parseInt(hex.slice(5, 7), 16)
+            };
+        }
+
+        // ── Init audience ──
+        function initAudience() {
+            audienceMembers = [];
+            for (var i = 0; i < MAX_AUDIENCE; i++) {
+                var row = Math.floor(i / 10);
+                var col = i % 10;
+                audienceMembers.push({
+                    x: (col + 0.5) / 10 * W + (Math.random() - 0.5) * W * 0.04,
+                    y: audienceTop + row * (H - audienceTop) / 6 + Math.random() * 20,
+                    size: 30 + Math.random() * 25,
+                    phase: Math.random() * Math.PI * 2,
+                    swaySpeed: 0.5 + Math.random() * 1.5,
+                    isFighter: false,
+                    fightPartner: -1,
+                    fightPhase: Math.random() * Math.PI * 2,
+                    armSwing: 0
+                });
+            }
+            // Pre-assign some fighters in pairs
+            for (var fi = 0; fi < 12; fi += 2) {
+                var a = 5 + fi;
+                var b = 6 + fi;
+                if (a < audienceMembers.length && b < audienceMembers.length) {
+                    audienceMembers[a].isFighter = true;
+                    audienceMembers[a].fightPartner = b;
+                    audienceMembers[b].isFighter = true;
+                    audienceMembers[b].fightPartner = a;
+                }
+            }
+        }
+
+        // ── Init fog ──
+        function initFog() {
+            fogParticles = [];
+            for (var i = 0; i < MAX_FOG; i++) {
+                fogParticles.push({
+                    x: Math.random() * W,
+                    y: stageY - Math.random() * H * 0.3,
+                    vx: (Math.random() - 0.5) * 30,
+                    vy: -5 - Math.random() * 15,
+                    size: 20 + Math.random() * 60,
+                    alpha: 0.02 + Math.random() * 0.06,
+                    life: Math.random()
+                });
+            }
+        }
+
+        // ── Init spot beams ──
+        function initSpotBeams() {
+            spotBeams = [];
+            for (var i = 0; i < 5; i++) {
+                spotBeams.push({
+                    x: W * (0.1 + i * 0.2),
+                    angle: (Math.random() - 0.5) * 0.5,
+                    targetAngle: 0,
+                    color: i === 2 ? GOLD_SPOT : (i % 2 === 0 ? '#6ec6ff' : '#a070ff'),
+                    width: 30 + Math.random() * 40,
+                    intensity: 0
+                });
+            }
+        }
+
+        // ── Draw background gradient ──
+        function drawBackground(ctx) {
+            var grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, BG_TOP);
+            grad.addColorStop(0.5, BG_BOT);
+            grad.addColorStop(1, '#0a0010');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // ── Draw stage ──
+        function drawStage(ctx, energy) {
+            // Stage platform
+            ctx.save();
+            var stageGrad = ctx.createLinearGradient(0, stageY - 5, 0, stageY + 30);
+            stageGrad.addColorStop(0, 'rgba(200,160,80,' + (0.3 + energy * 0.2) + ')');
+            stageGrad.addColorStop(1, 'rgba(40,20,10,0)');
+            ctx.fillStyle = stageGrad;
+            ctx.fillRect(0, stageY - 2, W, 32);
+
+            // Stage edge line
+            ctx.strokeStyle = STAGE_EDGE;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = STAGE_EDGE;
+            ctx.beginPath();
+            ctx.moveTo(0, stageY);
+            ctx.lineTo(W, stageY);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // ── Draw spotlight beams ──
+        function drawSpotBeams(ctx, energy) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < spotBeams.length; i++) {
+                var b = spotBeams[i];
+                var alpha = b.intensity * (0.04 + energy * 0.08);
+                if (alpha < 0.005) continue;
+
+                var col = hexRGB(b.color);
+                var grad = ctx.createLinearGradient(b.x, 0, b.x + Math.sin(b.angle) * stageY, stageY);
+                grad.addColorStop(0, 'rgba(' + col.r + ',' + col.g + ',' + col.b + ',' + (alpha * 0.9) + ')');
+                grad.addColorStop(1, 'rgba(' + col.r + ',' + col.g + ',' + col.b + ',0)');
+                ctx.fillStyle = grad;
+
+                var topW = 8;
+                var botW = b.width + energy * 30;
+                ctx.beginPath();
+                ctx.moveTo(b.x - topW, 0);
+                ctx.lineTo(b.x + topW, 0);
+                ctx.lineTo(b.x + Math.sin(b.angle) * stageY + botW, stageY);
+                ctx.lineTo(b.x + Math.sin(b.angle) * stageY - botW, stageY);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw the diva silhouette ──
+        function drawDiva(ctx, energy, time) {
+            var cx = W * 0.5;
+            var baseY = stageY;
+            var figH = H * 0.32;
+
+            var breath = Math.sin(divaBreathPhase) * figH * 0.008;
+            var sway = divaSway * figH * 0.02;
+
+            // Glow aura behind diva
+            var glowR = figH * 0.4 + energy * figH * 0.2 + divaGlowIntensity * figH * 0.3;
+            var auraGrad = ctx.createRadialGradient(cx + sway, baseY - figH * 0.45, 0, cx + sway, baseY - figH * 0.45, glowR);
+            auraGrad.addColorStop(0, 'rgba(110,198,255,' + (0.15 + divaGlowIntensity * 0.25) + ')');
+            auraGrad.addColorStop(0.5, 'rgba(80,140,220,' + (0.06 + divaGlowIntensity * 0.1) + ')');
+            auraGrad.addColorStop(1, 'rgba(40,60,120,0)');
+            ctx.save();
+            ctx.fillStyle = auraGrad;
+            ctx.fillRect(cx - glowR, baseY - figH - glowR * 0.5, glowR * 2, figH + glowR);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(cx + sway, baseY);
+
+            // Dress / body (elongated triangle)
+            var dressW = figH * 0.18;
+            var dressBot = 0;
+            var dressTop = -figH * 0.55;
+            var waistY = -figH * 0.58;
+            var neckY = -figH * 0.72 + breath;
+            var headY = -figH * 0.82 + breath;
+            var headR = figH * 0.07;
+
+            // Flowing dress
+            ctx.fillStyle = DIVA_DARK;
+            ctx.shadowColor = DIVA_BLUE;
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.moveTo(-dressW * 0.4, waistY);
+            ctx.quadraticCurveTo(-dressW * 1.5, dressBot * 0.3, -dressW * 1.8, dressBot);
+            ctx.lineTo(dressW * 1.8, dressBot);
+            ctx.quadraticCurveTo(dressW * 1.5, dressBot * 0.3, dressW * 0.4, waistY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Torso
+            ctx.fillStyle = DIVA_SKIN;
+            ctx.shadowBlur = 10;
+            ctx.beginPath();
+            ctx.moveTo(-dressW * 0.35, waistY);
+            ctx.quadraticCurveTo(-dressW * 0.25, waistY - figH * 0.08, -dressW * 0.3, neckY + figH * 0.04);
+            ctx.lineTo(dressW * 0.3, neckY + figH * 0.04);
+            ctx.quadraticCurveTo(dressW * 0.25, waistY - figH * 0.08, dressW * 0.35, waistY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Neck
+            ctx.fillRect(-figH * 0.025, neckY, figH * 0.05, figH * 0.06);
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(0, headY, headR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Hair (ornate updo)
+            ctx.fillStyle = DIVA_DARK;
+            ctx.beginPath();
+            ctx.arc(0, headY - headR * 0.3, headR * 1.15, -Math.PI, 0);
+            ctx.fill();
+            // Hair ornament / crown
+            ctx.fillStyle = GOLD_SPOT;
+            ctx.shadowColor = GOLD_SPOT;
+            ctx.shadowBlur = 8;
+            for (var hi = -2; hi <= 2; hi++) {
+                var hx = hi * headR * 0.3;
+                var hy = headY - headR * 1.2 - Math.abs(hi) * headR * 0.15;
+                ctx.beginPath();
+                ctx.arc(hx, hy, 2 + (2 - Math.abs(hi)), 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Eyes (closed or half-open, performing)
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 0;
+            var eyeY = headY + headR * 0.05;
+            ctx.fillRect(-headR * 0.3, eyeY, headR * 0.18, 2);
+            ctx.fillRect(headR * 0.12, eyeY, headR * 0.18, 2);
+
+            // Mouth (open when singing)
+            var mouthH = divaMouthOpen * headR * 0.35;
+            if (mouthH > 1) {
+                ctx.fillStyle = '#1a3050';
+                ctx.beginPath();
+                ctx.ellipse(0, headY + headR * 0.4, headR * 0.2, mouthH, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = DIVA_SKIN;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Arms
+            var shoulderY = neckY + figH * 0.04;
+            var shoulderW = dressW * 0.35;
+            var armLen = figH * 0.22;
+            var foreLen = figH * 0.18;
+
+            var armAngle = divaArmAngle;
+            // Left arm
+            var lArmUp = -Math.PI * 0.5 + (1 - armAngle) * Math.PI * 0.6;
+            var lElbowX = -shoulderW + Math.cos(lArmUp) * armLen;
+            var lElbowY = shoulderY + Math.sin(lArmUp) * armLen;
+            var lForeAngle = lArmUp + 0.3 - armAngle * 0.5;
+            var lHandX = lElbowX + Math.cos(lForeAngle) * foreLen;
+            var lHandY = lElbowY + Math.sin(lForeAngle) * foreLen;
+
+            // Right arm (mirrored)
+            var rArmUp = -Math.PI * 0.5 - (1 - armAngle) * Math.PI * 0.6;
+            var rElbowX = shoulderW + Math.cos(rArmUp) * armLen;
+            var rElbowY = shoulderY + Math.sin(rArmUp) * armLen;
+            var rForeAngle = rArmUp - 0.3 + armAngle * 0.5;
+            var rHandX = rElbowX + Math.cos(rForeAngle) * foreLen;
+            var rHandY = rElbowY + Math.sin(rForeAngle) * foreLen;
+
+            ctx.strokeStyle = DIVA_SKIN;
+            ctx.lineWidth = figH * 0.025;
+            ctx.lineCap = 'round';
+            ctx.shadowColor = DIVA_BLUE;
+            ctx.shadowBlur = 6;
+
+            // Left arm
+            ctx.beginPath();
+            ctx.moveTo(-shoulderW, shoulderY);
+            ctx.lineTo(lElbowX, lElbowY);
+            ctx.lineTo(lHandX, lHandY);
+            ctx.stroke();
+
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(shoulderW, shoulderY);
+            ctx.lineTo(rElbowX, rElbowY);
+            ctx.lineTo(rHandX, rHandY);
+            ctx.stroke();
+
+            // Hands (small circles)
+            ctx.fillStyle = DIVA_SKIN;
+            ctx.beginPath();
+            ctx.arc(lHandX, lHandY, figH * 0.015, 0, Math.PI * 2);
+            ctx.arc(rHandX, rHandY, figH * 0.015, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // ── Draw light trails (coloratura) ──
+        function drawLightTrails(ctx) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < lightTrails.length; i++) {
+                var t = lightTrails[i];
+                if (t.life <= 0) continue;
+                var alpha = t.life * t.baseAlpha;
+                ctx.fillStyle = 'rgba(' + t.r + ',' + t.g + ',' + t.b + ',' + alpha + ')';
+                ctx.shadowColor = 'rgba(' + t.r + ',' + t.g + ',' + t.b + ',' + (alpha * 0.6) + ')';
+                ctx.shadowBlur = t.size * 2;
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, t.size * t.life, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Spawn coloratura trail ──
+        function spawnTrail(fromDiva, noteNorm) {
+            var cx = W * 0.5;
+            var y = stageY - H * 0.32 * 0.5;
+
+            // Color based on pitch: higher = more white/gold, lower = blue
+            var r, g, b;
+            if (noteNorm > 0.7) {
+                r = 255; g = 220; b = 180;
+            } else if (noteNorm > 0.4) {
+                r = 150; g = 200; b = 255;
+            } else {
+                r = 90; g = 150; b = 230;
+            }
+
+            var angle = -Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI * 0.8;
+            var speed = 80 + Math.random() * 160;
+
+            lightTrails.push({
+                x: cx + (Math.random() - 0.5) * 40,
+                y: y + (Math.random() - 0.5) * 30,
+                vx: Math.cos(angle) * speed * (Math.random() > 0.5 ? 1 : -1),
+                vy: Math.sin(angle) * speed - 30,
+                size: 3 + Math.random() * 5,
+                life: 1,
+                decay: 0.4 + Math.random() * 0.6,
+                baseAlpha: 0.4 + Math.random() * 0.4,
+                r: r, g: g, b: b,
+                gravity: 20 + Math.random() * 40
+            });
+
+            // Cap
+            if (lightTrails.length > MAX_TRAILS) {
+                lightTrails.splice(0, lightTrails.length - MAX_TRAILS);
+            }
+        }
+
+        // ── Draw audience ──
+        function drawAudience(ctx, energy, time) {
+            ctx.save();
+            for (var i = 0; i < audienceMembers.length; i++) {
+                var m = audienceMembers[i];
+                var bounce = Math.sin(m.phase + time * m.swaySpeed) * 4 * (1 - fightIntensity * 0.5);
+                var fightOff = 0;
+                var armOff = 0;
+
+                // Fighting behavior
+                if (m.isFighter && fightIntensity > 0.1 && m.fightPartner >= 0) {
+                    var partner = audienceMembers[m.fightPartner];
+                    var dx = partner.x - m.x;
+                    // Lunge toward partner
+                    fightOff = Math.sin(m.fightPhase + time * 6) * 10 * fightIntensity;
+                    armOff = Math.sin(m.fightPhase + time * 8) * 15 * fightIntensity;
+                }
+
+                var depth = (m.y - audienceTop) / (H - audienceTop);
+                var alpha = 0.3 + depth * 0.5;
+                var sz = m.size * (0.6 + depth * 0.4);
+
+                // Head
+                ctx.fillStyle = 'rgba(10,8,20,' + alpha + ')';
+                ctx.beginPath();
+                ctx.arc(m.x + fightOff, m.y - sz * 0.35 + bounce, sz * 0.18, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(m.x + fightOff, m.y + bounce, sz * 0.35, sz * 0.22, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Fighting arms (punching)
+                if (m.isFighter && fightIntensity > 0.1) {
+                    ctx.strokeStyle = 'rgba(10,8,20,' + (alpha * fightIntensity) + ')';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(m.x + fightOff, m.y - sz * 0.15 + bounce);
+                    ctx.lineTo(m.x + fightOff + armOff, m.y - sz * 0.3 + bounce);
+                    ctx.stroke();
+
+                    // Impact flash
+                    if (fightIntensity > 0.5 && Math.abs(armOff) > 12) {
+                        ctx.save();
+                        ctx.globalCompositeOperation = 'lighter';
+                        ctx.fillStyle = 'rgba(255,80,40,' + (fightIntensity * 0.15 * Math.abs(Math.sin(time * 12 + i))) + ')';
+                        ctx.beginPath();
+                        ctx.arc(m.x + fightOff + armOff * 0.8, m.y - sz * 0.25 + bounce, 6, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        // ── Draw fog ──
+        function drawFog(ctx) {
+            ctx.save();
+            for (var i = 0; i < fogParticles.length; i++) {
+                var p = fogParticles[i];
+                if (p.life <= 0) continue;
+                ctx.fillStyle = 'rgba(180,200,255,' + (p.alpha * p.life) + ')';
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw title ──
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            ctx.save();
+            var fontSize = Math.max(14, Math.min(W * 0.04, 52));
+            ctx.font = '900 ' + fontSize + 'px "Cinzel", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var y = H * 0.12;
+            var text = "THE DIVA'S ARIA";
+
+            // Gold glow text
+            ctx.globalAlpha = titleAlpha;
+            ctx.shadowColor = GOLD_SPOT;
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = GOLD_SPOT;
+            ctx.fillText(text, W * 0.5, y);
+
+            // White core
+            ctx.shadowBlur = 20;
+            ctx.globalAlpha = titleAlpha * 0.7;
+            ctx.fillStyle = '#fff';
+            ctx.fillText(text, W * 0.5, y);
+
+            ctx.restore();
+        }
+
+        // ── Draw curtain ──
+        function drawCurtain(ctx) {
+            if (curtainY < 0.01) return;
+            ctx.save();
+            var cy = curtainY * H;
+
+            // Heavy velvet curtain
+            var curtGrad = ctx.createLinearGradient(0, 0, 0, cy);
+            curtGrad.addColorStop(0, '#1a0808');
+            curtGrad.addColorStop(0.4, '#2a0a0a');
+            curtGrad.addColorStop(0.8, '#3a1010');
+            curtGrad.addColorStop(1, '#1a0808');
+            ctx.fillStyle = curtGrad;
+            ctx.fillRect(0, 0, W, cy);
+
+            // Gold trim at bottom
+            ctx.fillStyle = 'rgba(200,160,80,' + (0.4 + curtainY * 0.4) + ')';
+            ctx.fillRect(0, cy - 6, W, 6);
+
+            // Folds
+            ctx.strokeStyle = 'rgba(80,20,20,0.4)';
+            ctx.lineWidth = 2;
+            for (var i = 0; i < 12; i++) {
+                var fx = W * (i + 0.5) / 12;
+                ctx.beginPath();
+                ctx.moveTo(fx, 0);
+                ctx.quadraticCurveTo(fx + 10 * Math.sin(i), cy * 0.5, fx, cy);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw flash ──
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = flashAlpha;
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Draw fight chaos overlay on bottom half ──
+        function drawFightEffects(ctx, energy, time) {
+            if (fightIntensity < 0.05) return;
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Red atmospheric glow in audience area
+            var fightGrad = ctx.createLinearGradient(0, audienceTop, 0, H);
+            fightGrad.addColorStop(0, 'rgba(255,30,0,' + (fightIntensity * 0.03) + ')');
+            fightGrad.addColorStop(0.5, 'rgba(255,50,20,' + (fightIntensity * 0.06 * energy) + ')');
+            fightGrad.addColorStop(1, 'rgba(200,20,0,' + (fightIntensity * 0.02) + ')');
+            ctx.fillStyle = fightGrad;
+            ctx.fillRect(0, audienceTop, W, H - audienceTop);
+
+            // Random flash sparks in audience
+            if (fightIntensity > 0.3 && Math.random() < fightIntensity * 0.3) {
+                var sx = audienceTop + Math.random() * (H - audienceTop) * 0.6;
+                ctx.fillStyle = 'rgba(255,200,100,' + (fightIntensity * 0.4) + ')';
+                ctx.beginPath();
+                ctx.arc(Math.random() * W, sx, 3 + Math.random() * 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw center spotlight on diva ──
+        function drawDivaSpotlight(ctx, energy) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var cx = W * 0.5;
+            var grad = ctx.createRadialGradient(cx, stageY - H * 0.2, 0, cx, stageY - H * 0.1, H * 0.35);
+            var alpha = 0.05 + energy * 0.08 + divaGlowIntensity * 0.06;
+            grad.addColorStop(0, 'rgba(255,214,102,' + alpha + ')');
+            grad.addColorStop(0.4, 'rgba(255,200,80,' + (alpha * 0.4) + ')');
+            grad.addColorStop(1, 'rgba(255,180,60,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H * 0.7);
+            ctx.restore();
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            stageY = H * STAGE_Y_RATIO;
+            audienceTop = H * AUDIENCE_TOP_RATIO;
+
+            lightTrails = [];
+            lastBeat = -1;
+            beatPulse = 0;
+            flashAlpha = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'intro';
+            curtainY = 1;
+            curtainTarget = 1;
+            fadeAlpha = 1;
+            fightIntensity = 0;
+            fightTarget = 0;
+            divaArmAngle = 0;
+            divaArmTarget = 0;
+            divaGlowIntensity = 0;
+            divaMouthOpen = 0;
+            divaMouthTarget = 0;
+            titleAlpha = 0;
+            titleTarget = 0;
+            spotPhase = 0;
+
+            initAudience();
+            initFog();
+            initSpotBeams();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+            stageY = H * STAGE_Y_RATIO;
+            audienceTop = H * AUDIENCE_TOP_RATIO;
+            initAudience();
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+
+            drawBackground(ctx);
+
+            if (!cursor) {
+                // Idle: closed curtain with dim stage
+                drawStage(ctx, 0);
+                drawCurtain(ctx);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+            var time = cursor.elapsed || 0;
+            var notes = frameData.currentNotes || [];
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+
+                if (newSection === 'curtain' || newSection === 'aria') curtainTarget = 0;
+                if (newSection === 'action' || newSection === 'climax') {
+                    flashAlpha = 0.2;
+                }
+                lastSeqIndex = seqIdx;
+            }
+
+            // ── Curtain animation ──
+            curtainY = lerpSmooth(curtainY, curtainTarget, 1.2, dt);
+
+            // ── Beat detection ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+                spotPhase += 0.5 + Math.random() * 0.5;
+
+                // Spotbeam retarget
+                for (var si = 0; si < spotBeams.length; si++) {
+                    spotBeams[si].targetAngle = (Math.random() - 0.5) * 0.6;
+                }
+
+                // Flash on high energy beats
+                if (energy > 0.6 && (sectionMood === 'action' || sectionMood === 'climax')) {
+                    flashAlpha = Math.max(flashAlpha, 0.08 + energy * 0.1);
+                }
+            }
+            lastBeat = beat;
+
+            beatPulse *= Math.exp(-8 * dt);
+            flashAlpha *= Math.exp(-5 * dt);
+
+            // ── Section-dependent behavior ──
+
+            // Diva arms and mouth
+            switch (sectionMood) {
+                case 'intro':
+                    divaArmTarget = 0;
+                    divaMouthTarget = 0;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.1, 2, dt);
+                    fightTarget = 0;
+                    titleTarget = 0;
+                    break;
+                case 'curtain':
+                    divaArmTarget = 0.2;
+                    divaMouthTarget = 0.3;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.3, 2, dt);
+                    fightTarget = 0;
+                    titleTarget = 1;
+                    break;
+                case 'aria':
+                    divaArmTarget = 0.3 + energy * 0.3;
+                    divaMouthTarget = 0.5 + energy * 0.3;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.4 + energy * 0.2, 2, dt);
+                    fightTarget = 0;
+                    titleTarget = 0;
+                    break;
+                case 'coloratura':
+                    divaArmTarget = 0.6 + energy * 0.3;
+                    divaMouthTarget = 0.8 + energy * 0.2;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.7 + energy * 0.3, 3, dt);
+                    fightTarget = 0;
+                    titleTarget = 0;
+
+                    // Spawn lots of trails for coloratura passages
+                    for (var ci = 0; ci < notes.length; ci++) {
+                        if (notes[ci] && notes[ci].normalized !== undefined) {
+                            if (Math.random() < 0.6) {
+                                spawnTrail(true, notes[ci].normalized);
+                            }
+                        }
+                    }
+                    break;
+                case 'shift':
+                    divaArmTarget = 0.4;
+                    divaMouthTarget = 0.4 + energy * 0.3;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.3, 2, dt);
+                    fightTarget = 0.3 + energy * 0.3;
+                    titleTarget = 0;
+                    break;
+                case 'action':
+                    divaArmTarget = 0.7 + energy * 0.3;
+                    divaMouthTarget = 0.6 + energy * 0.4;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.5 + energy * 0.3, 3, dt);
+                    fightTarget = 0.7 + energy * 0.3;
+                    titleTarget = 0;
+
+                    // Still some trails during action
+                    for (var ai = 0; ai < notes.length; ai++) {
+                        if (notes[ai] && notes[ai].normalized !== undefined && Math.random() < 0.3) {
+                            spawnTrail(true, notes[ai].normalized);
+                        }
+                    }
+                    break;
+                case 'climax':
+                    divaArmTarget = 0.9 + energy * 0.1;
+                    divaMouthTarget = 1;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 1, 4, dt);
+                    fightTarget = 1;
+                    titleTarget = 1;
+
+                    // Maximum trails
+                    for (var ki = 0; ki < notes.length; ki++) {
+                        if (notes[ki] && notes[ki].normalized !== undefined) {
+                            spawnTrail(true, notes[ki].normalized);
+                            if (Math.random() < 0.5) spawnTrail(true, notes[ki].normalized);
+                        }
+                    }
+                    break;
+                case 'descent':
+                    divaArmTarget = 0.5 - energy * 0.3;
+                    divaMouthTarget = 0.4;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.3, 2, dt);
+                    fightTarget = Math.max(0, fightTarget - dt * 0.5);
+                    titleTarget = 0;
+                    break;
+                case 'coda':
+                    divaArmTarget = 0.15;
+                    divaMouthTarget = 0.2 * energy;
+                    divaGlowIntensity = lerpSmooth(divaGlowIntensity, 0.1, 1, dt);
+                    fightTarget = 0;
+                    titleTarget = 0;
+                    break;
+            }
+
+            // ── Lerp state ──
+            divaArmAngle = lerpSmooth(divaArmAngle, divaArmTarget, 4, dt);
+            divaMouthOpen = lerpSmooth(divaMouthOpen, divaMouthTarget, 6, dt);
+            divaSway = Math.sin(time * 0.8) * (0.3 + energy * 0.5);
+            divaBreathPhase += dt * 2;
+            fightIntensity = lerpSmooth(fightIntensity, fightTarget, 3, dt);
+            titleAlpha = lerpSmooth(titleAlpha, titleTarget, 3, dt);
+
+            // ── Spot beam updates ──
+            for (var bi = 0; bi < spotBeams.length; bi++) {
+                var beam = spotBeams[bi];
+                beam.angle = lerpSmooth(beam.angle, beam.targetAngle, 1.5, dt);
+                var targetIntensity = (sectionMood === 'intro') ? 0.2 : 1;
+                if (sectionMood === 'coda') targetIntensity = 0.3 + energy;
+                beam.intensity = lerpSmooth(beam.intensity, targetIntensity, 2, dt);
+            }
+
+            // ── Update light trails ──
+            for (var ti = lightTrails.length - 1; ti >= 0; ti--) {
+                var trail = lightTrails[ti];
+                trail.x += trail.vx * dt;
+                trail.y += trail.vy * dt;
+                trail.vy += trail.gravity * dt;
+                trail.life -= trail.decay * dt;
+                if (trail.life <= 0) {
+                    lightTrails.splice(ti, 1);
+                }
+            }
+
+            // ── Update fog ──
+            for (var fi = 0; fi < fogParticles.length; fi++) {
+                var fog = fogParticles[fi];
+                fog.x += fog.vx * dt;
+                fog.y += fog.vy * dt * 0.3;
+                fog.life -= dt * 0.05;
+                if (fog.life <= 0 || fog.y < -fog.size || fog.x < -fog.size || fog.x > W + fog.size) {
+                    fog.x = Math.random() * W;
+                    fog.y = stageY - Math.random() * 20;
+                    fog.life = 0.8 + Math.random() * 0.2;
+                    fog.vx = (Math.random() - 0.5) * 30;
+                }
+            }
+
+            // ── Draw layers (back to front) ──
+
+            // 1. Spot beams (behind everything)
+            drawSpotBeams(ctx, energy);
+
+            // 2. Stage
+            drawStage(ctx, energy);
+
+            // 3. Diva spotlight
+            drawDivaSpotlight(ctx, energy);
+
+            // 4. Light trails (coloratura)
+            drawLightTrails(ctx);
+
+            // 5. Stage fog
+            drawFog(ctx);
+
+            // 6. Diva
+            drawDiva(ctx, energy, time);
+
+            // 7. Audience
+            drawAudience(ctx, energy, time);
+
+            // 8. Fight effects (red glow over audience)
+            drawFightEffects(ctx, energy, time);
+
+            // 9. Title
+            drawTitle(ctx);
+
+            // 10. Curtain (over everything during intro)
+            drawCurtain(ctx);
+
+            // 11. Flash
+            drawFlash(ctx);
+        }
+
+        return {
+            name: "The Diva's Aria - Fifth Element Tribute",
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('divas-aria-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/the-divas-aria.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
