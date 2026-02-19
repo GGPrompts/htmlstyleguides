@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Duel at World's End — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #050510;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(5,5,16,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(18px, 4.5vw, 44px);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #ff4444;
+            text-shadow: 0 0 30px rgba(255,68,68,0.6), 0 0 60px rgba(68,136,255,0.3);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(11px, 1.8vw, 16px);
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #ff4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #ff4444;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,68,68,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(255,68,68,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">← Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">The Duel at World's End</div>
+        <div class="play-sub">two rivals, one cliff, no ground beneath them</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── The Duel at World's End — Video Renderer ──────────────────────
+    window.Renderers['duel-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Palette ──
+        var COLOR_A = '#ff4444';     // Rival A - red
+        var COLOR_B = '#4488ff';     // Rival B - blue
+        var COLOR_HARMONY = '#aa44ff'; // Merged purple
+        var COLOR_CLIFF = '#2a2a3a';
+        var COLOR_CLIFF_EDGE = '#3a3a4a';
+        var COLOR_VOID = '#050510';
+        var COLOR_STAR = '#ffffff';
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var globalTime = 0;
+
+        // Section tracking
+        var sectionMood = 'intro'; // intro, confrontation, exchange, escalation, harmony, crumble, falling, silence
+        var lastSeqIndex = -1;
+
+        // Scene elements
+        var stars = [];
+        var bolts = [];
+        var cracks = [];
+        var fallingChunks = [];
+        var particles = [];
+
+        // Cliff state
+        var cliffLeftWidth = 0.35;   // fraction of W
+        var cliffRightWidth = 0.35;
+        var cliffGap = 0;            // gap in center (grows as cliff crumbles)
+        var cliffY = 0;              // Y position of cliff top
+
+        // Figure states
+        var figA = { x: 0, y: 0, lean: 0, armAngle: 0, armTarget: 0, legBend: 0, glow: 0, glowColor: COLOR_A, playing: false, fallY: 0, falling: false };
+        var figB = { x: 0, y: 0, lean: 0, armAngle: 0, armTarget: 0, legBend: 0, glow: 0, glowColor: COLOR_B, playing: false, fallY: 0, falling: false };
+
+        // Bolt alternation
+        var boltDirection = 1; // 1 = A->B, -1 = B->A
+        var harmonyPhase = 0;
+        var introFade = 0;
+        var outroFade = 1;
+        var silenceLight = 0;
+        var fallingSpeed = 0;
+        var starRushSpeed = 0;
+
+        // Title
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        // ── Helpers ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function lerpExp(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+        function hexToRgb(hex) {
+            return {
+                r: parseInt(hex.slice(1,3), 16),
+                g: parseInt(hex.slice(3,5), 16),
+                b: parseInt(hex.slice(5,7), 16)
+            };
+        }
+        function rgba(hex, a) {
+            var c = hexToRgb(hex);
+            return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')';
+        }
+
+        // ── Stars ──
+        function initStars() {
+            stars = [];
+            for (var i = 0; i < 200; i++) {
+                stars.push({
+                    x: Math.random() * 2 - 0.5, // normalized
+                    y: Math.random() * 2 - 0.5,
+                    size: 0.5 + Math.random() * 2,
+                    twinkle: Math.random() * Math.PI * 2,
+                    speed: 0.2 + Math.random() * 0.8,
+                    brightness: 0.3 + Math.random() * 0.7
+                });
+            }
+        }
+
+        function drawStars(ctx, rush) {
+            ctx.save();
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                var twinkle = 0.5 + 0.5 * Math.sin(s.twinkle + globalTime * s.speed);
+                var alpha = s.brightness * twinkle * 0.8;
+
+                // When falling, stars rush upward
+                var sy = s.y * H;
+                if (rush > 0) {
+                    sy -= rush * globalTime * s.speed * 200;
+                    sy = ((sy % (H * 1.5)) + H * 1.5) % (H * 1.5) - H * 0.25;
+                }
+
+                var sx = s.x * W;
+
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = COLOR_STAR;
+                ctx.beginPath();
+                ctx.arc(sx, sy, s.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Brighter stars get a glow
+                if (s.brightness > 0.7) {
+                    ctx.globalAlpha = alpha * 0.3;
+                    ctx.beginPath();
+                    ctx.arc(sx, sy, s.size * 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        // ── Cliff Drawing ──
+        function drawCliff(ctx, energy) {
+            var cliffTop = cliffY;
+            var cliffBot = H + 20;
+
+            // Left cliff
+            var leftW = cliffLeftWidth * W;
+            ctx.save();
+            ctx.fillStyle = COLOR_CLIFF;
+            ctx.shadowBlur = 0;
+
+            // Left cliff body
+            ctx.beginPath();
+            ctx.moveTo(0, cliffTop);
+            ctx.lineTo(leftW - cliffGap * 0.5, cliffTop);
+            // Jagged edge
+            var edgeX = leftW - cliffGap * 0.5;
+            for (var i = 0; i < 8; i++) {
+                var ey = cliffTop + (cliffBot - cliffTop) * (i / 8);
+                var jag = Math.sin(i * 3.7 + globalTime * 0.5) * 8 + Math.cos(i * 2.1) * 5;
+                ctx.lineTo(edgeX + jag, ey);
+            }
+            ctx.lineTo(edgeX - 10, cliffBot);
+            ctx.lineTo(0, cliffBot);
+            ctx.closePath();
+            ctx.fill();
+
+            // Left cliff edge highlight
+            ctx.strokeStyle = COLOR_CLIFF_EDGE;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, cliffTop);
+            ctx.lineTo(edgeX, cliffTop);
+            ctx.stroke();
+
+            // Right cliff body
+            var rightStart = W - cliffRightWidth * W + cliffGap * 0.5;
+            ctx.fillStyle = COLOR_CLIFF;
+            ctx.beginPath();
+            ctx.moveTo(rightStart, cliffTop);
+            ctx.lineTo(W, cliffTop);
+            ctx.lineTo(W, cliffBot);
+            ctx.lineTo(rightStart + 10, cliffBot);
+            for (var j = 7; j >= 0; j--) {
+                var ey2 = cliffTop + (cliffBot - cliffTop) * (j / 8);
+                var jag2 = Math.sin(j * 4.1 + globalTime * 0.5) * 8 - Math.cos(j * 1.9) * 5;
+                ctx.lineTo(rightStart + jag2, ey2);
+            }
+            ctx.closePath();
+            ctx.fill();
+
+            // Right cliff edge highlight
+            ctx.strokeStyle = COLOR_CLIFF_EDGE;
+            ctx.beginPath();
+            ctx.moveTo(rightStart, cliffTop);
+            ctx.lineTo(W, cliffTop);
+            ctx.stroke();
+
+            // Draw cracks
+            ctx.strokeStyle = 'rgba(80,80,100,0.6)';
+            ctx.lineWidth = 1.5;
+            for (var ci = 0; ci < cracks.length; ci++) {
+                var cr = cracks[ci];
+                ctx.globalAlpha = cr.alpha;
+                ctx.beginPath();
+                ctx.moveTo(cr.x, cr.y);
+                for (var seg = 0; seg < cr.segments.length; seg++) {
+                    ctx.lineTo(cr.segments[seg].x, cr.segments[seg].y);
+                }
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Add a crack ──
+        function addCrack(side) {
+            var baseX, baseY;
+            if (side === 'left') {
+                baseX = (cliffLeftWidth * W - cliffGap * 0.5) * (0.3 + Math.random() * 0.7);
+            } else {
+                baseX = W - cliffRightWidth * W + cliffGap * 0.5 + Math.random() * cliffRightWidth * W * 0.7;
+            }
+            baseY = cliffY + Math.random() * (H - cliffY) * 0.5;
+
+            var segs = [];
+            var cx = baseX, cy = baseY;
+            var numSegs = 3 + Math.floor(Math.random() * 5);
+            for (var i = 0; i < numSegs; i++) {
+                cx += (Math.random() - 0.5) * 30;
+                cy += 5 + Math.random() * 20;
+                segs.push({ x: cx, y: cy });
+            }
+            cracks.push({ x: baseX, y: baseY, segments: segs, alpha: 0.8 });
+        }
+
+        // ── Add falling chunk ──
+        function addChunk(x, y) {
+            fallingChunks.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 40,
+                vy: -20 - Math.random() * 40,
+                rot: Math.random() * Math.PI * 2,
+                rotSpeed: (Math.random() - 0.5) * 4,
+                size: 8 + Math.random() * 20,
+                alpha: 1
+            });
+        }
+
+        // ── Bolt (energy note projectile) ──
+        function addBolt(fromX, fromY, toX, toY, color, size) {
+            bolts.push({
+                x: fromX, y: fromY,
+                tx: toX, ty: toY,
+                progress: 0,
+                color: color,
+                size: size || 4,
+                trail: []
+            });
+        }
+
+        // ── Particles ──
+        function addParticle(x, y, color, count) {
+            for (var i = 0; i < count; i++) {
+                var angle = Math.random() * Math.PI * 2;
+                var speed = 30 + Math.random() * 100;
+                particles.push({
+                    x: x, y: y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    color: color,
+                    alpha: 0.8 + Math.random() * 0.2,
+                    life: 0.5 + Math.random() * 1.0,
+                    size: 1 + Math.random() * 3
+                });
+            }
+        }
+
+        // ── Silhouette Musician ──
+        function drawMusician(ctx, fig, facing, instrument) {
+            var x = fig.x;
+            var y = fig.y + (fig.falling ? fig.fallY : 0);
+            var lean = fig.lean;
+            var armAngle = fig.armAngle;
+            var legBend = fig.legBend;
+            var glow = fig.glow;
+            var color = fig.glowColor;
+
+            var scale = H * 0.001;
+            var headR = 12 * scale;
+            var bodyH = 50 * scale;
+            var legH = 40 * scale;
+            var armH = 35 * scale;
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.scale(facing, 1);
+
+            // Glow aura
+            if (glow > 0.05) {
+                var grad = ctx.createRadialGradient(0, -bodyH * 0.5, headR, 0, -bodyH * 0.5, bodyH * 1.5);
+                grad.addColorStop(0, rgba(color, glow * 0.4));
+                grad.addColorStop(1, rgba(color, 0));
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.arc(0, -bodyH * 0.5, bodyH * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.lineWidth = 3 * scale;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 8 + glow * 20;
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(lean * 5, -bodyH - headR, headR, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = rgba(color, 0.2);
+            ctx.fill();
+
+            // Torso
+            ctx.beginPath();
+            ctx.moveTo(0, -bodyH);
+            ctx.lineTo(lean * 8, 0);
+            ctx.stroke();
+
+            // Legs
+            var legSpread = 8 * scale + legBend * 10 * scale;
+            ctx.beginPath();
+            ctx.moveTo(lean * 8, 0);
+            var lKneeX = lean * 4 - legSpread;
+            var lKneeY = legH * 0.5;
+            ctx.lineTo(lKneeX, lKneeY);
+            ctx.lineTo(lKneeX - legBend * 3, legH);
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(lean * 8, 0);
+            var rKneeX = lean * 4 + legSpread;
+            ctx.lineTo(rKneeX, lKneeY);
+            ctx.lineTo(rKneeX + legBend * 3, legH);
+            ctx.stroke();
+
+            // Arms holding instrument
+            var shoulderX = lean * 2;
+            var shoulderY = -bodyH * 0.85;
+
+            if (instrument === 'guitar') {
+                // Front arm: holding neck
+                var fArmAngle = -0.6 + armAngle * 0.4;
+                var fElbowX = shoulderX + Math.sin(fArmAngle) * armH * 0.6;
+                var fElbowY = shoulderY + Math.cos(fArmAngle) * armH * 0.6;
+                var fHandX = fElbowX + Math.sin(fArmAngle + 0.5) * armH * 0.5;
+                var fHandY = fElbowY + Math.cos(fArmAngle + 0.5) * armH * 0.5;
+
+                ctx.beginPath();
+                ctx.moveTo(shoulderX, shoulderY);
+                ctx.lineTo(fElbowX, fElbowY);
+                ctx.lineTo(fHandX, fHandY);
+                ctx.stroke();
+
+                // Back arm: strumming
+                var bArmAngle = 0.3 + Math.sin(globalTime * 12) * 0.3 * (fig.playing ? 1 : 0.1);
+                var bElbowX = shoulderX + Math.sin(bArmAngle) * armH * 0.5;
+                var bElbowY = shoulderY + Math.cos(bArmAngle) * armH * 0.5;
+                var bHandX = bElbowX + Math.sin(bArmAngle - 0.3) * armH * 0.4;
+                var bHandY = bElbowY + Math.cos(bArmAngle - 0.3) * armH * 0.4;
+
+                ctx.beginPath();
+                ctx.moveTo(shoulderX, shoulderY);
+                ctx.lineTo(bElbowX, bElbowY);
+                ctx.lineTo(bHandX, bHandY);
+                ctx.stroke();
+
+                // Guitar body
+                var gBodyX = (fHandX + bHandX) * 0.5;
+                var gBodyY = (fHandY + bHandY) * 0.5 - 5 * scale;
+                ctx.lineWidth = 2 * scale;
+                // Neck
+                ctx.beginPath();
+                ctx.moveTo(gBodyX, gBodyY);
+                ctx.lineTo(fHandX + 15 * scale, fHandY - 10 * scale);
+                ctx.stroke();
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(gBodyX, gBodyY + 8 * scale, 10 * scale, 14 * scale, 0.2, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = rgba(color, 0.15);
+                ctx.fill();
+
+            } else if (instrument === 'violin') {
+                // Front arm: holding violin up
+                var vArmAngle = -1.0 + armAngle * 0.3;
+                var vElbowX = shoulderX + Math.sin(vArmAngle) * armH * 0.6;
+                var vElbowY = shoulderY + Math.cos(vArmAngle) * armH * 0.6;
+                var vHandX = vElbowX + Math.sin(vArmAngle + 0.7) * armH * 0.5;
+                var vHandY = vElbowY + Math.cos(vArmAngle + 0.7) * armH * 0.5;
+
+                ctx.beginPath();
+                ctx.moveTo(shoulderX, shoulderY);
+                ctx.lineTo(vElbowX, vElbowY);
+                ctx.lineTo(vHandX, vHandY);
+                ctx.stroke();
+
+                // Bow arm: sweeping
+                var bowSweep = Math.sin(globalTime * 8) * 0.6 * (fig.playing ? 1 : 0.1);
+                var bwArmAngle = 0.1 + bowSweep;
+                var bwElbowX = shoulderX + Math.sin(bwArmAngle) * armH * 0.55;
+                var bwElbowY = shoulderY + Math.cos(bwArmAngle) * armH * 0.55;
+                var bwHandX = bwElbowX + Math.sin(bwArmAngle - 0.2) * armH * 0.5;
+                var bwHandY = bwElbowY + Math.cos(bwArmAngle - 0.2) * armH * 0.5;
+
+                ctx.beginPath();
+                ctx.moveTo(shoulderX, shoulderY);
+                ctx.lineTo(bwElbowX, bwElbowY);
+                ctx.lineTo(bwHandX, bwHandY);
+                ctx.stroke();
+
+                // Violin body near chin
+                var vBodyX = vHandX;
+                var vBodyY = vHandY - 5 * scale;
+                ctx.lineWidth = 2 * scale;
+                ctx.beginPath();
+                ctx.ellipse(vBodyX, vBodyY, 7 * scale, 11 * scale, -0.3, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.fillStyle = rgba(color, 0.15);
+                ctx.fill();
+
+                // Bow line
+                ctx.lineWidth = 1.5 * scale;
+                ctx.beginPath();
+                ctx.moveTo(bwHandX - 20 * scale, bwHandY - 10 * scale);
+                ctx.lineTo(bwHandX + 20 * scale, bwHandY + 10 * scale);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Draw bolts ──
+        function drawBolts(ctx) {
+            for (var i = bolts.length - 1; i >= 0; i--) {
+                var b = bolts[i];
+                var cx = lerp(b.x, b.tx, b.progress);
+                var cy = lerp(b.y, b.ty, b.progress) + Math.sin(b.progress * Math.PI) * -40;
+
+                // Trail
+                b.trail.push({ x: cx, y: cy, alpha: 1 });
+                if (b.trail.length > 12) b.trail.shift();
+
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+
+                // Draw trail
+                for (var t = 0; t < b.trail.length; t++) {
+                    var tp = b.trail[t];
+                    tp.alpha *= 0.85;
+                    ctx.globalAlpha = tp.alpha * 0.6;
+                    ctx.fillStyle = b.color;
+                    ctx.beginPath();
+                    ctx.arc(tp.x, tp.y, b.size * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Draw bolt head
+                ctx.globalAlpha = 1;
+                ctx.shadowColor = b.color;
+                ctx.shadowBlur = 15 + b.size * 3;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(cx, cy, b.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.shadowBlur = 25;
+                ctx.fillStyle = b.color;
+                ctx.beginPath();
+                ctx.arc(cx, cy, b.size * 1.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+        }
+
+        // ── Draw harmony arcs ──
+        function drawHarmonyArcs(ctx, energy) {
+            if (sectionMood !== 'harmony' && sectionMood !== 'crumble') return;
+
+            var aX = figA.x;
+            var bX = figB.x;
+            var midX = (aX + bX) * 0.5;
+            var aY = figA.y - H * 0.04;
+            var bY = figB.y - H * 0.04;
+            var midY = (aY + bY) * 0.5;
+
+            var numArcs = 3;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (var i = 0; i < numArcs; i++) {
+                var phase = harmonyPhase + i * Math.PI * 0.67;
+                var arcHeight = 30 + Math.sin(phase) * 20 + energy * 30;
+                var alpha = 0.2 + energy * 0.3 + Math.sin(phase * 2) * 0.1;
+
+                ctx.globalAlpha = alpha;
+                ctx.strokeStyle = COLOR_HARMONY;
+                ctx.lineWidth = 2 + energy * 2;
+                ctx.shadowColor = COLOR_HARMONY;
+                ctx.shadowBlur = 10 + energy * 15;
+
+                ctx.beginPath();
+                ctx.moveTo(aX, aY);
+                ctx.quadraticCurveTo(midX, midY - arcHeight - i * 15, bX, bY);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw falling chunks ──
+        function drawChunks(ctx, dt) {
+            for (var i = fallingChunks.length - 1; i >= 0; i--) {
+                var c = fallingChunks[i];
+                c.vy += 200 * dt; // gravity
+                c.x += c.vx * dt;
+                c.y += c.vy * dt;
+                c.rot += c.rotSpeed * dt;
+                c.alpha -= dt * 0.3;
+
+                if (c.alpha <= 0 || c.y > H + 50) {
+                    fallingChunks.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.rot);
+                ctx.globalAlpha = c.alpha;
+                ctx.fillStyle = COLOR_CLIFF;
+                ctx.fillRect(-c.size * 0.5, -c.size * 0.5, c.size, c.size * 0.7);
+                ctx.restore();
+            }
+        }
+
+        // ── Draw particles ──
+        function drawParticles(ctx, dt) {
+            for (var i = particles.length - 1; i >= 0; i--) {
+                var p = particles[i];
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.life -= dt;
+                p.alpha *= 0.97;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.alpha * (p.life / 1.5);
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // ── Draw title ──
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            ctx.save();
+            var fontSize = Math.max(14, Math.min(W * 0.032, 40));
+            ctx.font = '700 ' + fontSize + 'px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var y = H * 0.12;
+            var text = 'THE DUEL AT WORLD\'S END';
+
+            // Shadow glow
+            ctx.globalAlpha = titleAlpha * 0.6;
+            ctx.shadowColor = COLOR_HARMONY;
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = COLOR_HARMONY;
+            ctx.fillText(text, W * 0.5, y);
+
+            // Main text
+            ctx.globalAlpha = titleAlpha;
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#fff';
+            ctx.fillText(text, W * 0.5, y);
+
+            ctx.restore();
+        }
+
+        // ── Draw silence point of light ──
+        function drawSilenceLight(ctx) {
+            if (silenceLight < 0.01) return;
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            var cx = W * 0.5;
+            var cy = H * 0.5;
+            var radius = silenceLight * 60;
+
+            var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+            grad.addColorStop(0, rgba('#ffffff', silenceLight));
+            grad.addColorStop(0.3, rgba(COLOR_HARMONY, silenceLight * 0.7));
+            grad.addColorStop(1, rgba(COLOR_HARMONY, 0));
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // ── Draw void gradient below cliff ──
+        function drawVoid(ctx) {
+            // Deep void below cliff edges
+            if (cliffGap > 5) {
+                var leftEdge = cliffLeftWidth * W - cliffGap * 0.5;
+                var rightEdge = W - cliffRightWidth * W + cliffGap * 0.5;
+
+                ctx.save();
+                var grad = ctx.createRadialGradient(
+                    (leftEdge + rightEdge) * 0.5, cliffY + 50,
+                    10,
+                    (leftEdge + rightEdge) * 0.5, cliffY + 50,
+                    cliffGap * 2
+                );
+                grad.addColorStop(0, 'rgba(20,10,40,0.3)');
+                grad.addColorStop(1, 'rgba(5,5,16,0)');
+                ctx.fillStyle = grad;
+                ctx.fillRect(leftEdge - 20, cliffY, rightEdge - leftEdge + 40, H - cliffY);
+                ctx.restore();
+            }
+        }
+
+        // ── Section mapping (54 sequence entries) ──
+        // 0-1: intro (empty, atmospheric)
+        // 2-3: confrontation (figures appear, stare down)
+        // 4-10: exchange (trading phrases, bolts flying)
+        // 11-18: escalation (faster, bigger bolts, cracks)
+        // 19-26: virtuosic (intense exchanges)
+        // 27-34: harmony (parallel thirds, glowing purple)
+        // 35-41: crumble (cliff breaking, still playing)
+        // 42-50: falling (descent together, stars rushing)
+        // 51-52: silence (fading point of light)
+        // 53: end
+        function mapSection(seqIndex) {
+            if (seqIndex <= 1) return 'intro';
+            if (seqIndex <= 3) return 'confrontation';
+            if (seqIndex <= 10) return 'exchange';
+            if (seqIndex <= 18) return 'escalation';
+            if (seqIndex <= 26) return 'virtuosic';
+            if (seqIndex <= 34) return 'harmony';
+            if (seqIndex <= 41) return 'crumble';
+            if (seqIndex <= 50) return 'falling';
+            if (seqIndex <= 52) return 'silence';
+            return 'end';
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            cliffY = H * 0.65;
+            cliffGap = 0;
+            cliffLeftWidth = 0.35;
+            cliffRightWidth = 0.35;
+            lastBeat = -1;
+            beatPulse = 0;
+            flashAlpha = 0;
+            globalTime = 0;
+            sectionMood = 'intro';
+            lastSeqIndex = -1;
+            introFade = 0;
+            outroFade = 1;
+            silenceLight = 0;
+            fallingSpeed = 0;
+            starRushSpeed = 0;
+            harmonyPhase = 0;
+            titleAlpha = 0;
+            titleTarget = 0;
+            boltDirection = 1;
+            bolts = [];
+            cracks = [];
+            fallingChunks = [];
+            particles = [];
+
+            figA.x = W * 0.32;
+            figA.y = cliffY;
+            figA.lean = 0; figA.armAngle = 0; figA.armTarget = 0;
+            figA.legBend = 0; figA.glow = 0; figA.glowColor = COLOR_A;
+            figA.playing = false; figA.fallY = 0; figA.falling = false;
+
+            figB.x = W * 0.68;
+            figB.y = cliffY;
+            figB.lean = 0; figB.armAngle = 0; figB.armTarget = 0;
+            figB.legBend = 0; figB.glow = 0; figB.glowColor = COLOR_B;
+            figB.playing = false; figB.fallY = 0; figB.falling = false;
+
+            initStars();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+            cliffY = H * 0.65;
+            figA.x = W * 0.32;
+            figA.y = cliffY;
+            figB.x = W * 0.68;
+            figB.y = cliffY;
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            globalTime += dt;
+
+            // Background
+            ctx.fillStyle = COLOR_VOID;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: draw stars and cliff
+                drawStars(ctx, 0);
+                drawCliff(ctx, 0);
+
+                // Dim idle figures
+                figA.glow = 0.1;
+                figB.glow = 0.1;
+                figA.playing = false;
+                figB.playing = false;
+                drawMusician(ctx, figA, 1, 'guitar');
+                drawMusician(ctx, figB, -1, 'violin');
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+                lastSeqIndex = seqIdx;
+
+                // Flash on section change
+                if (newSection !== 'intro' && newSection !== 'silence' && newSection !== 'end') {
+                    flashAlpha = 0.15;
+                }
+            }
+
+            // ── Beat detection ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+
+                // ── Bolt spawning ──
+                if (sectionMood === 'exchange' || sectionMood === 'escalation' || sectionMood === 'virtuosic') {
+                    var boltSize = 3;
+                    if (sectionMood === 'escalation') boltSize = 5 + energy * 3;
+                    if (sectionMood === 'virtuosic') boltSize = 6 + energy * 5;
+
+                    var fromFig = boltDirection > 0 ? figA : figB;
+                    var toFig = boltDirection > 0 ? figB : figA;
+                    var boltColor = boltDirection > 0 ? COLOR_A : COLOR_B;
+
+                    addBolt(
+                        fromFig.x, fromFig.y - H * 0.04,
+                        toFig.x, toFig.y - H * 0.04,
+                        boltColor, boltSize
+                    );
+
+                    // Alternate direction
+                    boltDirection *= -1;
+
+                    // More frequent bolts at high energy
+                    if (sectionMood === 'virtuosic' && energy > 0.6) {
+                        addBolt(
+                            toFig.x, toFig.y - H * 0.06,
+                            fromFig.x, fromFig.y - H * 0.06,
+                            boltDirection > 0 ? COLOR_A : COLOR_B, boltSize * 0.7
+                        );
+                    }
+                }
+
+                // ── Crack spawning ──
+                if (sectionMood === 'escalation' && energy > 0.5 && Math.random() > 0.6) {
+                    addCrack(Math.random() > 0.5 ? 'left' : 'right');
+                }
+                if (sectionMood === 'virtuosic' && Math.random() > 0.4) {
+                    addCrack(Math.random() > 0.5 ? 'left' : 'right');
+                }
+                if (sectionMood === 'crumble') {
+                    addCrack(Math.random() > 0.5 ? 'left' : 'right');
+                    // Add falling chunks
+                    var edgeX = Math.random() > 0.5
+                        ? cliffLeftWidth * W - cliffGap * 0.5
+                        : W - cliffRightWidth * W + cliffGap * 0.5;
+                    addChunk(edgeX + (Math.random() - 0.5) * 30, cliffY + Math.random() * 20);
+                    addChunk(edgeX + (Math.random() - 0.5) * 40, cliffY + Math.random() * 30);
+                }
+
+                // Harmony bolts - purple arcing between both
+                if (sectionMood === 'harmony' || sectionMood === 'crumble') {
+                    if (Math.random() > 0.4) {
+                        addBolt(
+                            figA.x, figA.y - H * 0.05,
+                            figB.x, figB.y - H * 0.05,
+                            COLOR_HARMONY, 4 + energy * 3
+                        );
+                    }
+                }
+
+                // Impact particles on bolt arrival
+                if (bolts.length > 0) {
+                    var latestBolt = bolts[bolts.length - 1];
+                    if (latestBolt.progress > 0.5) {
+                        addParticle(latestBolt.tx, latestBolt.ty, latestBolt.color, 5);
+                    }
+                }
+            }
+
+            lastBeat = beat;
+
+            // ── Update beat pulse & flash ──
+            beatPulse *= Math.exp(-8 * dt);
+            flashAlpha *= Math.exp(-6 * dt);
+
+            // ── Update bolts ──
+            for (var bi = bolts.length - 1; bi >= 0; bi--) {
+                bolts[bi].progress += dt * 3;
+                if (bolts[bi].progress >= 1) {
+                    // Impact particles
+                    addParticle(bolts[bi].tx, bolts[bi].ty, bolts[bi].color, 8);
+                    bolts.splice(bi, 1);
+                }
+            }
+
+            // ── Section-specific updates ──
+
+            // Intro fade
+            if (sectionMood === 'intro') {
+                introFade = Math.min(1, introFade + dt * 0.5);
+                figA.playing = false;
+                figB.playing = false;
+                figA.glow = introFade * 0.2;
+                figB.glow = introFade * 0.2;
+            } else {
+                introFade = 1;
+            }
+
+            // Confrontation
+            if (sectionMood === 'confrontation') {
+                figA.playing = false;
+                figB.playing = false;
+                figA.glow = lerpExp(figA.glow, 0.5, 3, dt);
+                figB.glow = lerpExp(figB.glow, 0.5, 3, dt);
+                figA.lean = lerpExp(figA.lean, 0.3, 4, dt);
+                figB.lean = lerpExp(figB.lean, 0.3, 4, dt);
+            }
+
+            // Exchange & Escalation & Virtuosic
+            if (sectionMood === 'exchange' || sectionMood === 'escalation' || sectionMood === 'virtuosic') {
+                figA.playing = true;
+                figB.playing = true;
+                var baseGlow = sectionMood === 'exchange' ? 0.4 : sectionMood === 'escalation' ? 0.6 : 0.8;
+                figA.glow = lerpExp(figA.glow, baseGlow + energy * 0.3 + beatPulse * 0.2, 6, dt);
+                figB.glow = lerpExp(figB.glow, baseGlow + energy * 0.3 + beatPulse * 0.2, 6, dt);
+                figA.glowColor = COLOR_A;
+                figB.glowColor = COLOR_B;
+
+                // Playing animation
+                figA.armTarget = 0.3 + energy * 0.5 + beatPulse * 0.3;
+                figB.armTarget = 0.3 + energy * 0.5 + beatPulse * 0.3;
+                figA.lean = lerpExp(figA.lean, Math.sin(globalTime * 2) * 0.2, 4, dt);
+                figB.lean = lerpExp(figB.lean, Math.sin(globalTime * 2 + 1) * 0.2, 4, dt);
+                figA.legBend = lerpExp(figA.legBend, beatPulse * 0.3, 8, dt);
+                figB.legBend = lerpExp(figB.legBend, beatPulse * 0.3, 8, dt);
+            }
+
+            // Harmony
+            if (sectionMood === 'harmony') {
+                figA.playing = true;
+                figB.playing = true;
+                harmonyPhase += dt * 3;
+
+                // Both glow purple
+                figA.glowColor = COLOR_HARMONY;
+                figB.glowColor = COLOR_HARMONY;
+                figA.glow = lerpExp(figA.glow, 0.7 + energy * 0.3, 4, dt);
+                figB.glow = lerpExp(figB.glow, 0.7 + energy * 0.3, 4, dt);
+
+                // Synchronized playing
+                var syncLean = Math.sin(globalTime * 1.5) * 0.15;
+                figA.lean = lerpExp(figA.lean, syncLean, 4, dt);
+                figB.lean = lerpExp(figB.lean, syncLean, 4, dt);
+                figA.armTarget = 0.4 + Math.sin(globalTime * 3) * 0.2;
+                figB.armTarget = 0.4 + Math.sin(globalTime * 3) * 0.2;
+
+                titleTarget = 1;
+            } else {
+                titleTarget = 0;
+            }
+
+            // Crumble
+            if (sectionMood === 'crumble') {
+                figA.playing = true;
+                figB.playing = true;
+                figA.glowColor = COLOR_HARMONY;
+                figB.glowColor = COLOR_HARMONY;
+                harmonyPhase += dt * 4;
+
+                // Gap growing
+                cliffGap = lerpExp(cliffGap, W * 0.25, 0.8, dt);
+                cliffLeftWidth = lerpExp(cliffLeftWidth, 0.25, 0.5, dt);
+                cliffRightWidth = lerpExp(cliffRightWidth, 0.25, 0.5, dt);
+
+                // Figures shift toward edges
+                var leftEdge = cliffLeftWidth * W - cliffGap * 0.5;
+                var rightEdge = W - cliffRightWidth * W + cliffGap * 0.5;
+                figA.x = lerpExp(figA.x, leftEdge - 30, 1, dt);
+                figB.x = lerpExp(figB.x, rightEdge + 30, 1, dt);
+
+                figA.glow = lerpExp(figA.glow, 0.9 + beatPulse * 0.2, 4, dt);
+                figB.glow = lerpExp(figB.glow, 0.9 + beatPulse * 0.2, 4, dt);
+                figA.armTarget = 0.5 + energy * 0.4;
+                figB.armTarget = 0.5 + energy * 0.4;
+
+                titleTarget = 1;
+            }
+
+            // Falling
+            if (sectionMood === 'falling') {
+                figA.falling = true;
+                figB.falling = true;
+                figA.playing = true;
+                figB.playing = true;
+                figA.glowColor = COLOR_HARMONY;
+                figB.glowColor = COLOR_HARMONY;
+
+                fallingSpeed = lerpExp(fallingSpeed, 200, 0.5, dt);
+                figA.fallY += fallingSpeed * dt;
+                figB.fallY += fallingSpeed * dt;
+                starRushSpeed = lerpExp(starRushSpeed, 3, 0.8, dt);
+
+                // Figures drift toward center
+                figA.x = lerpExp(figA.x, W * 0.42, 0.5, dt);
+                figB.x = lerpExp(figB.x, W * 0.58, 0.5, dt);
+
+                // Still glowing
+                figA.glow = lerpExp(figA.glow, 0.6 + energy * 0.4, 4, dt);
+                figB.glow = lerpExp(figB.glow, 0.6 + energy * 0.4, 4, dt);
+
+                // Keep playing animation going
+                figA.armTarget = 0.3 + Math.sin(globalTime * 4) * 0.3;
+                figB.armTarget = 0.3 + Math.sin(globalTime * 4 + 0.5) * 0.3;
+                figA.lean = Math.sin(globalTime * 1.2) * 0.1;
+                figB.lean = Math.sin(globalTime * 1.2 + 1) * 0.1;
+
+                // Cliff scrolls up and away
+                cliffY = lerpExp(cliffY, -H, 0.3, dt);
+
+                // Purple bolts between them while falling
+                if (beat !== lastBeat || Math.random() > 0.9) {
+                    if (Math.random() > 0.5) {
+                        addBolt(
+                            figA.x, figA.y + figA.fallY - H * 0.03,
+                            figB.x, figB.y + figB.fallY - H * 0.03,
+                            COLOR_HARMONY, 3 + energy * 2
+                        );
+                    }
+                }
+
+                titleTarget = 0;
+            }
+
+            // Silence
+            if (sectionMood === 'silence') {
+                figA.falling = true;
+                figB.falling = true;
+                figA.playing = false;
+                figB.playing = false;
+
+                // Fade everything
+                outroFade = lerpExp(outroFade, 0, 0.8, dt);
+                figA.glow = lerpExp(figA.glow, 0, 2, dt);
+                figB.glow = lerpExp(figB.glow, 0, 2, dt);
+
+                // Single point of light
+                silenceLight = lerpExp(silenceLight, 0.8, 1, dt);
+                // Then fade
+                if (seqIdx >= 52) {
+                    silenceLight = lerpExp(silenceLight, 0, 1.5, dt);
+                }
+            }
+
+            if (sectionMood === 'end') {
+                outroFade = lerpExp(outroFade, 0, 2, dt);
+                silenceLight = lerpExp(silenceLight, 0, 2, dt);
+            }
+
+            // ── Lerp arm angles ──
+            figA.armAngle = lerpExp(figA.armAngle, figA.armTarget, 8, dt);
+            figB.armAngle = lerpExp(figB.armAngle, figB.armTarget, 8, dt);
+
+            // ── Draw scene ──
+
+            // 1. Stars (with rush effect when falling)
+            drawStars(ctx, starRushSpeed);
+
+            // 2. Void gradient
+            drawVoid(ctx);
+
+            // 3. Cliff
+            if (sectionMood !== 'silence' && sectionMood !== 'end') {
+                drawCliff(ctx, energy);
+            }
+
+            // 4. Falling chunks
+            drawChunks(ctx, dt);
+
+            // 5. Harmony arcs (behind figures)
+            drawHarmonyArcs(ctx, energy);
+
+            // 6. Bolts (behind figures)
+            drawBolts(ctx);
+
+            // 7. Figures
+            if (outroFade > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, outroFade + 0.1);
+                drawMusician(ctx, figA, 1, 'guitar');
+                drawMusician(ctx, figB, -1, 'violin');
+                ctx.restore();
+            }
+
+            // 8. Particles
+            drawParticles(ctx, dt);
+
+            // 9. Title
+            titleAlpha = lerpExp(titleAlpha, titleTarget, 3, dt);
+            drawTitle(ctx);
+
+            // 10. Silence light
+            drawSilenceLight(ctx);
+
+            // 11. Flash
+            if (flashAlpha > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = flashAlpha;
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // 12. Intro vignette
+            if (introFade < 1) {
+                ctx.save();
+                ctx.globalAlpha = 1 - introFade;
+                ctx.fillStyle = COLOR_VOID;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+        }
+
+        return {
+            name: 'The Duel at World\'s End',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('duel-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/the-duel-at-worlds-end.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
