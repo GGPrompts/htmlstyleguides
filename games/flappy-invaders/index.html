@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Flappy Invaders</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0a0a1a;
+            touch-action: none;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        canvas {
+            display: block;
+            width: 100%; height: 100%;
+            image-rendering: pixelated;
+        }
+    </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(() => {
+'use strict';
+
+// ==================== SETUP ====================
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W, H;
+function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ==================== CONSTANTS ====================
+const GRAVITY = 0.45;
+const FLAP_FORCE = -7.5;
+const PLAYER_X_RATIO = 0.2;
+const BULLET_SPEED = 10;
+const ENEMY_BULLET_SPEED = 3.5;
+const BASE_SCROLL_SPEED = 2.5;
+const COLUMN_GAP_MIN = 220;
+const COLUMN_GAP_MAX = 320;
+const ENEMY_SIZE = 32;
+const PLAYER_W = 28;
+const PLAYER_H = 24;
+const POWERUP_SIZE = 20;
+const POWERUP_CHANCE = 0.12;
+
+// Colors
+const C_BG = '#0a0a1a';
+const C_STAR = '#ffffff';
+const C_PLAYER = '#00ffcc';
+const C_PLAYER_WING = '#00cc99';
+const C_BULLET = '#ffff00';
+const C_BULLET_GLOW = 'rgba(255,255,0,0.3)';
+const C_ENEMY1 = '#ff3366';
+const C_ENEMY2 = '#ff6633';
+const C_ENEMY_ARMOR = '#cc2244';
+const C_ENEMY_BULLET = '#ff4444';
+const C_SHIELD = 'rgba(0,200,255,0.4)';
+const C_SPREAD = '#ff00ff';
+const C_RAPID = '#ffaa00';
+const C_SCORE = '#ffffff';
+const C_COMBO = '#ffcc00';
+const C_HIT_FLASH = 'rgba(255,255,255,0.8)';
+
+// ==================== GAME STATE ====================
+let state = 'title'; // title, playing, gameover
+let score, highScore, combo, comboTimer;
+let player, bullets, enemyBullets, columns, particles, powerups, stars;
+let scrollSpeed, columnTimer, columnInterval, waveCount;
+let screenShakeX, screenShakeY, screenShakeTimer;
+let fireTimer, fireInterval;
+let spreadShotTimer, rapidFireTimer, shieldActive;
+let flashTimer;
+let frameCount;
+
+// Load high score
+highScore = parseInt(localStorage.getItem('flappyInvadersHigh') || '0');
+
+// ==================== STARS ====================
+function initStars() {
+    stars = [];
+    for (let i = 0; i < 120; i++) {
+        stars.push({
+            x: Math.random() * 2000,
+            y: Math.random() * 2000,
+            size: Math.random() * 2 + 0.5,
+            speed: Math.random() * 0.5 + 0.2,
+            brightness: Math.random() * 0.5 + 0.5
+        });
+    }
+}
+initStars();
+
+// ==================== INIT ====================
+function initGame() {
+    score = 0;
+    combo = 0;
+    comboTimer = 0;
+    scrollSpeed = BASE_SCROLL_SPEED;
+    columnTimer = 0;
+    columnInterval = 180;
+    waveCount = 0;
+    screenShakeX = 0;
+    screenShakeY = 0;
+    screenShakeTimer = 0;
+    fireTimer = 0;
+    fireInterval = 12;
+    spreadShotTimer = 0;
+    rapidFireTimer = 0;
+    shieldActive = false;
+    flashTimer = 0;
+    frameCount = 0;
+
+    player = {
+        x: W * PLAYER_X_RATIO,
+        y: H * 0.5,
+        vy: 0,
+        w: PLAYER_W,
+        h: PLAYER_H,
+        alive: true,
+        flapAnim: 0
+    };
+
+    bullets = [];
+    enemyBullets = [];
+    columns = [];
+    particles = [];
+    powerups = [];
+}
+
+// ==================== INPUT ====================
+let inputDown = false;
+
+function handleInput() {
+    if (state === 'title') {
+        initGame();
+        state = 'playing';
+        return;
+    }
+    if (state === 'gameover') {
+        initGame();
+        state = 'playing';
+        return;
+    }
+    if (state === 'playing' && player.alive) {
+        player.vy = FLAP_FORCE;
+        player.flapAnim = 8;
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        if (!inputDown) {
+            inputDown = true;
+            handleInput();
+        }
+    }
+});
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space' || e.code === 'ArrowUp') inputDown = false;
+});
+window.addEventListener('mousedown', (e) => { e.preventDefault(); handleInput(); });
+window.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(); }, { passive: false });
+
+// ==================== PARTICLES ====================
+function spawnParticles(x, y, color, count, speed) {
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const spd = Math.random() * speed + 1;
+        particles.push({
+            x, y,
+            vx: Math.cos(angle) * spd,
+            vy: Math.sin(angle) * spd,
+            life: 30 + Math.random() * 20,
+            maxLife: 50,
+            color,
+            size: Math.random() * 3 + 1
+        });
+    }
+}
+
+// ==================== ENEMY COLUMN GENERATION ====================
+function spawnColumn() {
+    waveCount++;
+    const enemyCount = Math.min(4 + Math.floor(waveCount / 5), 8);
+    const spacing = Math.min(H / (enemyCount + 1), 80);
+    const totalHeight = (enemyCount - 1) * spacing;
+    const startY = (H - totalHeight) / 2;
+    const armoredChance = Math.min(waveCount * 0.04, 0.5);
+    const shootChance = waveCount >= 5 ? Math.min((waveCount - 4) * 0.06, 0.5) : 0;
+
+    const col = {
+        x: W + ENEMY_SIZE,
+        enemies: [],
+        passed: false
+    };
+
+    for (let i = 0; i < enemyCount; i++) {
+        const armored = Math.random() < armoredChance;
+        col.enemies.push({
+            y: startY + i * spacing,
+            hp: armored ? (2 + Math.floor(waveCount / 15)) : 1,
+            maxHp: armored ? (2 + Math.floor(waveCount / 15)) : 1,
+            alive: true,
+            hitFlash: 0,
+            canShoot: Math.random() < shootChance,
+            shootTimer: 60 + Math.random() * 120,
+            bobPhase: Math.random() * Math.PI * 2
+        });
+    }
+
+    columns.push(col);
+
+    // Spawn powerup occasionally
+    if (Math.random() < POWERUP_CHANCE && waveCount > 2) {
+        const types = ['spread', 'rapid', 'shield'];
+        powerups.push({
+            x: W + ENEMY_SIZE + 60,
+            y: H * 0.2 + Math.random() * H * 0.6,
+            type: types[Math.floor(Math.random() * types.length)],
+            alive: true
+        });
+    }
+}
+
+// ==================== SHOOTING ====================
+function fireBullet() {
+    const px = player.x + player.w / 2;
+    const py = player.y;
+
+    if (spreadShotTimer > 0) {
+        // 3-way spread
+        for (let angle = -0.2; angle <= 0.2; angle += 0.2) {
+            bullets.push({
+                x: px,
+                y: py,
+                vx: Math.cos(angle) * BULLET_SPEED,
+                vy: Math.sin(angle) * BULLET_SPEED,
+                alive: true
+            });
+        }
+    } else {
+        bullets.push({
+            x: px,
+            y: py,
+            vx: BULLET_SPEED,
+            vy: 0,
+            alive: true
+        });
+    }
+}
+
+// ==================== SCREEN SHAKE ====================
+function triggerShake(intensity, duration) {
+    screenShakeTimer = duration;
+    screenShakeX = intensity;
+    screenShakeY = intensity;
+}
+
+// ==================== UPDATE ====================
+function update() {
+    frameCount++;
+
+    if (state !== 'playing') return;
+
+    // Player physics
+    player.vy += GRAVITY;
+    player.y += player.vy;
+    if (player.flapAnim > 0) player.flapAnim--;
+
+    // Clamp to screen
+    if (player.y < 0) { player.y = 0; player.vy = 0; }
+    if (player.y + player.h > H) {
+        player.alive = false;
+        triggerShake(12, 20);
+        spawnParticles(player.x, player.y, C_PLAYER, 30, 5);
+        flashTimer = 8;
+    }
+
+    // Update player x in case of resize
+    player.x = W * PLAYER_X_RATIO;
+
+    // Auto-fire
+    const interval = rapidFireTimer > 0 ? 5 : fireInterval;
+    fireTimer++;
+    if (fireTimer >= interval && player.alive) {
+        fireTimer = 0;
+        fireBullet();
+    }
+
+    // Scroll speed increases over time
+    scrollSpeed = BASE_SCROLL_SPEED + waveCount * 0.04;
+
+    // Column spawning
+    columnTimer++;
+    const interval2 = Math.max(80, columnInterval - waveCount * 2);
+    if (columnTimer >= interval2) {
+        columnTimer = 0;
+        spawnColumn();
+    }
+
+    // Update columns
+    for (const col of columns) {
+        col.x -= scrollSpeed;
+
+        for (const enemy of col.enemies) {
+            if (!enemy.alive) continue;
+            enemy.bobPhase += 0.03;
+            if (enemy.hitFlash > 0) enemy.hitFlash--;
+
+            // Enemy shooting
+            if (enemy.canShoot && waveCount >= 5) {
+                enemy.shootTimer--;
+                if (enemy.shootTimer <= 0) {
+                    enemy.shootTimer = 90 + Math.random() * 120;
+                    const ey = enemy.y + Math.sin(enemy.bobPhase) * 8;
+                    enemyBullets.push({
+                        x: col.x,
+                        y: ey,
+                        vx: -ENEMY_BULLET_SPEED,
+                        vy: (player.y - ey) * 0.01,
+                        alive: true
+                    });
+                }
+            }
+        }
+
+        // Check if player passed column
+        if (!col.passed && col.x + ENEMY_SIZE < player.x) {
+            col.passed = true;
+            score += 50;
+            combo++;
+            comboTimer = 120;
+        }
+    }
+
+    // Update bullets
+    for (const b of bullets) {
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.x > W + 20 || b.y < -20 || b.y > H + 20) b.alive = false;
+    }
+
+    // Update enemy bullets
+    for (const b of enemyBullets) {
+        b.x += b.vx;
+        b.y += b.vy;
+        if (b.x < -20 || b.y < -20 || b.y > H + 20) b.alive = false;
+    }
+
+    // Bullet-enemy collision
+    for (const b of bullets) {
+        if (!b.alive) continue;
+        for (const col of columns) {
+            for (const enemy of col.enemies) {
+                if (!enemy.alive) continue;
+                const ey = enemy.y + Math.sin(enemy.bobPhase) * 8;
+                const dx = b.x - col.x;
+                const dy = b.y - ey;
+                if (Math.abs(dx) < ENEMY_SIZE * 0.6 && Math.abs(dy) < ENEMY_SIZE * 0.6) {
+                    b.alive = false;
+                    enemy.hp--;
+                    enemy.hitFlash = 6;
+                    if (enemy.hp <= 0) {
+                        enemy.alive = false;
+                        const multiplier = Math.min(combo, 10);
+                        score += 10 * (1 + multiplier * 0.1);
+                        combo++;
+                        comboTimer = 120;
+                        spawnParticles(col.x, ey, enemy.maxHp > 1 ? C_ENEMY2 : C_ENEMY1, 12, 4);
+                    } else {
+                        spawnParticles(col.x, ey, '#ffffff', 4, 2);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    // Enemy bullet-player collision
+    if (player.alive) {
+        for (const b of enemyBullets) {
+            if (!b.alive) continue;
+            const dx = b.x - (player.x + player.w / 2);
+            const dy = b.y - player.y;
+            if (Math.abs(dx) < 16 && Math.abs(dy) < 16) {
+                b.alive = false;
+                if (shieldActive) {
+                    shieldActive = false;
+                    spawnParticles(player.x, player.y, '#00ccff', 15, 4);
+                } else {
+                    player.alive = false;
+                    triggerShake(12, 20);
+                    spawnParticles(player.x, player.y, C_PLAYER, 30, 5);
+                    flashTimer = 8;
+                }
+            }
+        }
+    }
+
+    // Player-enemy collision (flying into an alive enemy)
+    if (player.alive) {
+        for (const col of columns) {
+            for (const enemy of col.enemies) {
+                if (!enemy.alive) continue;
+                const ey = enemy.y + Math.sin(enemy.bobPhase) * 8;
+                const dx = (player.x + player.w / 2) - col.x;
+                const dy = player.y - ey;
+                if (Math.abs(dx) < (player.w / 2 + ENEMY_SIZE * 0.4) && Math.abs(dy) < (player.h / 2 + ENEMY_SIZE * 0.4)) {
+                    if (shieldActive) {
+                        shieldActive = false;
+                        enemy.alive = false;
+                        spawnParticles(col.x, ey, '#00ccff', 15, 4);
+                        score += 10;
+                    } else {
+                        player.alive = false;
+                        triggerShake(12, 20);
+                        spawnParticles(player.x, player.y, C_PLAYER, 30, 5);
+                        flashTimer = 8;
+                    }
+                }
+            }
+        }
+    }
+
+    // Powerup collision
+    for (const p of powerups) {
+        if (!p.alive) continue;
+        p.x -= scrollSpeed;
+        if (p.x < -30) { p.alive = false; continue; }
+        const dx = (player.x + player.w / 2) - p.x;
+        const dy = player.y - p.y;
+        if (player.alive && Math.abs(dx) < 24 && Math.abs(dy) < 24) {
+            p.alive = false;
+            spawnParticles(p.x, p.y, '#ffffff', 10, 3);
+            if (p.type === 'spread') spreadShotTimer = 300;
+            else if (p.type === 'rapid') rapidFireTimer = 300;
+            else if (p.type === 'shield') shieldActive = true;
+        }
+    }
+
+    // Update particles
+    for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.96;
+        p.vy *= 0.96;
+        p.life--;
+    }
+
+    // Powerup timers
+    if (spreadShotTimer > 0) spreadShotTimer--;
+    if (rapidFireTimer > 0) rapidFireTimer--;
+
+    // Combo timer
+    if (comboTimer > 0) comboTimer--;
+    else combo = 0;
+
+    // Screen shake
+    if (screenShakeTimer > 0) {
+        screenShakeTimer--;
+        screenShakeX = (Math.random() - 0.5) * screenShakeTimer * 0.8;
+        screenShakeY = (Math.random() - 0.5) * screenShakeTimer * 0.8;
+    } else {
+        screenShakeX = 0;
+        screenShakeY = 0;
+    }
+
+    // Flash timer
+    if (flashTimer > 0) flashTimer--;
+
+    // Cleanup
+    bullets = bullets.filter(b => b.alive);
+    enemyBullets = enemyBullets.filter(b => b.alive);
+    columns = columns.filter(c => c.x > -ENEMY_SIZE * 2);
+    particles = particles.filter(p => p.life > 0);
+    powerups = powerups.filter(p => p.alive);
+
+    // Game over check
+    if (!player.alive) {
+        if (score > highScore) {
+            highScore = Math.floor(score);
+            localStorage.setItem('flappyInvadersHigh', highScore);
+        }
+        setTimeout(() => { state = 'gameover'; }, 600);
+        state = 'dying';
+    }
+}
+
+// ==================== DRAW FUNCTIONS ====================
+function drawStars() {
+    for (const s of stars) {
+        s.x -= s.speed * (state === 'playing' || state === 'dying' ? scrollSpeed * 0.3 : 0.5);
+        if (s.x < 0) s.x += W + 100;
+        if (s.y > H) s.y -= H;
+        const alpha = s.brightness * (0.6 + 0.4 * Math.sin(frameCount * 0.02 + s.x));
+        ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+        ctx.fillRect(s.x % W, s.y % H, s.size, s.size);
+    }
+}
+
+function drawPlayer() {
+    if (!player.alive) return;
+    const px = player.x;
+    const py = player.y;
+    const wingOffset = player.flapAnim > 0 ? -4 : (Math.sin(frameCount * 0.15) * 3);
+
+    // Engine glow
+    ctx.fillStyle = 'rgba(0,255,200,0.3)';
+    ctx.beginPath();
+    ctx.arc(px - 4, py, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Body
+    ctx.fillStyle = C_PLAYER;
+    ctx.fillRect(px - 6, py - 8, 20, 16);
+
+    // Nose
+    ctx.fillStyle = C_PLAYER;
+    ctx.beginPath();
+    ctx.moveTo(px + 14, py);
+    ctx.lineTo(px + 22, py - 4);
+    ctx.lineTo(px + 22, py + 4);
+    ctx.closePath();
+    ctx.fill();
+
+    // Wings
+    ctx.fillStyle = C_PLAYER_WING;
+    ctx.fillRect(px - 2, py - 12 + wingOffset, 12, 4);
+    ctx.fillRect(px - 2, py + 8 - wingOffset, 12, 4);
+
+    // Cockpit
+    ctx.fillStyle = '#88ffee';
+    ctx.fillRect(px + 4, py - 4, 6, 8);
+
+    // Engine trail
+    const trailLen = 8 + Math.random() * 8;
+    ctx.fillStyle = `rgba(0,255,200,${0.5 + Math.random() * 0.3})`;
+    ctx.fillRect(px - 6 - trailLen, py - 3, trailLen, 6);
+    ctx.fillStyle = `rgba(0,200,150,${0.3 + Math.random() * 0.2})`;
+    ctx.fillRect(px - 6 - trailLen - 6, py - 2, 6, 4);
+
+    // Shield
+    if (shieldActive) {
+        ctx.strokeStyle = C_SHIELD;
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(px + 8, py, 22, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(0,200,255,0.15)';
+        ctx.lineWidth = 6;
+        ctx.stroke();
+    }
+}
+
+function drawEnemy(x, y, hp, maxHp, hitFlash) {
+    const armored = maxHp > 1;
+    const damageRatio = hp / maxHp;
+
+    if (hitFlash > 0) {
+        ctx.fillStyle = C_HIT_FLASH;
+    } else if (armored) {
+        ctx.fillStyle = damageRatio < 0.5 ? '#ff4422' : C_ENEMY2;
+    } else {
+        ctx.fillStyle = C_ENEMY1;
+    }
+
+    // Body
+    const s = ENEMY_SIZE * 0.5;
+    ctx.fillRect(x - s * 0.6, y - s * 0.7, s * 1.2, s * 1.4);
+
+    // Head
+    ctx.fillRect(x - s * 0.4, y - s, s * 0.8, s * 0.4);
+
+    // Eyes
+    ctx.fillStyle = hitFlash > 0 ? '#fff' : '#ffffff';
+    ctx.fillRect(x - s * 0.3, y - s * 0.8, 4, 4);
+    ctx.fillRect(x + s * 0.1, y - s * 0.8, 4, 4);
+
+    // Tentacles / legs
+    const wave = Math.sin(frameCount * 0.08 + x * 0.1) * 3;
+    ctx.fillStyle = hitFlash > 0 ? C_HIT_FLASH : (armored ? C_ENEMY_ARMOR : C_ENEMY1);
+    ctx.fillRect(x - s * 0.5 + wave, y + s * 0.5, 4, 8);
+    ctx.fillRect(x - s * 0.1 - wave, y + s * 0.5, 4, 8);
+    ctx.fillRect(x + s * 0.3 + wave, y + s * 0.5, 4, 8);
+
+    // Armor indicator
+    if (armored && hp > 1) {
+        ctx.strokeStyle = '#ffaa00';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x - s * 0.7, y - s * 1.1, s * 1.4, s * 2.2);
+    }
+}
+
+function drawBullets() {
+    for (const b of bullets) {
+        // Glow
+        ctx.fillStyle = C_BULLET_GLOW;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bullet
+        ctx.fillStyle = C_BULLET;
+        ctx.fillRect(b.x - 4, b.y - 1.5, 8, 3);
+    }
+
+    // Enemy bullets
+    for (const b of enemyBullets) {
+        ctx.fillStyle = C_ENEMY_BULLET;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,50,50,0.3)';
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 8, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawParticles() {
+    for (const p of particles) {
+        const alpha = p.life / p.maxLife;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+}
+
+function drawPowerups() {
+    for (const p of powerups) {
+        const bob = Math.sin(frameCount * 0.06 + p.x) * 4;
+        const py = p.y + bob;
+        let color;
+        let label;
+        if (p.type === 'spread') { color = C_SPREAD; label = 'S'; }
+        else if (p.type === 'rapid') { color = C_RAPID; label = 'R'; }
+        else { color = '#00ccff'; label = '+'; }
+
+        // Glow
+        ctx.fillStyle = color.replace(')', ',0.2)').replace('rgb', 'rgba');
+        ctx.beginPath();
+        ctx.arc(p.x, py, POWERUP_SIZE, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Box
+        ctx.fillStyle = color;
+        ctx.fillRect(p.x - POWERUP_SIZE / 2, py - POWERUP_SIZE / 2, POWERUP_SIZE, POWERUP_SIZE);
+
+        // Label
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 14px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, p.x, py);
+    }
+}
+
+function drawHUD() {
+    // Score
+    ctx.fillStyle = C_SCORE;
+    ctx.font = 'bold 24px monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.fillText(`SCORE: ${Math.floor(score)}`, 16, 16);
+
+    // Wave
+    ctx.font = '14px monospace';
+    ctx.fillText(`WAVE ${waveCount}`, 16, 48);
+
+    // Combo
+    if (combo > 1 && comboTimer > 0) {
+        const alpha = comboTimer / 120;
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = C_COMBO;
+        ctx.font = 'bold 20px monospace';
+        ctx.fillText(`x${combo} COMBO`, 16, 70);
+        ctx.globalAlpha = 1;
+    }
+
+    // Powerup indicators
+    let indicatorY = 16;
+    ctx.textAlign = 'right';
+    if (spreadShotTimer > 0) {
+        ctx.fillStyle = C_SPREAD;
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText(`SPREAD ${Math.ceil(spreadShotTimer / 60)}s`, W - 16, indicatorY);
+        indicatorY += 20;
+    }
+    if (rapidFireTimer > 0) {
+        ctx.fillStyle = C_RAPID;
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText(`RAPID ${Math.ceil(rapidFireTimer / 60)}s`, W - 16, indicatorY);
+        indicatorY += 20;
+    }
+    if (shieldActive) {
+        ctx.fillStyle = '#00ccff';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText('SHIELD', W - 16, indicatorY);
+    }
+}
+
+function drawTitle() {
+    // Darken
+    ctx.fillStyle = 'rgba(10,10,26,0.6)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Title
+    const titleY = H * 0.35;
+    ctx.fillStyle = '#ff3366';
+    ctx.font = `bold ${Math.min(W * 0.1, 72)}px monospace`;
+    ctx.fillText('FLAPPY', W / 2, titleY - 30);
+    ctx.fillStyle = '#00ffcc';
+    ctx.fillText('INVADERS', W / 2, titleY + 40);
+
+    // Subtitle
+    ctx.fillStyle = '#888';
+    ctx.font = `${Math.min(W * 0.03, 18)}px monospace`;
+    ctx.fillText('Shoot gaps through alien columns!', W / 2, titleY + 90);
+
+    // Start prompt
+    const blink = Math.sin(frameCount * 0.06) > 0;
+    if (blink) {
+        ctx.fillStyle = '#ffcc00';
+        ctx.font = `bold ${Math.min(W * 0.04, 24)}px monospace`;
+        ctx.fillText('TAP / CLICK / SPACE TO START', W / 2, H * 0.65);
+    }
+
+    // Controls
+    ctx.fillStyle = '#666';
+    ctx.font = `${Math.min(W * 0.025, 14)}px monospace`;
+    ctx.fillText('SPACE/TAP = Flap | Auto-fire enabled', W / 2, H * 0.75);
+    ctx.fillText('Destroy enemies to create gaps and fly through!', W / 2, H * 0.75 + 22);
+
+    // High score
+    if (highScore > 0) {
+        ctx.fillStyle = '#ffaa00';
+        ctx.font = `bold ${Math.min(W * 0.03, 18)}px monospace`;
+        ctx.fillText(`HIGH SCORE: ${highScore}`, W / 2, H * 0.85);
+    }
+}
+
+function drawGameOver() {
+    // Darken
+    ctx.fillStyle = 'rgba(10,10,26,0.75)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Game Over
+    ctx.fillStyle = '#ff3366';
+    ctx.font = `bold ${Math.min(W * 0.1, 64)}px monospace`;
+    ctx.fillText('GAME OVER', W / 2, H * 0.35);
+
+    // Score
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${Math.min(W * 0.06, 36)}px monospace`;
+    ctx.fillText(`SCORE: ${Math.floor(score)}`, W / 2, H * 0.48);
+
+    // High score
+    ctx.fillStyle = '#ffaa00';
+    ctx.font = `bold ${Math.min(W * 0.04, 24)}px monospace`;
+    ctx.fillText(`HIGH SCORE: ${highScore}`, W / 2, H * 0.56);
+
+    // Wave reached
+    ctx.fillStyle = '#888';
+    ctx.font = `${Math.min(W * 0.03, 16)}px monospace`;
+    ctx.fillText(`Reached Wave ${waveCount}`, W / 2, H * 0.64);
+
+    // Retry
+    const blink = Math.sin(frameCount * 0.06) > 0;
+    if (blink) {
+        ctx.fillStyle = '#00ffcc';
+        ctx.font = `bold ${Math.min(W * 0.04, 22)}px monospace`;
+        ctx.fillText('TAP / CLICK / SPACE TO RETRY', W / 2, H * 0.76);
+    }
+}
+
+// ==================== MAIN LOOP ====================
+function draw() {
+    ctx.save();
+    ctx.translate(screenShakeX, screenShakeY);
+
+    // Background
+    ctx.fillStyle = C_BG;
+    ctx.fillRect(-20, -20, W + 40, H + 40);
+
+    // Stars
+    drawStars();
+
+    if (state === 'playing' || state === 'dying') {
+        // Columns / enemies
+        for (const col of columns) {
+            for (const enemy of col.enemies) {
+                if (!enemy.alive) continue;
+                const ey = enemy.y + Math.sin(enemy.bobPhase) * 8;
+                drawEnemy(col.x, ey, enemy.hp, enemy.maxHp, enemy.hitFlash);
+            }
+        }
+
+        drawPowerups();
+        drawBullets();
+        drawParticles();
+        drawPlayer();
+        drawHUD();
+
+        // Death flash
+        if (flashTimer > 0) {
+            ctx.fillStyle = `rgba(255,255,255,${flashTimer / 8 * 0.6})`;
+            ctx.fillRect(0, 0, W, H);
+        }
+    }
+
+    ctx.restore();
+
+    if (state === 'title') {
+        drawStars();
+        drawTitle();
+    } else if (state === 'gameover') {
+        drawGameOver();
+    }
+}
+
+function loop() {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+}
+
+loop();
+
+})();
+</script>
+</body>
+</html>
