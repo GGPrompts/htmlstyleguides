@@ -56,7 +56,7 @@ Master mapping of all 105 style guides and their usage across tech guides and st
 | gothic | | |
 | gothic-cathedral | | |
 | holographic | OpenAI Codex CLI | The Spectrum |
-| honeycomb | | |
+| honeycomb | MCP | |
 | impressionism | | |
 | industrial | nginx | |
 | japanese-zen | | The Way |
@@ -101,12 +101,12 @@ Master mapping of all 105 style guides and their usage across tech guides and st
 | suprematism | | |
 | swiss-international | Python & pip | |
 | swiss | | |
-| synthwave | | |
+| synthwave | DOM & Node.js | |
 | talavera | | |
 | terrazzo-atelier | | |
 | tropical | | |
 | ukiyo-e | Ruby & Rails | |
-| vaporwave | | The Plaza |
+| vaporwave | TypeScript / JavaScript | The Plaza |
 | verdant-grove | | The Wood Wide Web |
 | vienna-secession | Operational Excellence | |
 | visual-novel | | |

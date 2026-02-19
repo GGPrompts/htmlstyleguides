@@ -1,0 +1,3643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeScript / JavaScript — Tech Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ================================================================
+           VAPORWAVE TECH GUIDE — TypeScript / JavaScript
+           Neon pink, cyan glow, retro terminals, dreamy purple depths
+           ================================================================ */
+
+        /* --- DESIGN TOKENS --- */
+        :root {
+            /* VAPORWAVE PALETTE */
+            --pink: #ff71ce;
+            --cyan: #01cdfe;
+            --purple: #b967ff;
+            --green: #05ffa1;
+            --yellow: #fffb96;
+            --orange: #ff9f43;
+
+            /* BACKGROUND LAYERS */
+            --bg-dark: #1a0a2e;
+            --bg-mid: #2d1b4e;
+            --bg-elevated: #3d2b5e;
+
+            /* TEXT */
+            --text-primary: #ffffff;
+            --text-secondary: #c8b8e8;
+            --text-muted: #7a6a9a;
+
+            /* TYPOGRAPHY */
+            --font-display: 'VT323', monospace;
+            --font-body: 'Inter', sans-serif;
+            --font-code: 'Space Mono', 'Fira Code', monospace;
+
+            /* SPACING */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+
+            /* EFFECTS */
+            --glow-pink: 0 0 10px rgba(255, 113, 206, 0.6), 0 0 40px rgba(255, 113, 206, 0.3);
+            --glow-cyan: 0 0 10px rgba(1, 205, 254, 0.6), 0 0 40px rgba(1, 205, 254, 0.3);
+            --glow-purple: 0 0 10px rgba(185, 103, 255, 0.6), 0 0 40px rgba(185, 103, 255, 0.3);
+
+            /* BORDERS */
+            --border-dim: rgba(255, 113, 206, 0.15);
+            --border-glow: rgba(255, 113, 206, 0.4);
+        }
+
+        /* --- RESET --- */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+            scroll-padding-top: 60px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+            min-height: 100vh;
+            padding: var(--space-lg);
+            max-width: 960px;
+            margin: 0 auto;
+        }
+
+        /* --- BACK LINK --- */
+        .back-link {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            color: var(--cyan);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            padding: var(--space-sm) 0;
+            margin-bottom: var(--space-lg);
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: #fff;
+            text-shadow: var(--glow-cyan);
+        }
+
+        /* --- HEADER --- */
+        .site-header {
+            text-align: center;
+            padding: var(--space-3xl) 0 var(--space-2xl);
+        }
+
+        .site-header h1 {
+            font-family: var(--font-display);
+            font-size: 3.2rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--pink);
+            text-shadow: 0 0 20px var(--pink), 0 0 40px rgba(255, 113, 206, 0.4);
+            line-height: 1.2;
+            margin-bottom: var(--space-md);
+        }
+
+        .tagline {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.08em;
+        }
+
+        .neon-line {
+            height: 2px;
+            background: linear-gradient(90deg, var(--pink), var(--purple), var(--cyan));
+            border: none;
+            margin: var(--space-xl) auto;
+            max-width: 400px;
+            box-shadow: 0 0 8px rgba(255, 113, 206, 0.4), 0 0 20px rgba(1, 205, 254, 0.2);
+        }
+
+        /* --- JUMP NAV --- */
+        .jump-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            gap: var(--space-xs);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            background: rgba(26, 10, 46, 0.95);
+            border: 1px solid var(--pink);
+            border-left: none;
+            border-right: none;
+            padding: var(--space-sm) 0;
+            margin: 0 calc(-1 * var(--space-lg));
+            padding-left: var(--space-lg);
+            padding-right: var(--space-lg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        .jump-nav::-webkit-scrollbar {
+            height: 3px;
+        }
+
+        .jump-nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .jump-nav::-webkit-scrollbar-thumb {
+            background: var(--pink);
+            border-radius: 2px;
+        }
+
+        .jump-nav a {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 400;
+            color: var(--text-secondary);
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: var(--space-xs) var(--space-sm);
+            border-radius: 3px;
+            transition: color 0.2s ease, text-shadow 0.2s ease, background 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .jump-nav a:hover {
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan), 0 0 20px var(--cyan);
+            background: rgba(1, 205, 254, 0.08);
+        }
+
+        /* --- SECTIONS --- */
+        .section {
+            background: rgba(26, 10, 46, 0.85);
+            border: 2px solid var(--pink);
+            border-radius: 4px;
+            padding: var(--space-2xl);
+            margin-top: var(--space-2xl);
+            box-shadow: 0 0 20px rgba(255, 113, 206, 0.2);
+        }
+
+        .section-header {
+            display: flex;
+            align-items: baseline;
+            gap: var(--space-md);
+            margin-bottom: var(--space-xl);
+        }
+
+        .section-number {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 400;
+            color: var(--pink);
+            text-shadow: var(--glow-pink);
+            flex-shrink: 0;
+        }
+
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--cyan);
+            text-shadow: 0 0 20px var(--cyan);
+        }
+
+        .section-description {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: var(--space-xl);
+            line-height: 1.6;
+        }
+
+        /* --- SUBSECTIONS --- */
+        .subsection {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .subsection-title {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            color: var(--purple);
+            margin-bottom: var(--space-md);
+            padding-bottom: var(--space-xs);
+            border-bottom: 1px solid rgba(185, 103, 255, 0.2);
+        }
+
+        /* --- CODE BLOCKS --- */
+        pre {
+            background: #0d0520;
+            border: 1px solid var(--border-dim);
+            border-left: 3px solid var(--pink);
+            border-radius: 4px;
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            overflow-x: auto;
+            line-height: 1.55;
+        }
+
+        pre code {
+            font-family: var(--font-code);
+            font-size: 0.88rem;
+            color: var(--text-primary);
+            background: none;
+            padding: 0;
+        }
+
+        /* Inline code */
+        p code, li code, td code {
+            font-family: var(--font-code);
+            font-size: 0.88em;
+            background: rgba(1, 205, 254, 0.08);
+            color: var(--cyan);
+            padding: 2px 6px;
+            border-radius: 3px;
+            border: 1px solid rgba(1, 205, 254, 0.15);
+        }
+
+        /* Code comments */
+        .code-comment {
+            color: var(--text-muted);
+        }
+
+        .code-keyword {
+            color: var(--pink);
+        }
+
+        .code-type {
+            color: var(--cyan);
+        }
+
+        .code-string {
+            color: var(--yellow);
+        }
+
+        .code-fn {
+            color: var(--purple);
+        }
+
+        /* --- TABLES --- */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: var(--space-md) 0;
+            font-size: 0.92rem;
+        }
+
+        thead th {
+            font-family: var(--font-body);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 0.8rem;
+            color: var(--text-primary);
+            background: var(--purple);
+            padding: var(--space-sm) var(--space-md);
+            text-align: left;
+        }
+
+        thead th:first-child {
+            border-radius: 4px 0 0 0;
+        }
+
+        thead th:last-child {
+            border-radius: 0 4px 0 0;
+        }
+
+        tbody td {
+            padding: var(--space-sm) var(--space-md);
+            border-bottom: 1px solid var(--border-dim);
+            color: var(--text-primary);
+            vertical-align: top;
+        }
+
+        tbody tr {
+            background: rgba(26, 10, 46, 0.4);
+        }
+
+        tbody tr:nth-child(even) {
+            background: rgba(45, 27, 78, 0.4);
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 113, 206, 0.05);
+        }
+
+        /* --- ALERTS --- */
+        .alert {
+            border-radius: 4px;
+            padding: var(--space-md) var(--space-lg);
+            margin: var(--space-md) 0;
+            font-size: 0.92rem;
+            line-height: 1.6;
+        }
+
+        .alert-info {
+            background: rgba(1, 205, 254, 0.06);
+            border-left: 3px solid var(--cyan);
+            color: var(--text-primary);
+        }
+
+        .alert-warning {
+            background: rgba(255, 251, 150, 0.06);
+            border-left: 3px solid var(--yellow);
+            color: var(--text-primary);
+        }
+
+        .alert-tip {
+            background: rgba(5, 255, 161, 0.06);
+            border-left: 3px solid var(--green);
+            color: var(--text-primary);
+        }
+
+        .alert strong {
+            font-weight: 600;
+        }
+
+        /* --- COMMAND GRID --- */
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-md);
+            margin: var(--space-md) 0;
+        }
+
+        .command-card {
+            background: rgba(26, 10, 46, 0.6);
+            border: 1px solid var(--pink);
+            border-radius: 4px;
+            padding: var(--space-md);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .command-card:hover {
+            border-color: var(--pink);
+            box-shadow: 0 0 15px rgba(255, 113, 206, 0.3);
+        }
+
+        .command-card .card-title {
+            font-family: var(--font-code);
+            font-size: 0.88rem;
+            color: var(--cyan);
+            margin-bottom: var(--space-xs);
+        }
+
+        .command-card .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* --- BADGES --- */
+        .badge {
+            display: inline-block;
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 2px 8px;
+            border-radius: 3px;
+            vertical-align: middle;
+        }
+
+        .badge-ts {
+            background: rgba(1, 205, 254, 0.15);
+            color: var(--cyan);
+            border: 1px solid rgba(1, 205, 254, 0.3);
+        }
+
+        .badge-js {
+            background: rgba(255, 251, 150, 0.15);
+            color: var(--yellow);
+            border: 1px solid rgba(255, 251, 150, 0.3);
+        }
+
+        .badge-both {
+            background: rgba(185, 103, 255, 0.12);
+            color: var(--purple);
+            border: 1px solid rgba(185, 103, 255, 0.3);
+        }
+
+        /* --- PARAGRAPHS & LISTS --- */
+        p {
+            margin-bottom: var(--space-md);
+            color: var(--text-primary);
+        }
+
+        ul, ol {
+            margin: var(--space-sm) 0 var(--space-md) var(--space-lg);
+        }
+
+        li {
+            margin-bottom: var(--space-xs);
+            color: var(--text-primary);
+        }
+
+        li::marker {
+            color: var(--pink);
+        }
+
+        strong {
+            color: #ffffff;
+        }
+
+        a {
+            color: var(--cyan);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+            text-shadow: 0 0 6px rgba(1, 205, 254, 0.3);
+        }
+
+        /* --- FOOTER --- */
+        .site-footer {
+            text-align: center;
+            padding: var(--space-2xl) 0;
+            margin-top: var(--space-2xl);
+            border-top: 1px solid var(--border-dim);
+        }
+
+        .site-footer a {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+            transition: color 0.2s ease;
+        }
+
+        .site-footer a:hover {
+            color: var(--cyan);
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-md);
+            }
+
+            .site-header h1 {
+                font-size: 2.2rem;
+                letter-spacing: 0.08em;
+            }
+
+            .tagline {
+                font-size: 1rem;
+            }
+
+            .jump-nav {
+                margin: 0 calc(-1 * var(--space-md));
+                padding-left: var(--space-md);
+                padding-right: var(--space-md);
+            }
+
+            .section {
+                padding: var(--space-lg) var(--space-md);
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: var(--space-xs);
+            }
+
+            .section-title {
+                font-size: 1.4rem;
+            }
+
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+
+            pre {
+                padding: var(--space-sm) var(--space-md);
+                font-size: 0.82rem;
+            }
+
+            table {
+                font-size: 0.82rem;
+            }
+
+            thead th, tbody td {
+                padding: var(--space-xs) var(--space-sm);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="back-link">&larr; Tech Guides</a>
+
+    <header class="site-header">
+        <h1>TypeScript / JavaScript</h1>
+        <p class="tagline">The Language of the Web &mdash; Typed, Async, Everywhere</p>
+        <hr class="neon-line">
+    </header>
+
+    <!-- Sticky Jump Nav -->
+    <nav class="jump-nav">
+        <a href="#quick-ref">Quick Reference</a>
+        <a href="#setup">Setup & Tooling</a>
+        <a href="#type-system">Type System</a>
+        <a href="#functions">Functions</a>
+        <a href="#objects-classes">Objects & Classes</a>
+        <a href="#async">Async Patterns</a>
+        <a href="#modules">Modules</a>
+        <a href="#dom">DOM & Browser</a>
+        <a href="#node">Node.js</a>
+        <a href="#advanced-ts">Advanced TypeScript</a>
+        <a href="#testing">Testing</a>
+        <a href="#gotchas">Gotchas & Tips</a>
+    </nav>
+
+    <!-- ============================================================
+         SECTION 01 — QUICK REFERENCE
+         ============================================================ -->
+    <section id="quick-ref" class="section">
+        <div class="section-header">
+            <span class="section-number">01</span>
+            <h2 class="section-title">Quick Reference</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Essential Types</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Example</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>string</code></td>
+                            <td><code>let name: string = "Ada"</code></td>
+                            <td>Template literals supported</td>
+                        </tr>
+                        <tr>
+                            <td><code>number</code></td>
+                            <td><code>let age: number = 30</code></td>
+                            <td>No int/float distinction</td>
+                        </tr>
+                        <tr>
+                            <td><code>boolean</code></td>
+                            <td><code>let ok: boolean = true</code></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><code>bigint</code></td>
+                            <td><code>let big: bigint = 9007199254740991n</code></td>
+                            <td>Arbitrary precision integers</td>
+                        </tr>
+                        <tr>
+                            <td><code>null / undefined</code></td>
+                            <td><code>let x: null = null</code></td>
+                            <td>Use <code>strictNullChecks</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>symbol</code></td>
+                            <td><code>let id = Symbol("id")</code></td>
+                            <td>Unique identifiers</td>
+                        </tr>
+                        <tr>
+                            <td><code>any</code></td>
+                            <td><code>let x: any = "whatever"</code></td>
+                            <td>Escape hatch &mdash; avoid in production</td>
+                        </tr>
+                        <tr>
+                            <td><code>unknown</code></td>
+                            <td><code>let x: unknown = getData()</code></td>
+                            <td>Type-safe alternative to <code>any</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>void</code></td>
+                            <td><code>function log(): void {}</code></td>
+                            <td>Functions that return nothing</td>
+                        </tr>
+                        <tr>
+                            <td><code>never</code></td>
+                            <td><code>function fail(): never { throw ... }</code></td>
+                            <td>Unreachable code / exhaustive checks</td>
+                        </tr>
+                        <tr>
+                            <td><code>object</code></td>
+                            <td><code>let o: object = { a: 1 }</code></td>
+                            <td>Non-primitive &mdash; prefer specific types</td>
+                        </tr>
+                        <tr>
+                            <td><code>T[]</code> / <code>Array&lt;T&gt;</code></td>
+                            <td><code>let nums: number[] = [1, 2, 3]</code></td>
+                            <td>Both forms are identical</td>
+                        </tr>
+                        <tr>
+                            <td><code>[T, U]</code></td>
+                            <td><code>let pair: [string, number]</code></td>
+                            <td>Fixed-length typed arrays</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Common tsconfig Flags</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Flag</th>
+                            <th>Value</th>
+                            <th>Purpose</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>strict</code></td>
+                            <td><code>true</code></td>
+                            <td>Enables all strict type-checking options</td>
+                        </tr>
+                        <tr>
+                            <td><code>target</code></td>
+                            <td><code>"ES2022"</code></td>
+                            <td>JS version to compile down to</td>
+                        </tr>
+                        <tr>
+                            <td><code>module</code></td>
+                            <td><code>"NodeNext"</code></td>
+                            <td>Module system for output</td>
+                        </tr>
+                        <tr>
+                            <td><code>moduleResolution</code></td>
+                            <td><code>"NodeNext"</code></td>
+                            <td>How imports are resolved</td>
+                        </tr>
+                        <tr>
+                            <td><code>esModuleInterop</code></td>
+                            <td><code>true</code></td>
+                            <td>Fixes CJS/ESM default import compat</td>
+                        </tr>
+                        <tr>
+                            <td><code>skipLibCheck</code></td>
+                            <td><code>true</code></td>
+                            <td>Skip type-checking .d.ts files for speed</td>
+                        </tr>
+                        <tr>
+                            <td><code>outDir</code></td>
+                            <td><code>"./dist"</code></td>
+                            <td>Output directory for compiled JS</td>
+                        </tr>
+                        <tr>
+                            <td><code>rootDir</code></td>
+                            <td><code>"./src"</code></td>
+                            <td>Root directory of source files</td>
+                        </tr>
+                        <tr>
+                            <td><code>declaration</code></td>
+                            <td><code>true</code></td>
+                            <td>Emit .d.ts type declaration files</td>
+                        </tr>
+                        <tr>
+                            <td><code>resolveJsonModule</code></td>
+                            <td><code>true</code></td>
+                            <td>Allow importing .json files</td>
+                        </tr>
+                        <tr>
+                            <td><code>noUncheckedIndexedAccess</code></td>
+                            <td><code>true</code></td>
+                            <td>Add <code>undefined</code> to index signatures</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Utility Types</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Utility</th>
+                            <th>What It Does</th>
+                            <th>Example</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Partial&lt;T&gt;</code></td>
+                            <td>All properties become optional</td>
+                            <td><code>Partial&lt;User&gt;</code> &mdash; for update payloads</td>
+                        </tr>
+                        <tr>
+                            <td><code>Required&lt;T&gt;</code></td>
+                            <td>All properties become required</td>
+                            <td><code>Required&lt;Config&gt;</code> &mdash; enforce all fields</td>
+                        </tr>
+                        <tr>
+                            <td><code>Pick&lt;T, K&gt;</code></td>
+                            <td>Select subset of properties</td>
+                            <td><code>Pick&lt;User, "id" | "name"&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>Omit&lt;T, K&gt;</code></td>
+                            <td>Remove properties</td>
+                            <td><code>Omit&lt;User, "password"&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>Record&lt;K, V&gt;</code></td>
+                            <td>Map keys to values</td>
+                            <td><code>Record&lt;string, number&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>Readonly&lt;T&gt;</code></td>
+                            <td>All properties become readonly</td>
+                            <td><code>Readonly&lt;Config&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>Exclude&lt;T, U&gt;</code></td>
+                            <td>Remove types from union</td>
+                            <td><code>Exclude&lt;"a" | "b" | "c", "a"&gt;</code> = <code>"b" | "c"</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>Extract&lt;T, U&gt;</code></td>
+                            <td>Keep matching types from union</td>
+                            <td><code>Extract&lt;string | number, string&gt;</code> = <code>string</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>NonNullable&lt;T&gt;</code></td>
+                            <td>Remove null and undefined</td>
+                            <td><code>NonNullable&lt;string | null&gt;</code> = <code>string</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>ReturnType&lt;T&gt;</code></td>
+                            <td>Extract function return type</td>
+                            <td><code>ReturnType&lt;typeof fetch&gt;</code></td>
+                        </tr>
+                        <tr>
+                            <td><code>Awaited&lt;T&gt;</code></td>
+                            <td>Unwrap Promise type</td>
+                            <td><code>Awaited&lt;Promise&lt;string&gt;&gt;</code> = <code>string</code></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Essential CLI Commands</h3>
+                <div class="command-grid">
+                    <div class="command-card">
+                        <div class="card-title">tsc --noEmit</div>
+                        <div class="card-desc">Type-check without generating output files. Perfect for CI pipelines.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">tsc --watch</div>
+                        <div class="card-desc">Watch mode &mdash; recompiles on file changes.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">tsc --init</div>
+                        <div class="card-desc">Generate a starter <code>tsconfig.json</code> with commented options.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">npx tsx script.ts</div>
+                        <div class="card-desc">Run TypeScript directly without compilation step.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">tsc --showConfig</div>
+                        <div class="card-desc">Print the resolved tsconfig after extends/defaults are applied.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">tsc --listFiles</div>
+                        <div class="card-desc">Show all files included in compilation &mdash; debug unexpected includes.</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Package Manager Commands</h3>
+                <div class="command-grid">
+                    <div class="command-card">
+                        <div class="card-title">npm install &lt;pkg&gt;</div>
+                        <div class="card-desc">Install a dependency. Add <code>-D</code> for dev dependencies.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">npm install @types/&lt;pkg&gt; -D</div>
+                        <div class="card-desc">Install type definitions for a JS library.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">npx tsc --noEmit</div>
+                        <div class="card-desc">Run the project-local TypeScript compiler.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">npm run build</div>
+                        <div class="card-desc">Execute the build script defined in <code>package.json</code>.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 02 — SETUP & TOOLING
+         ============================================================ -->
+    <section id="setup" class="section">
+        <div class="section-header">
+            <span class="section-number">02</span>
+            <h2 class="section-title">Setup &amp; Tooling</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Node.js &amp; Version Management</h3>
+                <p>Install Node.js via <strong>nvm</strong> (Node Version Manager) to easily switch between versions per project.</p>
+<pre><code># Install nvm (Linux/macOS)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+
+# Install the latest LTS
+nvm install --lts
+nvm use --lts
+
+# Pin a version for your project
+node --version > .nvmrc
+nvm use    # reads .nvmrc automatically
+
+# Check installed versions
+nvm ls</code></pre>
+                <div class="alert alert-info">
+                    <strong>Tip:</strong> On Windows, use <strong>nvm-windows</strong> or <strong>fnm</strong> (Fast Node Manager) which is cross-platform and written in Rust.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Package Managers</h3>
+                <p>Node ships with <strong>npm</strong>, but alternatives offer different tradeoffs.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Manager</th>
+                            <th>Install</th>
+                            <th>Strengths</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>npm</strong></td>
+                            <td>Ships with Node</td>
+                            <td>Universal, no setup. Workspaces built-in.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>pnpm</strong></td>
+                            <td><code>npm i -g pnpm</code></td>
+                            <td>Content-addressable store, saves disk. Strict by default.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>yarn</strong></td>
+                            <td><code>corepack enable</code></td>
+                            <td>Plug'n'Play, zero-installs, offline cache.</td>
+                        </tr>
+                        <tr>
+                            <td><strong>bun</strong></td>
+                            <td><code>curl -fsSL https://bun.sh/install | bash</code></td>
+                            <td>All-in-one runtime + bundler + package manager. Very fast.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">tsconfig.json Explained</h3>
+                <p>The TypeScript configuration file controls compilation behavior. Start strict and relax only when needed.</p>
+<pre><code>{
+  "compilerOptions": {
+    // Type checking
+    "strict": true,                    // Enable all strict checks
+    "noUncheckedIndexedAccess": true,  // arr[0] is T | undefined
+
+    // Module system
+    "target": "ES2022",                // Output JS version
+    "module": "NodeNext",              // Module format
+    "moduleResolution": "NodeNext",    // How to find modules
+
+    // Interop
+    "esModuleInterop": true,           // import express from "express"
+    "resolveJsonModule": true,         // import data from "./data.json"
+    "isolatedModules": true,           // Required by bundlers
+
+    // Output
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "declaration": true,               // Emit .d.ts files
+    "sourceMap": true,                 // Emit .js.map files
+    "skipLibCheck": true               // Faster builds
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Common mistake:</strong> Setting <code>target</code> too low (e.g., <code>ES5</code>) when your runtime supports modern JS. This bloats output with unnecessary polyfills. Match your target to your minimum supported Node/browser version.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">ESLint &amp; Prettier</h3>
+                <p>ESLint catches bugs and enforces patterns. Prettier handles formatting. Use both together.</p>
+<pre><code># Install ESLint with TypeScript support
+npm install -D eslint @eslint/js typescript-eslint
+
+# Install Prettier
+npm install -D prettier eslint-config-prettier</code></pre>
+<pre><code>// eslint.config.mjs (flat config - ESLint v9+)
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+
+export default tseslint.config(
+  eslint.configs.recommended,
+  ...tseslint.configs.strictTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+  },
+  {
+    ignores: ["dist/", "node_modules/"],
+  }
+);</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Project Scaffolding</h3>
+                <p>Quick-start commands for common project types.</p>
+                <div class="command-grid">
+                    <div class="command-card">
+                        <div class="card-title">npm init -y</div>
+                        <div class="card-desc">Initialize a bare <code>package.json</code>. Add <code>typescript</code> and <code>@types/node</code> next.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">npm create vite@latest</div>
+                        <div class="card-desc">Scaffold a Vite project. Choose <code>vanilla-ts</code>, <code>react-ts</code>, or <code>vue-ts</code> template.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">npx create-next-app@latest --ts</div>
+                        <div class="card-desc">Full-stack Next.js with TypeScript, App Router, and Tailwind options.</div>
+                    </div>
+                    <div class="command-card">
+                        <div class="card-title">npm init @eslint/config</div>
+                        <div class="card-desc">Interactive ESLint configuration wizard.</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 03 — TYPE SYSTEM FUNDAMENTALS
+         ============================================================ -->
+    <section id="type-system" class="section">
+        <div class="section-header">
+            <span class="section-number">03</span>
+            <h2 class="section-title">Type System Fundamentals</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Primitives &amp; Basic Annotations</h3>
+                <p>TypeScript adds static types on top of JavaScript. Type annotations come after a colon.</p>
+<pre><code>// Explicit annotations
+let name: string = "Grace Hopper";
+let year: number = 1906;
+let isActive: boolean = true;
+
+// Type inference — TS figures it out from the value
+let language = "TypeScript";   // inferred as string
+let version = 5.3;             // inferred as number
+let features = ["generics", "enums"];  // inferred as string[]
+
+// Arrays
+let ids: number[] = [1, 2, 3];
+let names: Array&lt;string&gt; = ["Ada", "Grace"];
+
+// Tuples — fixed length, fixed types per position
+let entry: [string, number] = ["age", 30];
+let rgb: [number, number, number] = [255, 128, 0];
+
+// Enum
+enum Direction {
+  Up = "UP",
+  Down = "DOWN",
+  Left = "LEFT",
+  Right = "RIGHT",
+}
+
+// const enum — inlined at compile time, no runtime object
+const enum Status {
+  Active = 1,
+  Inactive = 0,
+}</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Best practice:</strong> Let TypeScript infer types when the value makes the type obvious. Add explicit annotations for function parameters, return types, and complex objects where inference might be ambiguous.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Unions &amp; Intersections</h3>
+                <p><strong>Unions</strong> (<code>|</code>) mean "one of these types." <strong>Intersections</strong> (<code>&amp;</code>) mean "all of these types combined."</p>
+<pre><code>// Union types — value can be either type
+type StringOrNumber = string | number;
+type Status = "pending" | "active" | "archived";
+
+function format(value: string | number): string {
+  if (typeof value === "string") {
+    return value.toUpperCase();   // TS knows it's string here
+  }
+  return value.toFixed(2);        // TS knows it's number here
+}
+
+// Intersection types — combine multiple types into one
+type HasName = { name: string };
+type HasAge = { age: number };
+type Person = HasName &amp; HasAge;
+
+const user: Person = {
+  name: "Alan",
+  age: 41,
+  // Must have ALL properties from both types
+};
+
+// Practical: extend API response types
+type ApiResponse&lt;T&gt; = {
+  data: T;
+  timestamp: number;
+} &amp; (
+  | { status: "success" }
+  | { status: "error"; message: string }
+);</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Literal Types &amp; const Assertions</h3>
+                <p>Literal types narrow a value to a specific string, number, or boolean rather than the wider type.</p>
+<pre><code>// String literal types
+type Theme = "light" | "dark" | "system";
+let current: Theme = "dark";   // OK
+// current = "blue";           // Error: not assignable to Theme
+
+// Numeric literal types
+type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6;
+
+// Boolean literal
+type True = true;
+
+// const assertion — narrows to the most specific type
+const config = {
+  endpoint: "https://api.example.com",
+  retries: 3,
+  methods: ["GET", "POST"],
+} as const;
+// Type is: {
+//   readonly endpoint: "https://api.example.com";
+//   readonly retries: 3;
+//   readonly methods: readonly ["GET", "POST"];
+// }
+
+// Without `as const`, methods would be string[]
+// With `as const`, methods is readonly ["GET", "POST"]
+
+// Template literal types
+type EventName = `on${Capitalize&lt;string&gt;}`;
+type CssUnit = `${number}${"px" | "rem" | "em" | "%"}`;</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Type Narrowing</h3>
+                <p>TypeScript narrows types based on control flow. Use type guards to help the compiler understand your code.</p>
+<pre><code>// typeof narrowing
+function double(x: string | number) {
+  if (typeof x === "string") {
+    return x.repeat(2);       // string methods available
+  }
+  return x * 2;               // number operations available
+}
+
+// instanceof narrowing
+function getDate(value: string | Date): Date {
+  if (value instanceof Date) {
+    return value;              // already a Date
+  }
+  return new Date(value);     // parse string to Date
+}
+
+// "in" operator narrowing
+type Fish = { swim: () =&gt; void };
+type Bird = { fly: () =&gt; void };
+
+function move(animal: Fish | Bird) {
+  if ("swim" in animal) {
+    animal.swim();             // Fish
+  } else {
+    animal.fly();              // Bird
+  }
+}
+
+// Custom type guards — return type is a type predicate
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function process(input: unknown) {
+  if (isString(input)) {
+    console.log(input.toUpperCase());  // safely narrowed
+  }
+}
+
+// Truthiness narrowing
+function printName(name: string | null | undefined) {
+  if (name) {
+    console.log(name.toUpperCase());   // string (not null/undefined)
+  }
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Discriminated Unions</h3>
+                <p>The most powerful pattern for modeling variants. A shared literal field acts as the discriminant.</p>
+<pre><code>// Each variant has a `kind` field with a unique literal type
+type Shape =
+  | { kind: "circle"; radius: number }
+  | { kind: "rectangle"; width: number; height: number }
+  | { kind: "triangle"; base: number; height: number };
+
+function area(shape: Shape): number {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2;
+    case "rectangle":
+      return shape.width * shape.height;
+    case "triangle":
+      return (shape.base * shape.height) / 2;
+  }
+}
+
+// Exhaustiveness checking — catch missing cases at compile time
+function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`);
+}
+
+function describe(shape: Shape): string {
+  switch (shape.kind) {
+    case "circle":
+      return `Circle with radius ${shape.radius}`;
+    case "rectangle":
+      return `${shape.width}x${shape.height} rectangle`;
+    case "triangle":
+      return `Triangle with base ${shape.base}`;
+    default:
+      return assertNever(shape);  // Compile error if a case is missing
+  }
+}
+
+// Real-world example: API response handling
+type ApiResult&lt;T&gt; =
+  | { ok: true; data: T }
+  | { ok: false; error: { code: number; message: string } };
+
+function handleResult&lt;T&gt;(result: ApiResult&lt;T&gt;) {
+  if (result.ok) {
+    console.log(result.data);      // T — no error field here
+  } else {
+    console.error(result.error);   // error — no data field here
+  }
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Type Assertions &amp; the satisfies Operator</h3>
+                <p>Assertions override the compiler. <code>satisfies</code> validates a type without widening.</p>
+<pre><code>// Type assertion — "I know better than the compiler"
+const canvas = document.getElementById("main") as HTMLCanvasElement;
+const ctx = canvas.getContext("2d")!;  // non-null assertion
+
+// Double assertion (escape hatch — avoid when possible)
+const value = someExpression as unknown as TargetType;
+
+// The `satisfies` operator (TS 5.0+) — validate without widening
+type ColorMap = Record&lt;string, [number, number, number] | string&gt;;
+
+// With `satisfies`, TS validates the shape but keeps the narrow type
+const palette = {
+  red: [255, 0, 0],
+  green: "#00ff00",
+  blue: [0, 0, 255],
+} satisfies ColorMap;
+
+// palette.red is [number, number, number], NOT string | [...]
+// palette.green is string, NOT string | [...]
+palette.red.map(c =&gt; c / 255);   // OK — TS knows it's a tuple
+palette.green.toUpperCase();       // OK — TS knows it's a string
+
+// Without satisfies, using `as ColorMap` would widen:
+// palette.red would be string | [number, number, number]
+// and you'd lose the ability to call .map() without narrowing</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Avoid overusing assertions.</strong> Every <code>as</code> is a potential runtime error. Prefer type guards and narrowing. Use <code>satisfies</code> when you want validation without losing type precision.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 04 — FUNCTIONS & CONTROL FLOW
+         ============================================================ -->
+    <section id="functions" class="section">
+        <div class="section-header">
+            <span class="section-number">04</span>
+            <h2 class="section-title">Functions &amp; Control Flow</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Arrow Functions vs Declarations</h3>
+                <p>Both forms define functions, but they differ in <code>this</code> binding and hoisting behavior.</p>
+<pre><code>// Function declaration — hoisted, has its own `this`
+function greet(name: string): string {
+  return `Hello, ${name}!`;
+}
+
+// Arrow function — NOT hoisted, inherits `this` from enclosing scope
+const greetArrow = (name: string): string =&gt; {
+  return `Hello, ${name}!`;
+};
+
+// Concise body — implicit return for single expressions
+const double = (n: number): number =&gt; n * 2;
+
+// Typing a function variable separately
+type Formatter = (input: string, width: number) =&gt; string;
+
+const padLeft: Formatter = (input, width) =&gt; {
+  return input.padStart(width);
+};
+
+// Generic arrow function (note the trailing comma in TSX files)
+const identity = &lt;T,&gt;(value: T): T =&gt; value;</code></pre>
+                <div class="alert alert-tip">
+                    <strong>When to choose:</strong> Use declarations for top-level named functions (hoisting helps readability). Use arrows for callbacks, closures, and anywhere you need lexical <code>this</code>.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Function Overloads</h3>
+                <p>Overloads let a single function handle different argument shapes with precise return types. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// Overload signatures (no body)
+function createElement(tag: "a"): HTMLAnchorElement;
+function createElement(tag: "canvas"): HTMLCanvasElement;
+function createElement(tag: "div"): HTMLDivElement;
+function createElement(tag: string): HTMLElement;
+
+// Implementation signature (must be compatible with ALL overloads)
+function createElement(tag: string): HTMLElement {
+  return document.createElement(tag);
+}
+
+const link = createElement("a");       // HTMLAnchorElement
+const canvas = createElement("canvas"); // HTMLCanvasElement
+const div = createElement("div");       // HTMLDivElement
+const span = createElement("span");     // HTMLElement
+
+// Practical: parse function that returns different types
+function parse(input: string, format: "json"): object;
+function parse(input: string, format: "csv"): string[][];
+function parse(input: string, format: "json" | "csv"): object | string[][] {
+  if (format === "json") return JSON.parse(input);
+  return input.split("\n").map(row =&gt; row.split(","));
+}</code></pre>
+                <div class="alert alert-info">
+                    <strong>Alternative:</strong> Often a discriminated union return type or generic can replace overloads with less boilerplate. Use overloads when the return type truly depends on specific argument values.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Destructuring &amp; Rest/Spread</h3>
+                <p>Destructure parameters directly in the function signature for cleaner APIs.</p>
+<pre><code>// Object destructuring with defaults and types
+function createUser({
+  name,
+  role = "viewer",
+  active = true,
+}: {
+  name: string;
+  role?: "admin" | "editor" | "viewer";
+  active?: boolean;
+}): User {
+  return { id: crypto.randomUUID(), name, role, active };
+}
+
+createUser({ name: "Ada" });
+createUser({ name: "Grace", role: "admin" });
+
+// Array destructuring in parameters
+function getFirst&lt;T&gt;([head, ...rest]: [T, ...T[]]): T {
+  return head;
+}
+
+// Rest parameters — typed as an array
+function log(level: string, ...messages: string[]): void {
+  console.log(`[${level}]`, ...messages);
+}
+
+// Variadic tuple types (TS 4.0+) — spread tuples in type signatures
+type Concat&lt;A extends unknown[], B extends unknown[]&gt; = [...A, ...B];
+type Result = Concat&lt;[1, 2], [3, 4]&gt;;  // [1, 2, 3, 4]
+
+// Spread in function calls
+const nums = [1, 2, 3] as const;
+Math.max(...nums);  // `as const` makes it a tuple so spread works</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Optional Chaining &amp; Nullish Coalescing</h3>
+                <p>Safe property access and default values without verbose null checks. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>// Optional chaining (?.) — short-circuits to undefined
+const city = user?.address?.city;           // undefined if any link is null/undefined
+const first = users?.[0]?.name;             // safe array access
+const result = callback?.();                // safe function call
+
+// Nullish coalescing (??) — default only for null/undefined (not 0 or "")
+const port = config.port ?? 3000;           // 0 stays 0, null becomes 3000
+const name = input ?? "Anonymous";
+
+// Compare with || which treats 0, "", false as falsy
+const count = data.count || 10;   // BUG: count of 0 becomes 10
+const count = data.count ?? 10;   // CORRECT: count of 0 stays 0
+
+// Nullish coalescing assignment (??=)
+let cache: string[] | undefined;
+cache ??= [];                                // assign only if null/undefined
+cache.push("item");
+
+// Chaining them together — real-world config
+const timeout = options?.network?.timeout ?? defaults?.timeout ?? 5000;</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Watch out:</strong> <code>?.</code> always returns <code>undefined</code> when it short-circuits, never <code>null</code>. This matters when distinguishing between "property is null" vs "property path doesn't exist."
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Iterators &amp; Generators</h3>
+                <p>Generators produce values lazily on demand. Async generators handle streams of async data.</p>
+<pre><code>// Generator function — yields values one at a time
+function* range(start: number, end: number): Generator&lt;number&gt; {
+  for (let i = start; i &lt; end; i++) {
+    yield i;
+  }
+}
+
+for (const n of range(0, 5)) {
+  console.log(n);  // 0, 1, 2, 3, 4
+}
+
+// Spread a generator into an array
+const nums = [...range(1, 4)];  // [1, 2, 3]
+
+// Infinite generator with early termination
+function* fibonacci(): Generator&lt;number&gt; {
+  let [a, b] = [0, 1];
+  while (true) {
+    yield a;
+    [a, b] = [b, a + b];
+  }
+}
+
+// Take first N values from any iterable
+function take&lt;T&gt;(n: number, iter: Iterable&lt;T&gt;): T[] {
+  const result: T[] = [];
+  for (const item of iter) {
+    result.push(item);
+    if (result.length &gt;= n) break;
+  }
+  return result;
+}
+
+take(8, fibonacci());  // [0, 1, 1, 2, 3, 5, 8, 13]
+
+// Async generator — stream paginated API data
+async function* fetchPages&lt;T&gt;(url: string): AsyncGenerator&lt;T[]&gt; {
+  let nextUrl: string | null = url;
+  while (nextUrl) {
+    const res = await fetch(nextUrl);
+    const json = await res.json();
+    yield json.data;
+    nextUrl = json.nextPage;
+  }
+}
+
+// Consume with for-await-of
+for await (const page of fetchPages&lt;User&gt;("/api/users")) {
+  for (const user of page) {
+    processUser(user);
+  }
+}</code></pre>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 05 — OBJECTS, CLASSES & INTERFACES
+         ============================================================ -->
+    <section id="objects-classes" class="section">
+        <div class="section-header">
+            <span class="section-number">05</span>
+            <h2 class="section-title">Objects, Classes &amp; Interfaces</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">interface vs type</h3>
+                <p>Both can describe object shapes, but they have key differences.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th><code>interface</code></th>
+                            <th><code>type</code></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Declaration merging</td>
+                            <td>Yes &mdash; multiple declarations auto-merge</td>
+                            <td>No &mdash; duplicate identifiers are an error</td>
+                        </tr>
+                        <tr>
+                            <td><code>extends</code></td>
+                            <td><code>interface B extends A</code></td>
+                            <td><code>type B = A &amp; { ... }</code> (intersection)</td>
+                        </tr>
+                        <tr>
+                            <td>Unions</td>
+                            <td>Not supported</td>
+                            <td><code>type X = A | B</code></td>
+                        </tr>
+                        <tr>
+                            <td>Primitives, tuples, mapped types</td>
+                            <td>Not supported</td>
+                            <td>Full support</td>
+                        </tr>
+                        <tr>
+                            <td><code>implements</code></td>
+                            <td>Yes</td>
+                            <td>Yes (for object types)</td>
+                        </tr>
+                        <tr>
+                            <td>Computed properties</td>
+                            <td>No</td>
+                            <td>Yes (mapped types, template literals)</td>
+                        </tr>
+                        <tr>
+                            <td>Error messages</td>
+                            <td>Named in errors (more readable)</td>
+                            <td>Inlined/expanded (can be verbose)</td>
+                        </tr>
+                    </tbody>
+                </table>
+<pre><code>// Interface — best for object shapes and public APIs
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+// Declaration merging — extend third-party types
+interface Window {
+  analytics: AnalyticsSDK;  // adds to the global Window interface
+}
+
+// Type alias — best for unions, tuples, computed types
+type Status = "active" | "inactive" | "pending";
+type Pair&lt;T&gt; = [T, T];
+type StringKeys&lt;T&gt; = { [K in keyof T as K extends string ? K : never]: T[K] };</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Rule of thumb:</strong> Use <code>interface</code> for objects that will be extended or implemented. Use <code>type</code> for unions, intersections, tuples, and computed types. Both work for plain object shapes &mdash; pick one and be consistent.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Classes</h3>
+                <p>TypeScript adds access modifiers, abstract classes, and parameter properties to JavaScript classes.</p>
+<pre><code>class EventEmitter&lt;Events extends Record&lt;string, unknown[]&gt;&gt; {
+  // Private field — not accessible outside the class
+  private listeners = new Map&lt;keyof Events, Set&lt;Function&gt;&gt;();
+
+  // Protected — accessible in subclasses
+  protected maxListeners: number = 10;
+
+  // Readonly — set once in constructor
+  readonly name: string;
+
+  // Parameter property shorthand — declares + assigns in constructor
+  constructor(name: string, private debug: boolean = false) {
+    this.name = name;
+  }
+
+  on&lt;K extends keyof Events&gt;(
+    event: K,
+    listener: (...args: Events[K]) =&gt; void
+  ): this {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    this.listeners.get(event)!.add(listener);
+    if (this.debug) console.log(`Listener added for ${String(event)}`);
+    return this;  // enables chaining
+  }
+
+  emit&lt;K extends keyof Events&gt;(event: K, ...args: Events[K]): void {
+    this.listeners.get(event)?.forEach(fn =&gt; fn(...args));
+  }
+}
+
+// Static members
+class IdGenerator {
+  static #counter = 0;                   // private static (ES2022)
+  static next(): string {
+    return `id_${++IdGenerator.#counter}`;
+  }
+}
+
+// Abstract class — cannot be instantiated directly
+abstract class Shape {
+  abstract area(): number;
+  abstract perimeter(): number;
+
+  describe(): string {
+    return `Area: ${this.area().toFixed(2)}, Perimeter: ${this.perimeter().toFixed(2)}`;
+  }
+}
+
+class Circle extends Shape {
+  constructor(private radius: number) { super(); }
+  area(): number { return Math.PI * this.radius ** 2; }
+  perimeter(): number { return 2 * Math.PI * this.radius; }
+}
+
+// implements — class must satisfy the interface contract
+interface Serializable {
+  toJSON(): string;
+}
+
+class Config implements Serializable {
+  constructor(private data: Record&lt;string, unknown&gt;) {}
+  toJSON(): string { return JSON.stringify(this.data); }
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Generics</h3>
+                <p>Generics let you write reusable code that works with any type while preserving type safety. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// Basic generic function
+function first&lt;T&gt;(arr: T[]): T | undefined {
+  return arr[0];
+}
+first([1, 2, 3]);         // number | undefined
+first(["a", "b"]);        // string | undefined
+
+// Constrained generic — T must have a `.length` property
+function longest&lt;T extends { length: number }&gt;(a: T, b: T): T {
+  return a.length &gt;= b.length ? a : b;
+}
+longest("hello", "hi");   // "hello" (return type is string)
+longest([1, 2], [3]);     // [1, 2] (return type is number[])
+
+// Generic with default type parameter
+interface ApiResponse&lt;T = unknown&gt; {
+  data: T;
+  status: number;
+  headers: Record&lt;string, string&gt;;
+}
+
+const res: ApiResponse = { data: null, status: 200, headers: {} };
+const typed: ApiResponse&lt;User[]&gt; = { data: users, status: 200, headers: {} };
+
+// const type parameters (TS 5.0) — infer literal types automatically
+function routes&lt;const T extends readonly string[]&gt;(paths: T): T {
+  return paths;
+}
+const r = routes(["/home", "/about"]);
+// Type is readonly ["/home", "/about"], not string[]
+
+// Multiple generic parameters with constraint relationship
+function getProperty&lt;T, K extends keyof T&gt;(obj: T, key: K): T[K] {
+  return obj[key];
+}
+getProperty({ name: "Ada", age: 36 }, "name");  // string</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Mapped &amp; Conditional Types</h3>
+                <p>Transform existing types into new shapes programmatically. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// Basic mapped type — make all properties optional
+type MyPartial&lt;T&gt; = {
+  [K in keyof T]?: T[K];
+};
+
+// Mapped type with key remapping via `as` (TS 4.1)
+type Getters&lt;T&gt; = {
+  [K in keyof T as `get${Capitalize&lt;string &amp; K&gt;}`]: () =&gt; T[K];
+};
+
+interface Person { name: string; age: number; }
+type PersonGetters = Getters&lt;Person&gt;;
+// { getName: () =&gt; string; getAge: () =&gt; number }
+
+// Filter properties with never
+type OnlyStrings&lt;T&gt; = {
+  [K in keyof T as T[K] extends string ? K : never]: T[K];
+};
+type StringProps = OnlyStrings&lt;{ name: string; age: number; email: string }&gt;;
+// { name: string; email: string }
+
+// Conditional types — type-level if/else
+type IsString&lt;T&gt; = T extends string ? true : false;
+type A = IsString&lt;"hello"&gt;;   // true
+type B = IsString&lt;42&gt;;        // false
+
+// The `infer` keyword — extract types from within other types
+type UnwrapPromise&lt;T&gt; = T extends Promise&lt;infer U&gt; ? U : T;
+type X = UnwrapPromise&lt;Promise&lt;string&gt;&gt;;   // string
+type Y = UnwrapPromise&lt;number&gt;;             // number
+
+// Extract function parameter types
+type FirstParam&lt;F&gt; = F extends (first: infer P, ...rest: any[]) =&gt; any ? P : never;
+type P = FirstParam&lt;(name: string, age: number) =&gt; void&gt;;  // string
+
+// Template literal types — string manipulation at the type level
+type EventName&lt;T extends string&gt; = `${T}Changed`;
+type UserEvents = EventName&lt;"name" | "email"&gt;;
+// "nameChanged" | "emailChanged"
+
+type CSSProperty = `${"margin" | "padding"}-${"top" | "right" | "bottom" | "left"}`;
+// "margin-top" | "margin-right" | ... | "padding-left" (8 combinations)</code></pre>
+                <div class="alert alert-info">
+                    <strong>Distributive behavior:</strong> Conditional types distribute over unions automatically. <code>IsString&lt;"a" | 42&gt;</code> evaluates to <code>true | false</code> (which simplifies to <code>boolean</code>). Wrap in a tuple <code>[T] extends [string]</code> to prevent distribution.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 06 — ASYNC PATTERNS
+         ============================================================ -->
+    <section id="async" class="section">
+        <div class="section-header">
+            <span class="section-number">06</span>
+            <h2 class="section-title">Async Patterns</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Promises &amp; async/await</h3>
+                <p>Promises represent eventual values. <code>async/await</code> is syntactic sugar that makes async code read like synchronous code.</p>
+<pre><code>// Creating a Promise
+function delay(ms: number): Promise&lt;void&gt; {
+  return new Promise(resolve =&gt; setTimeout(resolve, ms));
+}
+
+// Promise chaining
+fetch("/api/users")
+  .then(res =&gt; res.json())
+  .then(users =&gt; console.log(users))
+  .catch(err =&gt; console.error("Failed:", err))
+  .finally(() =&gt; console.log("Done"));
+
+// async/await — equivalent to the chain above
+async function loadUsers(): Promise&lt;User[]&gt; {
+  try {
+    const res = await fetch("/api/users");
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("Failed:", err);
+    return [];
+  }
+}
+
+// Error handling pattern — Result tuple instead of try/catch
+async function safeAsync&lt;T&gt;(
+  promise: Promise&lt;T&gt;
+): Promise&lt;[T, null] | [null, Error]&gt; {
+  try {
+    return [await promise, null];
+  } catch (err) {
+    return [null, err instanceof Error ? err : new Error(String(err))];
+  }
+}
+
+const [users, error] = await safeAsync(loadUsers());
+if (error) {
+  console.error(error.message);
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Promise Combinators</h3>
+                <p>Run multiple async operations in parallel with different strategies.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Combinator</th>
+                            <th>Resolves when</th>
+                            <th>Rejects when</th>
+                            <th>Use case</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>Promise.all</code></td>
+                            <td>ALL promises fulfill</td>
+                            <td>ANY promise rejects</td>
+                            <td>Fetch multiple resources in parallel</td>
+                        </tr>
+                        <tr>
+                            <td><code>Promise.allSettled</code></td>
+                            <td>ALL promises settle (fulfill or reject)</td>
+                            <td>Never rejects</td>
+                            <td>Fire-and-forget batch operations</td>
+                        </tr>
+                        <tr>
+                            <td><code>Promise.race</code></td>
+                            <td>FIRST promise settles</td>
+                            <td>FIRST settled is a rejection</td>
+                            <td>Timeout pattern, fastest mirror</td>
+                        </tr>
+                        <tr>
+                            <td><code>Promise.any</code></td>
+                            <td>FIRST promise fulfills</td>
+                            <td>ALL promises reject (<code>AggregateError</code>)</td>
+                            <td>Fastest success from redundant sources</td>
+                        </tr>
+                    </tbody>
+                </table>
+<pre><code>// Promise.all — parallel fetch, fail-fast
+const [users, posts, comments] = await Promise.all([
+  fetch("/api/users").then(r =&gt; r.json()),
+  fetch("/api/posts").then(r =&gt; r.json()),
+  fetch("/api/comments").then(r =&gt; r.json()),
+]);
+
+// Promise.allSettled — collect all results regardless of failures
+const results = await Promise.allSettled([
+  sendEmail("user1@example.com"),
+  sendEmail("user2@example.com"),
+  sendEmail("invalid"),
+]);
+
+for (const result of results) {
+  if (result.status === "fulfilled") {
+    console.log("Sent:", result.value);
+  } else {
+    console.error("Failed:", result.reason);
+  }
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">AbortController &amp; Timeouts</h3>
+                <p>Cancel in-flight requests and set timeouts using the standard <code>AbortController</code> API.</p>
+<pre><code>// Basic abort
+const controller = new AbortController();
+const { signal } = controller;
+
+fetch("/api/data", { signal })
+  .then(res =&gt; res.json())
+  .catch(err =&gt; {
+    if (err.name === "AbortError") {
+      console.log("Request was cancelled");
+    }
+  });
+
+// Cancel after user action
+cancelButton.addEventListener("click", () =&gt; controller.abort());
+
+// AbortSignal.timeout() — auto-cancel after duration
+const res = await fetch("/api/slow", {
+  signal: AbortSignal.timeout(5000),   // 5-second timeout
+});
+
+// Combine signals — cancel on timeout OR user action
+const userController = new AbortController();
+const timeoutSignal = AbortSignal.timeout(10000);
+
+const res = await fetch("/api/data", {
+  signal: AbortSignal.any([userController.signal, timeoutSignal]),
+});
+
+// Timeout wrapper for any promise
+function withTimeout&lt;T&gt;(promise: Promise&lt;T&gt;, ms: number): Promise&lt;T&gt; {
+  return Promise.race([
+    promise,
+    new Promise&lt;never&gt;((_, reject) =&gt;
+      setTimeout(() =&gt; reject(new Error(`Timeout after ${ms}ms`)), ms)
+    ),
+  ]);
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Event Loop: Microtasks vs Macrotasks</h3>
+                <p>Understanding execution order is essential for debugging async behavior.</p>
+<pre><code>// Execution order demonstration
+console.log("1: synchronous");
+
+setTimeout(() =&gt; console.log("2: macrotask (setTimeout)"), 0);
+
+Promise.resolve().then(() =&gt; console.log("3: microtask (Promise)"));
+
+queueMicrotask(() =&gt; console.log("4: microtask (queueMicrotask)"));
+
+console.log("5: synchronous");
+
+// Output order: 1, 5, 3, 4, 2
+// Synchronous first, then ALL microtasks, then next macrotask</code></pre>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Queue</th>
+                            <th>APIs</th>
+                            <th>Priority</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Microtasks</strong></td>
+                            <td><code>Promise.then</code>, <code>queueMicrotask</code>, <code>MutationObserver</code></td>
+                            <td>Run after current task, before next macrotask</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Macrotasks</strong></td>
+                            <td><code>setTimeout</code>, <code>setInterval</code>, <code>setImmediate</code>, I/O callbacks</td>
+                            <td>Run one per event loop iteration</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-warning">
+                    <strong>Gotcha:</strong> An infinite chain of microtasks will starve macrotasks. <code>await</code> in a tight loop creates microtasks, not macrotasks. If you need to yield to the event loop, use <code>setTimeout(fn, 0)</code> explicitly.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Practical Async Patterns</h3>
+                <p>Battle-tested patterns for real-world async code.</p>
+<pre><code>// Retry with exponential backoff
+async function retry&lt;T&gt;(
+  fn: () =&gt; Promise&lt;T&gt;,
+  { attempts = 3, delayMs = 1000, backoff = 2 } = {}
+): Promise&lt;T&gt; {
+  for (let i = 0; i &lt; attempts; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      if (i === attempts - 1) throw err;
+      const wait = delayMs * backoff ** i;
+      await new Promise(r =&gt; setTimeout(r, wait));
+    }
+  }
+  throw new Error("Unreachable");
+}
+
+const data = await retry(() =&gt; fetch("/flaky-api").then(r =&gt; r.json()));
+
+// Concurrent limiting — run N promises at a time
+async function mapConcurrent&lt;T, R&gt;(
+  items: T[],
+  fn: (item: T) =&gt; Promise&lt;R&gt;,
+  concurrency: number
+): Promise&lt;R[]&gt; {
+  const results: R[] = [];
+  const executing = new Set&lt;Promise&lt;void&gt;&gt;();
+
+  for (const [i, item] of items.entries()) {
+    const p = fn(item).then(result =&gt; { results[i] = result; });
+    executing.add(p);
+    p.finally(() =&gt; executing.delete(p));
+
+    if (executing.size &gt;= concurrency) {
+      await Promise.race(executing);
+    }
+  }
+  await Promise.all(executing);
+  return results;
+}
+
+// Process 100 URLs, max 5 at a time
+const pages = await mapConcurrent(urls, fetchPage, 5);
+
+// Top-level await (ES2022 modules)
+const config = await loadConfig();
+const db = await connectDatabase(config.dbUrl);
+export { db };</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Top-level await</strong> works in ES modules (<code>type: "module"</code> in package.json or <code>.mjs</code> files). It blocks importing modules from executing until the awaited promise resolves, so use it sparingly at the application entry point.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 07 — MODULES & MODULE SYSTEMS
+         ============================================================ -->
+    <section id="modules" class="section">
+        <div class="section-header">
+            <span class="section-number">07</span>
+            <h2 class="section-title">Modules &amp; Module Systems</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">ESM vs CJS Comparison</h3>
+                <p>JavaScript has two module systems. <strong>ESM</strong> (ECMAScript Modules) is the standard; <strong>CJS</strong> (CommonJS) is the Node.js legacy format.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th>ESM</th>
+                            <th>CJS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Syntax</td>
+                            <td><code>import</code> / <code>export</code></td>
+                            <td><code>require()</code> / <code>module.exports</code></td>
+                        </tr>
+                        <tr>
+                            <td>Loading</td>
+                            <td>Asynchronous, statically analyzed</td>
+                            <td>Synchronous, evaluated at runtime</td>
+                        </tr>
+                        <tr>
+                            <td>Top-level <code>this</code></td>
+                            <td><code>undefined</code></td>
+                            <td><code>module.exports</code></td>
+                        </tr>
+                        <tr>
+                            <td>File extensions</td>
+                            <td><code>.mjs</code> or <code>.js</code> with <code>"type": "module"</code></td>
+                            <td><code>.cjs</code> or <code>.js</code> (default in Node)</td>
+                        </tr>
+                        <tr>
+                            <td>Tree-shaking</td>
+                            <td>Yes &mdash; static analysis enables dead-code elimination</td>
+                            <td>No &mdash; dynamic <code>require()</code> prevents it</td>
+                        </tr>
+                        <tr>
+                            <td>Top-level <code>await</code></td>
+                            <td>Supported</td>
+                            <td>Not supported</td>
+                        </tr>
+                        <tr>
+                            <td><code>__dirname</code> / <code>__filename</code></td>
+                            <td>Not available &mdash; use <code>import.meta.url</code></td>
+                            <td>Available as globals</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-info">
+                    <strong>Current best practice:</strong> Default to ESM for new projects. Set <code>"type": "module"</code> in <code>package.json</code>. Use <code>.cjs</code> for any files that must remain CommonJS (e.g., legacy config files).
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">ESM: import/export Patterns</h3>
+                <p>Static imports are analyzed at parse time before any code executes, enabling optimizations like tree-shaking.</p>
+<pre><code>// Named exports — one or many per file
+export const API_URL = "https://api.example.com";
+export function fetchUser(id: string): Promise&lt;User&gt; { /* ... */ }
+export class UserService { /* ... */ }
+
+// Named imports
+import { API_URL, fetchUser } from "./api.js";
+
+// Rename on import
+import { fetchUser as getUser } from "./api.js";
+
+// Default export — one per file, represents the module's main value
+export default class Router { /* ... */ }
+
+// Default import — any name works
+import Router from "./router.js";
+import MyRouter from "./router.js";  // same thing, different name
+
+// Namespace import — grab everything as an object
+import * as utils from "./utils.js";
+utils.formatDate(new Date());
+
+// Re-exports — aggregate modules into a single entry point
+export { fetchUser, UserService } from "./user.js";
+export { default as Router } from "./router.js";
+export * from "./helpers.js";           // re-export all named exports
+export * as math from "./math.js";      // re-export as namespace
+
+// Side-effect import — runs the module but imports nothing
+import "./polyfills.js";
+import "./styles.css";  // common in bundled projects</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">CJS &amp; ESM Interop</h3>
+                <p>Mixing module systems is common when migrating or consuming legacy packages. Here are the key interop rules.</p>
+<pre><code>// CJS syntax — require is synchronous
+const fs = require("fs");
+const { readFile, writeFile } = require("fs/promises");
+
+// CJS exports
+module.exports = { fetchUser, createUser };
+module.exports = class Database { /* ... */ };
+
+// ESM importing a CJS module (usually works)
+import express from "express";            // CJS default
+import { Router } from "express";         // named — depends on package
+
+// CJS requiring an ESM module (NOT directly supported)
+// Must use dynamic import() instead:
+async function loadESM() {
+  const { default: chalk } = await import("chalk");  // chalk is ESM-only
+  console.log(chalk.blue("Hello"));
+}
+
+// __dirname equivalent in ESM
+import { fileURLToPath } from "node:url";
+import { dirname } from "node:path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Or use import.meta.dirname (Node 21.2+)
+const dir = import.meta.dirname;  // simpler</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Watch out:</strong> CJS modules do not have named exports from the ESM perspective. When you write <code>import { x } from "cjs-pkg"</code>, Node performs "named export detection" as a best-effort heuristic. If it fails, fall back to <code>import pkg from "cjs-pkg"</code> and destructure from <code>pkg</code>.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Dynamic import() &amp; Code Splitting</h3>
+                <p><code>import()</code> returns a Promise and works in both ESM and CJS. Bundlers use it as a split point.</p>
+<pre><code>// Lazy-load a heavy module on demand
+const button = document.getElementById("chart-btn")!;
+button.addEventListener("click", async () =&gt; {
+  const { Chart } = await import("chart.js");
+  const chart = new Chart(canvas, config);
+});
+
+// Conditional import — load platform-specific code
+const db = process.env.NODE_ENV === "test"
+  ? await import("./db-mock.js")
+  : await import("./db-postgres.js");
+
+// Route-level code splitting (framework-agnostic pattern)
+const routes: Record&lt;string, () =&gt; Promise&lt;{ default: Component }&gt;&gt; = {
+  "/":        () =&gt; import("./pages/home.js"),
+  "/about":   () =&gt; import("./pages/about.js"),
+  "/contact": () =&gt; import("./pages/contact.js"),
+};
+
+async function navigate(path: string) {
+  const loader = routes[path];
+  if (!loader) return show404();
+  const { default: Page } = await loader();
+  render(Page);
+}
+
+// Type-only imports — stripped at compile time, zero runtime cost
+import type { User, Config } from "./types.js";
+import { fetchUser, type ApiResponse } from "./api.js";</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Best practice:</strong> Use <code>import type</code> for anything you only need at the type level. It prevents accidental side-effect imports and makes bundler output smaller.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Package Configuration &amp; Barrel Files</h3>
+                <p>The <code>package.json</code> <code>"exports"</code> field controls what consumers can import, replacing the flat <code>"main"</code> field.</p>
+<pre><code>// package.json — dual ESM/CJS package
+{
+  "name": "my-lib",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",      // TypeScript types (must be first)
+      "import": "./dist/index.js",        // ESM entry
+      "require": "./dist/index.cjs"       // CJS entry
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js",
+      "require": "./dist/utils.cjs"
+    }
+  },
+  "files": ["dist"]
+}</code></pre>
+                <p><strong>Barrel files</strong> re-export from a single <code>index.ts</code> to simplify imports. Use them carefully.</p>
+<pre><code>// src/components/index.ts — barrel file
+export { Button } from "./Button.js";
+export { Modal } from "./Modal.js";
+export { Tooltip } from "./Tooltip.js";
+
+// Consumer gets clean imports
+import { Button, Modal } from "@my-lib/components";</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Barrel file tradeoff:</strong> Barrels simplify imports but can harm tree-shaking. Importing one item from a barrel may pull in all modules if they have side effects. For libraries, prefer direct deep imports or use the <code>"exports"</code> field to expose specific subpaths. Mark your package <code>"sideEffects": false</code> to help bundlers eliminate unused code.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Bundlers Overview</h3>
+                <p>Bundlers combine modules into optimized files for the browser or edge runtimes.</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Bundler</th>
+                            <th>Language</th>
+                            <th>Best For</th>
+                            <th>Dev Server</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Vite</strong></td>
+                            <td>JS + esbuild + Rollup</td>
+                            <td>Frontend apps, frameworks. Instant HMR via native ESM.</td>
+                            <td>Built-in, blazing fast</td>
+                        </tr>
+                        <tr>
+                            <td><strong>esbuild</strong></td>
+                            <td>Go</td>
+                            <td>Libraries, CLI tools. 10-100x faster than webpack.</td>
+                            <td>Minimal (use with Vite)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Rollup</strong></td>
+                            <td>JS</td>
+                            <td>Libraries. Best tree-shaking. Output is clean, readable.</td>
+                            <td>Plugin-based</td>
+                        </tr>
+                        <tr>
+                            <td><strong>webpack</strong></td>
+                            <td>JS</td>
+                            <td>Legacy apps, complex asset pipelines. Massive plugin ecosystem.</td>
+                            <td>webpack-dev-server</td>
+                        </tr>
+                        <tr>
+                            <td><strong>tsup</strong></td>
+                            <td>JS (esbuild)</td>
+                            <td>TypeScript libraries. Zero-config, outputs ESM + CJS + .d.ts.</td>
+                            <td>N/A (library bundler)</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-tip">
+                    <strong>Starting a new project?</strong> Use <strong>Vite</strong> for apps and <strong>tsup</strong> for libraries. Both have sensible defaults and minimal configuration. Reach for webpack only if you need its specific plugin ecosystem.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 08 — DOM & BROWSER APIs
+         ============================================================ -->
+    <section id="dom" class="section">
+        <div class="section-header">
+            <span class="section-number">08</span>
+            <h2 class="section-title">DOM &amp; Browser APIs</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">DOM Selection &amp; Typing</h3>
+                <p>Query the DOM safely with TypeScript by asserting or narrowing the returned element type.</p>
+<pre><code>// querySelector returns Element | null — narrow with type assertion
+const canvas = document.querySelector&lt;HTMLCanvasElement&gt;("#game");
+// Type is HTMLCanvasElement | null
+
+// Non-null assertion when you know the element exists
+const app = document.getElementById("app")!;
+
+// Safer pattern — check at runtime
+const form = document.querySelector&lt;HTMLFormElement&gt;("#login-form");
+if (!form) throw new Error("Login form not found");
+// form is HTMLFormElement from here on
+
+// querySelectorAll returns NodeListOf&lt;Element&gt;
+const buttons = document.querySelectorAll&lt;HTMLButtonElement&gt;(".btn");
+buttons.forEach(btn =&gt; btn.disabled = true);
+
+// Convert NodeList to array for array methods
+const items = [...document.querySelectorAll&lt;HTMLLIElement&gt;(".item")];
+const visible = items.filter(el =&gt; !el.hidden);
+
+// closest() — traverse up the DOM tree
+const row = clickedCell.closest&lt;HTMLTableRowElement&gt;("tr");
+
+// Creating elements with type safety
+const div = document.createElement("div");    // HTMLDivElement
+const link = document.createElement("a");     // HTMLAnchorElement
+link.href = "/about";                          // type-checked property</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Event Handling &amp; Delegation</h3>
+                <p>TypeScript provides strong typing for DOM events. Use event delegation for dynamic content.</p>
+<pre><code>// Basic event listener with typed event
+const button = document.querySelector&lt;HTMLButtonElement&gt;("#save")!;
+
+button.addEventListener("click", (event: MouseEvent) =&gt; {
+  event.preventDefault();
+  console.log(event.clientX, event.clientY);
+});
+
+// Input events — access .value safely
+const input = document.querySelector&lt;HTMLInputElement&gt;("#search")!;
+input.addEventListener("input", (e) =&gt; {
+  const target = e.target as HTMLInputElement;
+  console.log(target.value);       // the current text
+});
+
+// Event delegation — one listener handles all children
+const list = document.querySelector&lt;HTMLUListElement&gt;("#todo-list")!;
+list.addEventListener("click", (e) =&gt; {
+  const target = e.target as HTMLElement;
+  const item = target.closest&lt;HTMLLIElement&gt;("li[data-id]");
+  if (!item) return;  // click wasn't on a list item
+  const id = item.dataset.id!;
+  toggleTodo(id);
+});
+
+// Custom events — typed payloads
+interface NotifyDetail { message: string; level: "info" | "error" }
+const event = new CustomEvent&lt;NotifyDetail&gt;("notify", {
+  detail: { message: "Saved!", level: "info" },
+  bubbles: true,
+});
+document.dispatchEvent(event);
+
+// Remove listeners — keep a reference to the handler
+const handler = (e: KeyboardEvent) =&gt; {
+  if (e.key === "Escape") closeModal();
+};
+document.addEventListener("keydown", handler);
+document.removeEventListener("keydown", handler);
+
+// AbortController for listener cleanup (modern approach)
+const controller = new AbortController();
+document.addEventListener("keydown", handler, { signal: controller.signal });
+document.addEventListener("click", clickHandler, { signal: controller.signal });
+// Remove ALL listeners at once:
+controller.abort();</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Cleanup pattern:</strong> Using <code>AbortController</code> to manage event listeners is cleaner than tracking individual references. Create one controller per component lifecycle and abort it on teardown.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Fetch API with TypeScript</h3>
+                <p>Type your API responses and handle errors properly. Fetch does not reject on HTTP errors.</p>
+<pre><code>// Typed fetch wrapper
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
+
+async function fetchJSON&lt;T&gt;(url: string, init?: RequestInit): Promise&lt;T&gt; {
+  const res = await fetch(url, init);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
+  return res.json() as Promise&lt;T&gt;;
+}
+
+const user = await fetchJSON&lt;User&gt;("/api/users/1");
+console.log(user.name);  // string — fully typed
+
+// POST with JSON body
+const created = await fetchJSON&lt;User&gt;("/api/users", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ name: "Ada", email: "ada@example.com" }),
+});
+
+// Fetch with AbortController for timeout
+async function fetchWithTimeout&lt;T&gt;(url: string, ms = 5000): Promise&lt;T&gt; {
+  const res = await fetch(url, { signal: AbortSignal.timeout(ms) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json() as Promise&lt;T&gt;;
+}
+
+// Streaming a response body
+async function streamText(url: string): Promise&lt;string&gt; {
+  const res = await fetch(url);
+  const reader = res.body!.getReader();
+  const decoder = new TextDecoder();
+  let result = "";
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    result += decoder.decode(value, { stream: true });
+  }
+  return result;
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Web Storage &amp; Modern APIs</h3>
+                <p>Typed wrappers around browser storage and commonly-used observer APIs.</p>
+<pre><code>// Typed localStorage wrapper
+function getStored&lt;T&gt;(key: string, fallback: T): T {
+  const raw = localStorage.getItem(key);
+  if (raw === null) return fallback;
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function setStored&lt;T&gt;(key: string, value: T): void {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+// Usage
+const prefs = getStored&lt;{ theme: string; lang: string }&gt;(
+  "prefs", { theme: "dark", lang: "en" }
+);
+
+// IntersectionObserver — lazy loading, infinite scroll, animations
+const observer = new IntersectionObserver(
+  (entries) =&gt; {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        const img = entry.target as HTMLImageElement;
+        img.src = img.dataset.src!;
+        observer.unobserve(img);    // stop watching after load
+      }
+    }
+  },
+  { rootMargin: "200px" }          // start loading 200px before visible
+);
+document.querySelectorAll&lt;HTMLImageElement&gt;("img[data-src]")
+  .forEach(img =&gt; observer.observe(img));
+
+// ResizeObserver — respond to element size changes
+const resizer = new ResizeObserver((entries) =&gt; {
+  for (const entry of entries) {
+    const { width, height } = entry.contentRect;
+    console.log(`Resized to ${width}x${height}`);
+  }
+});
+resizer.observe(document.getElementById("panel")!);
+
+// MutationObserver — watch for DOM changes
+const mutation = new MutationObserver((mutations) =&gt; {
+  for (const m of mutations) {
+    console.log(`${m.type}: ${m.addedNodes.length} added`);
+  }
+});
+mutation.observe(document.body, { childList: true, subtree: true });</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Canvas, URL &amp; Utility APIs</h3>
+                <p>Commonly used browser APIs for graphics, URL manipulation, and data handling.</p>
+<pre><code>// Canvas 2D basics
+const canvas = document.querySelector&lt;HTMLCanvasElement&gt;("#game")!;
+const ctx = canvas.getContext("2d")!;
+
+ctx.fillStyle = "#ff2975";
+ctx.fillRect(10, 10, 100, 50);
+
+ctx.strokeStyle = "#00d4ff";
+ctx.lineWidth = 2;
+ctx.beginPath();
+ctx.arc(200, 100, 40, 0, Math.PI * 2);
+ctx.stroke();
+
+// Animation loop
+function gameLoop(timestamp: number) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  update(timestamp);
+  draw(ctx);
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+// URLSearchParams — parse and build query strings
+const params = new URLSearchParams(window.location.search);
+const page = Number(params.get("page") ?? "1");
+const query = params.get("q") ?? "";
+
+params.set("page", "2");
+history.pushState(null, "", `?${params}`);
+
+// FormData — read form values without manual extraction
+const form = document.querySelector&lt;HTMLFormElement&gt;("#signup")!;
+form.addEventListener("submit", (e) =&gt; {
+  e.preventDefault();
+  const data = new FormData(form);
+  const name = data.get("name") as string;
+  const file = data.get("avatar") as File;
+
+  // Send as multipart/form-data
+  fetch("/api/signup", { method: "POST", body: data });
+});
+
+// structuredClone — deep clone any structured-cloneable value
+const original = { nested: { items: [1, 2, 3] }, date: new Date() };
+const cloned = structuredClone(original);
+cloned.nested.items.push(4);  // does not affect original</code></pre>
+                <div class="alert alert-info">
+                    <strong>structuredClone</strong> handles <code>Date</code>, <code>Map</code>, <code>Set</code>, <code>ArrayBuffer</code>, and nested objects &mdash; unlike <code>JSON.parse(JSON.stringify())</code> which loses non-JSON types. Available in all modern browsers and Node 17+.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 09 — NODE.JS RUNTIME
+         ============================================================ -->
+    <section id="node" class="section">
+        <div class="section-header">
+            <span class="section-number">09</span>
+            <h2 class="section-title">Node.js Runtime</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">File System (fs/promises)</h3>
+                <p>Always use the promise-based API from <code>node:fs/promises</code>. The callback API is legacy.</p>
+<pre><code>import { readFile, writeFile, readdir, stat, mkdir, rm }
+  from "node:fs/promises";
+import { join } from "node:path";
+
+// Read a file as text
+const content = await readFile("config.json", "utf-8");
+const config = JSON.parse(content);
+
+// Write a file (creates or overwrites)
+await writeFile("output.json", JSON.stringify(data, null, 2));
+
+// Read directory contents
+const entries = await readdir("./src", { withFileTypes: true });
+const dirs = entries.filter(e =&gt; e.isDirectory()).map(e =&gt; e.name);
+const files = entries.filter(e =&gt; e.isFile()).map(e =&gt; e.name);
+
+// Recursive directory listing
+const allFiles = await readdir("./src", { recursive: true });
+// Returns: ["index.ts", "utils/math.ts", "utils/string.ts", ...]
+
+// File metadata
+const info = await stat("package.json");
+console.log(`Size: ${info.size} bytes`);
+console.log(`Modified: ${info.mtime.toISOString()}`);
+console.log(`Is file: ${info.isFile()}`);
+
+// Create directory tree (recursive)
+await mkdir("dist/assets/images", { recursive: true });
+
+// Delete directory tree
+await rm("dist", { recursive: true, force: true });
+
+// Check if a file exists (without throwing)
+import { access, constants } from "node:fs/promises";
+async function fileExists(path: string): Promise&lt;boolean&gt; {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Path Module</h3>
+                <p>Never concatenate paths with string templates. Use <code>node:path</code> for cross-platform safety.</p>
+<pre><code>import { join, resolve, dirname, basename, extname, relative, parse }
+  from "node:path";
+
+// join — combine segments, normalize separators
+join("src", "utils", "math.ts");
+// "src/utils/math.ts" (Linux)  "src\\utils\\math.ts" (Windows)
+
+// resolve — build absolute path from CWD
+resolve("src", "index.ts");
+// "/home/user/project/src/index.ts"
+
+// dirname, basename, extname — decompose paths
+dirname("/app/src/index.ts");    // "/app/src"
+basename("/app/src/index.ts");   // "index.ts"
+basename("/app/src/index.ts", ".ts");  // "index"
+extname("/app/src/index.ts");    // ".ts"
+
+// parse — all components at once
+parse("/app/src/index.ts");
+// { root: "/", dir: "/app/src", base: "index.ts",
+//   ext: ".ts", name: "index" }
+
+// relative — path from A to B
+relative("/app/src", "/app/dist/bundle.js");
+// "../dist/bundle.js"
+
+// ESM: get current file's directory
+import { fileURLToPath } from "node:url";
+const __dirname = import.meta.dirname;    // Node 21.2+
+// Or: dirname(fileURLToPath(import.meta.url));</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">HTTP Server &amp; Streams</h3>
+                <p>Node's built-in HTTP server and stream primitives for handling requests and data pipelines.</p>
+<pre><code>import { createServer } from "node:http";
+import { createReadStream } from "node:fs";
+import { pipeline } from "node:stream/promises";
+import { createGzip } from "node:zlib";
+
+// Minimal HTTP server with routing
+const server = createServer(async (req, res) =&gt; {
+  const url = new URL(req.url!, `http://${req.headers.host}`);
+
+  if (req.method === "GET" &amp;&amp; url.pathname === "/api/health") {
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ status: "ok" }));
+    return;
+  }
+
+  if (req.method === "POST" &amp;&amp; url.pathname === "/api/data") {
+    // Read request body
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) chunks.push(chunk as Buffer);
+    const body = JSON.parse(Buffer.concat(chunks).toString());
+    res.writeHead(201, { "Content-Type": "application/json" });
+    res.end(JSON.stringify({ received: body }));
+    return;
+  }
+
+  res.writeHead(404).end("Not Found");
+});
+
+server.listen(3000, () =&gt; console.log("Listening on :3000"));
+
+// Streams — pipe a file through gzip to response
+async function serveGzipped(filePath: string, res: ServerResponse) {
+  res.writeHead(200, {
+    "Content-Type": "text/html",
+    "Content-Encoding": "gzip",
+  });
+  await pipeline(
+    createReadStream(filePath),
+    createGzip(),
+    res
+  );
+}
+
+// Transform stream — process data line by line
+import { Transform } from "node:stream";
+
+const uppercase = new Transform({
+  transform(chunk, encoding, callback) {
+    callback(null, chunk.toString().toUpperCase());
+  },
+});
+
+await pipeline(
+  createReadStream("input.txt"),
+  uppercase,
+  createWriteStream("output.txt")
+);</code></pre>
+                <div class="alert alert-info">
+                    <strong>Always use <code>pipeline()</code></strong> instead of <code>.pipe()</code>. Pipeline properly handles error propagation and cleanup of all streams in the chain. The promise version from <code>node:stream/promises</code> works with async/await.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Child Processes</h3>
+                <p>Run external commands from Node using <code>node:child_process</code>.</p>
+<pre><code>import { exec, execFile, spawn } from "node:child_process";
+import { promisify } from "node:util";
+
+const execAsync = promisify(exec);
+
+// exec — run a shell command, buffer output
+const { stdout, stderr } = await execAsync("git status --short");
+console.log(stdout);
+
+// execFile — safer, no shell interpretation (no injection risk)
+const execFileAsync = promisify(execFile);
+const { stdout: version } = await execFileAsync("node", ["--version"]);
+
+// spawn — streaming output for long-running processes
+import { spawn } from "node:child_process";
+
+const child = spawn("npm", ["run", "build"], {
+  stdio: "inherit",   // pipe child's stdio to parent
+  cwd: "/path/to/project",
+  env: { ...process.env, NODE_ENV: "production" },
+});
+
+child.on("exit", (code) =&gt; {
+  console.log(`Build exited with code ${code}`);
+});
+
+// spawn with piped output — process line by line
+const proc = spawn("grep", ["-r", "TODO", "src/"]);
+proc.stdout.on("data", (data: Buffer) =&gt; {
+  for (const line of data.toString().split("\n")) {
+    if (line.trim()) console.log("Found:", line);
+  }
+});
+proc.on("close", (code) =&gt; console.log("Done:", code));</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Security:</strong> Prefer <code>execFile</code> or <code>spawn</code> over <code>exec</code> when handling user input. <code>exec</code> runs through a shell, making it vulnerable to command injection. <code>execFile</code> and <code>spawn</code> pass arguments as an array, bypassing shell interpretation.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Environment &amp; Debugging</h3>
+                <p>Environment variables, CLI arguments, and modern Node.js debugging and development tools.</p>
+<pre><code>// Environment variables
+const port = Number(process.env.PORT ?? "3000");
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) throw new Error("DATABASE_URL is required");
+
+// .env files — built-in support (Node 22+, --env-file flag)
+// node --env-file=.env app.js
+// node --env-file=.env --env-file=.env.local app.js  // multiple files
+
+// .env (loaded automatically with --env-file)
+// DATABASE_URL=postgres://localhost:5432/mydb
+// PORT=8080
+// NODE_ENV=production
+
+// CLI arguments
+const args = process.argv.slice(2);   // skip node + script path
+// node script.js --port 3000 --verbose
+// args = ["--port", "3000", "--verbose"]
+
+// parseArgs (Node 18.3+ built-in, no library needed)
+import { parseArgs } from "node:util";
+const { values, positionals } = parseArgs({
+  args: process.argv.slice(2),
+  options: {
+    port: { type: "string", short: "p", default: "3000" },
+    verbose: { type: "boolean", short: "v", default: false },
+  },
+  allowPositionals: true,
+});
+console.log(values.port, values.verbose, positionals);
+
+// Debugging: start with --inspect, open chrome://inspect
+// node --inspect app.js          # break on debugger statements
+// node --inspect-brk app.js      # break on first line
+
+// Watch mode (Node 22+ stable, 18+ experimental)
+// node --watch app.js             # restart on file changes
+// node --watch-path=src app.js    # watch specific directory
+
+// Built-in test runner (Node 22+ stable)
+// node --test                     # discover and run test files
+// node --test --test-reporter=spec  # detailed output
+// node --test "**/*.test.ts"      # glob pattern for test files</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Node 22+ ships with:</strong> built-in <code>.env</code> loading (<code>--env-file</code>), stable watch mode (<code>--watch</code>), a built-in test runner (<code>--test</code>), glob support, and WebSocket client. These features reduce the need for <code>dotenv</code>, <code>nodemon</code>, <code>jest</code>/<code>vitest</code> for simple projects, and <code>glob</code>/<code>fast-glob</code> packages.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 10 — ADVANCED TYPESCRIPT
+         ============================================================ -->
+    <section id="advanced-ts" class="section">
+        <div class="section-header">
+            <span class="section-number">10</span>
+            <h2 class="section-title">Advanced TypeScript</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Decorators (Stage 3, TS 5.0+)</h3>
+                <p>TC39 Stage 3 decorators are natively supported in TypeScript 5.0+ without experimental flags. They replace the legacy <code>experimentalDecorators</code> option with a standards-based approach. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// Class decorator — wraps or replaces the class
+function sealed(constructor: Function, _context: ClassDecoratorContext) {
+  Object.seal(constructor);
+  Object.seal(constructor.prototype);
+}
+
+@sealed
+class Config {
+  host = "localhost";
+  port = 3000;
+}
+
+// Method decorator — intercept calls, add logging, etc.
+function log(
+  target: Function,
+  context: ClassMethodDecoratorContext
+) {
+  return function (this: any, ...args: any[]) {
+    console.log(`Calling ${String(context.name)} with`, args);
+    const result = target.apply(this, args);
+    console.log(`${String(context.name)} returned`, result);
+    return result;
+  };
+}
+
+class MathService {
+  @log
+  add(a: number, b: number) { return a + b; }
+}
+
+// Auto-accessor keyword (TS 5.0+) — generates getter/setter pair
+class User {
+  @validate
+  accessor name: string = "";  // auto-accessor creates backing storage
+}
+
+function validate&lt;T&gt;(
+  target: ClassAccessorDecoratorTarget&lt;unknown, T&gt;,
+  context: ClassAccessorDecoratorContext
+): ClassAccessorDecoratorResult&lt;unknown, T&gt; {
+  return {
+    set(value: T) {
+      if (typeof value === "string" &amp;&amp; !value.trim()) {
+        throw new Error(`${String(context.name)} cannot be empty`);
+      }
+      target.set.call(this, value);
+    },
+  };
+}
+
+// Decorator metadata (TS 5.2+) — attach info at decoration time
+Symbol.metadata ??= Symbol("Symbol.metadata");
+
+function track(target: Function, context: ClassMethodDecoratorContext) {
+  context.metadata.tracked ??= [];
+  (context.metadata.tracked as string[]).push(String(context.name));
+}
+
+class Analytics {
+  @track processEvent() {}
+  @track sendReport() {}
+}
+// Analytics[Symbol.metadata].tracked → ["processEvent", "sendReport"]</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Declaration Files &amp; Ambient Modules</h3>
+                <p>Declaration files (<code>.d.ts</code>) describe the shape of JavaScript libraries so TypeScript can type-check code that consumes them. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// global.d.ts — declare globals available everywhere
+declare const __DEV__: boolean;
+declare const API_URL: string;
+
+// Ambient module — type an untyped npm package
+// types/legacy-lib.d.ts
+declare module "legacy-lib" {
+  export function parse(input: string): Record&lt;string, unknown&gt;;
+  export function stringify(obj: unknown): string;
+  export const version: string;
+}
+
+// Wildcard module — handle non-JS imports
+declare module "*.svg" {
+  const content: string;
+  export default content;
+}
+declare module "*.css" {
+  const classes: Record&lt;string, string&gt;;
+  export default classes;
+}
+
+// Triple-slash directives — reference other declarations
+/// &lt;reference types="vite/client" /&gt;
+/// &lt;reference path="./custom-globals.d.ts" /&gt;
+
+// Namespace in .d.ts — group related types
+declare namespace Express {
+  interface Request {
+    user?: { id: string; role: string };
+    sessionId: string;
+  }
+}</code></pre>
+                <div class="alert alert-info">
+                    <strong>Tip:</strong> Use <code>declare module</code> for typing third-party packages that lack types. Create a <code>types/</code> directory and add it to <code>typeRoots</code> or <code>paths</code> in <code>tsconfig.json</code>.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Module Augmentation &amp; Namespace Merging</h3>
+                <p>Extend existing module types and interfaces without modifying the original source — essential for adding custom fields to libraries. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// Augment Express Request with custom properties
+// types/express.d.ts
+import "express";
+declare module "express" {
+  interface Request {
+    user: { id: string; email: string; role: "admin" | "user" };
+    requestId: string;
+  }
+}
+
+// Augment Window with custom globals
+// types/global.d.ts
+declare global {
+  interface Window {
+    analytics: { track(event: string, data?: object): void };
+    featureFlags: Map&lt;string, boolean&gt;;
+  }
+}
+export {};  // required: makes this file a module
+
+// Augment an existing library's types
+import "zod";
+declare module "zod" {
+  interface ZodString {
+    slug(): ZodString;  // add custom validator method
+  }
+}
+
+// Interface merging — interfaces with the same name merge
+interface Theme {
+  colors: { primary: string };
+}
+interface Theme {
+  fonts: { body: string };   // merged with above
+}
+// Theme now has both colors and fonts</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Gotcha:</strong> Augmentation files must contain at least one <code>import</code> or <code>export</code> statement (even <code>export {}</code>) to be treated as modules. Without this, declarations become global and may conflict.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Branded &amp; Nominal Types</h3>
+                <p>TypeScript uses structural typing by default, so two identical shapes are interchangeable. Branded types simulate nominal typing to prevent accidental misuse. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// Brand with unique symbol — strongest approach
+declare const __brand: unique symbol;
+type Brand&lt;T, B&gt; = T &amp; { readonly [__brand]: B };
+
+type UserId = Brand&lt;string, "UserId"&gt;;
+type OrderId = Brand&lt;string, "OrderId"&gt;;
+
+function getUser(id: UserId) { /* ... */ }
+function getOrder(id: OrderId) { /* ... */ }
+
+const userId = "usr_123" as UserId;
+const orderId = "ord_456" as OrderId;
+
+getUser(userId);     // OK
+getUser(orderId);    // Error — OrderId is not assignable to UserId
+getUser("raw_str");  // Error — string is not assignable to UserId
+
+// Constructor functions for runtime validation
+function createUserId(raw: string): UserId {
+  if (!raw.startsWith("usr_")) throw new Error("Invalid user ID");
+  return raw as UserId;
+}
+
+// Brand with intersection — lighter approach
+type Meters = number &amp; { readonly __unit: "meters" };
+type Seconds = number &amp; { readonly __unit: "seconds" };
+
+function speed(distance: Meters, time: Seconds): number {
+  return distance / time;  // arithmetic still works
+}
+
+const d = 100 as Meters;
+const t = 10 as Seconds;
+speed(d, t);   // OK
+speed(t, d);   // Error — units swapped</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Explicit Resource Management &amp; Custom Utility Types</h3>
+                <p>The <code>using</code> keyword (TS 5.2+) provides deterministic cleanup via <code>Symbol.dispose</code>, similar to Python's <code>with</code> or C#'s <code>using</code>. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// using — sync resource management (TS 5.2+)
+class DatabaseConnection implements Disposable {
+  constructor(private url: string) {
+    console.log(`Connected to ${url}`);
+  }
+  query(sql: string) { /* ... */ }
+  [Symbol.dispose]() {
+    console.log("Connection closed");  // guaranteed cleanup
+  }
+}
+
+{
+  using db = new DatabaseConnection("postgres://localhost/mydb");
+  db.query("SELECT * FROM users");
+}  // db[Symbol.dispose]() called automatically here
+
+// await using — async resource management
+class TempFile implements AsyncDisposable {
+  constructor(public path: string) {}
+  async write(data: string) { /* ... */ }
+  async [Symbol.asyncDispose]() {
+    await fs.unlink(this.path);  // async cleanup
+    console.log(`Deleted ${this.path}`);
+  }
+}
+
+async function processData() {
+  await using tmp = new TempFile("/tmp/data.json");
+  await tmp.write(JSON.stringify(payload));
+  // tmp is deleted when scope exits, even on error
+}
+
+// === Custom utility types — build your own ===
+
+// DeepReadonly — recursively freeze nested objects
+type DeepReadonly&lt;T&gt; = {
+  readonly [K in keyof T]: T[K] extends object
+    ? T[K] extends Function ? T[K] : DeepReadonly&lt;T[K]&gt;
+    : T[K];
+};
+
+// DeepPartial — make all nested properties optional
+type DeepPartial&lt;T&gt; = {
+  [K in keyof T]?: T[K] extends object ? DeepPartial&lt;T[K]&gt; : T[K];
+};
+
+// PathKeys — extract dot-separated paths from nested object
+type PathKeys&lt;T, Prefix extends string = ""&gt; = T extends object
+  ? { [K in keyof T &amp; string]:
+      | `${Prefix}${K}`
+      | PathKeys&lt;T[K], `${Prefix}${K}.`&gt;
+    }[keyof T &amp; string]
+  : never;
+
+interface Config {
+  db: { host: string; port: number };
+  cache: { ttl: number };
+}
+type ConfigPaths = PathKeys&lt;Config&gt;;
+// "db" | "db.host" | "db.port" | "cache" | "cache.ttl"
+
+// Exhaustive type — ensure switch covers all cases
+type Exhaustive&lt;T extends never&gt; = T;
+
+type Shape = "circle" | "square" | "triangle";
+function area(s: Shape): number {
+  switch (s) {
+    case "circle": return Math.PI * 10 ** 2;
+    case "square": return 10 * 10;
+    case "triangle": return (10 * 8) / 2;
+    default: return s satisfies never;  // error if a case is missing
+  }
+}</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Pro tip:</strong> Use <code>satisfies never</code> in the <code>default</code> branch of a switch/if chain. If you add a new variant to the union and forget to handle it, TypeScript will flag the <code>default</code> as an error at compile time.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 11 — TESTING & QUALITY
+         ============================================================ -->
+    <section id="testing" class="section">
+        <div class="section-header">
+            <span class="section-number">11</span>
+            <h2 class="section-title">Testing &amp; Quality</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title">Vitest Setup &amp; Basics</h3>
+                <p>Vitest is a Vite-native test runner with Jest-compatible APIs, native TypeScript support, and fast HMR-based watch mode. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>// Install
+// npm i -D vitest
+
+// vitest.config.ts — project configuration
+import { defineConfig } from "vitest/config";
+
+export default defineConfig({
+  test: {
+    globals: true,          // use describe/it/expect without imports
+    environment: "node",    // or "jsdom", "happy-dom"
+    include: ["src/**/*.test.{ts,js}"],
+    coverage: {
+      provider: "v8",       // or "istanbul"
+      reporter: ["text", "html", "lcov"],
+      thresholds: { lines: 80, branches: 75, functions: 80 },
+    },
+  },
+});
+
+// src/math.ts
+export function add(a: number, b: number): number { return a + b; }
+export function divide(a: number, b: number): number {
+  if (b === 0) throw new Error("Division by zero");
+  return a / b;
+}
+
+// src/math.test.ts — test file
+import { describe, it, expect } from "vitest";
+import { add, divide } from "./math";
+
+describe("math utilities", () =&gt; {
+  it("adds two numbers", () =&gt; {
+    expect(add(2, 3)).toBe(5);
+    expect(add(-1, 1)).toBe(0);
+  });
+
+  it("divides two numbers", () =&gt; {
+    expect(divide(10, 2)).toBe(5);
+    expect(divide(7, 2)).toBeCloseTo(3.5);
+  });
+
+  it("throws on division by zero", () =&gt; {
+    expect(() =&gt; divide(1, 0)).toThrow("Division by zero");
+  });
+
+  it.each([
+    [1, 2, 3],
+    [0, 0, 0],
+    [-5, 5, 0],
+  ])("add(%i, %i) = %i", (a, b, expected) =&gt; {
+    expect(add(a, b)).toBe(expected);
+  });
+});</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Testing Async Code</h3>
+                <p>Strategies for testing promises, timers, and network requests without hitting real services. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+// Testing promises — just await the result
+async function fetchUser(id: string) {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error(`User ${id} not found`);
+  return res.json();
+}
+
+describe("fetchUser", () =&gt; {
+  beforeEach(() =&gt; {
+    // Mock global fetch
+    vi.stubGlobal("fetch", vi.fn());
+  });
+  afterEach(() =&gt; vi.restoreAllMocks());
+
+  it("returns user data", async () =&gt; {
+    const mockUser = { id: "1", name: "Ada" };
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(JSON.stringify(mockUser), { status: 200 })
+    );
+
+    const user = await fetchUser("1");
+    expect(user).toEqual(mockUser);
+    expect(fetch).toHaveBeenCalledWith("/api/users/1");
+  });
+
+  it("throws on 404", async () =&gt; {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(null, { status: 404 })
+    );
+    await expect(fetchUser("999")).rejects.toThrow("User 999 not found");
+  });
+});
+
+// Fake timers — control setTimeout, setInterval, Date
+describe("debounce", () =&gt; {
+  beforeEach(() =&gt; vi.useFakeTimers());
+  afterEach(() =&gt; vi.useRealTimers());
+
+  it("delays execution", () =&gt; {
+    const fn = vi.fn();
+    const debounced = debounce(fn, 300);
+
+    debounced();
+    debounced();
+    debounced();
+
+    expect(fn).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(300);
+    expect(fn).toHaveBeenCalledOnce();
+  });
+
+  it("works with Date.now()", () =&gt; {
+    vi.setSystemTime(new Date("2025-01-15"));
+    expect(new Date().getFullYear()).toBe(2025);
+  });
+});</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Mocking Patterns</h3>
+                <p>Replace dependencies with controlled substitutes for isolated, deterministic testing. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>import { describe, it, expect, vi } from "vitest";
+
+// vi.fn() — create a standalone mock function
+const callback = vi.fn();
+callback("hello");
+expect(callback).toHaveBeenCalledWith("hello");
+expect(callback).toHaveBeenCalledTimes(1);
+
+// Mock with implementation
+const rand = vi.fn(() =&gt; 0.42);
+expect(rand()).toBe(0.42);
+
+// Mock return sequence
+const getId = vi.fn()
+  .mockReturnValueOnce("id-1")
+  .mockReturnValueOnce("id-2")
+  .mockReturnValue("id-default");
+
+// vi.mock() — mock entire modules
+vi.mock("./database", () =&gt; ({
+  db: {
+    query: vi.fn().mockResolvedValue([{ id: 1 }]),
+    close: vi.fn(),
+  },
+}));
+
+// vi.spyOn() — observe real methods, optionally override
+import * as utils from "./utils";
+
+const spy = vi.spyOn(utils, "formatDate");
+spy.mockReturnValue("2025-01-01");
+
+expect(utils.formatDate(new Date())).toBe("2025-01-01");
+expect(spy).toHaveBeenCalledOnce();
+
+spy.mockRestore();  // restore original implementation
+
+// Mock class instance
+vi.mock("./EmailService", () =&gt; ({
+  EmailService: vi.fn().mockImplementation(() =&gt; ({
+    send: vi.fn().mockResolvedValue({ delivered: true }),
+    verify: vi.fn().mockResolvedValue(true),
+  })),
+}));</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Caution:</strong> Over-mocking leads to tests that pass but don't catch real bugs. Mock at boundaries (network, filesystem, clock) and prefer real implementations for pure logic.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Type Testing &amp; Code Coverage</h3>
+                <p>Verify that your types behave correctly at compile time, and enforce minimum test coverage thresholds. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// Install: npm i -D expect-type
+import { expectTypeOf } from "expect-type";
+import { add, fetchUser } from "./math";
+
+// Test return types
+expectTypeOf(add).returns.toBeNumber();
+expectTypeOf(fetchUser).returns.resolves.toMatchTypeOf&lt;{ id: string }&gt;();
+
+// Test parameter types
+expectTypeOf(add).parameters.toEqualTypeOf&lt;[number, number]&gt;();
+
+// Test that a type IS an error (should not compile)
+type OnlyStrings&lt;T&gt; = T extends string ? T : never;
+expectTypeOf&lt;OnlyStrings&lt;number&gt;&gt;().toBeNever();
+
+// Test assignability
+expectTypeOf&lt;{ a: 1 }&gt;().toMatchTypeOf&lt;{ a: number }&gt;();
+expectTypeOf&lt;string&gt;().not.toEqualTypeOf&lt;number&gt;();
+
+// Test generic constraints
+interface Repository&lt;T extends { id: string }&gt; {
+  find(id: string): T | null;
+}
+expectTypeOf&lt;Repository&lt;{ id: string; name: string }&gt;&gt;().toBeObject();
+
+// === Code Coverage ===
+// vitest.config.ts thresholds
+// coverage: {
+//   provider: "v8",
+//   thresholds: {
+//     lines: 80,
+//     branches: 75,
+//     functions: 80,
+//     statements: 80,
+//   },
+// }
+
+// Run coverage:
+// npx vitest run --coverage
+// npx vitest run --coverage.provider=istanbul  # alt provider
+
+// Per-file thresholds (vitest 1.4+)
+// coverage: {
+//   thresholds: {
+//     "src/critical/**": { lines: 95, branches: 90 },
+//     "src/utils/**":    { lines: 70 },
+//   }
+// }</code></pre>
+                <div class="alert alert-info">
+                    <strong>Note:</strong> Type tests run at compile time, not runtime. They ensure your type definitions and generics behave as intended without executing any code. Combine with runtime tests for full confidence.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Testing DOM &amp; Components</h3>
+                <p>Test browser-like environments using jsdom or happy-dom, simulating user events and verifying rendered output. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>// vitest.config.ts — use jsdom or happy-dom
+// test: { environment: "happy-dom" }  // faster, less complete
+// test: { environment: "jsdom" }       // more compatible
+
+import { describe, it, expect, beforeEach } from "vitest";
+
+// Testing DOM manipulation
+function createCounter(container: HTMLElement) {
+  let count = 0;
+  container.innerHTML = `
+    &lt;span class="count"&gt;0&lt;/span&gt;
+    &lt;button class="inc"&gt;+&lt;/button&gt;
+    &lt;button class="dec"&gt;-&lt;/button&gt;
+  `;
+  container.querySelector(".inc")!.addEventListener("click", () =&gt; {
+    count++;
+    container.querySelector(".count")!.textContent = String(count);
+  });
+  container.querySelector(".dec")!.addEventListener("click", () =&gt; {
+    count--;
+    container.querySelector(".count")!.textContent = String(count);
+  });
+}
+
+describe("createCounter", () =&gt; {
+  let container: HTMLDivElement;
+
+  beforeEach(() =&gt; {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    createCounter(container);
+  });
+
+  it("starts at 0", () =&gt; {
+    expect(container.querySelector(".count")!.textContent).toBe("0");
+  });
+
+  it("increments on click", () =&gt; {
+    container.querySelector&lt;HTMLButtonElement&gt;(".inc")!.click();
+    container.querySelector&lt;HTMLButtonElement&gt;(".inc")!.click();
+    expect(container.querySelector(".count")!.textContent).toBe("2");
+  });
+
+  it("decrements on click", () =&gt; {
+    container.querySelector&lt;HTMLButtonElement&gt;(".dec")!.click();
+    expect(container.querySelector(".count")!.textContent).toBe("-1");
+  });
+
+  it("responds to keyboard events", () =&gt; {
+    const event = new KeyboardEvent("keydown", { key: "ArrowUp" });
+    document.dispatchEvent(event);
+    // test your keyboard handler logic
+  });
+});</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Performance:</strong> <code>happy-dom</code> is 2-10x faster than <code>jsdom</code> for most tests. Use <code>jsdom</code> only when you need full browser compatibility (e.g., <code>canvas</code>, <code>IntersectionObserver</code> polyfills). Set environment per-file with <code>// @vitest-environment happy-dom</code> at the top.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ============================================================
+         SECTION 12 — COMMON GOTCHAS & TIPS
+         ============================================================ -->
+    <section id="gotchas" class="section">
+        <div class="section-header">
+            <span class="section-number">12</span>
+            <h2 class="section-title">Common Gotchas &amp; Tips</h2>
+        </div>
+        <div class="section-content">
+
+            <div class="subsection">
+                <h3 class="subsection-title"><code>this</code> Binding Rules</h3>
+                <p>The value of <code>this</code> in JavaScript depends on how a function is called, not where it's defined. Four rules determine binding. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>// Rule 1: Default binding — standalone call → undefined (strict) or global
+function showThis() { console.log(this); }
+showThis();  // undefined in strict mode, window/globalThis in sloppy
+
+// Rule 2: Implicit binding — called as method → the object
+const obj = {
+  name: "Ada",
+  greet() { console.log(this.name); },
+};
+obj.greet();          // "Ada"
+const fn = obj.greet;
+fn();                 // undefined — implicit binding lost!
+
+// Rule 3: Explicit binding — call/apply/bind
+fn.call(obj);         // "Ada"
+fn.apply(obj);        // "Ada"
+const bound = fn.bind(obj);
+bound();              // "Ada"
+
+// Rule 4: new binding — constructor creates fresh object
+function Person(name: string) {
+  this.name = name;   // 'this' = newly created object
+}
+
+// Arrow functions — lexical 'this', ignores all 4 rules
+class Timer {
+  seconds = 0;
+
+  // BUG: regular function loses 'this' in callback
+  startBroken() {
+    setInterval(function () {
+      this.seconds++;  // 'this' is undefined or window!
+    }, 1000);
+  }
+
+  // FIX: arrow function captures 'this' from enclosing scope
+  start() {
+    setInterval(() =&gt; {
+      this.seconds++;  // 'this' is the Timer instance
+    }, 1000);
+  }
+}</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Equality, Floating Point &amp; typeof Quirks</h3>
+                <p>JavaScript's type coercion creates surprising behaviors. Know when <code>==</code> coerces and when <code>===</code> still isn't enough. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>// == vs === — loose equality coerces types
+0 == ""          // true  (both coerce to 0)
+0 == "0"         // true  (string → number)
+"" == "0"        // false (no coercion path)
+false == "0"     // true  (both → 0)
+null == undefined // true  (special case)
+null == 0        // false (null only == undefined)
+
+// Always use === except for null checks
+if (value == null) { /* catches both null and undefined */ }
+
+// Object.is() — strictest comparison
+Object.is(NaN, NaN);   // true  (unlike ===)
+Object.is(0, -0);      // false (unlike ===)
+NaN === NaN;            // false — the classic gotcha
+0 === -0;               // true  — hides sign
+
+// Floating point — IEEE 754 strikes again
+0.1 + 0.2 === 0.3;              // false!
+0.1 + 0.2;                       // 0.30000000000000004
+
+// Solutions:
+Math.abs(0.1 + 0.2 - 0.3) &lt; Number.EPSILON;   // true
++(0.1 + 0.2).toFixed(10) === 0.3;              // true
+// For money: use integers (cents) or a decimal library
+
+// typeof quirks
+typeof null        // "object"   — 25-year-old bug, never fixed
+typeof NaN         // "number"   — NaN is technically a number
+typeof []          // "object"   — arrays are objects
+typeof function(){} // "function" — the only callable check
+typeof undeclared  // "undefined" — no ReferenceError (unlike accessing)
+
+// Better type checks
+Array.isArray([]);                      // true
+Number.isNaN(NaN);                      // true (not global isNaN!)
+Number.isFinite(42);                    // true
+value === null;                         // explicit null check
+value instanceof Map;                   // prototype chain check
+Object.prototype.toString.call(value);  // "[object Type]"</code></pre>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Hoisting, Closures &amp; Array Gotchas</h3>
+                <p>Classic JavaScript traps involving variable hoisting, closure over loop variables, and mutating array methods. <span class="badge badge-both">TS + JS</span></p>
+<pre><code>// var hoisting — declaration hoisted, assignment is not
+console.log(x);  // undefined (not ReferenceError!)
+var x = 5;
+// Equivalent to:
+// var x;
+// console.log(x);  // undefined
+// x = 5;
+
+// let/const — temporal dead zone (TDZ)
+console.log(y);  // ReferenceError: Cannot access 'y' before init
+let y = 5;
+
+// Function hoisting — entire function is hoisted
+greet();  // works!
+function greet() { console.log("Hi"); }
+
+// Function expression — NOT hoisted
+hello();  // TypeError: hello is not a function
+var hello = function() { console.log("Hello"); };
+
+// Closure gotcha in loops — var captures shared variable
+for (var i = 0; i &lt; 3; i++) {
+  setTimeout(() =&gt; console.log(i), 100);
+}
+// Prints: 3, 3, 3 — all closures share the same 'i'
+
+// Fix 1: use let (block-scoped, new binding per iteration)
+for (let i = 0; i &lt; 3; i++) {
+  setTimeout(() =&gt; console.log(i), 100);
+}
+// Prints: 0, 1, 2
+
+// Fix 2: IIFE captures value (pre-ES6 pattern)
+for (var i = 0; i &lt; 3; i++) {
+  ((j) =&gt; setTimeout(() =&gt; console.log(j), 100))(i);
+}
+
+// Array methods that MUTATE (modify in place)
+const arr = [3, 1, 2];
+arr.sort();     // [1, 2, 3] — mutates!
+arr.reverse();  // [3, 2, 1] — mutates!
+arr.splice(1, 1); // removes index 1 — mutates!
+
+// Non-mutating alternatives (ES2023+)
+const sorted = arr.toSorted();    // new sorted array
+const reversed = arr.toReversed(); // new reversed array
+const without = arr.toSpliced(1, 1); // new array without index 1
+
+// .with() — immutable index replacement
+const updated = arr.with(0, 99);  // [99, 2, 1] — new array</code></pre>
+                <div class="alert alert-warning">
+                    <strong>Watch out:</strong> <code>Array.sort()</code> without a comparator converts elements to strings: <code>[10, 9, 80].sort()</code> yields <code>[10, 80, 9]</code>. Always pass a comparator: <code>.sort((a, b) =&gt; a - b)</code>.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">TypeScript Strict Mode Flags</h3>
+                <p>The <code>strict</code> flag enables a family of checks. Here's what each one catches and why you want them all on. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// tsconfig.json — "strict": true enables ALL of these:
+{
+  "compilerOptions": {
+    "strict": true,
+    // Equivalent to enabling each individually:
+
+    // strictNullChecks — null/undefined are not assignable to other types
+    // Without: string can be null at runtime → crashes
+    // With:    must explicitly handle string | null
+    let name: string;
+    name = null;  // Error with strictNullChecks
+
+    // strictFunctionTypes — function params checked contravariantly
+    // Catches unsafe function assignments in callbacks
+    type Handler = (e: MouseEvent) =&gt; void;
+    const handler: Handler = (e: Event) =&gt; {};  // Error
+
+    // strictBindCallApply — type-check bind(), call(), apply()
+    function greet(name: string) { return `Hi ${name}`; }
+    greet.call(null, 42);  // Error: expected string, got number
+
+    // strictPropertyInitialization — class fields must be initialized
+    class User {
+      name: string;       // Error: not initialized in constructor
+      age: string = "";   // OK: default value
+      role!: string;      // OK: definite assignment assertion
+    }
+
+    // noImplicitAny — must declare types, no silent 'any'
+    function process(data) {}    // Error: 'data' implicitly has 'any'
+    function process(data: unknown) {}  // OK
+
+    // noImplicitThis — 'this' must have a known type
+    function onClick() {
+      console.log(this.value);  // Error: 'this' implicitly has 'any'
+    }
+
+    // useUnknownInCatchVariables — catch variable is 'unknown' not 'any'
+    try { /* ... */ } catch (e) {
+      e.message;  // Error: 'e' is unknown
+      if (e instanceof Error) e.message;  // OK after narrowing
+    }
+
+    // alwaysStrict — emit "use strict" in every file
+  }
+}</code></pre>
+                <div class="alert alert-tip">
+                    <strong>Recommendation:</strong> Always start new projects with <code>"strict": true</code>. For legacy codebases, enable flags one at a time: start with <code>strictNullChecks</code> (catches the most bugs), then <code>noImplicitAny</code>, then the rest.
+                </div>
+            </div>
+
+            <div class="subsection">
+                <h3 class="subsection-title">Pro Tips &amp; Patterns</h3>
+                <p>Power-user techniques for writing safer, more expressive TypeScript. <span class="badge badge-ts">TS Only</span></p>
+<pre><code>// const assertions — narrow literals to their exact value
+const config = {
+  api: "https://api.example.com",
+  retries: 3,
+  methods: ["GET", "POST"],
+} as const;
+// type: { readonly api: "https://..."; readonly retries: 3;
+//         readonly methods: readonly ["GET", "POST"] }
+
+// as const satisfies — validate shape AND keep literal types
+const routes = {
+  home: "/",
+  about: "/about",
+  user: "/user/:id",
+} as const satisfies Record&lt;string, `/${string}`&gt;;
+// Validates: all values start with "/"
+// Preserves: routes.home is type "/" not string
+
+// Branded IDs for domain safety
+type UserId = string &amp; { readonly __brand: "UserId" };
+type PostId = string &amp; { readonly __brand: "PostId" };
+
+function getPost(userId: UserId, postId: PostId) { /* ... */ }
+// Can't accidentally swap userId and postId
+
+// Exhaustive switch — catch unhandled union members
+function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`);
+}
+
+type Status = "active" | "inactive" | "pending";
+function handle(s: Status) {
+  switch (s) {
+    case "active": return doActive();
+    case "inactive": return doInactive();
+    case "pending": return doPending();
+    default: assertNever(s);  // compile error if a case is missing
+  }
+}
+
+// Template literal types — type-safe string patterns
+type EventName = `${"click" | "hover" | "focus"}${"Start" | "End"}`;
+// "clickStart" | "clickEnd" | "hoverStart" | "hoverEnd" | ...
+
+type Getter&lt;T&gt; = {
+  [K in keyof T as `get${Capitalize&lt;string &amp; K&gt;}`]: () =&gt; T[K];
+};
+// { getName: () =&gt; string; getAge: () =&gt; number; }
+
+// Discriminated unions — the cornerstone of safe TS modeling
+type Result&lt;T&gt; =
+  | { ok: true; value: T }
+  | { ok: false; error: Error };
+
+function handle&lt;T&gt;(result: Result&lt;T&gt;) {
+  if (result.ok) {
+    console.log(result.value);  // narrowed: { ok: true; value: T }
+  } else {
+    console.error(result.error); // narrowed: { ok: false; error: Error }
+  }
+}
+
+// Infer in conditional types — extract nested types
+type UnwrapPromise&lt;T&gt; = T extends Promise&lt;infer U&gt; ? U : T;
+type A = UnwrapPromise&lt;Promise&lt;string&gt;&gt;;  // string
+type B = UnwrapPromise&lt;number&gt;;            // number
+
+type FnReturn&lt;T&gt; = T extends (...args: any[]) =&gt; infer R ? R : never;
+type C = FnReturn&lt;(x: number) =&gt; string&gt;;  // string</code></pre>
+                <div class="alert alert-info">
+                    <strong>Key insight:</strong> <code>as const satisfies</code> (TS 5.0+) is the best of both worlds — compile-time validation that a value matches a type, while preserving the narrowest possible literal types for autocomplete and type safety.
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer class="site-footer">
+        <a href="index.html">&larr; Back to Tech Guides</a>
+    </footer>
+
+</body>
+</html>
