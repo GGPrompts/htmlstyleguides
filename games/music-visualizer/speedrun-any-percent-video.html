@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speedrun Any% — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0a0a1a;
+            color: #fff;
+            font-family: 'Press Start 2P', monospace;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+            image-rendering: pixelated;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(10,10,26,0.95);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(18px, 4.5vw, 42px);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #ffdd44;
+            text-shadow: 0 0 20px rgba(255,221,68,0.6), 0 0 50px rgba(255,221,68,0.3),
+                         3px 3px 0 #aa4400;
+            margin-bottom: 14px;
+        }
+        .play-sub {
+            font-size: clamp(9px, 1.6vw, 14px);
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #ffdd44;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #ffdd44;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,221,68,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(255,221,68,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 10px;
+            padding: 6px 10px;
+            border-radius: 4px;
+            background: rgba(0,0,0,0.5);
+            transition: color 0.2s;
+            font-family: 'Press Start 2P', monospace;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">< Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Speedrun Any%</div>
+        <div class="play-sub">an entire RPG in one track</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // -- Speedrun Any% Video Renderer --
+    window.Renderers['speedrun-any-percent-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // -- Palette: classic RPG pixel art --
+        var PAL = {
+            bg:         '#0a0a1a',
+            sky:        '#1a1a3e',
+            skyLight:   '#2a2a5e',
+            grass:      '#2d8b2d',
+            grassDark:  '#1a6b1a',
+            dirt:       '#8b6914',
+            stone:      '#6b6b7b',
+            stoneDark:  '#4a4a5a',
+            stoneLight: '#8b8b9b',
+            castle:     '#5a5a6a',
+            water:      '#2255aa',
+            lava:       '#dd3311',
+            gold:       '#ffdd44',
+            white:      '#ffffff',
+            red:        '#dd2233',
+            blue:       '#3366dd',
+            green:      '#33bb33',
+            darkGreen:  '#1a7a1a',
+            brown:      '#7a5522',
+            black:      '#0a0a0a',
+            hero:       '#4488ff',
+            heroSword:  '#ccddff',
+            dragon:     '#cc2211',
+            dragonEye:  '#ffee00',
+            npc:        '#dd8844',
+            npc2:       '#88bbdd',
+            npc3:       '#dd66aa',
+            dungeon:    '#1a1a2a',
+            dungeonWall:'#3a3a4a',
+            torch:      '#ff8822',
+            hpGreen:    '#33dd33',
+            hpRed:      '#dd3333',
+            hpYellow:   '#dddd33',
+            confetti:   ['#ff4444','#44ff44','#4444ff','#ffff44','#ff44ff','#44ffff','#ffaa22','#ff66aa']
+        };
+
+        // -- State --
+        var scene = 'title';
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var flashColor = '#ffffff';
+        var shakeX = 0, shakeY = 0;
+        var elapsed = 0;
+        var timerStart = 0;
+        var timerRunning = false;
+
+        // Scene-specific state
+        var titleFlash = 0;
+        var titleCursorBlink = 0;
+        var titleStarted = false;
+
+        var townScrollX = 0;
+        var townNpcs = [];
+        var townBuildings = [];
+
+        var overworldMapX = 0;
+        var overworldMapY = 0;
+        var overworldZoom = 1;
+        var overworldPath = [];
+        var overworldPathIdx = 0;
+
+        var dungeonDepth = 0;
+        var dungeonTorches = [];
+        var dungeonEnemies = [];
+        var dungeonFlicker = 0;
+
+        var bossHP = 1;
+        var bossPhase = 0;
+        var bossAttackTimer = 0;
+        var bossSlashEffects = [];
+        var bossHitFlash = 0;
+        var heroAttackFrame = 0;
+        var bossDefeated = false;
+
+        var victoryTimer = 0;
+        var confettiParts = [];
+        var victoryTextScale = 0;
+        var fanfareFlash = 0;
+
+        var creditsScrollY = 0;
+        var creditsSpeed = 0;
+        var creditsLines = [];
+
+        var transitionAlpha = 0;
+        var transitionType = 'cut'; // 'cut', 'wipe', 'flash'
+        var transitionDir = 1;
+        var transitionProgress = 0;
+        var lastScene = 'title';
+
+        var lastSeqIndex = -1;
+        var sceneStartTime = 0;
+
+        // -- Pixel helper: draw a filled rect snapped to pixel grid --
+        function px(ctx, x, y, w, h, color) {
+            ctx.fillStyle = color;
+            ctx.fillRect(Math.floor(x), Math.floor(y), Math.ceil(w), Math.ceil(h));
+        }
+
+        // -- Pixel text helper --
+        function drawPixelText(ctx, text, x, y, size, color, align) {
+            ctx.save();
+            ctx.font = size + 'px "Press Start 2P", monospace';
+            ctx.fillStyle = color;
+            ctx.textAlign = align || 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text, x, y);
+            ctx.restore();
+        }
+
+        // -- Speedrun timer format --
+        function formatTimer(seconds) {
+            var h = Math.floor(seconds / 3600);
+            var m = Math.floor((seconds % 3600) / 60);
+            var s = Math.floor(seconds % 60);
+            var ms = Math.floor((seconds % 1) * 1000);
+            return pad2(h) + ':' + pad2(m) + ':' + pad2(s) + '.' + pad3(ms);
+        }
+
+        function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+        function pad3(n) { return n < 10 ? '00' + n : n < 100 ? '0' + n : '' + n; }
+
+        // -- Section mapping based on song structure --
+        // seq indices: 0-4 title, 5-11 town, 12-19 overworld, 20-27 dungeon, 28-39 boss, 40-42 victory, 43-54 credits, 55+ silence
+        function mapScene(seqIdx) {
+            if (seqIdx <= 4) return 'title';
+            if (seqIdx <= 11) return 'town';
+            if (seqIdx <= 19) return 'overworld';
+            if (seqIdx <= 27) return 'dungeon';
+            if (seqIdx <= 39) return 'boss';
+            if (seqIdx <= 42) return 'victory';
+            if (seqIdx <= 54) return 'credits';
+            return 'end';
+        }
+
+        // -- Init town --
+        function initTown() {
+            townNpcs = [];
+            for (var i = 0; i < 12; i++) {
+                townNpcs.push({
+                    x: W * 0.3 + Math.random() * W * 2.5,
+                    y: H * 0.55 + Math.random() * H * 0.2,
+                    color: [PAL.npc, PAL.npc2, PAL.npc3][Math.floor(Math.random() * 3)],
+                    bobPhase: Math.random() * Math.PI * 2,
+                    size: 8 + Math.random() * 6
+                });
+            }
+            townBuildings = [];
+            for (var j = 0; j < 20; j++) {
+                var bw = 40 + Math.random() * 80;
+                var bh = 50 + Math.random() * 80;
+                townBuildings.push({
+                    x: j * 140 + Math.random() * 40,
+                    w: bw, h: bh,
+                    color: ['#6b4422','#5a6b3a','#4a4a6b','#7a5a3a'][Math.floor(Math.random() * 4)],
+                    roofColor: ['#aa3322','#3355aa','#aa7722','#55aa55'][Math.floor(Math.random() * 4)],
+                    hasSign: Math.random() > 0.5,
+                    windowRows: 1 + Math.floor(Math.random() * 2)
+                });
+            }
+        }
+
+        // -- Init overworld --
+        function initOverworld() {
+            overworldPath = [];
+            var cx = W * 0.2, cy = H * 0.7;
+            for (var i = 0; i < 80; i++) {
+                overworldPath.push({ x: cx, y: cy });
+                cx += 8 + Math.random() * 12;
+                cy += (Math.random() - 0.55) * 16;
+                cy = Math.max(H * 0.15, Math.min(H * 0.85, cy));
+            }
+            overworldPathIdx = 0;
+        }
+
+        // -- Init dungeon --
+        function initDungeon() {
+            dungeonDepth = 0;
+            dungeonTorches = [];
+            for (var i = 0; i < 8; i++) {
+                dungeonTorches.push({
+                    x: W * 0.1 + Math.random() * W * 0.8,
+                    y: H * 0.2 + Math.random() * H * 0.4,
+                    flicker: Math.random() * Math.PI * 2
+                });
+            }
+            dungeonEnemies = [];
+            for (var j = 0; j < 5; j++) {
+                dungeonEnemies.push({
+                    x: W * 0.3 + Math.random() * W * 0.5,
+                    y: H * 0.4 + Math.random() * H * 0.3,
+                    alive: true,
+                    size: 12 + Math.random() * 8,
+                    deathTimer: 0
+                });
+            }
+        }
+
+        // -- Init boss --
+        function initBoss() {
+            bossHP = 1;
+            bossPhase = 0;
+            bossAttackTimer = 0;
+            bossSlashEffects = [];
+            bossHitFlash = 0;
+            heroAttackFrame = 0;
+            bossDefeated = false;
+        }
+
+        // -- Init victory --
+        function initVictory() {
+            victoryTimer = 0;
+            victoryTextScale = 0;
+            fanfareFlash = 1;
+            confettiParts = [];
+            for (var i = 0; i < 120; i++) {
+                confettiParts.push({
+                    x: W * 0.5 + (Math.random() - 0.5) * W * 0.6,
+                    y: -Math.random() * H * 0.5,
+                    vx: (Math.random() - 0.5) * 200,
+                    vy: 80 + Math.random() * 200,
+                    color: PAL.confetti[Math.floor(Math.random() * PAL.confetti.length)],
+                    size: 3 + Math.random() * 5,
+                    rot: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 8
+                });
+            }
+        }
+
+        // -- Init credits --
+        function initCredits() {
+            creditsScrollY = H;
+            creditsSpeed = 300; // absurdly fast
+            creditsLines = [
+                '', 'SPEEDRUN ANY%', '', 'COMPLETE!', '',
+                '- - - CAST - - -', '',
+                'HERO .......... You', 'DRAGON ........ Frank', 'TOWN NPC #1 ... Greg',
+                'TOWN NPC #2 ... Mabel', 'TOWN NPC #3 ... Chip', 'INNKEEPER ..... Doris',
+                'BLACKSMITH .... Hank', 'MYSTERIOUS OLD MAN ... ???',
+                '', '- - - WORLD - - -', '',
+                'TOWN OF STARTINGTON', 'OVERWORLD PLAINS', 'CRYSTAL DUNGEON',
+                'DRAGON PEAK SUMMIT',
+                '', '- - - DEVELOPMENT - - -', '',
+                'DIRECTOR ...... The Clock', 'MUSIC ......... Chiptune Bot',
+                'ART ........... 16 Pixels', 'QA ............ Nobody',
+                'BUGS .......... Yes',
+                '', '- - - SPEEDRUN NOTES - - -', '',
+                'RNG manipulation on NPC dialog',
+                'Frame-perfect boss skip failed',
+                'Lost 2 seconds in dungeon B3',
+                'PB is PB though',
+                '', '- - - SPECIAL THANKS - - -', '',
+                'Coffee', 'Split timer software', 'The grind', 'Chat',
+                '', '', 'Thanks for watching!', '',
+                'Any% - No major glitches', '',
+                '', '', '', '', '', '', ''
+            ];
+        }
+
+        // -- Draw stars (for title and overworld) --
+        function drawStars(ctx, count, twinklePhase) {
+            ctx.save();
+            for (var i = 0; i < count; i++) {
+                // Deterministic positions using index as seed
+                var sx = ((i * 7919 + 1013) % 10007) / 10007 * W;
+                var sy = ((i * 6271 + 3037) % 10007) / 10007 * H * 0.6;
+                var bright = 0.3 + 0.7 * Math.abs(Math.sin(twinklePhase + i * 1.7));
+                ctx.globalAlpha = bright;
+                var sz = (i % 3 === 0) ? 2 : 1;
+                px(ctx, sx, sy, sz, sz, PAL.white);
+            }
+            ctx.restore();
+        }
+
+        // -- TITLE SCREEN SCENE --
+        function drawTitleScene(ctx, dt, beat, energy, fracBeat) {
+            // Dark sky
+            px(ctx, 0, 0, W, H, '#0a0a2a');
+            drawStars(ctx, 60, elapsed * 0.5);
+
+            // Castle silhouette
+            var castleY = H * 0.45;
+            px(ctx, W * 0.3, castleY, W * 0.4, H - castleY, PAL.castle);
+            // Towers
+            px(ctx, W * 0.28, castleY - 40, 30, 40, PAL.castle);
+            px(ctx, W * 0.68, castleY - 40, 30, 40, PAL.castle);
+            px(ctx, W * 0.46, castleY - 70, 40, 70, PAL.castle);
+            // Tower tops
+            px(ctx, W * 0.25, castleY - 55, 36, 15, PAL.stoneDark);
+            px(ctx, W * 0.65, castleY - 55, 36, 15, PAL.stoneDark);
+            px(ctx, W * 0.44, castleY - 85, 44, 15, PAL.stoneDark);
+            // Windows with glow
+            var winGlow = 0.5 + 0.5 * Math.sin(elapsed * 2);
+            ctx.save();
+            ctx.globalAlpha = winGlow;
+            px(ctx, W * 0.42, castleY + 20, 8, 12, PAL.gold);
+            px(ctx, W * 0.52, castleY + 20, 8, 12, PAL.gold);
+            px(ctx, W * 0.47, castleY - 50, 6, 10, PAL.gold);
+            ctx.restore();
+
+            // Ground
+            px(ctx, 0, H * 0.82, W, H * 0.18, PAL.grassDark);
+            px(ctx, 0, H * 0.82, W, 4, PAL.grass);
+
+            // Title text with beat flash
+            var titleY = H * 0.2;
+            var titleSize = Math.max(12, Math.min(W * 0.035, 28));
+            var titlePulse = 1 + beatPulse * 0.1;
+
+            ctx.save();
+            ctx.translate(W * 0.5, titleY);
+            ctx.scale(titlePulse, titlePulse);
+
+            // Shadow
+            drawPixelText(ctx, 'SPEEDRUN ANY%', 2, 2, titleSize, '#442200');
+            // Main
+            drawPixelText(ctx, 'SPEEDRUN ANY%', 0, 0, titleSize, PAL.gold);
+            ctx.restore();
+
+            // Subtitle
+            var subSize = Math.max(8, titleSize * 0.45);
+            drawPixelText(ctx, 'THE LEGEND OF TIMESAVE', W * 0.5, titleY + titleSize * 1.8, subSize, '#8888aa');
+
+            // Blinking "PRESS START" cursor
+            titleCursorBlink += dt;
+            if (titleCursorBlink % 1 < 0.5) {
+                var startSize = Math.max(8, titleSize * 0.5);
+                drawPixelText(ctx, '> PRESS START <', W * 0.5, H * 0.7, startSize, PAL.white);
+            }
+
+            // Flash on section change
+            if (titleFlash > 0) {
+                ctx.save();
+                ctx.globalAlpha = titleFlash;
+                px(ctx, 0, 0, W, H, PAL.white);
+                ctx.restore();
+                titleFlash -= dt * 4;
+            }
+        }
+
+        // -- TOWN SCENE --
+        function drawTownScene(ctx, dt, beat, energy, fracBeat) {
+            // Scrolling town - speed increases with energy
+            var scrollSpeed = 150 + energy * 400;
+            townScrollX += scrollSpeed * dt;
+
+            // Sky
+            var skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.5);
+            skyGrad.addColorStop(0, '#4488cc');
+            skyGrad.addColorStop(1, '#88bbee');
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, W, H * 0.5);
+
+            // Clouds (parallax)
+            ctx.save();
+            ctx.globalAlpha = 0.7;
+            for (var ci = 0; ci < 5; ci++) {
+                var cloudX = ((ci * 400 - townScrollX * 0.2) % (W + 200)) - 100;
+                var cloudY = 30 + ci * 30;
+                px(ctx, cloudX, cloudY, 60, 12, '#ffffff');
+                px(ctx, cloudX + 10, cloudY - 8, 40, 8, '#ffffff');
+                px(ctx, cloudX + 20, cloudY - 14, 20, 6, '#ffffff');
+            }
+            ctx.restore();
+
+            // Ground
+            px(ctx, 0, H * 0.65, W, H * 0.35, PAL.dirt);
+            px(ctx, 0, H * 0.62, W, H * 0.06, PAL.grass);
+
+            // Buildings (scrolling)
+            for (var bi = 0; bi < townBuildings.length; bi++) {
+                var bld = townBuildings[bi];
+                var bx = bld.x - (townScrollX % (townBuildings.length * 140));
+                if (bx > -bld.w && bx < W + bld.w) {
+                    var by = H * 0.62 - bld.h;
+                    // Building body
+                    px(ctx, bx, by, bld.w, bld.h, bld.color);
+                    // Roof
+                    ctx.fillStyle = bld.roofColor;
+                    ctx.beginPath();
+                    ctx.moveTo(bx - 5, by);
+                    ctx.lineTo(bx + bld.w / 2, by - 20);
+                    ctx.lineTo(bx + bld.w + 5, by);
+                    ctx.closePath();
+                    ctx.fill();
+                    // Windows
+                    for (var wr = 0; wr < bld.windowRows; wr++) {
+                        for (var wc = 0; wc < 3; wc++) {
+                            var wx = bx + 8 + wc * (bld.w - 20) / 2.5;
+                            var wy = by + 12 + wr * 22;
+                            px(ctx, wx, wy, 8, 8, PAL.gold);
+                        }
+                    }
+                    // Door
+                    px(ctx, bx + bld.w / 2 - 6, by + bld.h - 18, 12, 18, PAL.brown);
+                    // Sign
+                    if (bld.hasSign) {
+                        px(ctx, bx + bld.w / 2 - 10, by - 10, 20, 8, PAL.brown);
+                    }
+                }
+            }
+
+            // NPCs blurring past
+            for (var ni = 0; ni < townNpcs.length; ni++) {
+                var npc = townNpcs[ni];
+                var nx = npc.x - (townScrollX % (W * 3));
+                var bob = Math.sin(elapsed * 6 + npc.bobPhase) * 3;
+                if (nx > -20 && nx < W + 20) {
+                    var ns = npc.size;
+                    // Motion blur effect at high speed
+                    ctx.save();
+                    if (scrollSpeed > 300) {
+                        ctx.globalAlpha = 0.4;
+                        px(ctx, nx - 8, npc.y + bob, ns + 16, ns, npc.color);
+                    }
+                    ctx.globalAlpha = 1;
+                    // Body
+                    px(ctx, nx, npc.y + bob, ns, ns * 1.2, npc.color);
+                    // Head
+                    px(ctx, nx + ns * 0.15, npc.y + bob - ns * 0.6, ns * 0.7, ns * 0.7, npc.color);
+                    ctx.restore();
+                }
+            }
+
+            // Dialog box that flashes by
+            var dialogPhase = (elapsed * 3) % 4;
+            if (dialogPhase < 0.3) {
+                ctx.save();
+                ctx.globalAlpha = 1 - dialogPhase / 0.3;
+                px(ctx, W * 0.1, H * 0.75, W * 0.8, H * 0.18, '#111133');
+                ctx.strokeStyle = PAL.white;
+                ctx.lineWidth = 2;
+                ctx.strokeRect(W * 0.1, H * 0.75, W * 0.8, H * 0.18);
+                var dTexts = ['Welcome to-', 'The shop is-', 'Have you seen-', 'My cat went-'];
+                var dIdx = Math.floor(elapsed * 3) % dTexts.length;
+                drawPixelText(ctx, dTexts[dIdx], W * 0.15, H * 0.82, 10, PAL.white, 'left');
+                ctx.restore();
+            }
+
+            // Speed lines
+            if (energy > 0.4) {
+                ctx.save();
+                ctx.globalAlpha = energy * 0.3;
+                for (var sl = 0; sl < 8; sl++) {
+                    var sly = H * 0.1 + (sl / 8) * H * 0.8;
+                    px(ctx, 0, sly, W * (0.3 + energy * 0.5), 1, PAL.white);
+                }
+                ctx.restore();
+            }
+        }
+
+        // -- OVERWORLD SCENE --
+        function drawOverworldScene(ctx, dt, beat, energy, fracBeat) {
+            // Top-down overworld map
+            px(ctx, 0, 0, W, H, '#224422');
+
+            // Terrain tiles (simple grid)
+            var tileSize = 16;
+            var ox = -overworldMapX;
+            var oy = -overworldMapY;
+            for (var ty = 0; ty < H / tileSize + 2; ty++) {
+                for (var tx = 0; tx < W / tileSize + 2; tx++) {
+                    var wx2 = tx + Math.floor(ox / tileSize);
+                    var wy2 = ty + Math.floor(oy / tileSize);
+                    var hash = ((wx2 * 7919 + wy2 * 6271) & 0xffff) / 65535;
+                    var drawX = tx * tileSize + (ox % tileSize);
+                    var drawY = ty * tileSize + (oy % tileSize);
+
+                    var tileColor;
+                    if (hash < 0.1) tileColor = PAL.water;
+                    else if (hash < 0.15) tileColor = PAL.dirt;
+                    else if (hash < 0.3) tileColor = PAL.darkGreen;
+                    else if (hash < 0.7) tileColor = PAL.grass;
+                    else if (hash < 0.85) tileColor = PAL.grassDark;
+                    else tileColor = PAL.stone;
+
+                    px(ctx, drawX, drawY, tileSize, tileSize, tileColor);
+                }
+            }
+
+            // Scroll the map (hero is running along path)
+            var pathSpeed = 120 + energy * 250;
+            overworldMapX += pathSpeed * dt * 0.8;
+            overworldMapY += Math.sin(elapsed * 0.5) * pathSpeed * dt * 0.3;
+
+            // Hero sprite (center of screen)
+            var heroX = W * 0.5;
+            var heroY = H * 0.5;
+            var heroSize = 14;
+            var heroFrame = Math.floor(elapsed * 8) % 4;
+            var bobY = (heroFrame % 2) * 2;
+
+            // Hero body
+            px(ctx, heroX - heroSize / 2, heroY - heroSize + bobY, heroSize, heroSize, PAL.hero);
+            // Hero head
+            px(ctx, heroX - heroSize * 0.3, heroY - heroSize * 1.4 + bobY, heroSize * 0.6, heroSize * 0.5, '#ffcc99');
+            // Sword
+            px(ctx, heroX + heroSize * 0.5, heroY - heroSize * 0.8 + bobY, 3, heroSize * 0.8, PAL.heroSword);
+
+            // Destination marker (blinking)
+            if (Math.sin(elapsed * 4) > 0) {
+                var destX = W * 0.85;
+                var destY = H * 0.3;
+                px(ctx, destX - 4, destY - 10, 8, 10, PAL.red);
+                px(ctx, destX - 1, destY, 2, 6, PAL.red);
+            }
+
+            // Mini-map in corner
+            ctx.save();
+            var mmx = W - 80, mmy = 50;
+            ctx.globalAlpha = 0.7;
+            px(ctx, mmx, mmy, 64, 48, '#112211');
+            ctx.strokeStyle = PAL.white;
+            ctx.lineWidth = 1;
+            ctx.strokeRect(mmx, mmy, 64, 48);
+            // Hero dot on minimap
+            var mmHeroX = mmx + 20 + (elapsed * 3) % 40;
+            px(ctx, mmHeroX, mmy + 24, 3, 3, PAL.hero);
+            // Destination on minimap
+            px(ctx, mmx + 55, mmy + 10, 3, 3, PAL.red);
+            ctx.restore();
+
+            // Speed lines at edges
+            if (energy > 0.3) {
+                ctx.save();
+                ctx.globalAlpha = energy * 0.2;
+                for (var i = 0; i < 6; i++) {
+                    var ly = H * 0.1 + (i / 6) * H * 0.8;
+                    px(ctx, 0, ly, 30 + energy * 50, 1, PAL.white);
+                    px(ctx, W - 30 - energy * 50, ly + 20, 30 + energy * 50, 1, PAL.white);
+                }
+                ctx.restore();
+            }
+        }
+
+        // -- DUNGEON SCENE --
+        function drawDungeonScene(ctx, dt, beat, energy, fracBeat) {
+            // Dark dungeon with torchlight
+            px(ctx, 0, 0, W, H, PAL.dungeon);
+
+            dungeonDepth += dt * 30;
+            dungeonFlicker += dt * 12;
+
+            // Stone walls
+            var wallTile = 24;
+            for (var wy = 0; wy < H / wallTile + 1; wy++) {
+                for (var wx = 0; wx < W / wallTile + 1; wx++) {
+                    var hash = ((wx * 3137 + wy * 5471) & 0xff) / 255;
+                    var wty = wy * wallTile;
+                    var wtx = wx * wallTile;
+
+                    if (wy < 3 || wy > H / wallTile - 3) {
+                        var wc = hash > 0.5 ? PAL.dungeonWall : PAL.stoneDark;
+                        px(ctx, wtx, wty, wallTile, wallTile, wc);
+                        // Brick lines
+                        ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(wtx, wty, wallTile, wallTile);
+                    }
+                }
+            }
+
+            // Floor
+            px(ctx, 0, H * 0.25, W, H * 0.5, '#151520');
+            // Floor tiles
+            for (var fx = 0; fx < W / 20; fx++) {
+                for (var fy = 0; fy < H * 0.5 / 20; fy++) {
+                    var ftx = fx * 20;
+                    var fty = H * 0.25 + fy * 20;
+                    if ((fx + fy) % 2 === 0) {
+                        px(ctx, ftx, fty, 20, 20, '#1a1a28');
+                    }
+                }
+            }
+
+            // Torch light effect
+            for (var ti = 0; ti < dungeonTorches.length; ti++) {
+                var torch = dungeonTorches[ti];
+                var flick = 0.6 + 0.4 * Math.sin(dungeonFlicker + torch.flicker);
+                var radius = 60 + flick * 30;
+
+                var tGrad = ctx.createRadialGradient(torch.x, torch.y, 0, torch.x, torch.y, radius);
+                tGrad.addColorStop(0, 'rgba(255,136,34,' + (0.3 * flick) + ')');
+                tGrad.addColorStop(1, 'rgba(255,136,34,0)');
+                ctx.fillStyle = tGrad;
+                ctx.fillRect(torch.x - radius, torch.y - radius, radius * 2, radius * 2);
+
+                // Torch bracket
+                px(ctx, torch.x - 2, torch.y - 8, 4, 12, PAL.brown);
+                // Flame
+                px(ctx, torch.x - 3, torch.y - 14, 6, 6, PAL.torch);
+                px(ctx, torch.x - 1, torch.y - 18, 2, 4, PAL.gold);
+            }
+
+            // Dungeon enemies (getting slashed through)
+            for (var ei = 0; ei < dungeonEnemies.length; ei++) {
+                var enemy = dungeonEnemies[ei];
+                if (enemy.alive) {
+                    var ePhase = (elapsed * 2 + ei) % 6;
+                    if (ePhase < 0.2 && energy > 0.3) {
+                        enemy.alive = false;
+                        enemy.deathTimer = 0.5;
+                    }
+                    var es = enemy.size;
+                    // Slime enemy
+                    px(ctx, enemy.x, enemy.y, es, es * 0.7, '#44aa44');
+                    px(ctx, enemy.x + es * 0.2, enemy.y - es * 0.15, es * 0.2, es * 0.2, '#ffffff');
+                    px(ctx, enemy.x + es * 0.55, enemy.y - es * 0.15, es * 0.2, es * 0.2, '#ffffff');
+                } else if (enemy.deathTimer > 0) {
+                    enemy.deathTimer -= dt;
+                    ctx.save();
+                    ctx.globalAlpha = enemy.deathTimer * 2;
+                    // Death poof
+                    var poof = (0.5 - enemy.deathTimer) * 40;
+                    px(ctx, enemy.x - poof, enemy.y - poof, 4, 4, PAL.white);
+                    px(ctx, enemy.x + enemy.size + poof, enemy.y - poof, 4, 4, PAL.white);
+                    px(ctx, enemy.x + enemy.size / 2, enemy.y - poof * 1.5, 4, 4, PAL.white);
+                    ctx.restore();
+                }
+            }
+
+            // Hero running through dungeon
+            var dhx = W * 0.3 + Math.sin(elapsed * 0.8) * W * 0.15;
+            var dhy = H * 0.48;
+            var dFrame = Math.floor(elapsed * 10) % 4;
+            var dBob = (dFrame % 2) * 2;
+            px(ctx, dhx, dhy + dBob, 12, 14, PAL.hero);
+            px(ctx, dhx + 2, dhy - 6 + dBob, 8, 7, '#ffcc99');
+            // Sword slash effect
+            if (dFrame === 0) {
+                ctx.save();
+                ctx.strokeStyle = PAL.heroSword;
+                ctx.lineWidth = 2;
+                ctx.globalAlpha = 0.7;
+                ctx.beginPath();
+                ctx.arc(dhx + 14, dhy + dBob, 18, -0.5, 1.2);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // Darkness vignette
+            var vGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, H * 0.15, W * 0.5, H * 0.5, H * 0.7);
+            vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            vGrad.addColorStop(1, 'rgba(0,0,0,0.7)');
+            ctx.fillStyle = vGrad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        // -- BOSS SCENE --
+        function drawBossScene(ctx, dt, beat, energy, fracBeat) {
+            // Lava arena background
+            var lavaGrad = ctx.createLinearGradient(0, 0, 0, H);
+            lavaGrad.addColorStop(0, '#1a0a0a');
+            lavaGrad.addColorStop(0.7, '#2a1010');
+            lavaGrad.addColorStop(1, '#4a1a0a');
+            ctx.fillStyle = lavaGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Lava floor
+            var lavaY = H * 0.8;
+            for (var lx = 0; lx < W; lx += 8) {
+                var lavaH = 4 + Math.sin(lx * 0.05 + elapsed * 3) * 3;
+                px(ctx, lx, lavaY + lavaH, 8, H - lavaY, PAL.lava);
+                px(ctx, lx, lavaY + lavaH, 8, 3, '#ff6622');
+            }
+
+            // Lava glow
+            var lgGrad = ctx.createLinearGradient(0, lavaY - 40, 0, lavaY);
+            lgGrad.addColorStop(0, 'rgba(255,50,0,0)');
+            lgGrad.addColorStop(1, 'rgba(255,50,0,0.15)');
+            ctx.fillStyle = lgGrad;
+            ctx.fillRect(0, lavaY - 40, W, 40);
+
+            // Stone platform
+            px(ctx, W * 0.05, lavaY - 4, W * 0.9, 8, PAL.stone);
+            px(ctx, W * 0.05, lavaY + 4, W * 0.9, 4, PAL.stoneDark);
+
+            // Boss HP drain over boss section
+            if (!bossDefeated) {
+                // HP decreases with energy bursts
+                if (beat !== lastBeat && energy > 0.4) {
+                    bossHP = Math.max(0, bossHP - 0.03 - energy * 0.04);
+                    bossHitFlash = 0.5;
+                    heroAttackFrame = 0.3;
+                    bossSlashEffects.push({
+                        x: W * 0.65 + (Math.random() - 0.5) * 40,
+                        y: H * 0.35 + (Math.random() - 0.5) * 40,
+                        life: 0.4
+                    });
+                }
+                if (bossHP <= 0) {
+                    bossDefeated = true;
+                    flashAlpha = 0.8;
+                    flashColor = '#ffffff';
+                }
+            }
+
+            bossHitFlash = Math.max(0, bossHitFlash - dt * 4);
+            heroAttackFrame = Math.max(0, heroAttackFrame - dt * 4);
+
+            // DRAGON BOSS
+            if (!bossDefeated || bossHitFlash > 0) {
+                var dragonX = W * 0.62;
+                var dragonY = H * 0.28;
+                var dragonScale = W * 0.0025;
+                var dragonBob = Math.sin(elapsed * 2) * 8;
+
+                ctx.save();
+                if (bossHitFlash > 0) {
+                    ctx.globalAlpha = 0.5 + Math.sin(elapsed * 40) * 0.5;
+                }
+
+                // Dragon body
+                px(ctx, dragonX, dragonY + dragonBob, 50 * dragonScale, 35 * dragonScale, PAL.dragon);
+                // Dragon head
+                px(ctx, dragonX - 20 * dragonScale, dragonY - 15 * dragonScale + dragonBob, 30 * dragonScale, 25 * dragonScale, PAL.dragon);
+                // Snout
+                px(ctx, dragonX - 30 * dragonScale, dragonY - 5 * dragonScale + dragonBob, 15 * dragonScale, 12 * dragonScale, '#aa1100');
+                // Eye
+                px(ctx, dragonX - 12 * dragonScale, dragonY - 10 * dragonScale + dragonBob, 5 * dragonScale, 5 * dragonScale, PAL.dragonEye);
+                // Wings
+                var wingFlap = Math.sin(elapsed * 4) * 15;
+                ctx.fillStyle = '#991100';
+                ctx.beginPath();
+                ctx.moveTo(dragonX + 10 * dragonScale, dragonY + dragonBob);
+                ctx.lineTo(dragonX + 50 * dragonScale, dragonY - 40 * dragonScale + wingFlap + dragonBob);
+                ctx.lineTo(dragonX + 60 * dragonScale, dragonY + 10 * dragonScale + dragonBob);
+                ctx.closePath();
+                ctx.fill();
+                // Tail
+                px(ctx, dragonX + 45 * dragonScale, dragonY + 15 * dragonScale + dragonBob, 30 * dragonScale, 8 * dragonScale, '#aa1100');
+                px(ctx, dragonX + 70 * dragonScale, dragonY + 10 * dragonScale + dragonBob, 12 * dragonScale, 6 * dragonScale, PAL.dragon);
+
+                // Fire breath (on high energy beats)
+                if (energy > 0.6 && fracBeat < 0.3) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.7;
+                    var fireLen = 40 + energy * 60;
+                    for (var fi = 0; fi < 5; fi++) {
+                        var fy = dragonY - 2 * dragonScale + dragonBob + (Math.random() - 0.5) * 20;
+                        var fw = 6 + Math.random() * 10;
+                        px(ctx, dragonX - 30 * dragonScale - fireLen + fi * 10, fy, fw, fw, fi < 2 ? PAL.gold : PAL.torch);
+                    }
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            } else {
+                // Dragon defeated - explosion particles
+                ctx.save();
+                var expProgress = Math.min(1, (elapsed - sceneStartTime) * 0.5);
+                for (var pi = 0; pi < 20; pi++) {
+                    var pa = pi * 0.314;
+                    var pr = expProgress * 100;
+                    var ppx = W * 0.65 + Math.cos(pa) * pr;
+                    var ppy = H * 0.35 + Math.sin(pa) * pr;
+                    ctx.globalAlpha = Math.max(0, 1 - expProgress);
+                    px(ctx, ppx, ppy, 6, 6, pi % 2 === 0 ? PAL.dragon : PAL.gold);
+                }
+                ctx.restore();
+            }
+
+            // Slash effects
+            for (var si = bossSlashEffects.length - 1; si >= 0; si--) {
+                var slash = bossSlashEffects[si];
+                slash.life -= dt;
+                if (slash.life <= 0) {
+                    bossSlashEffects.splice(si, 1);
+                    continue;
+                }
+                ctx.save();
+                ctx.globalAlpha = slash.life * 2;
+                ctx.strokeStyle = PAL.heroSword;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(slash.x - 15, slash.y + 15);
+                ctx.lineTo(slash.x + 15, slash.y - 15);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(slash.x + 15, slash.y + 15);
+                ctx.lineTo(slash.x - 15, slash.y - 15);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            // HERO
+            var hx = W * 0.25;
+            var hy = lavaY - 20;
+            var hBob = Math.sin(elapsed * 3) * 2;
+
+            // Hero attacking animation
+            var swordAngle = heroAttackFrame > 0 ? -1.2 + heroAttackFrame * 4 : 0.3;
+
+            // Body
+            px(ctx, hx, hy - 16 + hBob, 12, 18, PAL.hero);
+            // Head
+            px(ctx, hx + 1, hy - 24 + hBob, 10, 9, '#ffcc99');
+            // Sword
+            ctx.save();
+            ctx.translate(hx + 13, hy - 8 + hBob);
+            ctx.rotate(swordAngle);
+            px(ctx, 0, -20, 3, 22, PAL.heroSword);
+            px(ctx, -1, -22, 5, 3, PAL.gold); // crossguard
+            ctx.restore();
+
+            // Boss HP bar
+            if (!bossDefeated) {
+                var hpBarW = W * 0.5;
+                var hpBarX = W * 0.25;
+                var hpBarY = H * 0.08;
+                px(ctx, hpBarX - 2, hpBarY - 2, hpBarW + 4, 18, '#222222');
+                var hpColor = bossHP > 0.5 ? PAL.hpGreen : bossHP > 0.25 ? PAL.hpYellow : PAL.hpRed;
+                px(ctx, hpBarX, hpBarY, hpBarW * Math.max(0, bossHP), 14, hpColor);
+                // Boss name
+                drawPixelText(ctx, 'ANCIENT DRAGON', W * 0.5, hpBarY - 10, 8, PAL.white);
+            }
+
+            // Hit flash
+            if (bossHitFlash > 0) {
+                ctx.save();
+                ctx.globalAlpha = bossHitFlash * 0.3;
+                px(ctx, 0, 0, W, H, PAL.red);
+                ctx.restore();
+            }
+
+            // Screen shake is handled by the main render
+        }
+
+        // -- VICTORY SCENE --
+        function drawVictoryScene(ctx, dt, beat, energy, fracBeat) {
+            victoryTimer += dt;
+
+            // Bright sky
+            var vGrad = ctx.createLinearGradient(0, 0, 0, H);
+            vGrad.addColorStop(0, '#2244aa');
+            vGrad.addColorStop(1, '#88bbff');
+            ctx.fillStyle = vGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            drawStars(ctx, 30, elapsed * 0.3);
+
+            // Ground
+            px(ctx, 0, H * 0.75, W, H * 0.25, PAL.grass);
+
+            // VICTORY text growing
+            victoryTextScale = Math.min(1, victoryTextScale + dt * 2);
+            var vtSize = Math.max(16, Math.min(W * 0.055, 48)) * victoryTextScale;
+
+            ctx.save();
+            ctx.translate(W * 0.5, H * 0.3);
+            var victPulse = 1 + beatPulse * 0.15;
+            ctx.scale(victPulse, victPulse);
+            // Shadow
+            drawPixelText(ctx, 'VICTORY!', 3, 3, vtSize, '#442200');
+            // Gold text
+            drawPixelText(ctx, 'VICTORY!', 0, 0, vtSize, PAL.gold);
+            ctx.restore();
+
+            // Subtitle
+            if (victoryTimer > 1) {
+                var subAlpha = Math.min(1, victoryTimer - 1);
+                ctx.save();
+                ctx.globalAlpha = subAlpha;
+                var subSize = Math.max(8, vtSize * 0.4);
+                drawPixelText(ctx, 'THE DRAGON HAS BEEN SLAIN', W * 0.5, H * 0.42, subSize, PAL.white);
+                ctx.restore();
+            }
+
+            // EXP and Gold counters
+            if (victoryTimer > 1.5) {
+                var countAlpha = Math.min(1, victoryTimer - 1.5);
+                ctx.save();
+                ctx.globalAlpha = countAlpha;
+                var expVal = Math.floor(Math.min(9999, victoryTimer * 3000));
+                var goldVal = Math.floor(Math.min(50000, victoryTimer * 15000));
+                drawPixelText(ctx, 'EXP: ' + expVal, W * 0.5, H * 0.52, 10, PAL.green);
+                drawPixelText(ctx, 'GOLD: ' + goldVal, W * 0.5, H * 0.58, 10, PAL.gold);
+                ctx.restore();
+            }
+
+            // Hero celebrating
+            var heroY2 = H * 0.7;
+            var jumpBob = Math.abs(Math.sin(elapsed * 5)) * 15;
+            px(ctx, W * 0.5 - 6, heroY2 - jumpBob - 16, 12, 18, PAL.hero);
+            px(ctx, W * 0.5 - 5, heroY2 - jumpBob - 24, 10, 9, '#ffcc99');
+            // Sword raised
+            px(ctx, W * 0.5 + 7, heroY2 - jumpBob - 38, 3, 22, PAL.heroSword);
+            px(ctx, W * 0.5 + 6, heroY2 - jumpBob - 40, 5, 3, PAL.gold);
+
+            // Confetti
+            for (var ci = 0; ci < confettiParts.length; ci++) {
+                var cp = confettiParts[ci];
+                cp.x += cp.vx * dt;
+                cp.y += cp.vy * dt;
+                cp.rot += cp.rotSpeed * dt;
+                cp.vy += 50 * dt; // gravity
+
+                if (cp.y < H + 20) {
+                    ctx.save();
+                    ctx.translate(cp.x, cp.y);
+                    ctx.rotate(cp.rot);
+                    px(ctx, -cp.size / 2, -cp.size / 2, cp.size, cp.size * 0.6, cp.color);
+                    ctx.restore();
+                }
+            }
+
+            // Fanfare flash
+            if (fanfareFlash > 0) {
+                ctx.save();
+                ctx.globalAlpha = fanfareFlash;
+                px(ctx, 0, 0, W, H, PAL.white);
+                ctx.restore();
+                fanfareFlash = Math.max(0, fanfareFlash - dt * 3);
+            }
+        }
+
+        // -- CREDITS SCENE --
+        function drawCreditsScene(ctx, dt, beat, energy, fracBeat) {
+            // Black background
+            px(ctx, 0, 0, W, H, '#050510');
+
+            // Scrolling at absurd speed (10x normal)
+            creditsScrollY -= creditsSpeed * dt;
+
+            var lineH = 22;
+            var startY = creditsScrollY;
+            var fontSize = Math.max(8, Math.min(12, W * 0.015));
+
+            for (var i = 0; i < creditsLines.length; i++) {
+                var ly = startY + i * lineH;
+                if (ly > -20 && ly < H + 20) {
+                    var line = creditsLines[i];
+                    if (line === '') continue;
+
+                    var isHeader = line.startsWith('- - -') || line === 'SPEEDRUN ANY%' || line === 'COMPLETE!';
+                    var color = isHeader ? PAL.gold : PAL.white;
+                    var size = isHeader ? fontSize * 1.3 : fontSize;
+
+                    // Motion blur at high speed
+                    if (creditsSpeed > 200) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.15;
+                        drawPixelText(ctx, line, W * 0.5, ly - 3, size, color);
+                        drawPixelText(ctx, line, W * 0.5, ly + 3, size, color);
+                        ctx.restore();
+                    }
+
+                    drawPixelText(ctx, line, W * 0.5, ly, size, color);
+                }
+            }
+
+            // Speed indicator in corner
+            ctx.save();
+            ctx.globalAlpha = 0.6;
+            drawPixelText(ctx, '>>10x SPEED>>', W - 10, H - 20, 8, PAL.red, 'right');
+            ctx.restore();
+
+            // Scanlines for VHS effect
+            ctx.save();
+            ctx.globalAlpha = 0.05;
+            for (var sl = 0; sl < H; sl += 3) {
+                px(ctx, 0, sl, W, 1, '#000000');
+            }
+            ctx.restore();
+        }
+
+        // -- END SCENE --
+        function drawEndScene(ctx, dt) {
+            px(ctx, 0, 0, W, H, '#050510');
+            var endAlpha = 0.5 + 0.5 * Math.sin(elapsed * 0.8);
+            ctx.save();
+            ctx.globalAlpha = endAlpha;
+            drawPixelText(ctx, 'FIN', W * 0.5, H * 0.45, 20, PAL.gold);
+            ctx.restore();
+            drawPixelText(ctx, 'GG', W * 0.5, H * 0.55, 10, '#555555');
+        }
+
+        // -- Draw speedrun timer --
+        function drawTimer(ctx) {
+            if (!timerRunning && elapsed === 0) return;
+            var timerVal = timerRunning ? (elapsed - timerStart) : (elapsed - timerStart);
+            if (timerVal < 0) timerVal = 0;
+
+            var timerStr = formatTimer(timerVal);
+            var tSize = Math.max(8, Math.min(12, W * 0.014));
+
+            ctx.save();
+            // Timer background
+            ctx.globalAlpha = 0.7;
+            var tw = tSize * timerStr.length * 0.7 + 16;
+            px(ctx, W - tw - 8, 8, tw, tSize + 12, 'rgba(0,0,0,0.6)');
+            ctx.globalAlpha = 1;
+
+            // Timer text - green when running, gold when done
+            var timerColor = scene === 'end' || scene === 'credits' ? PAL.gold : PAL.hpGreen;
+            drawPixelText(ctx, timerStr, W - tw / 2 - 8, 14 + tSize / 2, tSize, timerColor);
+            ctx.restore();
+        }
+
+        // -- Transition effects --
+        function drawTransition(ctx, dt) {
+            if (transitionAlpha <= 0) return;
+
+            transitionAlpha = Math.max(0, transitionAlpha - dt * 4);
+
+            ctx.save();
+            if (transitionType === 'flash') {
+                ctx.globalAlpha = transitionAlpha;
+                px(ctx, 0, 0, W, H, PAL.white);
+            } else if (transitionType === 'wipe') {
+                var wipeX = (1 - transitionAlpha) * W * transitionDir;
+                ctx.globalAlpha = 1;
+                px(ctx, transitionDir > 0 ? 0 : wipeX, 0, W - Math.abs(wipeX), H, '#000000');
+            } else {
+                // cut - brief black
+                ctx.globalAlpha = transitionAlpha;
+                px(ctx, 0, 0, W, H, '#000000');
+            }
+            ctx.restore();
+        }
+
+        // -- INIT --
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            elapsed = 0;
+            lastBeat = -1;
+            beatPulse = 0;
+            flashAlpha = 0;
+            shakeX = 0; shakeY = 0;
+            scene = 'title';
+            lastScene = 'title';
+            lastSeqIndex = -1;
+            timerStart = 0;
+            timerRunning = false;
+            titleFlash = 0;
+            titleCursorBlink = 0;
+            townScrollX = 0;
+            overworldMapX = 0;
+            overworldMapY = 0;
+            overworldZoom = 1;
+            dungeonDepth = 0;
+            dungeonFlicker = 0;
+            bossHP = 1;
+            bossDefeated = false;
+            bossHitFlash = 0;
+            heroAttackFrame = 0;
+            bossSlashEffects = [];
+            victoryTimer = 0;
+            victoryTextScale = 0;
+            fanfareFlash = 0;
+            creditsScrollY = H;
+            transitionAlpha = 0;
+
+            initTown();
+            initOverworld();
+            initDungeon();
+            initBoss();
+            initVictory();
+            initCredits();
+        }
+
+        // -- RESIZE --
+        function resize(width, height) {
+            W = width; H = height;
+            initTown();
+            initOverworld();
+            initDungeon();
+        }
+
+        // -- MAIN RENDER --
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            elapsed += dt;
+
+            // Background
+            ctx.fillStyle = PAL.bg;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle - show title scene
+                drawTitleScene(ctx, dt, 0, 0, 0);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+            var fracBeat = (cursor.totalFracRow % (analysis ? analysis.rpb : 4)) / (analysis ? analysis.rpb : 4);
+
+            // -- Scene transitions --
+            var newScene = mapScene(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                if (newScene !== scene) {
+                    lastScene = scene;
+                    scene = newScene;
+                    sceneStartTime = elapsed;
+
+                    // Transition type based on scene change
+                    if (scene === 'boss') {
+                        transitionType = 'flash';
+                        transitionAlpha = 1;
+                    } else if (scene === 'victory') {
+                        transitionType = 'flash';
+                        transitionAlpha = 1;
+                        initVictory();
+                    } else if (scene === 'credits') {
+                        transitionType = 'cut';
+                        transitionAlpha = 0.8;
+                        initCredits();
+                    } else if (scene === 'dungeon') {
+                        transitionType = 'wipe';
+                        transitionAlpha = 1;
+                        transitionDir = 1;
+                        initDungeon();
+                    } else {
+                        transitionType = 'cut';
+                        transitionAlpha = 0.6;
+                    }
+
+                    // Start timer when leaving title
+                    if (lastScene === 'title' && !timerRunning) {
+                        timerStart = elapsed;
+                        timerRunning = true;
+                    }
+                }
+                lastSeqIndex = seqIdx;
+            }
+
+            // -- Beat pulse --
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+
+                // Screen shake in boss scene
+                if (scene === 'boss' && energy > 0.5) {
+                    var shakeAmt = 3 + energy * 8;
+                    shakeX = (Math.random() - 0.5) * shakeAmt;
+                    shakeY = (Math.random() - 0.5) * shakeAmt;
+                }
+            }
+            lastBeat = beat;
+
+            beatPulse *= Math.exp(-8 * dt);
+            flashAlpha *= Math.exp(-6 * dt);
+
+            // Decay screen shake
+            shakeX *= Math.exp(-12 * dt);
+            shakeY *= Math.exp(-12 * dt);
+
+            // Apply screen shake
+            ctx.save();
+            ctx.translate(shakeX, shakeY);
+
+            // -- Draw current scene --
+            switch (scene) {
+                case 'title':
+                    drawTitleScene(ctx, dt, beat, energy, fracBeat);
+                    break;
+                case 'town':
+                    drawTownScene(ctx, dt, beat, energy, fracBeat);
+                    break;
+                case 'overworld':
+                    drawOverworldScene(ctx, dt, beat, energy, fracBeat);
+                    break;
+                case 'dungeon':
+                    drawDungeonScene(ctx, dt, beat, energy, fracBeat);
+                    break;
+                case 'boss':
+                    drawBossScene(ctx, dt, beat, energy, fracBeat);
+                    break;
+                case 'victory':
+                    drawVictoryScene(ctx, dt, beat, energy, fracBeat);
+                    break;
+                case 'credits':
+                    drawCreditsScene(ctx, dt, beat, energy, fracBeat);
+                    break;
+                case 'end':
+                    drawEndScene(ctx, dt);
+                    break;
+            }
+
+            ctx.restore(); // screen shake
+
+            // -- Transition overlay --
+            drawTransition(ctx, dt);
+
+            // -- Flash overlay --
+            if (flashAlpha > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = flashAlpha;
+                ctx.fillStyle = flashColor;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+
+            // -- Speedrun timer (always on top) --
+            drawTimer(ctx);
+        }
+
+        return {
+            name: 'Speedrun Any% Video',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // -- Page bootstrap --
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('speedrun-any-percent-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/speedrun-any-percent.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
