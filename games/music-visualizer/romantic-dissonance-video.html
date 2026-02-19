@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Romantic Dissonance — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0a0608;
+            color: #fff;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: linear-gradient(135deg, rgba(30,20,10,0.95), rgba(15,5,20,0.95));
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: clamp(24px, 5vw, 56px);
+            font-weight: 700;
+            font-style: italic;
+            letter-spacing: 0.04em;
+            color: #d4a853;
+            text-shadow: 0 0 40px rgba(212,168,83,0.4), 0 0 80px rgba(140,40,70,0.3);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(11px, 1.8vw, 16px);
+            color: rgba(255,255,255,0.45);
+            margin-bottom: 40px;
+            letter-spacing: 0.12em;
+            text-transform: lowercase;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 2px solid #d4a853;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 16px 0 16px 28px;
+            border-color: transparent transparent transparent #d4a853;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(212,168,83,0.3); }
+            50% { box-shadow: 0 0 0 20px rgba(212,168,83,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Romantic Dissonance</div>
+        <div class="play-sub">classical meets chaos</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Romantic Dissonance Video Renderer ─────────────────────────────
+    window.Renderers['romantic-dissonance-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Palette ──
+        var GOLD = { r: 212, g: 168, b: 83 };
+        var AMBER = { r: 180, g: 120, b: 40 };
+        var CRIMSON = { r: 140, g: 30, b: 60 };
+        var PURPLE = { r: 60, g: 20, b: 80 };
+        var DARK_PURPLE = { r: 25, g: 8, b: 35 };
+        var WARM_BG = { r: 30, g: 22, b: 12 };
+        var COLD_BG = { r: 12, g: 5, b: 18 };
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var time = 0;
+        var lastSeqIndex = -1;
+        var sectionMood = 'intro'; // intro, verse, chorus, bridge, build, climax, outro
+        var mergeAmount = 0; // 0 = split, 1 = fully merged
+        var mergeTarget = 0;
+        var dividerWobble = 0;
+        var dividerDissolve = 0; // 0 = solid line, 1 = fully dissolved
+        var classicalDominance = 1; // 1 = classical dominates, 0 = heavy dominates
+        var classicalTarget = 1;
+        var distortion = 0;
+        var distortionTarget = 0;
+        var introFade = 0;
+        var outroFade = 1;
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        // Chandelier
+        var chandelierSwing = 0;
+        var chandelierSwingSpeed = 0;
+
+        // Violinist silhouettes
+        var violinists = [];
+
+        // Mosh pit crowd
+        var moshCrowd = [];
+
+        // Stage lights
+        var stageLights = [];
+
+        // Particles (shared, drift across divide)
+        var particles = [];
+
+        // Musical notes floating on classical side
+        var floatingNotes = [];
+
+        // ── Helpers ──
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function lerpExp(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+        function rgb(c, a) {
+            return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + (a !== undefined ? a : 1) + ')';
+        }
+        function hexToRgb(hex) {
+            return {
+                r: parseInt(hex.slice(1,3), 16),
+                g: parseInt(hex.slice(3,5), 16),
+                b: parseInt(hex.slice(5,7), 16)
+            };
+        }
+
+        // ── Section mapping ──
+        // 37 sequence entries for Romantic Dissonance
+        function mapSection(seqIndex) {
+            if (seqIndex <= 3) return 'intro';
+            if (seqIndex <= 7) return 'verse';
+            if (seqIndex <= 11) return 'chorus';
+            if (seqIndex <= 15) return 'verse';
+            if (seqIndex <= 19) return 'chorus';
+            if (seqIndex <= 23) return 'bridge';
+            if (seqIndex <= 24) return 'build';
+            if (seqIndex <= 32) return 'climax';
+            return 'outro';
+        }
+
+        // ── Init scene elements ──
+        function initViolinists() {
+            violinists = [];
+            for (var i = 0; i < 5; i++) {
+                violinists.push({
+                    x: 0.05 + i * 0.08,  // fraction of left half
+                    y: 0.55 + (i % 2) * 0.1,
+                    size: 0.12 + Math.random() * 0.04,
+                    phase: Math.random() * Math.PI * 2,
+                    bowAngle: 0,
+                    bowSpeed: 0.8 + Math.random() * 0.4
+                });
+            }
+        }
+
+        function initMoshCrowd() {
+            moshCrowd = [];
+            for (var i = 0; i < 30; i++) {
+                moshCrowd.push({
+                    x: 0.55 + Math.random() * 0.42, // fraction of width (right side)
+                    y: 0.5 + Math.random() * 0.45,
+                    size: 30 + Math.random() * 40,
+                    phase: Math.random() * Math.PI * 2,
+                    speed: 1 + Math.random() * 2,
+                    handUp: Math.random() > 0.4,
+                    handPhase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function initStageLights() {
+            stageLights = [];
+            var colors = ['#8c1e3c', '#6b1450', '#aa2255', '#cc3366', '#551144'];
+            for (var i = 0; i < 5; i++) {
+                stageLights.push({
+                    x: 0.55 + i * 0.1,
+                    angle: -0.3 + Math.random() * 0.6,
+                    targetAngle: 0,
+                    color: hexToRgb(colors[i % colors.length]),
+                    speed: 0.5 + Math.random() * 1.5,
+                    width: 0.08 + Math.random() * 0.06
+                });
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (var i = 0; i < 60; i++) {
+                particles.push({
+                    x: Math.random(),
+                    y: Math.random(),
+                    vx: (Math.random() - 0.5) * 0.02,
+                    vy: -0.005 - Math.random() * 0.015,
+                    size: 1 + Math.random() * 2.5,
+                    alpha: 0.1 + Math.random() * 0.5,
+                    isGold: Math.random() > 0.5
+                });
+            }
+        }
+
+        function initFloatingNotes() {
+            floatingNotes = [];
+            var symbols = ['\u266A', '\u266B', '\u2669', '\u266C'];
+            for (var i = 0; i < 8; i++) {
+                floatingNotes.push({
+                    x: Math.random() * 0.45,
+                    y: Math.random(),
+                    symbol: symbols[i % symbols.length],
+                    size: 12 + Math.random() * 16,
+                    alpha: 0,
+                    targetAlpha: 0,
+                    vy: -0.01 - Math.random() * 0.02,
+                    vx: (Math.random() - 0.5) * 0.005,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        // ── Draw Classical Side (Left) ──
+        function drawClassicalSide(ctx, energy, beatPulse, clipX) {
+            ctx.save();
+
+            // Clip to left region
+            ctx.beginPath();
+            ctx.rect(0, 0, clipX, H);
+            ctx.clip();
+
+            // Warm golden background
+            var grad = ctx.createLinearGradient(0, 0, clipX, H);
+            grad.addColorStop(0, rgb(WARM_BG));
+            grad.addColorStop(0.5, 'rgba(40,30,15,1)');
+            grad.addColorStop(1, 'rgba(25,18,8,1)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, clipX, H);
+
+            // Concert hall arches
+            drawArches(ctx, clipX, energy);
+
+            // Chandelier
+            drawChandelier(ctx, clipX * 0.5, energy);
+
+            // Violinist silhouettes
+            for (var i = 0; i < violinists.length; i++) {
+                drawViolinist(ctx, violinists[i], clipX, energy);
+            }
+
+            // Warm ambient glow from below (stage lights)
+            var floorGrad = ctx.createLinearGradient(0, H * 0.85, 0, H);
+            floorGrad.addColorStop(0, 'rgba(212,168,83,' + (0.05 + energy * 0.08) + ')');
+            floorGrad.addColorStop(1, 'rgba(180,120,40,' + (0.02 + energy * 0.04) + ')');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(0, H * 0.85, clipX, H * 0.15);
+
+            // Floating music notes
+            for (var j = 0; j < floatingNotes.length; j++) {
+                var n = floatingNotes[j];
+                if (n.alpha > 0.01) {
+                    ctx.globalAlpha = n.alpha * introFade * outroFade;
+                    ctx.fillStyle = rgb(GOLD);
+                    ctx.font = n.size + 'px serif';
+                    ctx.fillText(n.symbol, n.x * W, n.y * H);
+                }
+            }
+            ctx.globalAlpha = 1;
+
+            ctx.restore();
+        }
+
+        function drawArches(ctx, clipX, energy) {
+            ctx.save();
+            ctx.strokeStyle = rgb(GOLD, 0.12 + energy * 0.08);
+            ctx.lineWidth = 2;
+            ctx.shadowColor = rgb(GOLD, 0.3);
+            ctx.shadowBlur = 15;
+
+            var numArches = 3;
+            var spacing = clipX / (numArches + 1);
+            for (var i = 1; i <= numArches; i++) {
+                var cx = spacing * i;
+                var archH = H * 0.6;
+                var archW = spacing * 0.6;
+
+                ctx.beginPath();
+                ctx.moveTo(cx - archW, H * 0.85);
+                ctx.lineTo(cx - archW, H * 0.85 - archH * 0.6);
+                ctx.quadraticCurveTo(cx, H * 0.85 - archH, cx + archW, H * 0.85 - archH * 0.6);
+                ctx.lineTo(cx + archW, H * 0.85);
+                ctx.stroke();
+
+                // Inner arch detail
+                ctx.strokeStyle = rgb(GOLD, 0.06 + energy * 0.04);
+                ctx.beginPath();
+                ctx.moveTo(cx - archW * 0.85, H * 0.85);
+                ctx.lineTo(cx - archW * 0.85, H * 0.85 - archH * 0.5);
+                ctx.quadraticCurveTo(cx, H * 0.85 - archH * 0.85, cx + archW * 0.85, H * 0.85 - archH * 0.5);
+                ctx.lineTo(cx + archW * 0.85, H * 0.85);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawChandelier(ctx, cx, energy) {
+            ctx.save();
+            var cy = H * 0.08;
+            var swing = chandelierSwing;
+            var sway = Math.sin(swing) * 15;
+
+            // Chain
+            ctx.strokeStyle = rgb(GOLD, 0.3);
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(cx, 0);
+            ctx.lineTo(cx + sway, cy);
+            ctx.stroke();
+
+            // Main body
+            var bodyW = W * 0.06;
+            var bodyH = H * 0.06;
+            ctx.translate(cx + sway, cy);
+
+            // Arms of chandelier
+            ctx.strokeStyle = rgb(GOLD, 0.25 + energy * 0.15);
+            ctx.lineWidth = 1.5;
+            var numArms = 5;
+            for (var i = 0; i < numArms; i++) {
+                var angle = (i / numArms) * Math.PI - Math.PI * 0.1;
+                var armLen = bodyW * (0.8 + Math.sin(angle * 2) * 0.2);
+                var ax = Math.cos(angle) * armLen;
+                var ay = Math.sin(angle) * armLen * 0.3 + bodyH * 0.3;
+
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.quadraticCurveTo(ax * 0.5, ay * 0.5 - 5, ax, ay);
+                ctx.stroke();
+
+                // Candle glow
+                var glowR = 8 + energy * 12 + beatPulse * 6;
+                var candleGrad = ctx.createRadialGradient(ax, ay - 4, 0, ax, ay - 4, glowR);
+                candleGrad.addColorStop(0, 'rgba(255,220,120,' + (0.6 + energy * 0.3) + ')');
+                candleGrad.addColorStop(0.5, 'rgba(212,168,83,' + (0.2 + energy * 0.1) + ')');
+                candleGrad.addColorStop(1, 'rgba(212,168,83,0)');
+                ctx.fillStyle = candleGrad;
+                ctx.fillRect(ax - glowR, ay - 4 - glowR, glowR * 2, glowR * 2);
+            }
+
+            // Center jewel
+            var jewelGrad = ctx.createRadialGradient(0, bodyH * 0.4, 0, 0, bodyH * 0.4, bodyH * 0.3);
+            jewelGrad.addColorStop(0, 'rgba(255,240,180,' + (0.4 + beatPulse * 0.3) + ')');
+            jewelGrad.addColorStop(1, 'rgba(212,168,83,0)');
+            ctx.fillStyle = jewelGrad;
+            ctx.beginPath();
+            ctx.arc(0, bodyH * 0.4, bodyH * 0.3, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawViolinist(ctx, v, clipX, energy) {
+            ctx.save();
+            var x = v.x * clipX;
+            var y = v.y * H;
+            var s = v.size * H;
+            var bowAngle = v.bowAngle;
+
+            ctx.globalAlpha = 0.5 + energy * 0.2;
+            ctx.fillStyle = 'rgba(20,15,5,0.8)';
+            ctx.strokeStyle = rgb(GOLD, 0.15);
+            ctx.lineWidth = 1.5;
+
+            // Body silhouette (simplified)
+            ctx.beginPath();
+            ctx.ellipse(x, y, s * 0.15, s * 0.35, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(x, y - s * 0.4, s * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Violin shape
+            var violinX = x + s * 0.12;
+            var violinY = y - s * 0.2;
+            ctx.beginPath();
+            ctx.ellipse(violinX, violinY, s * 0.06, s * 0.1, 0.3, 0, Math.PI * 2);
+            ctx.strokeStyle = rgb(AMBER, 0.4);
+            ctx.stroke();
+
+            // Bow (animated)
+            var bowLen = s * 0.25;
+            var bx = violinX + Math.cos(bowAngle) * bowLen;
+            var by = violinY + Math.sin(bowAngle) * bowLen;
+            ctx.beginPath();
+            ctx.moveTo(violinX, violinY);
+            ctx.lineTo(bx, by);
+            ctx.strokeStyle = rgb(GOLD, 0.3 + energy * 0.2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Draw Heavy Side (Right) ──
+        function drawHeavySide(ctx, energy, beatPulse, clipStartX) {
+            ctx.save();
+
+            // Clip to right region
+            ctx.beginPath();
+            ctx.rect(clipStartX, 0, W - clipStartX, H);
+            ctx.clip();
+
+            // Dark purple/red background
+            var grad = ctx.createLinearGradient(clipStartX, 0, W, H);
+            grad.addColorStop(0, rgb(DARK_PURPLE));
+            grad.addColorStop(0.5, 'rgba(30,10,40,1)');
+            grad.addColorStop(1, 'rgba(15,5,25,1)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(clipStartX, 0, W - clipStartX, H);
+
+            // Stage lights sweeping
+            drawStageLights(ctx, energy, clipStartX);
+
+            // Mosh pit crowd
+            drawMoshPit(ctx, energy, beatPulse, clipStartX);
+
+            // Haze / fog
+            var hazeGrad = ctx.createLinearGradient(clipStartX, H * 0.3, clipStartX, H * 0.7);
+            hazeGrad.addColorStop(0, 'rgba(140,30,60,0)');
+            hazeGrad.addColorStop(0.5, 'rgba(140,30,60,' + (0.03 + energy * 0.06) + ')');
+            hazeGrad.addColorStop(1, 'rgba(140,30,60,0)');
+            ctx.fillStyle = hazeGrad;
+            ctx.fillRect(clipStartX, H * 0.3, W - clipStartX, H * 0.4);
+
+            // Stage floor glow
+            var floorGrad = ctx.createLinearGradient(0, H * 0.85, 0, H);
+            floorGrad.addColorStop(0, 'rgba(140,30,60,' + (0.08 + energy * 0.12) + ')');
+            floorGrad.addColorStop(1, 'rgba(60,20,80,' + (0.04 + energy * 0.06) + ')');
+            ctx.fillStyle = floorGrad;
+            ctx.fillRect(clipStartX, H * 0.85, W - clipStartX, H * 0.15);
+
+            ctx.restore();
+        }
+
+        function drawStageLights(ctx, energy, clipStartX) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < stageLights.length; i++) {
+                var sl = stageLights[i];
+                var lx = sl.x * W;
+                if (lx < clipStartX) continue;
+                var alpha = (0.04 + energy * 0.12) * introFade * outroFade;
+                var col = sl.color;
+
+                var grad = ctx.createLinearGradient(lx, 0, lx + Math.sin(sl.angle) * H, H);
+                grad.addColorStop(0, 'rgba(' + col.r + ',' + col.g + ',' + col.b + ',' + alpha + ')');
+                grad.addColorStop(1, 'rgba(' + col.r + ',' + col.g + ',' + col.b + ',0)');
+
+                ctx.fillStyle = grad;
+                var topW = 10;
+                var botW = sl.width * W;
+                ctx.beginPath();
+                ctx.moveTo(lx - topW, 0);
+                ctx.lineTo(lx + topW, 0);
+                ctx.lineTo(lx + Math.sin(sl.angle) * H + botW, H);
+                ctx.lineTo(lx + Math.sin(sl.angle) * H - botW, H);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawMoshPit(ctx, energy, bp, clipStartX) {
+            ctx.save();
+            for (var i = 0; i < moshCrowd.length; i++) {
+                var p = moshCrowd[i];
+                var px = p.x * W;
+                if (px < clipStartX - 20) continue;
+
+                var bounce = Math.sin(p.phase + time * p.speed) * (8 + energy * 20);
+                var sway = Math.cos(p.phase * 0.7 + time * p.speed * 0.5) * (4 + energy * 10);
+                var py = p.y * H + bounce;
+                var ppx = px + sway;
+
+                // Depth fade: further back = smaller + more transparent
+                var depthT = (p.y - 0.5) / 0.45;
+                var alpha = 0.3 + depthT * 0.5;
+                var sz = p.size * (0.6 + depthT * 0.4);
+
+                ctx.fillStyle = 'rgba(15,5,20,' + alpha + ')';
+
+                // Head
+                ctx.beginPath();
+                ctx.arc(ppx, py - sz * 0.4, sz * 0.18, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Body
+                ctx.beginPath();
+                ctx.ellipse(ppx, py, sz * 0.22, sz * 0.35, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Raised hands
+                if (p.handUp && energy > 0.3) {
+                    var handWave = Math.sin(p.handPhase + time * 3) * 8;
+                    ctx.strokeStyle = 'rgba(15,5,20,' + (alpha * 0.8) + ')';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(ppx - sz * 0.1, py - sz * 0.3);
+                    ctx.lineTo(ppx - sz * 0.15 + handWave, py - sz * 0.75);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(ppx + sz * 0.1, py - sz * 0.3);
+                    ctx.lineTo(ppx + sz * 0.15 - handWave, py - sz * 0.7);
+                    ctx.stroke();
+                }
+            }
+            ctx.restore();
+        }
+
+        // ── Draw Dividing Line ──
+        function drawDivider(ctx, energy) {
+            if (dividerDissolve > 0.98) return;
+
+            ctx.save();
+            var cx = W * 0.5;
+            var segments = 40;
+            var segH = H / segments;
+
+            for (var i = 0; i < segments; i++) {
+                // Random gaps for dissolve effect
+                var seed = Math.sin(i * 127.1 + time * 0.5) * 0.5 + 0.5;
+                if (seed < dividerDissolve) continue;
+
+                var y = i * segH;
+                var wobbleX = Math.sin(y * 0.01 + time * 2 + dividerWobble) * (5 + energy * 20 + dividerWobble * 10);
+
+                var alpha = (1 - dividerDissolve) * (0.3 + energy * 0.3);
+
+                // Gold-to-crimson gradient per segment
+                var t = i / segments;
+                var r = Math.round(lerp(GOLD.r, CRIMSON.r, t));
+                var g = Math.round(lerp(GOLD.g, CRIMSON.g, t));
+                var b = Math.round(lerp(GOLD.b, CRIMSON.b, t));
+
+                ctx.strokeStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+                ctx.lineWidth = 2 - dividerDissolve * 1.5;
+                ctx.shadowColor = 'rgba(' + r + ',' + g + ',' + b + ',' + (alpha * 0.5) + ')';
+                ctx.shadowBlur = 8 + energy * 12;
+
+                ctx.beginPath();
+                ctx.moveTo(cx + wobbleX, y);
+                ctx.lineTo(cx + Math.sin((y + segH) * 0.01 + time * 2 + dividerWobble) * (5 + energy * 20 + dividerWobble * 10), y + segH);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Draw Merged State ──
+        function drawMergedOverlay(ctx, energy, bp) {
+            if (mergeAmount < 0.01) return;
+
+            ctx.save();
+            ctx.globalAlpha = mergeAmount;
+
+            // Unified gradient that blends gold and crimson
+            var grad = ctx.createLinearGradient(0, 0, W, H);
+            grad.addColorStop(0, 'rgba(212,168,83,' + (0.04 + energy * 0.06) + ')');
+            grad.addColorStop(0.3, 'rgba(180,80,60,' + (0.03 + energy * 0.05) + ')');
+            grad.addColorStop(0.7, 'rgba(140,30,80,' + (0.03 + energy * 0.05) + ')');
+            grad.addColorStop(1, 'rgba(60,20,80,' + (0.02 + energy * 0.04) + ')');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Radial pulse from center
+            if (bp > 0.05) {
+                var pulseR = Math.max(W, H) * 0.6 * (1 + bp * 0.3);
+                var pulseGrad = ctx.createRadialGradient(W * 0.5, H * 0.5, 0, W * 0.5, H * 0.5, pulseR);
+                pulseGrad.addColorStop(0, 'rgba(255,200,120,' + (bp * 0.15 * mergeAmount) + ')');
+                pulseGrad.addColorStop(0.5, 'rgba(200,80,100,' + (bp * 0.08 * mergeAmount) + ')');
+                pulseGrad.addColorStop(1, 'rgba(60,20,80,0)');
+                ctx.fillStyle = pulseGrad;
+                ctx.fillRect(0, 0, W, H);
+            }
+
+            ctx.restore();
+        }
+
+        // ── Screen Distortion Effect ──
+        function drawDistortion(ctx, amount) {
+            if (amount < 0.01) return;
+
+            ctx.save();
+
+            // Scanlines
+            ctx.fillStyle = 'rgba(0,0,0,' + (amount * 0.08) + ')';
+            for (var y = 0; y < H; y += 3) {
+                ctx.fillRect(0, y, W, 1);
+            }
+
+            // Chromatic aberration simulation: colored edge bars
+            var offset = amount * 8;
+            ctx.globalAlpha = amount * 0.15;
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = 'rgba(255,0,0,0.3)';
+            ctx.fillRect(-offset, 0, W, H);
+            ctx.fillStyle = 'rgba(0,0,255,0.3)';
+            ctx.fillRect(offset, 0, W, H);
+
+            ctx.restore();
+        }
+
+        // ── Title ──
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            ctx.save();
+            var alpha = titleAlpha * introFade * outroFade;
+
+            // "ROMANTIC DISSONANCE" in elegant serif
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            var fontSize = Math.max(16, Math.min(W * 0.04, 52));
+            ctx.font = 'italic 700 ' + fontSize + 'px "Cormorant Garamond", serif';
+
+            var y = H * 0.12;
+
+            // Gold glow
+            ctx.shadowColor = 'rgba(212,168,83,0.6)';
+            ctx.shadowBlur = 40;
+            ctx.fillStyle = 'rgba(212,168,83,' + alpha + ')';
+            ctx.fillText('ROMANTIC DISSONANCE', W * 0.5, y);
+
+            // Crimson underline glow
+            ctx.shadowColor = 'rgba(140,30,60,0.4)';
+            ctx.shadowBlur = 30;
+            ctx.globalAlpha = alpha * 0.6;
+            ctx.fillStyle = 'rgba(140,30,60,0.5)';
+            ctx.fillText('ROMANTIC DISSONANCE', W * 0.5, y);
+
+            ctx.restore();
+        }
+
+        // ── Particles ──
+        function updateParticles(dt, energy) {
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                p.x += p.vx * (1 + energy * 2);
+                p.y += p.vy * (1 + energy);
+
+                // As merge increases, particles drift toward center
+                if (mergeAmount > 0.2) {
+                    p.vx += (0.5 - p.x) * 0.0002 * mergeAmount;
+                }
+
+                if (p.y < -0.02 || p.x < -0.02 || p.x > 1.02) {
+                    p.y = 1.02;
+                    p.x = Math.random();
+                    p.isGold = p.x < 0.5 - mergeAmount * 0.2;
+                }
+            }
+        }
+
+        function drawParticles(ctx) {
+            ctx.save();
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                var col = p.isGold ? GOLD : CRIMSON;
+                // In merged state, blend colors
+                if (mergeAmount > 0.3) {
+                    var t = mergeAmount * 0.5;
+                    col = {
+                        r: Math.round(lerp(col.r, 200, t)),
+                        g: Math.round(lerp(col.g, 100, t)),
+                        b: Math.round(lerp(col.b, 80, t))
+                    };
+                }
+                ctx.globalAlpha = p.alpha * introFade * outroFade;
+                ctx.fillStyle = rgb(col);
+                ctx.fillRect(p.x * W, p.y * H, p.size, p.size);
+            }
+            ctx.restore();
+        }
+
+        // ── Flash ──
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = flashAlpha;
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            lastBeat = -1;
+            beatPulse = 0;
+            flashAlpha = 0;
+            time = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'intro';
+            mergeAmount = 0;
+            mergeTarget = 0;
+            dividerWobble = 0;
+            dividerDissolve = 0;
+            classicalDominance = 1;
+            classicalTarget = 1;
+            distortion = 0;
+            distortionTarget = 0;
+            introFade = 0;
+            outroFade = 1;
+            titleAlpha = 0;
+            titleTarget = 0;
+            chandelierSwing = 0;
+            chandelierSwingSpeed = 0.5;
+
+            initViolinists();
+            initMoshCrowd();
+            initStageLights();
+            initParticles();
+            initFloatingNotes();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+        }
+
+        // ── Render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            time += dt;
+
+            // Background
+            ctx.fillStyle = '#0a0608';
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: dim split scene
+                var halfW = W * 0.5;
+                drawClassicalSide(ctx, 0, 0, halfW);
+                drawHeavySide(ctx, 0, 0, halfW);
+                drawDivider(ctx, 0);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+
+                // Set targets based on section
+                switch (sectionMood) {
+                    case 'intro':
+                        mergeTarget = 0;
+                        classicalTarget = 1;
+                        distortionTarget = 0;
+                        titleTarget = 0;
+                        break;
+                    case 'verse':
+                        mergeTarget = 0.05;
+                        classicalTarget = 0.7;
+                        distortionTarget = 0;
+                        titleTarget = 0;
+                        break;
+                    case 'chorus':
+                        mergeTarget = 0.3;
+                        classicalTarget = 0.4;
+                        distortionTarget = 0.3;
+                        titleTarget = 1;
+                        // Flash on chorus entry
+                        if (lastSeqIndex >= 0 && mapSection(lastSeqIndex) !== 'chorus') {
+                            flashAlpha = 0.3;
+                        }
+                        break;
+                    case 'bridge':
+                        mergeTarget = 0.15;
+                        classicalTarget = 0.6;
+                        distortionTarget = 0.1;
+                        titleTarget = 0;
+                        break;
+                    case 'build':
+                        mergeTarget = 0.5;
+                        classicalTarget = 0.3;
+                        distortionTarget = 0.5;
+                        titleTarget = 0.5;
+                        break;
+                    case 'climax':
+                        mergeTarget = 0.85;
+                        classicalTarget = 0.2;
+                        distortionTarget = 0.6;
+                        titleTarget = 1;
+                        if (lastSeqIndex >= 0 && mapSection(lastSeqIndex) !== 'climax') {
+                            flashAlpha = 0.5;
+                        }
+                        break;
+                    case 'outro':
+                        mergeTarget = 0.4;
+                        classicalTarget = 0.8;
+                        distortionTarget = 0;
+                        titleTarget = 0.3;
+                        break;
+                }
+
+                lastSeqIndex = seqIdx;
+            }
+
+            // ── Intro/outro fades ──
+            if (sectionMood === 'intro') {
+                introFade = Math.min(1, introFade + dt * 0.4);
+            } else {
+                introFade = 1;
+            }
+            if (sectionMood === 'outro') {
+                outroFade = Math.max(0, outroFade - dt * 0.08);
+            } else {
+                outroFade = 1;
+            }
+
+            // ── Beat pulse ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+                chandelierSwingSpeed += 0.3 * energy;
+
+                // Flash on heavy beats in chorus/climax
+                if ((sectionMood === 'chorus' || sectionMood === 'climax') && energy > 0.5) {
+                    flashAlpha = Math.max(flashAlpha, 0.08 + energy * 0.12);
+                }
+
+                // Divider wobble on beats
+                dividerWobble += energy * 0.5;
+
+                // Floating notes appear on beats
+                for (var ni = 0; ni < floatingNotes.length; ni++) {
+                    if (floatingNotes[ni].alpha < 0.1 && Math.random() > 0.6) {
+                        floatingNotes[ni].targetAlpha = 0.3 + Math.random() * 0.4;
+                        floatingNotes[ni].x = Math.random() * 0.4;
+                        floatingNotes[ni].y = 0.9 + Math.random() * 0.1;
+                    }
+                }
+
+                // Randomize stage light targets
+                for (var si = 0; si < stageLights.length; si++) {
+                    if (Math.random() > 0.5) {
+                        stageLights[si].targetAngle = (Math.random() - 0.5) * 1.0;
+                    }
+                }
+            }
+
+            beatPulse *= Math.exp(-8 * dt);
+            flashAlpha *= Math.exp(-5 * dt);
+            dividerWobble *= Math.exp(-3 * dt);
+
+            lastBeat = beat;
+
+            // ── Smooth state transitions ──
+            mergeAmount = lerpExp(mergeAmount, mergeTarget, 2, dt);
+            classicalDominance = lerpExp(classicalDominance, classicalTarget, 3, dt);
+            distortion = lerpExp(distortion, distortionTarget * energy, 4, dt);
+            dividerDissolve = lerpExp(dividerDissolve, mergeTarget, 1.5, dt);
+            titleAlpha = lerpExp(titleAlpha, titleTarget, 3, dt);
+
+            // Chandelier swings
+            chandelierSwing += chandelierSwingSpeed * dt;
+            chandelierSwingSpeed *= Math.exp(-1.5 * dt);
+            chandelierSwingSpeed += Math.sin(time * 0.3) * 0.01;
+
+            // Update violinist bowing
+            for (var vi = 0; vi < violinists.length; vi++) {
+                var v = violinists[vi];
+                v.bowAngle = Math.sin(v.phase + time * v.bowSpeed * (1 + energy)) * 0.6;
+            }
+
+            // Update stage lights
+            for (var sli = 0; sli < stageLights.length; sli++) {
+                var sl = stageLights[sli];
+                sl.angle += (sl.targetAngle - sl.angle) * sl.speed * dt;
+            }
+
+            // Update floating notes
+            for (var fni = 0; fni < floatingNotes.length; fni++) {
+                var fn = floatingNotes[fni];
+                fn.y += fn.vy * dt * 2;
+                fn.x += fn.vx + Math.sin(fn.phase + time) * 0.001;
+                fn.alpha = lerpExp(fn.alpha, fn.targetAlpha, 2, dt);
+                if (fn.y < -0.05) {
+                    fn.targetAlpha = 0;
+                    fn.y = 1.05;
+                }
+                if (fn.alpha < 0.05 && fn.targetAlpha < 0.05) {
+                    fn.targetAlpha = 0;
+                }
+            }
+
+            // Update particles
+            updateParticles(dt, energy);
+
+            // ── Compute split position ──
+            // Classical dominance shifts the divider: 1 = divider at far right, 0 = at far left
+            var dividerX = W * (0.15 + classicalDominance * 0.7); // ranges from 0.15W to 0.85W
+            // During merge, divider becomes irrelevant (both sides overlay)
+            var effectiveDivider = lerp(dividerX, W * 0.5, mergeAmount);
+
+            // ── Draw layers ──
+            ctx.globalAlpha = introFade * outroFade;
+
+            // Classical side
+            drawClassicalSide(ctx, energy, beatPulse, effectiveDivider);
+
+            // Heavy side
+            drawHeavySide(ctx, energy, beatPulse, effectiveDivider);
+
+            // Merged overlay (both sides blend)
+            drawMergedOverlay(ctx, energy, beatPulse);
+
+            // Dividing line
+            drawDivider(ctx, energy);
+
+            // Particles drift across both sides
+            drawParticles(ctx);
+
+            // Title
+            drawTitle(ctx);
+
+            // Distortion (scanlines, chromatic shift)
+            drawDistortion(ctx, distortion);
+
+            // Flash
+            ctx.globalAlpha = 1;
+            drawFlash(ctx);
+        }
+
+        return {
+            name: 'Romantic Dissonance',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('romantic-dissonance-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/romantic-dissonance.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
