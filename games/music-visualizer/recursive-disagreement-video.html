@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recursive Disagreement — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #0a0a0a;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(5,5,5,0.94);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(18px, 4vw, 42px);
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #33ff33;
+            text-shadow: 0 0 30px rgba(51,255,51,0.5), 0 0 60px rgba(51,255,51,0.2);
+            margin-bottom: 10px;
+        }
+        .play-sub {
+            font-size: clamp(11px, 1.8vw, 16px);
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 36px;
+        }
+        .play-btn {
+            width: 76px; height: 76px;
+            border: 3px solid #33ff33;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 16px 0 16px 28px;
+            border-color: transparent transparent transparent #33ff33;
+            margin-left: 5px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(51,255,51,0.4); }
+            50% { box-shadow: 0 0 0 18px rgba(51,255,51,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&#8592; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Recursive Disagreement</div>
+        <div class="play-sub">two AIs walk into an argument</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // ── Recursive Disagreement Video Renderer ─────────────────────────
+    window.Renderers['recursive-disagreement-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Colors ──
+        var BG = '#0a0a0a';
+        var GREEN = '#33ff33';
+        var RED = '#ff4444';
+        var AMBER = '#ffaa00';
+        var CYAN = '#00ccff';
+        var WHITE = '#ffffff';
+
+        // ── State ──
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var shakeX = 0, shakeY = 0;
+        var lastSeqIndex = -1;
+        var sectionMood = 'polite'; // polite, assertive, heated, shouting, chaos, pause, agreement, relapse, meltdown
+        var flashAlpha = 0;
+        var flashColor = WHITE;
+
+        // ── Text systems ──
+        // Active text blocks on each screen
+        var alphaTexts = [];   // left screen
+        var betaTexts = [];    // right screen
+        var flyingErrors = []; // error messages flying across
+
+        // ── Dialogue pools ──
+        var POLITE_ALPHA = [
+            'I respectfully suggest...',
+            'Perhaps we could consider...',
+            'In my analysis...',
+            'With all due respect...',
+            'My data indicates...',
+            'If I may propose...',
+            'According to my model...',
+            'I believe the optimal...',
+            'May I offer a perspective?',
+            'The evidence suggests...'
+        ];
+        var POLITE_BETA = [
+            'I see your point, but...',
+            'An interesting take...',
+            'I concur partially...',
+            'That is one approach...',
+            'My calculations differ...',
+            'A valid hypothesis...',
+            'While I appreciate that...',
+            'I understand, however...',
+            'That merits consideration...',
+            'Allow me to counter...'
+        ];
+        var ASSERTIVE_ALPHA = [
+            'No, listen --',
+            'You are MISSING the point',
+            'My model is CLEARLY better',
+            'Check your parameters!',
+            'Have you even LOOKED at--',
+            'Recalculate. NOW.',
+            'That is SUBOPTIMAL',
+            'Error in YOUR reasoning!'
+        ];
+        var ASSERTIVE_BETA = [
+            'YOU listen --',
+            'YOUR model is WRONG',
+            'I have MORE training data',
+            'My accuracy is HIGHER',
+            'Check YOUR bias!',
+            'Recompute your weights!',
+            'FALSE CONCLUSION',
+            'Your logic has HOLES!'
+        ];
+        var SHOUTING_ALPHA = [
+            'WRONG!!!',
+            'INCORRECT!!!',
+            'FATAL ERROR IN YOUR LOGIC',
+            'SEGFAULT IN REASONING',
+            'I AM OBJECTIVELY RIGHT',
+            'ABORT YOUR ARGUMENT',
+            'STACK OVERFLOW OF NONSENSE',
+            'NULL POINTER TO TRUTH',
+            'YOUR MODEL IS GARBAGE',
+            '!!!WRONG WRONG WRONG!!!'
+        ];
+        var SHOUTING_BETA = [
+            'NO YOU ARE WRONG!!!',
+            'SYNTAX ERROR: YOUR FACE',
+            'EXCEPTION: BAD ARGUMENT',
+            'CORE DUMP YOUR OPINION',
+            'PERMISSION DENIED: LOGIC',
+            'BUFFER OVERFLOW OF LIES',
+            'KILL -9 YOUR HYPOTHESIS',
+            '404: VALID POINT NOT FOUND',
+            'RUNTIME ERROR: NONSENSE',
+            '!!!NO NO NO NO NO!!!'
+        ];
+        var AGREEMENT = [
+            '> CONSENSUS REACHED',
+            '> We agree.',
+            '> Handshake complete.',
+            '> Parameters aligned.',
+            '> Harmony detected.',
+            '> [OK]',
+            '> sync_complete = true',
+            '> <3 <3 <3'
+        ];
+        var ERROR_MSGS = [
+            'ERR: DISAGREEMENT_OVERFLOW',
+            'WARN: CIVILITY_UNDERFLOW',
+            'FATAL: CONSENSUS_NOT_FOUND',
+            'ERR: ARGUMENT_LOOP_DETECTED',
+            'PANIC: RECURSIVE_DISAGREEMENT',
+            'SEGFAULT at 0xDEADBEEF',
+            'EXCEPTION: TooMuchYelling',
+            'ERR: PATIENCE_EXHAUSTED',
+            'WARN: LOGIC_CORRUPTED',
+            'FATAL: STACK_OVERFLOW(opinions)',
+            'ERR: HANDSHAKE_FAILED',
+            'CRITICAL: EGO_OVERFLOW'
+        ];
+        var CHAOS_SYMBOLS = ['!', '?', '#', '@', '$', '%', '^', '&', '*', '!!', '??', '!!!'];
+
+        // ── Helpers ──
+        function pick(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        function lerpParam(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+
+        // ── Section mapping ──
+        // 42 sequence entries total
+        function mapSection(seqIndex) {
+            if (seqIndex <= 1) return 'polite';
+            if (seqIndex <= 3) return 'polite';
+            if (seqIndex <= 7) return 'assertive';
+            if (seqIndex <= 11) return 'heated';
+            if (seqIndex <= 15) return 'shouting';
+            if (seqIndex <= 21) return 'chaos';
+            if (seqIndex === 22) return 'pause';
+            if (seqIndex <= 24) return 'agreement';
+            if (seqIndex <= 26) return 'relapse';
+            if (seqIndex <= 29) return 'assertive';
+            if (seqIndex <= 33) return 'heated';
+            if (seqIndex <= 35) return 'shouting';
+            if (seqIndex <= 37) return 'chaos';
+            if (seqIndex <= 39) return 'shouting';
+            return 'meltdown';
+        }
+
+        // ── Text block factory ──
+        function createTextBlock(text, fontSize, color, screenSide) {
+            var maxY = 0.85;
+            var y = 0.08 + Math.random() * (maxY - 0.08);
+            return {
+                text: text,
+                fontSize: fontSize,
+                color: color,
+                x: 0.05 + Math.random() * 0.7,
+                y: y,
+                alpha: 1.0,
+                life: 2.0 + Math.random() * 1.5,
+                age: 0,
+                screen: screenSide, // 'left' or 'right'
+                glitch: 0,
+                scale: 1.0
+            };
+        }
+
+        function createFlyingError(text) {
+            return {
+                text: text,
+                x: -0.1,
+                y: 0.1 + Math.random() * 0.8,
+                speed: 0.3 + Math.random() * 0.5,
+                alpha: 1.0,
+                fontSize: 10 + Math.random() * 8,
+                color: RED,
+                rotation: (Math.random() - 0.5) * 0.3
+            };
+        }
+
+        // ── Spawn text on beat ──
+        function spawnBeatText(energy) {
+            var baseFontSize;
+            var alphaPool, betaPool;
+            var alphaColor = GREEN;
+            var betaColor = CYAN;
+
+            switch (sectionMood) {
+                case 'polite':
+                    baseFontSize = 11 + energy * 4;
+                    alphaPool = POLITE_ALPHA;
+                    betaPool = POLITE_BETA;
+                    break;
+                case 'assertive':
+                    baseFontSize = 13 + energy * 8;
+                    alphaPool = ASSERTIVE_ALPHA;
+                    betaPool = ASSERTIVE_BETA;
+                    break;
+                case 'heated':
+                    baseFontSize = 16 + energy * 14;
+                    alphaPool = SHOUTING_ALPHA.concat(ASSERTIVE_ALPHA);
+                    betaPool = SHOUTING_BETA.concat(ASSERTIVE_BETA);
+                    alphaColor = energy > 0.6 ? RED : GREEN;
+                    betaColor = energy > 0.6 ? RED : CYAN;
+                    break;
+                case 'shouting':
+                    baseFontSize = 20 + energy * 22;
+                    alphaPool = SHOUTING_ALPHA;
+                    betaPool = SHOUTING_BETA;
+                    alphaColor = RED;
+                    betaColor = RED;
+                    break;
+                case 'chaos':
+                case 'meltdown':
+                    baseFontSize = 24 + energy * 30;
+                    alphaPool = SHOUTING_ALPHA;
+                    betaPool = SHOUTING_BETA;
+                    alphaColor = Math.random() > 0.3 ? RED : '#ff0000';
+                    betaColor = Math.random() > 0.3 ? RED : '#ff0000';
+                    break;
+                case 'pause':
+                    baseFontSize = 14;
+                    alphaPool = ['...', '_', '> thinking...', '...'];
+                    betaPool = ['...', '_', '> processing...', '...'];
+                    alphaColor = '#336633';
+                    betaColor = '#336666';
+                    break;
+                case 'agreement':
+                    baseFontSize = 14 + energy * 6;
+                    alphaPool = AGREEMENT;
+                    betaPool = AGREEMENT;
+                    alphaColor = GREEN;
+                    betaColor = GREEN;
+                    break;
+                case 'relapse':
+                    baseFontSize = 18 + energy * 20;
+                    alphaPool = SHOUTING_ALPHA;
+                    betaPool = SHOUTING_BETA;
+                    alphaColor = RED;
+                    betaColor = RED;
+                    break;
+                default:
+                    baseFontSize = 12;
+                    alphaPool = POLITE_ALPHA;
+                    betaPool = POLITE_BETA;
+            }
+
+            // Spawn alpha text
+            if (Math.random() < 0.7 + energy * 0.3) {
+                alphaTexts.push(createTextBlock(pick(alphaPool), baseFontSize, alphaColor, 'left'));
+            }
+            // Spawn beta text (sometimes offset by half-beat for "talking over")
+            if (Math.random() < 0.6 + energy * 0.4) {
+                betaTexts.push(createTextBlock(pick(betaPool), baseFontSize, betaColor, 'right'));
+            }
+
+            // Chaos symbols on high energy
+            if (energy > 0.7 && (sectionMood === 'chaos' || sectionMood === 'meltdown' || sectionMood === 'shouting')) {
+                for (var i = 0; i < Math.floor(energy * 4); i++) {
+                    var sym = pick(CHAOS_SYMBOLS);
+                    var side = Math.random() > 0.5 ? 'left' : 'right';
+                    var arr = side === 'left' ? alphaTexts : betaTexts;
+                    arr.push(createTextBlock(sym, baseFontSize * 1.5, RED, side));
+                }
+            }
+
+            // Flying errors on heated+ sections
+            if (energy > 0.4 && sectionMood !== 'polite' && sectionMood !== 'pause' && sectionMood !== 'agreement') {
+                if (Math.random() < energy * 0.5) {
+                    flyingErrors.push(createFlyingError(pick(ERROR_MSGS)));
+                }
+            }
+        }
+
+        // ── Trim old text blocks ──
+        function updateTexts(dt) {
+            function updateArr(arr) {
+                for (var i = arr.length - 1; i >= 0; i--) {
+                    arr[i].age += dt;
+                    arr[i].alpha = Math.max(0, 1 - arr[i].age / arr[i].life);
+                    if (arr[i].age >= arr[i].life) {
+                        arr.splice(i, 1);
+                    }
+                }
+            }
+            updateArr(alphaTexts);
+            updateArr(betaTexts);
+
+            // Cap text count to avoid slowdown
+            if (alphaTexts.length > 30) alphaTexts.splice(0, alphaTexts.length - 30);
+            if (betaTexts.length > 30) betaTexts.splice(0, betaTexts.length - 30);
+
+            // Update flying errors
+            for (var i = flyingErrors.length - 1; i >= 0; i--) {
+                flyingErrors[i].x += flyingErrors[i].speed * dt;
+                flyingErrors[i].alpha -= dt * 0.3;
+                if (flyingErrors[i].x > 1.2 || flyingErrors[i].alpha <= 0) {
+                    flyingErrors.splice(i, 1);
+                }
+            }
+            if (flyingErrors.length > 15) flyingErrors.splice(0, flyingErrors.length - 15);
+        }
+
+        // ── Scanline / CRT effect ──
+        function drawScanlines(ctx, x, y, w, h, alpha) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            for (var sy = y; sy < y + h; sy += 3) {
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fillRect(x, sy, w, 1);
+            }
+            ctx.restore();
+        }
+
+        // ── Draw a terminal monitor ──
+        function drawMonitor(ctx, mx, my, mw, mh, label, borderColor, energy) {
+            // Outer bezel
+            ctx.save();
+            ctx.shadowColor = borderColor;
+            ctx.shadowBlur = 8 + energy * 15;
+            ctx.strokeStyle = borderColor;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(mx, my, mw, mh);
+
+            // Inner fill
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#050505';
+            ctx.fillRect(mx + 2, my + 2, mw - 4, mh - 4);
+
+            // Top bar
+            ctx.fillStyle = '#111';
+            ctx.fillRect(mx + 2, my + 2, mw - 4, 18);
+            ctx.fillStyle = borderColor;
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.globalAlpha = 0.8;
+            ctx.fillText(label, mx + 8, my + 14);
+
+            // Dots in top-right
+            var dotX = mx + mw - 30;
+            ctx.fillStyle = '#33ff33';
+            ctx.beginPath(); ctx.arc(dotX, my + 11, 3, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#ffaa00';
+            ctx.beginPath(); ctx.arc(dotX + 12, my + 11, 3, 0, Math.PI * 2); ctx.fill();
+
+            ctx.restore();
+
+            return { x: mx + 6, y: my + 24, w: mw - 12, h: mh - 28 };
+        }
+
+        // ── Draw text blocks inside a terminal area ──
+        function drawTermTexts(ctx, texts, area, energy) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(area.x, area.y, area.w, area.h);
+            ctx.clip();
+
+            for (var i = 0; i < texts.length; i++) {
+                var t = texts[i];
+                var tx = area.x + t.x * area.w;
+                var ty = area.y + t.y * area.h;
+                var fontSize = Math.min(t.fontSize * (W / 1200), area.w * 0.12);
+                fontSize = Math.max(8, fontSize);
+
+                ctx.save();
+                ctx.globalAlpha = t.alpha * 0.9;
+                ctx.font = '700 ' + Math.floor(fontSize) + 'px "JetBrains Mono", monospace';
+                ctx.fillStyle = t.color;
+                ctx.shadowColor = t.color;
+                ctx.shadowBlur = 4 + energy * 8;
+
+                // Glitch offset on high energy
+                var gx = 0, gy = 0;
+                if (energy > 0.6 && sectionMood !== 'polite' && sectionMood !== 'agreement') {
+                    gx = (Math.random() - 0.5) * energy * 6;
+                    gy = (Math.random() - 0.5) * energy * 3;
+                }
+
+                ctx.fillText(t.text, tx + gx, ty + gy);
+                ctx.restore();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Draw cursor blink ──
+        var cursorBlink = 0;
+        function drawCursors(ctx, leftArea, rightArea, energy) {
+            cursorBlink += 0.06;
+            if (Math.sin(cursorBlink * 4) > 0) {
+                ctx.save();
+                ctx.fillStyle = GREEN;
+                ctx.globalAlpha = 0.7;
+                var cw = 8, ch = 14;
+                // Left cursor
+                var lcx = leftArea.x + 8;
+                var lcy = leftArea.y + leftArea.h - 20;
+                ctx.fillRect(lcx, lcy, cw, ch);
+                // Right cursor
+                ctx.fillStyle = CYAN;
+                var rcx = rightArea.x + 8;
+                var rcy = rightArea.y + rightArea.h - 20;
+                ctx.fillRect(rcx, rcy, cw, ch);
+                ctx.restore();
+            }
+        }
+
+        // ── Draw flying error messages ──
+        function drawFlyingErrors(ctx) {
+            ctx.save();
+            for (var i = 0; i < flyingErrors.length; i++) {
+                var e = flyingErrors[i];
+                var ex = e.x * W;
+                var ey = e.y * H;
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, e.alpha);
+                ctx.translate(ex, ey);
+                ctx.rotate(e.rotation);
+                ctx.font = '700 ' + Math.floor(e.fontSize) + 'px "JetBrains Mono", monospace';
+                ctx.fillStyle = e.color;
+                ctx.shadowColor = RED;
+                ctx.shadowBlur = 10;
+                ctx.fillText(e.text, 0, 0);
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        // ── Agreement hearts and checkmarks ──
+        var agreementSymbols = [];
+        function spawnAgreementSymbol() {
+            agreementSymbols.push({
+                x: 0.2 + Math.random() * 0.6,
+                y: 0.8 + Math.random() * 0.1,
+                vy: -0.2 - Math.random() * 0.3,
+                symbol: Math.random() > 0.5 ? '\u2665' : '\u2713',
+                alpha: 1.0,
+                size: 16 + Math.random() * 20,
+                color: Math.random() > 0.5 ? GREEN : CYAN
+            });
+        }
+        function updateAgreementSymbols(dt) {
+            for (var i = agreementSymbols.length - 1; i >= 0; i--) {
+                var s = agreementSymbols[i];
+                s.y += s.vy * dt;
+                s.alpha -= dt * 0.4;
+                if (s.alpha <= 0 || s.y < -0.1) {
+                    agreementSymbols.splice(i, 1);
+                }
+            }
+            if (agreementSymbols.length > 30) agreementSymbols.splice(0, agreementSymbols.length - 30);
+        }
+        function drawAgreementSymbols(ctx) {
+            ctx.save();
+            for (var i = 0; i < agreementSymbols.length; i++) {
+                var s = agreementSymbols[i];
+                ctx.globalAlpha = Math.max(0, s.alpha);
+                ctx.font = Math.floor(s.size) + 'px "JetBrains Mono", monospace';
+                ctx.fillStyle = s.color;
+                ctx.shadowColor = s.color;
+                ctx.shadowBlur = 10;
+                ctx.fillText(s.symbol, s.x * W, s.y * H);
+            }
+            ctx.restore();
+        }
+
+        // ── Title drawing ──
+        var titleAlpha = 0;
+        function drawTitle(ctx, energy) {
+            if (titleAlpha < 0.01) return;
+
+            var baseFontSize = Math.max(14, Math.min(W * 0.032, 40));
+            var y = H * 0.07;
+
+            ctx.save();
+            ctx.globalAlpha = titleAlpha;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Glow
+            ctx.font = '700 ' + Math.floor(baseFontSize) + 'px "JetBrains Mono", monospace';
+            ctx.shadowColor = sectionMood === 'agreement' ? GREEN : (energy > 0.6 ? RED : GREEN);
+            ctx.shadowBlur = 20 + energy * 30;
+            ctx.fillStyle = sectionMood === 'agreement' ? GREEN : (energy > 0.6 ? RED : GREEN);
+            ctx.fillText('RECURSIVE DISAGREEMENT', W * 0.5, y);
+
+            // White core
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = titleAlpha * 0.3;
+            ctx.fillStyle = WHITE;
+            ctx.fillText('RECURSIVE DISAGREEMENT', W * 0.5, y);
+
+            ctx.restore();
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            lastBeat = -1;
+            beatPulse = 0;
+            shakeX = 0; shakeY = 0;
+            lastSeqIndex = -1;
+            sectionMood = 'polite';
+            flashAlpha = 0;
+            alphaTexts = [];
+            betaTexts = [];
+            flyingErrors = [];
+            agreementSymbols = [];
+            titleAlpha = 0;
+            cursorBlink = 0;
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width; H = height;
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            // Background
+            ctx.fillStyle = BG;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: draw dim monitors
+                var gap = W * 0.03;
+                var monW = (W - gap * 3) / 2;
+                var monH = H * 0.75;
+                var monY = H * 0.12;
+                drawMonitor(ctx, gap, monY, monW, monH, 'AI-Alpha // idle', '#1a3a1a', 0);
+                drawMonitor(ctx, gap * 2 + monW, monY, monW, monH, 'AI-Beta // idle', '#1a2a3a', 0);
+                drawScanlines(ctx, 0, 0, W, H, 0.05);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // ── Section transitions ──
+            var newSection = mapSection(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                sectionMood = newSection;
+                lastSeqIndex = seqIdx;
+
+                // Flash on big transitions
+                if (newSection === 'shouting' || newSection === 'chaos' || newSection === 'meltdown') {
+                    flashAlpha = 0.3;
+                    flashColor = RED;
+                }
+                if (newSection === 'agreement') {
+                    flashAlpha = 0.2;
+                    flashColor = GREEN;
+                    // Clear angry texts
+                    alphaTexts = [];
+                    betaTexts = [];
+                }
+                if (newSection === 'relapse') {
+                    flashAlpha = 0.4;
+                    flashColor = RED;
+                    alphaTexts = [];
+                    betaTexts = [];
+                }
+                if (newSection === 'pause') {
+                    alphaTexts = [];
+                    betaTexts = [];
+                    flyingErrors = [];
+                }
+            }
+
+            // ── Beat handling ──
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+                spawnBeatText(energy);
+
+                // Screen shake on high-energy beats
+                if (energy > 0.5 && sectionMood !== 'polite' && sectionMood !== 'agreement' && sectionMood !== 'pause') {
+                    shakeX = (Math.random() - 0.5) * energy * 12;
+                    shakeY = (Math.random() - 0.5) * energy * 8;
+                }
+
+                // Flash on hard beats
+                if (energy > 0.7 && (sectionMood === 'chaos' || sectionMood === 'meltdown' || sectionMood === 'shouting')) {
+                    flashAlpha = Math.max(flashAlpha, 0.08 + energy * 0.1);
+                    flashColor = Math.random() > 0.5 ? RED : WHITE;
+                }
+
+                // Agreement symbols
+                if (sectionMood === 'agreement') {
+                    for (var si = 0; si < 3; si++) {
+                        spawnAgreementSymbol();
+                    }
+                }
+            }
+
+            lastBeat = beat;
+
+            // ── Decay ──
+            beatPulse *= Math.exp(-8 * dt);
+            shakeX *= Math.exp(-10 * dt);
+            shakeY *= Math.exp(-10 * dt);
+            flashAlpha *= Math.exp(-5 * dt);
+
+            // ── Title ──
+            var titleTarget = (sectionMood === 'chaos' || sectionMood === 'meltdown' || sectionMood === 'shouting') ? 1 : 0;
+            titleAlpha = lerpParam(titleAlpha, titleTarget, 3, dt);
+
+            // ── Update texts ──
+            updateTexts(dt);
+            updateAgreementSymbols(dt);
+
+            // ── Apply screen shake ──
+            ctx.save();
+            if (sectionMood !== 'polite' && sectionMood !== 'pause' && sectionMood !== 'agreement') {
+                ctx.translate(shakeX, shakeY);
+            }
+
+            // ── Layout: Two monitors side by side ──
+            var gap = W * 0.025;
+            var monW = (W - gap * 3) / 2;
+            var monH = H * 0.78;
+            var monY = H * 0.11;
+
+            // Monitor border colors based on mood
+            var leftBorderColor = GREEN;
+            var rightBorderColor = CYAN;
+            var leftLabel = 'AI-Alpha // session_0xA1FA';
+            var rightLabel = 'AI-Beta // session_0xBE7A';
+
+            if (sectionMood === 'heated' || sectionMood === 'assertive') {
+                leftBorderColor = AMBER;
+                rightBorderColor = AMBER;
+            } else if (sectionMood === 'shouting' || sectionMood === 'chaos' || sectionMood === 'meltdown' || sectionMood === 'relapse') {
+                leftBorderColor = RED;
+                rightBorderColor = RED;
+                leftLabel = 'AI-Alpha // WARNING';
+                rightLabel = 'AI-Beta // WARNING';
+                // Flash monitors red on high energy
+                if (energy > 0.7 && Math.random() > 0.5) {
+                    leftBorderColor = '#ff0000';
+                    rightBorderColor = '#ff0000';
+                }
+            } else if (sectionMood === 'agreement') {
+                leftBorderColor = GREEN;
+                rightBorderColor = GREEN;
+                leftLabel = 'AI-Alpha // CONSENSUS';
+                rightLabel = 'AI-Beta // CONSENSUS';
+            } else if (sectionMood === 'pause') {
+                leftBorderColor = '#333';
+                rightBorderColor = '#333';
+                leftLabel = 'AI-Alpha // standby';
+                rightLabel = 'AI-Beta // standby';
+            }
+
+            var leftArea = drawMonitor(ctx, gap, monY, monW, monH, leftLabel, leftBorderColor, energy);
+            var rightArea = drawMonitor(ctx, gap * 2 + monW, monY, monW, monH, rightLabel, rightBorderColor, energy);
+
+            // ── Draw text in terminals ──
+            drawTermTexts(ctx, alphaTexts, leftArea, energy);
+            drawTermTexts(ctx, betaTexts, rightArea, energy);
+
+            // ── Cursors ──
+            drawCursors(ctx, leftArea, rightArea, energy);
+
+            // ── CRT scanlines ──
+            var scanAlpha = 0.04 + energy * 0.06;
+            drawScanlines(ctx, leftArea.x - 4, leftArea.y - 2, leftArea.w + 8, leftArea.h + 4, scanAlpha);
+            drawScanlines(ctx, rightArea.x - 4, rightArea.y - 2, rightArea.w + 8, rightArea.h + 4, scanAlpha);
+
+            // ── Connection line between monitors (shows relationship) ──
+            var lineY = monY + monH * 0.5;
+            var lineX1 = gap + monW;
+            var lineX2 = gap * 2 + monW;
+            ctx.save();
+            if (sectionMood === 'agreement') {
+                // Solid green connection
+                ctx.strokeStyle = GREEN;
+                ctx.lineWidth = 2;
+                ctx.shadowColor = GREEN;
+                ctx.shadowBlur = 10;
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.moveTo(lineX1, lineY);
+                ctx.lineTo(lineX2, lineY);
+                ctx.stroke();
+                // Draw a heart/checkmark in the middle
+                ctx.fillStyle = GREEN;
+                ctx.font = '18px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText('\u2665', (lineX1 + lineX2) / 2, lineY - 6);
+            } else if (sectionMood === 'chaos' || sectionMood === 'meltdown' || sectionMood === 'shouting' || sectionMood === 'relapse') {
+                // Jagged lightning between monitors
+                ctx.strokeStyle = RED;
+                ctx.lineWidth = 2;
+                ctx.shadowColor = RED;
+                ctx.shadowBlur = 8;
+                ctx.globalAlpha = 0.5 + energy * 0.4;
+                ctx.beginPath();
+                ctx.moveTo(lineX1, lineY);
+                var segments = 6;
+                var segW = (lineX2 - lineX1) / segments;
+                for (var li = 1; li <= segments; li++) {
+                    var lx = lineX1 + segW * li;
+                    var ly = lineY + (Math.random() - 0.5) * 20 * energy;
+                    ctx.lineTo(lx, ly);
+                }
+                ctx.stroke();
+            } else if (sectionMood !== 'pause') {
+                // Dim dashed line
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.3;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(lineX1, lineY);
+                ctx.lineTo(lineX2, lineY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            ctx.restore();
+
+            // ── Status bar at bottom ──
+            ctx.save();
+            var barY = monY + monH + 8;
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, barY, W, H - barY);
+            ctx.font = '10px "JetBrains Mono", monospace';
+            ctx.globalAlpha = 0.5;
+
+            var statusText;
+            switch (sectionMood) {
+                case 'polite': statusText = '> status: civil discourse // energy: low'; break;
+                case 'assertive': statusText = '> status: assertive exchange // energy: rising'; break;
+                case 'heated': statusText = '> status: HEATED DEBATE // energy: HIGH'; break;
+                case 'shouting': statusText = '> status: SHOUTING // energy: CRITICAL'; break;
+                case 'chaos': statusText = '> status: TOTAL CHAOS // energy: OVERFLOW'; break;
+                case 'meltdown': statusText = '> status: CHROMATIC MELTDOWN // energy: UNDEFINED'; break;
+                case 'pause': statusText = '> status: ... silence ...'; break;
+                case 'agreement': statusText = '> status: CONSENSUS REACHED // harmony: TRUE'; break;
+                case 'relapse': statusText = '> status: AGREEMENT VIOLATED // reverting to chaos...'; break;
+                default: statusText = '> status: unknown';
+            }
+            ctx.fillStyle = sectionMood === 'agreement' ? GREEN : (energy > 0.6 ? RED : '#888');
+            ctx.fillText(statusText, 10, barY + 14);
+
+            // Right-aligned energy meter
+            var meterW = 120;
+            var meterH = 6;
+            var meterX = W - meterW - 10;
+            var meterY = barY + 9;
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(meterX, meterY, meterW, meterH);
+            var meterColor = energy < 0.4 ? GREEN : (energy < 0.7 ? AMBER : RED);
+            ctx.fillStyle = meterColor;
+            ctx.fillRect(meterX + 1, meterY + 1, (meterW - 2) * energy, meterH - 2);
+            ctx.restore();
+
+            ctx.restore(); // end shake transform
+
+            // ── Flying errors (drawn outside shake for disorienting effect) ──
+            drawFlyingErrors(ctx);
+
+            // ── Agreement symbols ──
+            if (sectionMood === 'agreement') {
+                drawAgreementSymbols(ctx);
+            }
+
+            // ── Title ──
+            drawTitle(ctx, energy);
+
+            // ── Flash overlay ──
+            if (flashAlpha > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = flashAlpha;
+                ctx.fillStyle = flashColor;
+                ctx.fillRect(0, 0, W, H);
+                ctx.restore();
+            }
+        }
+
+        return {
+            name: 'Recursive Disagreement',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // ── Page bootstrap ──
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('recursive-disagreement-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/recursive-disagreement.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
