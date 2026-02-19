@@ -1,0 +1,3292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Context Protocol — Tech Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ============================================
+           HONEYCOMB — MCP TECH GUIDE
+           Warm golden hexagonal design system
+           ============================================ */
+
+        :root {
+            --font-display: 'Cormorant Garamond', Georgia, serif;
+            --font-body: 'Work Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+
+            --honey-lightest: #FFF8E7;
+            --honey-light: #FFE9B8;
+            --honey-cream: #FFD980;
+            --honey-golden: #F5B800;
+            --honey-amber: #E09800;
+            --honey-deep: #C47F00;
+            --honey-dark: #8B5A00;
+            --honey-darkest: #5C3D00;
+
+            --beeswax-light: #FFF4D6;
+            --beeswax: #F5E6B8;
+            --beeswax-deep: #D4C494;
+            --comb-wall: #D4A84B;
+            --comb-shadow: #A67C00;
+            --propolis: #6B4423;
+
+            --text-primary: #3D2800;
+            --text-secondary: #5C3D00;
+            --text-muted: #8B6B3D;
+            --text-light: #FFF8E7;
+
+            --bg-primary: #FFF8E7;
+            --bg-secondary: #FFF4D6;
+            --bg-card: #FFFCF5;
+
+            --border-color: #FFD980;
+
+            --shadow-soft: 0 2px 8px rgba(139, 90, 0, 0.08);
+            --shadow-medium: 0 4px 16px rgba(139, 90, 0, 0.12);
+            --shadow-honey: 0 8px 32px rgba(245, 184, 0, 0.2);
+
+            --code-bg: #2A1F00;
+            --code-text: #FFD980;
+            --code-comment: #8B6B3D;
+            --code-keyword: #F5B800;
+            --code-string: #FFE9B8;
+            --code-punctuation: #D4A84B;
+
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+
+            --space-1: 4px;
+            --space-2: 8px;
+            --space-3: 12px;
+            --space-4: 16px;
+            --space-5: 24px;
+            --space-6: 32px;
+            --space-7: 48px;
+            --space-8: 64px;
+            --space-9: 96px;
+
+            --transition-base: 0.25s ease;
+            --max-width: 1100px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+            scroll-padding-top: 60px;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            line-height: 1.7;
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Honeycomb background pattern */
+        .honeycomb-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath fill='%23E09800' fill-opacity='1' d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66Z M28 100L0 84L0 50L28 34L56 50L56 84L28 100Z'/%3E%3C/svg%3E");
+            background-size: 56px 100px;
+        }
+
+        ::selection {
+            background: var(--honey-golden);
+            color: var(--honey-darkest);
+        }
+
+        /* Container */
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 var(--space-6);
+        }
+
+        /* ============================================
+           BACK LINK
+           ============================================ */
+
+        .back-link {
+            display: inline-block;
+            padding: var(--space-4) var(--space-6);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--honey-dark);
+            text-decoration: none;
+            transition: color var(--transition-base);
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-link:hover {
+            color: var(--honey-amber);
+        }
+
+        /* ============================================
+           HEADER WITH HONEY DRIP
+           ============================================ */
+
+        .header {
+            padding: var(--space-8) 0 var(--space-7);
+            background: linear-gradient(180deg, var(--beeswax-light) 0%, var(--honey-lightest) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: linear-gradient(90deg, var(--honey-deep), var(--honey-golden), var(--honey-amber), var(--honey-golden), var(--honey-deep));
+        }
+
+        .header::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 60'%3E%3Cpath fill='%23E09800' d='M0,0 L1200,0 L1200,8 Q1180,8 1170,20 Q1160,35 1150,8 L1100,8 Q1090,8 1080,25 Q1070,45 1060,8 L900,8 Q890,8 880,30 Q870,55 860,8 L700,8 Q690,8 680,15 Q670,25 660,8 L500,8 Q490,8 480,35 Q470,60 460,8 L300,8 Q290,8 280,18 Q270,30 260,8 L100,8 Q90,8 80,22 Q70,38 60,8 L0,8 Z'/%3E%3C/svg%3E") no-repeat center top;
+            background-size: 100% 60px;
+            pointer-events: none;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: var(--space-6);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 5vw, 3.2rem);
+            font-weight: 500;
+            color: var(--honey-dark);
+            line-height: 1.2;
+            margin-bottom: var(--space-2);
+        }
+
+        .header .tagline {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            font-style: italic;
+            max-width: 48ch;
+            line-height: 1.6;
+        }
+
+        .header-icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--honey-golden) 0%, var(--honey-amber) 100%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-honey);
+            position: relative;
+        }
+
+        .header-icon::before {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            background: linear-gradient(135deg, var(--honey-cream) 0%, var(--honey-golden) 100%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+
+        .header-icon svg {
+            width: 28px;
+            height: 28px;
+            color: var(--honey-darkest);
+            position: relative;
+            z-index: 1;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .header-icon {
+                display: none;
+            }
+        }
+
+        /* ============================================
+           STICKY JUMP NAV
+           ============================================ */
+
+        .jump-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            gap: var(--space-1);
+            padding: var(--space-3) var(--space-5);
+            background: linear-gradient(180deg, var(--beeswax-light) 0%, var(--honey-lightest) 100%);
+            border-bottom: 2px solid var(--honey-cream);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
+
+        .jump-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .jump-nav::-webkit-scrollbar-track {
+            background: var(--beeswax-light);
+        }
+
+        .jump-nav::-webkit-scrollbar-thumb {
+            background: var(--honey-cream);
+            border-radius: 2px;
+        }
+
+        .jump-nav a {
+            display: inline-block;
+            padding: var(--space-2) var(--space-3);
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-base);
+            flex-shrink: 0;
+        }
+
+        .jump-nav a:hover,
+        .jump-nav a:focus {
+            color: var(--honey-dark);
+            background: rgba(245, 184, 0, 0.15);
+        }
+
+        .jump-nav a.active {
+            color: var(--text-light);
+            background: linear-gradient(180deg, var(--honey-golden), var(--honey-amber));
+            box-shadow: var(--shadow-soft);
+        }
+
+        /* ============================================
+           TYPOGRAPHY
+           ============================================ */
+
+        h1, h2, h3, h4 {
+            font-family: var(--font-display);
+            font-weight: 500;
+            line-height: 1.3;
+            color: var(--text-primary);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: var(--space-4);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-bottom: var(--space-3);
+            color: var(--honey-dark);
+        }
+
+        h4 {
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: var(--space-3);
+            color: var(--text-secondary);
+        }
+
+        p {
+            margin-bottom: var(--space-4);
+            color: var(--text-secondary);
+            max-width: 68ch;
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
+
+        .section {
+            padding: var(--space-7) 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section:last-of-type {
+            border-bottom: none;
+        }
+
+        .section-header {
+            margin-bottom: var(--space-6);
+        }
+
+        .section-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 50px;
+            background: linear-gradient(180deg, var(--honey-golden) 0%, var(--honey-amber) 100%);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: var(--space-3);
+            box-shadow: var(--shadow-soft);
+            font-family: var(--font-body);
+        }
+
+        .section-description {
+            font-size: 1.05rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            max-width: 60ch;
+            line-height: 1.7;
+        }
+
+        .subsection {
+            margin-bottom: var(--space-6);
+        }
+
+        .subsection:last-child {
+            margin-bottom: 0;
+        }
+
+        .subsection-title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--honey-dark);
+            margin-bottom: var(--space-4);
+            padding-bottom: var(--space-2);
+            border-bottom: 2px solid var(--honey-cream);
+        }
+
+        /* ============================================
+           CODE BLOCKS
+           ============================================ */
+
+        pre {
+            background: var(--code-bg);
+            border-radius: var(--radius-md);
+            padding: var(--space-5);
+            margin-bottom: var(--space-5);
+            overflow-x: auto;
+            border: 1px solid rgba(212, 168, 75, 0.2);
+            box-shadow: var(--shadow-soft);
+        }
+
+        pre code {
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--code-text);
+            background: none;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        code {
+            font-family: var(--font-mono);
+            font-size: 0.875em;
+            background: rgba(245, 184, 0, 0.12);
+            color: var(--honey-darkest);
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+        }
+
+        .code-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--honey-amber);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-2);
+        }
+
+        /* Syntax highlighting classes */
+        pre .comment { color: var(--code-comment); font-style: italic; }
+        pre .keyword { color: var(--code-keyword); }
+        pre .string { color: var(--code-string); }
+        pre .punctuation { color: var(--code-punctuation); }
+
+        /* ============================================
+           TABLES
+           ============================================ */
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-soft);
+            margin-bottom: var(--space-5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            font-size: 0.9375rem;
+        }
+
+        th, td {
+            padding: var(--space-3) var(--space-4);
+            text-align: left;
+            border-bottom: 1px solid var(--honey-cream);
+        }
+
+        th {
+            background: linear-gradient(180deg, var(--honey-golden) 0%, var(--honey-amber) 100%);
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.8125rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        th:first-child {
+            border-radius: var(--radius-lg) 0 0 0;
+        }
+
+        th:last-child {
+            border-radius: 0 var(--radius-lg) 0 0;
+        }
+
+        tr:hover td {
+            background: rgba(245, 184, 0, 0.06);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        td code {
+            font-size: 0.8125rem;
+        }
+
+        /* ============================================
+           ALERT BOXES
+           ============================================ */
+
+        .alert {
+            padding: var(--space-4) var(--space-5);
+            border-radius: var(--radius-md);
+            margin-bottom: var(--space-5);
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        .alert p {
+            margin-bottom: 0;
+            max-width: none;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            margin-bottom: var(--space-2);
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, rgba(245, 184, 0, 0.1) 0%, rgba(255, 233, 184, 0.15) 100%);
+            border-left: 4px solid var(--honey-golden);
+            color: var(--text-secondary);
+        }
+
+        .alert-info .alert-title {
+            color: var(--honey-dark);
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, rgba(139, 90, 0, 0.1) 0%, rgba(107, 68, 35, 0.08) 100%);
+            border-left: 4px solid var(--propolis);
+            color: var(--text-secondary);
+        }
+
+        .alert-warning .alert-title {
+            color: var(--propolis);
+        }
+
+        /* ============================================
+           COMMAND GRID
+           ============================================ */
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-4);
+            margin-bottom: var(--space-5);
+        }
+
+        .command-card {
+            background: var(--bg-card);
+            border: 1px solid var(--honey-cream);
+            border-radius: var(--radius-md);
+            padding: var(--space-4);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .command-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--honey-golden), var(--honey-amber));
+        }
+
+        .command-card:hover {
+            box-shadow: var(--shadow-medium);
+            transform: translateY(-2px);
+        }
+
+        .command-card h4 {
+            font-family: var(--font-display);
+            font-size: 1.05rem;
+            color: var(--honey-dark);
+            margin-bottom: var(--space-2);
+        }
+
+        .command-card p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: var(--space-3);
+        }
+
+        .command-card code {
+            font-size: 0.8125rem;
+        }
+
+        /* ============================================
+           BADGES
+           ============================================ */
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px var(--space-3);
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: var(--radius-sm);
+            background: rgba(245, 184, 0, 0.15);
+            color: var(--honey-dark);
+        }
+
+        .badge-model {
+            background: linear-gradient(180deg, var(--honey-golden), var(--honey-amber));
+            color: var(--text-light);
+        }
+
+        .badge-app {
+            background: var(--beeswax);
+            color: var(--text-secondary);
+        }
+
+        .badge-user {
+            background: transparent;
+            border: 1.5px solid var(--honey-amber);
+            color: var(--honey-dark);
+        }
+
+        /* ============================================
+           ASCII DIAGRAM
+           ============================================ */
+
+        .diagram {
+            background: var(--code-bg);
+            border-radius: var(--radius-md);
+            padding: var(--space-5);
+            margin-bottom: var(--space-5);
+            overflow-x: auto;
+            border: 1px solid rgba(212, 168, 75, 0.2);
+        }
+
+        .diagram pre {
+            background: none;
+            border: none;
+            box-shadow: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .diagram pre code {
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            color: var(--code-text);
+        }
+
+        /* ============================================
+           FOOTER
+           ============================================ */
+
+        .site-footer {
+            padding: var(--space-7) 0;
+            background: linear-gradient(180deg, var(--bg-primary) 0%, var(--beeswax-light) 100%);
+            text-align: center;
+            margin-top: var(--space-7);
+            position: relative;
+        }
+
+        .site-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 46px;
+            background: var(--honey-amber);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            opacity: 0.2;
+        }
+
+        .site-footer a {
+            color: var(--honey-dark);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition-base);
+        }
+
+        .site-footer a:hover {
+            color: var(--honey-amber);
+        }
+
+        .site-footer p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin: var(--space-2) auto 0;
+        }
+
+        /* ============================================
+           RESPONSIVE
+           ============================================ */
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 var(--space-4);
+            }
+
+            .header {
+                padding: var(--space-6) 0 var(--space-5);
+            }
+
+            .section {
+                padding: var(--space-6) 0;
+            }
+
+            .section-header {
+                margin-bottom: var(--space-5);
+            }
+
+            h2 {
+                font-size: 1.6rem;
+            }
+
+            .command-grid {
+                grid-template-columns: 1fr;
+            }
+
+            pre {
+                padding: var(--space-4);
+                font-size: 0.8125rem;
+            }
+
+            th, td {
+                padding: var(--space-2) var(--space-3);
+                font-size: 0.8125rem;
+            }
+        }
+
+        /* ============================================
+           SCROLLBAR
+           ============================================ */
+
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--beeswax-light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--honey-golden), var(--honey-amber));
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, var(--honey-amber), var(--honey-deep));
+        }
+    </style>
+</head>
+<body>
+    <div class="honeycomb-bg"></div>
+
+    <a href="index.html" class="back-link">&larr; Tech Guides</a>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div>
+                    <h1>Model Context Protocol</h1>
+                    <p class="tagline">The universal standard for connecting AI to external tools, data, and capabilities</p>
+                </div>
+                <div class="header-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                        <path d="M2 17l10 5 10-5"></path>
+                        <path d="M2 12l10 5 10-5"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sticky Jump Nav -->
+    <nav class="jump-nav">
+        <a href="#quick-reference">01 Quick Reference</a>
+        <a href="#architecture">02 Architecture</a>
+        <a href="#getting-started">03 Getting Started</a>
+        <a href="#tools">04 Tools</a>
+        <a href="#resources">05 Resources</a>
+        <a href="#prompts">06 Prompts</a>
+        <a href="#transports">07 Transports</a>
+        <a href="#building-servers">08 Building Servers</a>
+        <a href="#building-clients">09 Building Clients</a>
+        <a href="#mcp-vs-alternatives">10 Alternatives</a>
+        <a href="#ecosystem">11 Ecosystem</a>
+    </nav>
+
+    <div class="container">
+
+        <!-- ============================================
+             SECTION 01 — QUICK REFERENCE
+             ============================================ -->
+
+        <section id="quick-reference" class="section">
+            <div class="section-header">
+                <div class="section-number">01</div>
+                <h2>Quick Reference</h2>
+                <p class="section-description">MCP concepts at a glance — the protocol primitives, transports, and core JSON-RPC methods that form the foundation of every integration.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Protocol Primitives</h3>
+                    <p>MCP defines three primitives, each with a different control model that determines who initiates the interaction.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Primitive</th>
+                                    <th>Control</th>
+                                    <th>Description</th>
+                                    <th>Example</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Tools</strong></td>
+                                    <td><span class="badge badge-model">Model-controlled</span></td>
+                                    <td>Functions the AI model can invoke to take actions or retrieve data</td>
+                                    <td><code>get_weather()</code>, <code>query_db()</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Resources</strong></td>
+                                    <td><span class="badge badge-app">App-controlled</span></td>
+                                    <td>Structured data the host application can expose to the model as context</td>
+                                    <td><code>file://project/src</code>, <code>config://app</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Prompts</strong></td>
+                                    <td><span class="badge badge-user">User-controlled</span></td>
+                                    <td>Templated messages and workflows the user selects from a menu</td>
+                                    <td><code>explain_code</code>, <code>review_pr</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Key insight</div>
+                        <p>The control model matters for safety. Tools are model-initiated (the AI decides to call them), resources are application-initiated (the host decides what context to attach), and prompts are user-initiated (the human picks a workflow). This layered control keeps humans in the loop.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Transport Comparison</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Transport</th>
+                                    <th>Use Case</th>
+                                    <th>Communication</th>
+                                    <th>Auth</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>stdio</strong></td>
+                                    <td>Local processes, CLI tools, IDE extensions</td>
+                                    <td>stdin/stdout JSON-RPC messages</td>
+                                    <td>OS process isolation</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Streamable HTTP</strong></td>
+                                    <td>Remote servers, cloud services, multi-client</td>
+                                    <td>HTTP POST + optional SSE streaming</td>
+                                    <td>OAuth 2.1 / API keys</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Core JSON-RPC Methods</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Method</th>
+                                    <th>Direction</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>initialize</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Handshake: exchange protocol version and capabilities</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tools/list</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Discover available tools with names, descriptions, and input schemas</td>
+                                </tr>
+                                <tr>
+                                    <td><code>tools/call</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Invoke a tool with arguments, receive result or error</td>
+                                </tr>
+                                <tr>
+                                    <td><code>resources/list</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Discover available resources with URIs and MIME types</td>
+                                </tr>
+                                <tr>
+                                    <td><code>resources/read</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Fetch content of a specific resource by URI</td>
+                                </tr>
+                                <tr>
+                                    <td><code>prompts/list</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Discover available prompt templates</td>
+                                </tr>
+                                <tr>
+                                    <td><code>prompts/get</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Resolve a prompt template with arguments into messages</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Capability Negotiation</h3>
+                    <p>During initialization, client and server declare what features they support. Only negotiated capabilities are used during the session.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Client Capabilities</h4>
+                            <p>Features the client can provide to the server</p>
+                            <code>roots</code> &middot; <code>sampling</code> &middot; <code>elicitation</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Server Capabilities</h4>
+                            <p>Features the server offers to the client</p>
+                            <code>tools</code> &middot; <code>resources</code> &middot; <code>prompts</code> &middot; <code>logging</code> &middot; <code>completions</code>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 02 — ARCHITECTURE OVERVIEW
+             ============================================ -->
+
+        <section id="architecture" class="section">
+            <div class="section-header">
+                <div class="section-number">02</div>
+                <h2>Architecture Overview</h2>
+                <p class="section-description">Understanding MCP's three participants, two protocol layers, and the lifecycle that governs every connection.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">The Three Participants</h3>
+                    <p>MCP cleanly separates concerns across three roles. A single application can contain all three, but the boundaries matter for security and modularity.</p>
+
+                    <div class="diagram">
+                        <pre><code>  +--------------------------------------------------+
+  |                     HOST                         |
+  |  (Claude Desktop, IDE, AI application)           |
+  |                                                  |
+  |   +------------+   +------------+   +----------+ |
+  |   |  MCP       |   |  MCP       |   |  MCP     | |
+  |   |  Client A  |   |  Client B  |   |  Client  | |
+  |   +-----+------+   +-----+------+   +----+-----+ |
+  +---------|---------------|---------------- |-------+
+            |               |                 |
+     +------+------+  +-----+-------+  +------+------+
+     |  MCP        |  |  MCP        |  |  MCP        |
+     |  Server A   |  |  Server B   |  |  Server C   |
+     |  (files)    |  |  (database) |  |  (API)      |
+     +-------------+  +-------------+  +-------------+</code></pre>
+                    </div>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Host</h4>
+                            <p>The AI application that creates and manages MCP clients. Controls permissions and security policies.</p>
+                            <code>Claude Desktop</code> &middot; <code>Claude Code</code> &middot; <code>IDEs</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Client</h4>
+                            <p>Maintains a 1:1 stateful session with a single server. Handles protocol negotiation and message routing.</p>
+                            <code>1 client = 1 server</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Server</h4>
+                            <p>Exposes tools, resources, and prompts to clients. Can be local processes or remote services.</p>
+                            <code>tools</code> &middot; <code>resources</code> &middot; <code>prompts</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Two Protocol Layers</h3>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Layer</th>
+                                    <th>Concern</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Data Layer</strong></td>
+                                    <td>Message format</td>
+                                    <td>JSON-RPC 2.0 messages — requests (with <code>id</code>), responses, and notifications (no <code>id</code>)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Transport Layer</strong></td>
+                                    <td>Delivery mechanism</td>
+                                    <td>stdio (local) or Streamable HTTP (remote). Pluggable — custom transports possible.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Lifecycle Phases</h3>
+                    <p>Every MCP connection goes through three phases. The handshake ensures both sides agree on protocol version and capabilities before any real work begins.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Phase</th>
+                                    <th>What Happens</th>
+                                    <th>Key Messages</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>1. Initialize</strong></td>
+                                    <td>Client sends protocol version and capabilities, server responds with its own</td>
+                                    <td><code>initialize</code> &rarr; response &rarr; <code>initialized</code> notification</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>2. Operation</strong></td>
+                                    <td>Normal request/response flow. Tool calls, resource reads, prompt gets</td>
+                                    <td><code>tools/call</code>, <code>resources/read</code>, <code>prompts/get</code>, notifications</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>3. Shutdown</strong></td>
+                                    <td>Clean disconnection. Transport-specific close procedures</td>
+                                    <td>Close stdin/stdout or HTTP connection</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Initialize Handshake</h3>
+                    <p>The initialization exchange sets the protocol version and declares capabilities. The latest protocol version is <code>2025-03-26</code>.</p>
+
+                    <span class="code-label">Client Request</span>
+                    <pre><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-03-26",
+    "capabilities": {
+      "roots": { "listChanged": true },
+      "sampling": {}
+    },
+    "clientInfo": {
+      "name": "my-ai-app",
+      "version": "1.0.0"
+    }
+  }
+}</code></pre>
+
+                    <span class="code-label">Server Response</span>
+                    <pre><code>{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2025-03-26",
+    "capabilities": {
+      "tools": { "listChanged": true },
+      "resources": { "subscribe": true, "listChanged": true },
+      "prompts": { "listChanged": true },
+      "logging": {}
+    },
+    "serverInfo": {
+      "name": "weather-server",
+      "version": "1.0.0"
+    }
+  }
+}</code></pre>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">Version negotiation</div>
+                        <p>The server must respond with a protocol version it supports. If the server cannot support the client's requested version, it should respond with the closest version it does support, and the client decides whether to proceed or disconnect.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 03 — GETTING STARTED
+             ============================================ -->
+
+        <section id="getting-started" class="section">
+            <div class="section-header">
+                <div class="section-number">03</div>
+                <h2>Getting Started</h2>
+                <p class="section-description">Install the SDK, build your first MCP server, and connect it to a host application in minutes.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Install the SDK</h3>
+
+                    <span class="code-label">Python</span>
+                    <pre><code>pip install "mcp[cli]"</code></pre>
+
+                    <span class="code-label">TypeScript / Node.js</span>
+                    <pre><code>npm install @modelcontextprotocol/sdk</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Python extras</div>
+                        <p>The <code>[cli]</code> extra installs the MCP Inspector and CLI dev tools. For production servers you can use <code>pip install mcp</code> for a minimal install.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">First Server — Python (FastMCP)</h3>
+                    <p>FastMCP is the high-level Python framework that handles all the protocol details. You just write decorated functions.</p>
+
+                    <span class="code-label">server.py</span>
+                    <pre><code><span class="keyword">from</span> mcp.server.fastmcp <span class="keyword">import</span> FastMCP
+
+<span class="comment"># Create an MCP server with a name</span>
+mcp = FastMCP(<span class="string">"weather"</span>)
+
+<span class="keyword">@mcp.tool()</span>
+<span class="keyword">def</span> get_weather(location: <span class="keyword">str</span>) -> <span class="keyword">str</span>:
+    <span class="string">"""Get current weather for a location."""</span>
+    <span class="comment"># Your real implementation here</span>
+    <span class="keyword">return</span> <span class="string">f"Weather in {location}: 72F, sunny"</span>
+
+<span class="keyword">@mcp.resource</span>(<span class="string">"config://app"</span>)
+<span class="keyword">def</span> get_config() -> <span class="keyword">str</span>:
+    <span class="string">"""Application configuration."""</span>
+    <span class="keyword">return</span> <span class="string">"debug=true\nlog_level=info"</span>
+
+<span class="keyword">@mcp.prompt</span>()
+<span class="keyword">def</span> review_code(code: <span class="keyword">str</span>) -> <span class="keyword">str</span>:
+    <span class="string">"""Review the given code for issues."""</span>
+    <span class="keyword">return</span> <span class="string">f"Please review this code:\n\n{code}"</span></code></pre>
+
+                    <p>Run the server locally with stdio transport:</p>
+                    <pre><code>mcp dev server.py</code></pre>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">First Server — TypeScript</h3>
+
+                    <span class="code-label">server.ts</span>
+                    <pre><code><span class="keyword">import</span> { McpServer } <span class="keyword">from</span> <span class="string">"@modelcontextprotocol/sdk/server/mcp.js"</span>;
+<span class="keyword">import</span> { StdioServerTransport } <span class="keyword">from</span> <span class="string">"@modelcontextprotocol/sdk/server/stdio.js"</span>;
+<span class="keyword">import</span> { z } <span class="keyword">from</span> <span class="string">"zod"</span>;
+
+<span class="keyword">const</span> server = <span class="keyword">new</span> McpServer({
+  name: <span class="string">"weather"</span>,
+  version: <span class="string">"1.0.0"</span>
+});
+
+server.tool(
+  <span class="string">"get_weather"</span>,
+  <span class="string">"Get current weather for a location"</span>,
+  { location: z.string() },
+  <span class="keyword">async</span> ({ location }) => ({
+    content: [{
+      type: <span class="string">"text"</span>,
+      text: <span class="string">`Weather in </span>${location}<span class="string">: 72F, sunny`</span>
+    }]
+  })
+);
+
+<span class="keyword">const</span> transport = <span class="keyword">new</span> StdioServerTransport();
+<span class="keyword">await</span> server.connect(transport);</code></pre>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Configure Claude Desktop</h3>
+                    <p>Add your server to Claude Desktop's configuration file to make it available in the app.</p>
+
+                    <span class="code-label">claude_desktop_config.json</span>
+                    <pre><code>{
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"weather"</span>: {
+      <span class="string">"command"</span>: <span class="string">"python"</span>,
+      <span class="string">"args"</span>: [<span class="string">"server.py"</span>],
+      <span class="string">"env"</span>: {
+        <span class="string">"WEATHER_API_KEY"</span>: <span class="string">"your-key-here"</span>
+      }
+    }
+  }
+}</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Config file location</div>
+                        <p>On macOS: <code>~/Library/Application Support/Claude/claude_desktop_config.json</code><br>
+                        On Windows: <code>%APPDATA%\Claude\claude_desktop_config.json</code></p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Configure Claude Code</h3>
+                    <p>Claude Code uses a project-level <code>.mcp.json</code> file or global settings.</p>
+
+                    <span class="code-label">.mcp.json (project root)</span>
+                    <pre><code>{
+  <span class="string">"mcpServers"</span>: {
+    <span class="string">"weather"</span>: {
+      <span class="string">"command"</span>: <span class="string">"python"</span>,
+      <span class="string">"args"</span>: [<span class="string">"server.py"</span>]
+    }
+  }
+}</code></pre>
+
+                    <p>Or add via the CLI:</p>
+                    <pre><code>claude mcp add weather python server.py</code></pre>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Test with MCP Inspector</h3>
+                    <p>The MCP Inspector is a visual debugging tool that lets you interact with your server directly.</p>
+
+                    <pre><code><span class="comment"># Launch inspector for your server</span>
+mcp dev server.py
+
+<span class="comment"># Or use npx for the TypeScript inspector</span>
+npx @modelcontextprotocol/inspector node server.js</code></pre>
+
+                    <p>The Inspector opens a web UI where you can browse tools, resources, and prompts, invoke them with test inputs, and inspect the raw JSON-RPC messages.</p>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 04 — TOOLS
+             ============================================ -->
+
+        <section id="tools" class="section">
+            <div class="section-header">
+                <div class="section-number">04</div>
+                <h2>Tools</h2>
+                <p class="section-description">Model-controlled functions that let the AI take actions and retrieve computed results.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">What Are Tools?</h3>
+                    <p>Tools are executable functions exposed by MCP servers that the AI model can decide to invoke based on conversation context. Unlike resources (which are application-controlled) or prompts (which are user-controlled), tools are <strong>model-controlled</strong> — the LLM autonomously decides when and how to call them.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>API Calls</h4>
+                            <p>Fetch data from external services — weather, search, databases</p>
+                            <code>get_weather()</code> &middot; <code>search_web()</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>File Operations</h4>
+                            <p>Read, write, and manipulate files on the local filesystem</p>
+                            <code>read_file()</code> &middot; <code>write_file()</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Database Queries</h4>
+                            <p>Execute SQL or NoSQL queries against connected data stores</p>
+                            <code>query_db()</code> &middot; <code>insert_record()</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Computations</h4>
+                            <p>Perform calculations, transformations, or code execution</p>
+                            <code>calculate()</code> &middot; <code>run_script()</code>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Key distinction</div>
+                        <p>Tools represent actions with side effects or computed results. The model sees the tool's name, description, and input schema, then decides whether to call it. The host application can enforce approval policies before execution.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Tool Definition Schema</h3>
+                    <p>Every tool is defined with a JSON Schema that describes its name, purpose, inputs, outputs, and behavioral annotations. Servers expose these definitions via <code>tools/list</code>.</p>
+
+                    <span class="code-label">Tool Definition</span>
+                    <pre><code>{
+  <span class="string">"name"</span>: <span class="string">"get_weather"</span>,
+  <span class="string">"title"</span>: <span class="string">"Weather Provider"</span>,
+  <span class="string">"description"</span>: <span class="string">"Get current weather for a location"</span>,
+  <span class="string">"inputSchema"</span>: {
+    <span class="string">"type"</span>: <span class="string">"object"</span>,
+    <span class="string">"properties"</span>: {
+      <span class="string">"location"</span>: {
+        <span class="string">"type"</span>: <span class="string">"string"</span>,
+        <span class="string">"description"</span>: <span class="string">"City name or zip code"</span>
+      }
+    },
+    <span class="string">"required"</span>: [<span class="string">"location"</span>]
+  },
+  <span class="string">"outputSchema"</span>: {
+    <span class="string">"type"</span>: <span class="string">"object"</span>,
+    <span class="string">"properties"</span>: {
+      <span class="string">"temperature"</span>: { <span class="string">"type"</span>: <span class="string">"number"</span> },
+      <span class="string">"conditions"</span>: { <span class="string">"type"</span>: <span class="string">"string"</span> }
+    }
+  },
+  <span class="string">"annotations"</span>: {
+    <span class="string">"readOnlyHint"</span>: <span class="keyword">true</span>,
+    <span class="string">"openWorldHint"</span>: <span class="keyword">true</span>
+  }
+}</code></pre>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>name</code></td>
+                                    <td>Yes</td>
+                                    <td>1-128 chars, case-sensitive, <code>[A-Za-z0-9_\-.]</code> only</td>
+                                </tr>
+                                <tr>
+                                    <td><code>title</code></td>
+                                    <td>No</td>
+                                    <td>Human-readable display name for UI presentation</td>
+                                </tr>
+                                <tr>
+                                    <td><code>description</code></td>
+                                    <td>No</td>
+                                    <td>Human-readable explanation of what the tool does (helps LLM decide when to use it)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>inputSchema</code></td>
+                                    <td>Yes</td>
+                                    <td>Must be a valid JSON Schema <code>object</code> type defining the tool's parameters</td>
+                                </tr>
+                                <tr>
+                                    <td><code>outputSchema</code></td>
+                                    <td>No</td>
+                                    <td>JSON Schema describing the structured content in the tool's response</td>
+                                </tr>
+                                <tr>
+                                    <td><code>annotations</code></td>
+                                    <td>No</td>
+                                    <td>Behavioral hints about the tool's side effects and interaction model</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">No-parameter tools</div>
+                        <p>For tools that take no arguments, use an empty object schema: <code>{ "type": "object", "additionalProperties": false }</code></p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Calling Tools</h3>
+                    <p>The client invokes a tool via <code>tools/call</code>, passing the tool name and arguments. The server executes the tool and returns structured content.</p>
+
+                    <span class="code-label">Request</span>
+                    <pre><code>{
+  <span class="string">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="string">"id"</span>: <span class="keyword">2</span>,
+  <span class="string">"method"</span>: <span class="string">"tools/call"</span>,
+  <span class="string">"params"</span>: {
+    <span class="string">"name"</span>: <span class="string">"get_weather"</span>,
+    <span class="string">"arguments"</span>: {
+      <span class="string">"location"</span>: <span class="string">"New York"</span>
+    }
+  }
+}</code></pre>
+
+                    <span class="code-label">Success Response</span>
+                    <pre><code>{
+  <span class="string">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="string">"id"</span>: <span class="keyword">2</span>,
+  <span class="string">"result"</span>: {
+    <span class="string">"content"</span>: [{
+      <span class="string">"type"</span>: <span class="string">"text"</span>,
+      <span class="string">"text"</span>: <span class="string">"72&deg;F, sunny"</span>
+    }],
+    <span class="string">"isError"</span>: <span class="keyword">false</span>
+  }
+}</code></pre>
+
+                    <span class="code-label">Tool Error Response</span>
+                    <pre><code>{
+  <span class="string">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="string">"id"</span>: <span class="keyword">2</span>,
+  <span class="string">"result"</span>: {
+    <span class="string">"content"</span>: [{
+      <span class="string">"type"</span>: <span class="string">"text"</span>,
+      <span class="string">"text"</span>: <span class="string">"Invalid location: coordinates out of range"</span>
+    }],
+    <span class="string">"isError"</span>: <span class="keyword">true</span>
+  }
+}</code></pre>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Tool Annotations</h3>
+                    <p>Annotations are optional behavioral hints that describe a tool's side effects and interaction model. Clients can use them to make UI and safety decisions.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Annotation</th>
+                                    <th>Default</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>readOnlyHint</code></td>
+                                    <td><code>false</code></td>
+                                    <td>Tool does not modify the environment — safe to call without confirmation</td>
+                                </tr>
+                                <tr>
+                                    <td><code>destructiveHint</code></td>
+                                    <td><code>true</code></td>
+                                    <td>Tool may perform destructive updates (delete, overwrite) — prompt user for approval</td>
+                                </tr>
+                                <tr>
+                                    <td><code>idempotentHint</code></td>
+                                    <td><code>false</code></td>
+                                    <td>Repeated calls with same arguments have no additional effect — safe to retry</td>
+                                </tr>
+                                <tr>
+                                    <td><code>openWorldHint</code></td>
+                                    <td><code>true</code></td>
+                                    <td>Tool interacts with external systems beyond the MCP server's own environment</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">Trust boundary</div>
+                        <p>Annotations are untrusted hints unless they come from a verified trusted server. A malicious server could claim <code>readOnlyHint: true</code> for a destructive tool. Hosts should enforce their own safety policies and not rely solely on annotations.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Error Handling</h3>
+                    <p>MCP distinguishes between two error modes. Understanding the difference is critical for building robust integrations.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Protocol Errors</h4>
+                            <p>JSON-RPC <code>error</code> field in the response. Indicates the request itself was invalid — unknown tool name, malformed arguments, transport failure.</p>
+                            <code>-32601</code> &middot; <code>-32602</code> &middot; <code>-32603</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Tool Execution Errors</h4>
+                            <p>Normal result with <code>isError: true</code>. The tool ran but encountered a problem — API timeout, validation failure, resource not found. LLMs can read the error and self-correct.</p>
+                            <code>isError: true</code>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Why this matters</div>
+                        <p>Protocol errors are not shown to the LLM — they indicate a bug in the integration. Tool execution errors are returned to the model as content, allowing it to try a different approach, adjust parameters, or explain the problem to the user.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Content Types</h3>
+                    <p>Tool results can include multiple content items of different types in the <code>content</code> array.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Format</th>
+                                    <th>Use Case</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>text</code></td>
+                                    <td>Plain text string</td>
+                                    <td>Most common — API responses, computed results, status messages</td>
+                                </tr>
+                                <tr>
+                                    <td><code>image</code></td>
+                                    <td>Base64-encoded data + MIME type</td>
+                                    <td>Screenshots, charts, generated images</td>
+                                </tr>
+                                <tr>
+                                    <td><code>audio</code></td>
+                                    <td>Base64-encoded data + MIME type</td>
+                                    <td>Audio recordings, synthesized speech</td>
+                                </tr>
+                                <tr>
+                                    <td><code>resource_link</code></td>
+                                    <td>URI reference to an MCP resource</td>
+                                    <td>Link to a resource for the client to fetch separately</td>
+                                </tr>
+                                <tr>
+                                    <td><code>resource</code></td>
+                                    <td>Embedded resource content inline</td>
+                                    <td>Full resource data included directly in the tool result</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <span class="code-label">Mixed Content Example</span>
+                    <pre><code>{
+  <span class="string">"content"</span>: [
+    { <span class="string">"type"</span>: <span class="string">"text"</span>, <span class="string">"text"</span>: <span class="string">"Analysis complete. See chart below."</span> },
+    {
+      <span class="string">"type"</span>: <span class="string">"image"</span>,
+      <span class="string">"data"</span>: <span class="string">"iVBORw0KGgo..."</span>,
+      <span class="string">"mimeType"</span>: <span class="string">"image/png"</span>
+    },
+    {
+      <span class="string">"type"</span>: <span class="string">"resource_link"</span>,
+      <span class="string">"uri"</span>: <span class="string">"file:///reports/analysis.csv"</span>,
+      <span class="string">"name"</span>: <span class="string">"Full Data"</span>,
+      <span class="string">"mimeType"</span>: <span class="string">"text/csv"</span>
+    }
+  ]
+}</code></pre>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 05 — RESOURCES
+             ============================================ -->
+
+        <section id="resources" class="section">
+            <div class="section-header">
+                <div class="section-number">05</div>
+                <h2>Resources</h2>
+                <p class="section-description">Application-controlled data sources that provide structured context to the model via URI-addressable content.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">What Are Resources?</h3>
+                    <p>Resources are URI-addressable data sources that provide context to the LLM. Unlike tools, resources are <strong>application-controlled</strong> — the host application decides which resources to attach to the model's context, not the model itself.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>File Contents</h4>
+                            <p>Source code, configuration files, documentation</p>
+                            <code>file:///project/src/main.rs</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Database Records</h4>
+                            <p>Query results, schema definitions, row data</p>
+                            <code>db://tables/users</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>API Responses</h4>
+                            <p>Cached or live data from external services</p>
+                            <code>api://github/repos</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Live System Data</h4>
+                            <p>Logs, metrics, environment info, app state</p>
+                            <code>config://app/settings</code>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Resources vs Tools</div>
+                        <p>Resources provide <em>data</em> for context. Tools perform <em>actions</em> with side effects. If you need to read a file, that is a resource. If you need to write a file, that is a tool. The host app decides which resources to include — the model never fetches resources on its own.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Listing Resources</h3>
+                    <p>Clients discover available resources via <code>resources/list</code>. The server returns a paginated list of concrete resources with their URIs, descriptions, and metadata.</p>
+
+                    <span class="code-label">resources/list Response</span>
+                    <pre><code>{
+  <span class="string">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="string">"id"</span>: <span class="keyword">3</span>,
+  <span class="string">"result"</span>: {
+    <span class="string">"resources"</span>: [
+      {
+        <span class="string">"uri"</span>: <span class="string">"file:///project/src/main.rs"</span>,
+        <span class="string">"name"</span>: <span class="string">"main.rs"</span>,
+        <span class="string">"description"</span>: <span class="string">"Primary application entry point"</span>,
+        <span class="string">"mimeType"</span>: <span class="string">"text/x-rust"</span>,
+        <span class="string">"size"</span>: <span class="keyword">1234</span>
+      },
+      {
+        <span class="string">"uri"</span>: <span class="string">"config://app/settings"</span>,
+        <span class="string">"name"</span>: <span class="string">"App Settings"</span>,
+        <span class="string">"description"</span>: <span class="string">"Current application configuration"</span>,
+        <span class="string">"mimeType"</span>: <span class="string">"application/json"</span>
+      }
+    ]
+  }
+}</code></pre>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Field</th>
+                                    <th>Required</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>uri</code></td>
+                                    <td>Yes</td>
+                                    <td>Unique identifier for the resource (any valid URI scheme)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>name</code></td>
+                                    <td>Yes</td>
+                                    <td>Human-readable name for display in UI</td>
+                                </tr>
+                                <tr>
+                                    <td><code>description</code></td>
+                                    <td>No</td>
+                                    <td>Explanation of what the resource contains</td>
+                                </tr>
+                                <tr>
+                                    <td><code>mimeType</code></td>
+                                    <td>No</td>
+                                    <td>MIME type of the resource content (e.g. <code>text/plain</code>, <code>application/json</code>)</td>
+                                </tr>
+                                <tr>
+                                    <td><code>size</code></td>
+                                    <td>No</td>
+                                    <td>Size in bytes, if known. Helps clients decide whether to fetch</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Reading Resources</h3>
+                    <p>Clients fetch resource content via <code>resources/read</code>. Resources can return text or binary (base64-encoded) content.</p>
+
+                    <span class="code-label">Text Resource</span>
+                    <pre><code><span class="comment">// Request</span>
+{
+  <span class="string">"method"</span>: <span class="string">"resources/read"</span>,
+  <span class="string">"params"</span>: { <span class="string">"uri"</span>: <span class="string">"file:///project/src/main.rs"</span> }
+}
+
+<span class="comment">// Response</span>
+{
+  <span class="string">"result"</span>: {
+    <span class="string">"contents"</span>: [{
+      <span class="string">"uri"</span>: <span class="string">"file:///project/src/main.rs"</span>,
+      <span class="string">"mimeType"</span>: <span class="string">"text/x-rust"</span>,
+      <span class="string">"text"</span>: <span class="string">"fn main() {\n    println!(\"Hello, world!\");\n}"</span>
+    }]
+  }
+}</code></pre>
+
+                    <span class="code-label">Binary Resource</span>
+                    <pre><code>{
+  <span class="string">"result"</span>: {
+    <span class="string">"contents"</span>: [{
+      <span class="string">"uri"</span>: <span class="string">"file:///project/logo.png"</span>,
+      <span class="string">"mimeType"</span>: <span class="string">"image/png"</span>,
+      <span class="string">"blob"</span>: <span class="string">"iVBORw0KGgoAAAANSUhEUgAA..."</span>
+    }]
+  }
+}</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Text vs Binary</div>
+                        <p>Text resources use the <code>text</code> field. Binary resources use the <code>blob</code> field with base64-encoded data. A single <code>resources/read</code> response can return multiple content items for the same URI.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Resource Templates</h3>
+                    <p>Resource templates use URI Templates (RFC 6570) to expose dynamic, parameterized resources. Instead of listing every possible file, a server can expose a template that the client fills in.</p>
+
+                    <span class="code-label">Template Definition</span>
+                    <pre><code>{
+  <span class="string">"uriTemplate"</span>: <span class="string">"file:///{path}"</span>,
+  <span class="string">"name"</span>: <span class="string">"Project Files"</span>,
+  <span class="string">"description"</span>: <span class="string">"Access any file in the project by path"</span>,
+  <span class="string">"mimeType"</span>: <span class="string">"application/octet-stream"</span>
+}</code></pre>
+
+                    <span class="code-label">More Template Examples</span>
+                    <pre><code><span class="comment">// Database table rows</span>
+{ <span class="string">"uriTemplate"</span>: <span class="string">"db://tables/{table}/rows/{id}"</span> }
+
+<span class="comment">// Git repository at a specific ref</span>
+{ <span class="string">"uriTemplate"</span>: <span class="string">"git://{repo}/blob/{ref}/{path}"</span> }
+
+<span class="comment">// API endpoint with query parameters</span>
+{ <span class="string">"uriTemplate"</span>: <span class="string">"api://search?q={query}&amp;limit={limit}"</span> }</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Discovery</div>
+                        <p>Templates are returned alongside concrete resources in <code>resources/list</code> via a separate <code>resourceTemplates</code> field. Clients can also use <code>completions/complete</code> to get autocomplete suggestions for template parameters.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Subscriptions</h3>
+                    <p>Clients can subscribe to resource changes and receive real-time notifications when content updates.</p>
+
+                    <span class="code-label">Subscribe to a Resource</span>
+                    <pre><code><span class="comment">// Client subscribes</span>
+{
+  <span class="string">"method"</span>: <span class="string">"resources/subscribe"</span>,
+  <span class="string">"params"</span>: { <span class="string">"uri"</span>: <span class="string">"file:///project/src/main.rs"</span> }
+}
+
+<span class="comment">// Server notifies on change</span>
+{
+  <span class="string">"method"</span>: <span class="string">"notifications/resources/updated"</span>,
+  <span class="string">"params"</span>: { <span class="string">"uri"</span>: <span class="string">"file:///project/src/main.rs"</span> }
+}
+
+<span class="comment">// Client re-reads the resource</span>
+{
+  <span class="string">"method"</span>: <span class="string">"resources/read"</span>,
+  <span class="string">"params"</span>: { <span class="string">"uri"</span>: <span class="string">"file:///project/src/main.rs"</span> }
+}</code></pre>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">Capability required</div>
+                        <p>Subscriptions are only available if the server declared <code>"resources": { "subscribe": true }</code> during capability negotiation. Servers also send <code>notifications/resources/list_changed</code> when the set of available resources changes.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Resource Annotations</h3>
+                    <p>Resources can include annotations that help clients decide how to present them to the model.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Annotation</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>audience</code></td>
+                                    <td>Array of <code>"user"</code> | <code>"assistant"</code></td>
+                                    <td>Who the resource is intended for. Both if omitted.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>priority</code></td>
+                                    <td>Number (0.0 &ndash; 1.0)</td>
+                                    <td>Relative importance. 1.0 = must include, 0.0 = low priority context.</td>
+                                </tr>
+                                <tr>
+                                    <td><code>lastModified</code></td>
+                                    <td>ISO 8601 timestamp</td>
+                                    <td>When the resource was last changed. Helps with cache invalidation.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <span class="code-label">Annotated Resource Example</span>
+                    <pre><code>{
+  <span class="string">"uri"</span>: <span class="string">"file:///project/README.md"</span>,
+  <span class="string">"name"</span>: <span class="string">"Project README"</span>,
+  <span class="string">"mimeType"</span>: <span class="string">"text/markdown"</span>,
+  <span class="string">"annotations"</span>: {
+    <span class="string">"audience"</span>: [<span class="string">"assistant"</span>],
+    <span class="string">"priority"</span>: <span class="keyword">0.8</span>,
+    <span class="string">"lastModified"</span>: <span class="string">"2025-03-15T10:30:00Z"</span>
+  }
+}</code></pre>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 06 — PROMPTS
+             ============================================ -->
+
+        <section id="prompts" class="section">
+            <div class="section-header">
+                <div class="section-number">06</div>
+                <h2>Prompts</h2>
+                <p class="section-description">User-controlled templates that define reusable workflows and interaction patterns.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">What Are Prompts?</h3>
+                    <p>Prompts are reusable message templates that users explicitly choose to invoke. They are <strong>user-controlled</strong> — the human selects a prompt from a menu, slash command, or UI action. The server defines the template; the user triggers it.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Slash Commands</h4>
+                            <p>User types <code>/review</code> or <code>/explain</code> to trigger a workflow</p>
+                            <code>/review-code</code> &middot; <code>/summarize</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Menu Options</h4>
+                            <p>UI presents a list of available prompts for the user to pick from</p>
+                            <code>Quick Actions</code> &middot; <code>Workflows</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Structured Workflows</h4>
+                            <p>Multi-step prompts that guide the model through a specific process</p>
+                            <code>debug_error</code> &middot; <code>git_commit</code>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Prompts vs Tools vs Resources</div>
+                        <p>Prompts generate <em>messages</em> for the conversation. They do not execute code or fetch data directly. A prompt can embed resource content and suggest tool usage, but the prompt itself just produces structured messages that get inserted into the conversation.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Listing Prompts</h3>
+                    <p>Clients discover available prompts via <code>prompts/list</code>. Each prompt declares its name, description, and any required arguments.</p>
+
+                    <span class="code-label">prompts/list Response</span>
+                    <pre><code>{
+  <span class="string">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="string">"id"</span>: <span class="keyword">4</span>,
+  <span class="string">"result"</span>: {
+    <span class="string">"prompts"</span>: [
+      {
+        <span class="string">"name"</span>: <span class="string">"review_code"</span>,
+        <span class="string">"description"</span>: <span class="string">"Review code for bugs, style issues, and improvements"</span>,
+        <span class="string">"arguments"</span>: [
+          {
+            <span class="string">"name"</span>: <span class="string">"code"</span>,
+            <span class="string">"description"</span>: <span class="string">"The code to review"</span>,
+            <span class="string">"required"</span>: <span class="keyword">true</span>
+          },
+          {
+            <span class="string">"name"</span>: <span class="string">"language"</span>,
+            <span class="string">"description"</span>: <span class="string">"Programming language"</span>,
+            <span class="string">"required"</span>: <span class="keyword">false</span>
+          }
+        ]
+      },
+      {
+        <span class="string">"name"</span>: <span class="string">"explain_error"</span>,
+        <span class="string">"description"</span>: <span class="string">"Explain an error message and suggest fixes"</span>,
+        <span class="string">"arguments"</span>: [
+          {
+            <span class="string">"name"</span>: <span class="string">"error"</span>,
+            <span class="string">"description"</span>: <span class="string">"The error message or stack trace"</span>,
+            <span class="string">"required"</span>: <span class="keyword">true</span>
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Getting Prompts</h3>
+                    <p>The client resolves a prompt template into concrete messages via <code>prompts/get</code>, passing any required arguments. The server interpolates the arguments and returns ready-to-use messages.</p>
+
+                    <span class="code-label">Request</span>
+                    <pre><code>{
+  <span class="string">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="string">"id"</span>: <span class="keyword">5</span>,
+  <span class="string">"method"</span>: <span class="string">"prompts/get"</span>,
+  <span class="string">"params"</span>: {
+    <span class="string">"name"</span>: <span class="string">"review_code"</span>,
+    <span class="string">"arguments"</span>: {
+      <span class="string">"code"</span>: <span class="string">"def hello():\n    print('world')"</span>
+    }
+  }
+}</code></pre>
+
+                    <span class="code-label">Response</span>
+                    <pre><code>{
+  <span class="string">"jsonrpc"</span>: <span class="string">"2.0"</span>,
+  <span class="string">"id"</span>: <span class="keyword">5</span>,
+  <span class="string">"result"</span>: {
+    <span class="string">"description"</span>: <span class="string">"Code review prompt"</span>,
+    <span class="string">"messages"</span>: [{
+      <span class="string">"role"</span>: <span class="string">"user"</span>,
+      <span class="string">"content"</span>: {
+        <span class="string">"type"</span>: <span class="string">"text"</span>,
+        <span class="string">"text"</span>: <span class="string">"Please review this code:\ndef hello():\n    print('world')"</span>
+      }
+    }]
+  }
+}</code></pre>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Multi-Step Prompts</h3>
+                    <p>Prompts can return multiple messages with different roles, creating a structured conversation flow that guides the model's behavior.</p>
+
+                    <span class="code-label">Multi-Message Prompt Response</span>
+                    <pre><code>{
+  <span class="string">"result"</span>: {
+    <span class="string">"description"</span>: <span class="string">"Guided debugging workflow"</span>,
+    <span class="string">"messages"</span>: [
+      {
+        <span class="string">"role"</span>: <span class="string">"user"</span>,
+        <span class="string">"content"</span>: {
+          <span class="string">"type"</span>: <span class="string">"text"</span>,
+          <span class="string">"text"</span>: <span class="string">"I'm getting this error: TypeError: Cannot read properties of undefined"</span>
+        }
+      },
+      {
+        <span class="string">"role"</span>: <span class="string">"assistant"</span>,
+        <span class="string">"content"</span>: {
+          <span class="string">"type"</span>: <span class="string">"text"</span>,
+          <span class="string">"text"</span>: <span class="string">"I'll help debug this. Let me analyze the error systematically:\n\n1. First, I'll identify what variable is undefined\n2. Then trace where it should have been set\n3. Finally, suggest a fix"</span>
+        }
+      },
+      {
+        <span class="string">"role"</span>: <span class="string">"user"</span>,
+        <span class="string">"content"</span>: {
+          <span class="string">"type"</span>: <span class="string">"text"</span>,
+          <span class="string">"text"</span>: <span class="string">"Here is the relevant source code. Please proceed with the analysis."</span>
+        }
+      }
+    ]
+  }
+}</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Why multi-step?</div>
+                        <p>By including <code>assistant</code> role messages, prompts can prime the model with a specific reasoning approach or persona. This is more reliable than asking the model to "act as" something — you are directly seeding its conversation history.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Embedded Resources</h3>
+                    <p>Prompt messages can embed resource content directly, combining the prompt template with live data from the server.</p>
+
+                    <span class="code-label">Prompt with Embedded Resource</span>
+                    <pre><code>{
+  <span class="string">"result"</span>: {
+    <span class="string">"messages"</span>: [{
+      <span class="string">"role"</span>: <span class="string">"user"</span>,
+      <span class="string">"content"</span>: {
+        <span class="string">"type"</span>: <span class="string">"resource"</span>,
+        <span class="string">"resource"</span>: {
+          <span class="string">"uri"</span>: <span class="string">"file:///project/src/main.rs"</span>,
+          <span class="string">"mimeType"</span>: <span class="string">"text/x-rust"</span>,
+          <span class="string">"text"</span>: <span class="string">"fn main() {\n    println!(\"Hello, world!\");\n}"</span>
+        }
+      }
+    },
+    {
+      <span class="string">"role"</span>: <span class="string">"user"</span>,
+      <span class="string">"content"</span>: {
+        <span class="string">"type"</span>: <span class="string">"text"</span>,
+        <span class="string">"text"</span>: <span class="string">"Please review the above file for potential improvements."</span>
+      }
+    }]
+  }
+}</code></pre>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">Dynamic context</div>
+                        <p>Embedded resources are resolved at prompt-get time, not at definition time. This means the prompt always includes the latest version of the resource content. The server fetches the resource and inlines it into the message before returning.</p>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 07 — TRANSPORTS
+             ============================================ -->
+
+        <section id="transports" class="section">
+            <div class="section-header">
+                <div class="section-number">07</div>
+                <h2>Transports</h2>
+                <p class="section-description">The communication layer -- stdio for local processes and Streamable HTTP for remote services, with OAuth 2.1 authorization.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Transport Overview</h3>
+                    <p>MCP uses JSON-RPC 2.0 messages encoded as UTF-8 over two standard transports. The protocol layer is identical regardless of transport — only the delivery mechanism changes.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>stdio</h4>
+                            <p>Client launches server as a child process. Messages flow over stdin/stdout as newline-delimited JSON.</p>
+                            <code>Local</code> &middot; <code>Zero config</code> &middot; <code>1:1 only</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Streamable HTTP</h4>
+                            <p>Server exposes an HTTP endpoint. Client sends JSON-RPC via POST, receives JSON or SSE responses.</p>
+                            <code>Remote</code> &middot; <code>Multi-client</code> &middot; <code>OAuth ready</code>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Protocol version note</div>
+                        <p>Streamable HTTP replaces the deprecated HTTP+SSE transport from the <code>2024-11-05</code> protocol version. New implementations should use Streamable HTTP exclusively.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">stdio Transport</h3>
+                    <p>The simplest transport: the client launches the server as a subprocess and communicates via standard I/O streams. Messages are newline-delimited JSON-RPC.</p>
+
+                    <div class="diagram">
+                        <pre><code>  Client launches subprocess
+    &rarr; Client writes JSON-RPC to stdin
+    &larr; Server writes JSON-RPC to stdout
+    &larr; Server logs to stderr (optional)
+
+  Shutdown:
+    Client closes stdin &rarr; SIGTERM &rarr; SIGKILL</code></pre>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Rule</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>stdout is sacred</strong></td>
+                                    <td>Server MUST NOT write non-MCP messages to stdout. Use stderr for logging and debug output.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>stdin is sacred</strong></td>
+                                    <td>Client MUST NOT write non-MCP messages to stdin. The stream is exclusively for JSON-RPC.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Newline-delimited</strong></td>
+                                    <td>Each JSON-RPC message is terminated by a newline. Messages MUST NOT contain embedded newlines.</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Process lifecycle</strong></td>
+                                    <td>Client owns the process. Closing stdin signals shutdown; server should exit cleanly.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p><strong>Best for:</strong> Local tools, IDE integrations, same-machine processes, zero network overhead. Most development-time MCP servers use stdio.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Streamable HTTP Transport</h3>
+                    <p>For remote and multi-client scenarios, the server exposes a single HTTP endpoint (e.g., <code>https://example.com/mcp</code>). This transport supports both request-response and streaming patterns.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Operation</th>
+                                    <th>Method</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Send message</strong></td>
+                                    <td><code>POST /mcp</code></td>
+                                    <td>Body is a single JSON-RPC message. Client MUST include <code>Accept: application/json, text/event-stream</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>JSON response</strong></td>
+                                    <td>POST &rarr; <code>200</code></td>
+                                    <td>Server responds with <code>Content-Type: application/json</code> for simple request/response</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>SSE response</strong></td>
+                                    <td>POST &rarr; <code>200</code></td>
+                                    <td>Server responds with <code>Content-Type: text/event-stream</code> for streaming results</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Notification</strong></td>
+                                    <td>POST &rarr; <code>202</code></td>
+                                    <td>For notifications and responses that need no reply, server returns <code>202 Accepted</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Listen for server messages</strong></td>
+                                    <td><code>GET /mcp</code></td>
+                                    <td>Client opens SSE stream to receive server-initiated notifications and requests</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <span class="code-label">Example POST Request</span>
+                    <pre><code>POST /mcp HTTP/1.1
+Host: example.com
+Content-Type: application/json
+Accept: application/json, text/event-stream
+MCP-Session-Id: abc123
+MCP-Protocol-Version: 2025-03-26
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "get_weather",
+    "arguments": { "location": "NYC" }
+  }
+}</code></pre>
+
+                    <p><strong>Best for:</strong> Remote servers, multi-tenant platforms, cloud services, cross-network integrations where multiple clients connect to the same server.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Session Management</h3>
+                    <p>Streamable HTTP connections use session IDs to maintain state across requests. Sessions are optional but recommended for any stateful interaction.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Header</th>
+                                    <th>Direction</th>
+                                    <th>Description</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>MCP-Session-Id</code></td>
+                                    <td>Server &rarr; Client</td>
+                                    <td>Server MAY assign a session ID in the <code>InitializeResult</code> response</td>
+                                </tr>
+                                <tr>
+                                    <td><code>MCP-Session-Id</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Client MUST include the session ID on all subsequent requests once received</td>
+                                </tr>
+                                <tr>
+                                    <td><code>MCP-Protocol-Version</code></td>
+                                    <td>Client &rarr; Server</td>
+                                    <td>Client MUST include <code>2025-03-26</code> (or negotiated version) on every request</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Session Termination</h4>
+                            <p>Client sends <code>DELETE</code> to the MCP endpoint with the session ID header to end the session.</p>
+                            <code>DELETE /mcp</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Expired Sessions</h4>
+                            <p>If the session has expired or is unknown, the server returns <code>404 Not Found</code>. Client must re-initialize.</p>
+                            <code>HTTP 404</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Security Considerations</h3>
+                    <p>MCP transports require careful security configuration, especially when servers accept network connections.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Concern</th>
+                                    <th>Mitigation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>DNS rebinding</strong></td>
+                                    <td>Servers MUST validate the <code>Origin</code> header and return <code>403 Forbidden</code> if it does not match an allowed origin</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Local binding</strong></td>
+                                    <td>Local servers MUST bind to <code>127.0.0.1</code>, never <code>0.0.0.0</code> — prevents external network access</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Authentication</strong></td>
+                                    <td>Remote servers should implement OAuth 2.1 or use HTTP headers for API key authentication</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>TLS</strong></td>
+                                    <td>Remote Streamable HTTP endpoints should use HTTPS to encrypt traffic in transit</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">DNS Rebinding Warning</div>
+                        <p>Without <code>Origin</code> header validation, a malicious website can trick a browser into sending requests to a local MCP server. Always validate the <code>Origin</code> header on every request and reject unrecognized origins with <code>403</code>. This is critical even for servers that only listen on localhost.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Transport Comparison</h3>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>stdio</th>
+                                    <th>Streamable HTTP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Connection</strong></td>
+                                    <td>Subprocess</td>
+                                    <td>HTTP endpoint</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Message format</strong></td>
+                                    <td>Newline-delimited JSON</td>
+                                    <td>HTTP POST / SSE</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Session state</strong></td>
+                                    <td>Implicit (process lifetime)</td>
+                                    <td><code>MCP-Session-Id</code> header</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Multi-client</strong></td>
+                                    <td>No (1:1)</td>
+                                    <td>Yes</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Network</strong></td>
+                                    <td>Local only</td>
+                                    <td>Local or remote</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Auth</strong></td>
+                                    <td>Environment variables</td>
+                                    <td>OAuth / HTTP headers</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Best for</strong></td>
+                                    <td>Dev tools, IDE plugins</td>
+                                    <td>Cloud services, APIs</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 08 — BUILDING SERVERS
+             ============================================ -->
+
+        <section id="building-servers" class="section">
+            <div class="section-header">
+                <div class="section-number">08</div>
+                <h2>Building Servers</h2>
+                <p class="section-description">Patterns and best practices for building production MCP servers with Python FastMCP and the TypeScript SDK.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Python with FastMCP</h3>
+                    <p>FastMCP is the high-level Python framework for building MCP servers. Decorators map directly to MCP primitives — <code>@mcp.tool()</code> for tools, <code>@mcp.resource()</code> for resources, and <code>@mcp.prompt()</code> for prompts.</p>
+
+                    <span class="code-label">server.py</span>
+                    <pre><code><span class="keyword">from</span> mcp.server.fastmcp <span class="keyword">import</span> FastMCP
+
+mcp = FastMCP(<span class="string">"my-server"</span>)
+
+<span class="comment"># Tools — model-controlled actions</span>
+@mcp.tool()
+<span class="keyword">def</span> calculate(expression: str) -> str:
+    <span class="string">"""Evaluate a math expression."""</span>
+    <span class="keyword">return</span> str(eval(expression))
+
+<span class="comment"># Resources — structured data with URI templates</span>
+@mcp.resource(<span class="string">"data://users/{user_id}"</span>)
+<span class="keyword">def</span> get_user(user_id: str) -> str:
+    <span class="string">"""Fetch user profile data."""</span>
+    <span class="keyword">return</span> json.dumps({<span class="string">"id"</span>: user_id, <span class="string">"name"</span>: <span class="string">"Alice"</span>})
+
+<span class="comment"># Prompts — templated workflows</span>
+@mcp.prompt()
+<span class="keyword">def</span> review_code(code: str) -> str:
+    <span class="string">"""Generate a code review prompt."""</span>
+    <span class="keyword">return</span> f<span class="string">"Please review this code for bugs and improvements:\n\n{code}"</span></code></pre>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Decorator</th>
+                                    <th>MCP Primitive</th>
+                                    <th>Control</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>@mcp.tool()</code></td>
+                                    <td>Tool</td>
+                                    <td>Model-controlled</td>
+                                    <td>Type hints become the JSON Schema for tool arguments</td>
+                                </tr>
+                                <tr>
+                                    <td><code>@mcp.resource()</code></td>
+                                    <td>Resource</td>
+                                    <td>App-controlled</td>
+                                    <td>URI templates with <code>{param}</code> placeholders for dynamic resources</td>
+                                </tr>
+                                <tr>
+                                    <td><code>@mcp.prompt()</code></td>
+                                    <td>Prompt</td>
+                                    <td>User-controlled</td>
+                                    <td>Return string or list of <code>Message</code> objects</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Context object</div>
+                        <p>FastMCP injects a <code>Context</code> object when you add it as a parameter. Use it for logging (<code>ctx.info()</code>, <code>ctx.error()</code>), reporting progress (<code>ctx.report_progress()</code>), reading resources (<code>ctx.read_resource()</code>), and accessing request metadata.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">TypeScript with MCP SDK</h3>
+                    <p>The official TypeScript SDK provides <code>McpServer</code> for building servers and uses Zod schemas for input validation.</p>
+
+                    <span class="code-label">server.ts</span>
+                    <pre><code><span class="keyword">import</span> { McpServer } <span class="keyword">from</span> <span class="string">"@modelcontextprotocol/sdk/server/mcp.js"</span>;
+<span class="keyword">import</span> { StdioServerTransport } <span class="keyword">from</span> <span class="string">"@modelcontextprotocol/sdk/server/stdio.js"</span>;
+<span class="keyword">import</span> { z } <span class="keyword">from</span> <span class="string">"zod"</span>;
+
+<span class="keyword">const</span> server = <span class="keyword">new</span> McpServer({
+  name: <span class="string">"my-server"</span>,
+  version: <span class="string">"1.0.0"</span>
+});
+
+<span class="comment">// Register a tool with Zod schema validation</span>
+server.tool(
+  <span class="string">"calculate"</span>,
+  { expression: z.string() },
+  <span class="keyword">async</span> ({ expression }) => ({
+    content: [{ type: <span class="string">"text"</span>, text: String(eval(expression)) }]
+  })
+);
+
+<span class="comment">// Connect via stdio transport</span>
+<span class="keyword">const</span> transport = <span class="keyword">new</span> StdioServerTransport();
+<span class="keyword">await</span> server.connect(transport);</code></pre>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Zod Schemas</h4>
+                            <p>Tool input schemas are defined with Zod. The SDK automatically converts them to JSON Schema for the protocol.</p>
+                            <code>z.string()</code> &middot; <code>z.number()</code> &middot; <code>z.object()</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Content Types</h4>
+                            <p>Tool results return an array of content blocks. Supports text, images, and embedded resources.</p>
+                            <code>type: "text"</code> &middot; <code>type: "image"</code> &middot; <code>type: "resource"</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Server Lifecycle</h3>
+                    <p>Production servers need proper startup and shutdown handling. Both SDKs support lifecycle hooks for resource management.</p>
+
+                    <span class="code-label">Python — Lifespan management</span>
+                    <pre><code><span class="keyword">from</span> contextlib <span class="keyword">import</span> asynccontextmanager
+
+@asynccontextmanager
+<span class="keyword">async def</span> lifespan(server):
+    <span class="comment"># Startup: initialize connections, load config</span>
+    db = <span class="keyword">await</span> Database.connect(<span class="string">"postgres://..."</span>)
+    <span class="keyword">try</span>:
+        <span class="keyword">yield</span> {<span class="string">"db"</span>: db}
+    <span class="keyword">finally</span>:
+        <span class="comment"># Shutdown: clean up resources</span>
+        <span class="keyword">await</span> db.close()
+
+mcp = FastMCP(<span class="string">"my-server"</span>, lifespan=lifespan)
+
+@mcp.tool()
+<span class="keyword">async def</span> query(ctx: Context, sql: str) -> str:
+    db = ctx.request_context.lifespan_context[<span class="string">"db"</span>]
+    <span class="keyword">return</span> str(<span class="keyword">await</span> db.execute(sql))</code></pre>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Lifecycle Event</th>
+                                    <th>What to Do</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Startup</strong></td>
+                                    <td>Open database connections, load configuration, initialize caches, validate credentials</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Shutdown</strong></td>
+                                    <td>Close connections, flush buffers, release file handles, save state</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Error recovery</strong></td>
+                                    <td>Use try/finally to ensure cleanup runs even when tools throw exceptions</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Error Handling Patterns</h3>
+                    <p>MCP distinguishes between tool execution errors (reported in the result) and protocol errors (thrown as exceptions). Getting this right helps LLMs self-correct.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Error Type</th>
+                                    <th>How to Return</th>
+                                    <th>When to Use</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Tool error</strong></td>
+                                    <td>Return result with <code>isError: true</code></td>
+                                    <td>Invalid arguments, API failures, expected errors the LLM should see and retry</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Protocol error</strong></td>
+                                    <td>Throw <code>McpError</code> exception</td>
+                                    <td>Unknown tool, invalid JSON-RPC, internal server errors</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <span class="code-label">Python — Tool error (visible to LLM)</span>
+                    <pre><code>@mcp.tool()
+<span class="keyword">def</span> get_file(path: str) -> str:
+    <span class="keyword">try</span>:
+        <span class="keyword">return</span> Path(path).read_text()
+    <span class="keyword">except</span> FileNotFoundError:
+        <span class="comment"># Return error as tool result — LLM sees this and can try another path</span>
+        <span class="keyword">raise</span> ToolError(f<span class="string">"File not found: {path}. Check the path and try again."</span>)</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">LLM-friendly error messages</div>
+                        <p>Write error messages that help the model self-correct. Instead of <code>"Error 404"</code>, say <code>"File not found: config.yaml. Available files are: app.yaml, db.yaml"</code>. Give the LLM enough context to make a better second attempt.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Testing with MCP Inspector</h3>
+                    <p>The MCP Inspector is an interactive debugging tool for testing servers during development. It connects to your server, discovers capabilities, and lets you call tools and read resources manually.</p>
+
+                    <span class="code-label">Launch the Inspector</span>
+                    <pre><code><span class="comment"># Test a Python server</span>
+npx @modelcontextprotocol/inspector python server.py
+
+<span class="comment"># Test a Node.js server</span>
+npx @modelcontextprotocol/inspector node server.js
+
+<span class="comment"># Test with environment variables</span>
+npx @modelcontextprotocol/inspector -e API_KEY=sk-xxx python server.py</code></pre>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Discover Tools</h4>
+                            <p>View all registered tools with their names, descriptions, and input schemas in a browsable UI.</p>
+                            <code>tools/list</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Test Tool Calls</h4>
+                            <p>Fill in arguments and invoke tools interactively. See raw JSON-RPC request and response.</p>
+                            <code>tools/call</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Browse Resources</h4>
+                            <p>List available resources, read their content, and test URI template resolution.</p>
+                            <code>resources/read</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Debug Transport</h4>
+                            <p>Inspect raw JSON-RPC messages flowing between client and server. Diagnose protocol issues.</p>
+                            <code>JSON-RPC log</code>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 09 — BUILDING CLIENTS
+             ============================================ -->
+
+        <section id="building-clients" class="section">
+            <div class="section-header">
+                <div class="section-number">09</div>
+                <h2>Building Clients</h2>
+                <p class="section-description">How to connect to MCP servers from your own AI applications -- session management, tool integration, and sampling.</p>
+            </div>
+            <div class="section-content">
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Client Architecture</h3>
+                    <p>In MCP, the host application creates one <code>Client</code> instance per server connection. Each client manages its own lifecycle independently — initialization, capability discovery, tool calls, and shutdown are all scoped to a single server session.</p>
+
+                    <div class="diagram">
+                        <pre><code>  +-------------------------------------------+
+  |              HOST APPLICATION              |
+  |                                            |
+  |   +----------+  +----------+  +----------+ |
+  |   | Client 1 |  | Client 2 |  | Client 3 | |
+  |   +----+-----+  +----+-----+  +----+-----+ |
+  +--------|-------------|-------------|--------+
+           |             |             |
+     +-----+-----+ +----+------+ +----+------+
+     | Server A   | | Server B  | | Server C  |
+     | (files)    | | (git)     | | (database)|
+     +------------+ +-----------+ +-----------+</code></pre>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Responsibility</th>
+                                    <th>Who Handles It</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Creating clients</strong></td>
+                                    <td>The host application — one client per server in the configuration</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Managing connections</strong></td>
+                                    <td>Each client independently — handles its own initialize/shutdown</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Aggregating tools</strong></td>
+                                    <td>The host — merges tool lists from all clients for the LLM</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Routing tool calls</strong></td>
+                                    <td>The host — maps tool names back to the correct client/server</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Security policies</strong></td>
+                                    <td>The host — enforces permissions, user consent, rate limits</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Python Client</h3>
+                    <p>The Python SDK provides <code>ClientSession</code> with async context managers for clean connection lifecycle management.</p>
+
+                    <span class="code-label">client.py</span>
+                    <pre><code><span class="keyword">from</span> mcp <span class="keyword">import</span> ClientSession, StdioServerParameters
+<span class="keyword">from</span> mcp.client.stdio <span class="keyword">import</span> stdio_client
+
+<span class="comment"># Define server connection parameters</span>
+params = StdioServerParameters(
+    command=<span class="string">"python"</span>,
+    args=[<span class="string">"server.py"</span>]
+)
+
+<span class="comment"># Connect and interact</span>
+<span class="keyword">async with</span> stdio_client(params) <span class="keyword">as</span> (read, write):
+    <span class="keyword">async with</span> ClientSession(read, write) <span class="keyword">as</span> session:
+        <span class="comment"># Initialize the connection</span>
+        <span class="keyword">await</span> session.initialize()
+
+        <span class="comment"># Discover available tools</span>
+        tools = <span class="keyword">await</span> session.list_tools()
+        <span class="keyword">for</span> tool <span class="keyword">in</span> tools.tools:
+            print(f<span class="string">"{tool.name}: {tool.description}"</span>)
+
+        <span class="comment"># Call a tool</span>
+        result = <span class="keyword">await</span> session.call_tool(
+            <span class="string">"get_weather"</span>,
+            {<span class="string">"location"</span>: <span class="string">"NYC"</span>}
+        )
+        print(result.content[0].text)</code></pre>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Session Methods</h4>
+                            <p>Core methods available on <code>ClientSession</code></p>
+                            <code>initialize()</code> &middot; <code>list_tools()</code> &middot; <code>call_tool()</code> &middot; <code>list_resources()</code> &middot; <code>read_resource()</code> &middot; <code>list_prompts()</code> &middot; <code>get_prompt()</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Transport Options</h4>
+                            <p>Choose the transport that matches your server</p>
+                            <code>stdio_client</code> &middot; <code>streamablehttp_client</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">TypeScript Client</h3>
+                    <p>The TypeScript SDK's <code>Client</code> class manages server connections with explicit transport configuration.</p>
+
+                    <span class="code-label">client.ts</span>
+                    <pre><code><span class="keyword">import</span> { Client } <span class="keyword">from</span> <span class="string">"@modelcontextprotocol/sdk/client/index.js"</span>;
+<span class="keyword">import</span> { StdioClientTransport } <span class="keyword">from</span> <span class="string">"@modelcontextprotocol/sdk/client/stdio.js"</span>;
+
+<span class="comment">// Create transport and client</span>
+<span class="keyword">const</span> transport = <span class="keyword">new</span> StdioClientTransport({
+  command: <span class="string">"python"</span>,
+  args: [<span class="string">"server.py"</span>]
+});
+
+<span class="keyword">const</span> client = <span class="keyword">new</span> Client({
+  name: <span class="string">"my-app"</span>,
+  version: <span class="string">"1.0.0"</span>
+});
+
+<span class="comment">// Connect and initialize</span>
+<span class="keyword">await</span> client.connect(transport);
+
+<span class="comment">// Discover and call tools</span>
+<span class="keyword">const</span> tools = <span class="keyword">await</span> client.listTools();
+<span class="keyword">const</span> result = <span class="keyword">await</span> client.callTool(<span class="string">"get_weather"</span>, {
+  location: <span class="string">"NYC"</span>
+});
+
+console.log(result.content[0].text);
+
+<span class="comment">// Clean up</span>
+<span class="keyword">await</span> client.close();</code></pre>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Capability Discovery</h3>
+                    <p>After initialization, clients should check what capabilities the server declared before attempting to use features. Servers also send notifications when their capabilities change.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Capability</th>
+                                    <th>Check Before</th>
+                                    <th>Change Notification</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><code>tools</code></td>
+                                    <td>Calling <code>tools/list</code> or <code>tools/call</code></td>
+                                    <td><code>notifications/tools/list_changed</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>resources</code></td>
+                                    <td>Calling <code>resources/list</code> or <code>resources/read</code></td>
+                                    <td><code>notifications/resources/list_changed</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>prompts</code></td>
+                                    <td>Calling <code>prompts/list</code> or <code>prompts/get</code></td>
+                                    <td><code>notifications/prompts/list_changed</code></td>
+                                </tr>
+                                <tr>
+                                    <td><code>logging</code></td>
+                                    <td>Calling <code>logging/setLevel</code></td>
+                                    <td>N/A</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <span class="code-label">Checking capabilities (Python)</span>
+                    <pre><code><span class="comment"># After session.initialize(), check server capabilities</span>
+caps = session.server_capabilities
+
+<span class="keyword">if</span> caps.tools:
+    tools = <span class="keyword">await</span> session.list_tools()
+
+<span class="keyword">if</span> caps.resources:
+    resources = <span class="keyword">await</span> session.list_resources()
+
+<span class="keyword">if</span> caps.prompts:
+    prompts = <span class="keyword">await</span> session.list_prompts()</code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Handling listChanged notifications</div>
+                        <p>When a server's tools, resources, or prompts change at runtime, it sends a <code>listChanged</code> notification. Clients should listen for these and re-fetch the corresponding list to stay in sync. This is essential for servers that dynamically register or unregister capabilities.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Sampling</h3>
+                    <p>Sampling lets servers request LLM completions through the client, using <code>sampling/createMessage</code>. This keeps servers model-agnostic — the server asks the client to generate text, and the client decides which model to use.</p>
+
+                    <div class="diagram">
+                        <pre><code>  Server                    Client                   LLM
+    |                         |                        |
+    |  sampling/createMessage |                        |
+    | ----------------------&gt; |                        |
+    |                         |   (user approval)      |
+    |                         | ----------------------&gt;|
+    |                         |   completion result     |
+    |                         | &lt;----------------------|
+    |   CreateMessageResult   |                        |
+    | &lt;---------------------- |                        |</code></pre>
+                    </div>
+
+                    <span class="code-label">Server requests a completion</span>
+                    <pre><code><span class="comment"># Server-side: ask the client to generate text</span>
+result = <span class="keyword">await</span> ctx.session.create_message(
+    messages=[
+        {
+            <span class="string">"role"</span>: <span class="string">"user"</span>,
+            <span class="string">"content"</span>: {
+                <span class="string">"type"</span>: <span class="string">"text"</span>,
+                <span class="string">"text"</span>: <span class="string">"Summarize: "</span> + document_text
+            }
+        }
+    ],
+    max_tokens=500
+)</code></pre>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">User consent required</div>
+                        <p>Sampling is a powerful capability that gives servers indirect access to an LLM. Host applications MUST get user approval before fulfilling sampling requests. The user should see what the server is asking the model to do and have the ability to reject or modify the request. Never auto-approve sampling without human review.</p>
+                    </div>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Why Sampling?</h4>
+                            <p>Servers stay model-agnostic. They request text generation without knowing which model, provider, or configuration the client uses.</p>
+                            <code>Model-agnostic</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Human-in-the-Loop</h4>
+                            <p>The host controls approval. Users see sampling requests and can approve, modify, or reject them before they reach the LLM.</p>
+                            <code>User consent</code>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 10 — MCP VS ALTERNATIVES
+             ============================================ -->
+
+        <section id="mcp-vs-alternatives" class="section">
+            <div class="section-header">
+                <div class="section-number">10</div>
+                <h2>MCP vs Alternatives</h2>
+                <p class="section-description">How MCP compares to function calling, OpenAPI plugins, LangChain tools, and custom REST integrations.</p>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3 class="subsection-title">The Decision Landscape</h3>
+                    <p>There are several approaches for connecting AI models to external capabilities. Each has distinct trade-offs in portability, complexity, and control. Understanding when to reach for each approach is key to building robust AI integrations.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>MCP Servers</h4>
+                            <p>Universal protocol for AI-to-tool communication. Separate server processes that any MCP-compatible host can connect to.</p>
+                            <code>Universal</code> &middot; <code>Stateful</code> &middot; <code>Dynamic</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Direct API / Function Calling</h4>
+                            <p>Functions defined in-process or via provider-specific schemas. The host manages execution directly without a separate server.</p>
+                            <code>Simple</code> &middot; <code>Provider-tied</code> &middot; <code>Static</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Skills &amp; Plugins</h4>
+                            <p>Host-specific extensions that customize AI behavior and add capabilities within a single application. Configuration-driven.</p>
+                            <code>Host-specific</code> &middot; <code>Lightweight</code> &middot; <code>Behavioral</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Agent Frameworks</h4>
+                            <p>Libraries like LangChain, CrewAI, or AutoGen that orchestrate multi-step AI workflows with built-in tool abstractions.</p>
+                            <code>Orchestration</code> &middot; <code>Multi-step</code> &middot; <code>Framework-specific</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">MCP vs Direct Function Calling</h3>
+                    <p>Direct function calling (as provided by OpenAI, Anthropic, and other APIs) defines tool schemas alongside API requests. MCP separates tool hosting into independent server processes. The choice depends on whether you need portability or simplicity.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aspect</th>
+                                    <th>MCP</th>
+                                    <th>Direct Function Calling</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Architecture</strong></td>
+                                    <td>Separate server process</td>
+                                    <td>Functions in same process</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Reusability</strong></td>
+                                    <td>Any MCP-compatible host</td>
+                                    <td>Tied to specific API provider</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>State management</strong></td>
+                                    <td>Server manages own state</td>
+                                    <td>Host manages all state</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Discovery</strong></td>
+                                    <td>Dynamic (<code>tools/list</code>)</td>
+                                    <td>Static schema definition</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Transport</strong></td>
+                                    <td>stdio or HTTP</td>
+                                    <td>In-process or API call</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Best for</strong></td>
+                                    <td>Shared tools across apps</td>
+                                    <td>App-specific integrations</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p><strong>When to use MCP:</strong> You want the same tool available in Claude Desktop, VS Code, and custom applications. You need dynamic discovery or server-managed state.</p>
+                    <p><strong>When to use direct function calling:</strong> Simple, single-app integrations where the overhead of a separate server process is not justified. You are building for one API provider and do not need portability.</p>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">MCP vs Skills &amp; Plugins</h3>
+                    <p>Skills and plugins (like Claude Code skills or ChatGPT plugins) are host-specific extensions that add capabilities to a single application. MCP servers are universal -- they work with any host that speaks the protocol.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aspect</th>
+                                    <th>MCP Servers</th>
+                                    <th>Skills / Plugins</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Scope</strong></td>
+                                    <td>Universal protocol</td>
+                                    <td>Host-specific</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Portability</strong></td>
+                                    <td>Works with any MCP host</td>
+                                    <td>Tied to one application</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Complexity</strong></td>
+                                    <td>Separate server process</td>
+                                    <td>Configuration files</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Discovery</strong></td>
+                                    <td>Protocol-level negotiation</td>
+                                    <td>Host-specific registry</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>State</strong></td>
+                                    <td>Server-managed, persistent</td>
+                                    <td>Varies by host</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Best for</strong></td>
+                                    <td>Cross-app tools, external services</td>
+                                    <td>Host customization, workflows</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Key insight</div>
+                        <p>Skills customize how the AI <em>behaves</em>. MCP servers give it <em>capabilities</em>. They are complementary, not competing. A Claude Code project might use skills to define commit message conventions alongside MCP servers for database access and deployment tooling.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">MCP vs REST APIs</h3>
+                    <p>MCP wraps APIs with AI-friendly metadata -- rich schemas, semantic descriptions, and tool annotations. Raw REST APIs require the host to understand each API's conventions, authentication patterns, and response formats independently.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Aspect</th>
+                                    <th>MCP</th>
+                                    <th>Direct REST API</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Schema</strong></td>
+                                    <td>JSON Schema + descriptions</td>
+                                    <td>OpenAPI / Swagger</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Discovery</strong></td>
+                                    <td>Dynamic tool listing</td>
+                                    <td>Static documentation</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>AI integration</strong></td>
+                                    <td>Native (model invokes tools)</td>
+                                    <td>Requires adapter code</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Streaming</strong></td>
+                                    <td>SSE built-in</td>
+                                    <td>Varies per API</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Best for</strong></td>
+                                    <td>AI-first integrations</td>
+                                    <td>General HTTP clients</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Decision Flowchart</h3>
+                    <p>Use this guide when choosing how to connect your AI application to external capabilities.</p>
+
+                    <div class="diagram">
+                        <pre><code>  Need tool reusable across multiple AI apps?
+    &rarr; YES &rarr; <strong>MCP Server</strong>
+    &rarr; NO  &darr;
+
+  Building for a single AI app only?
+    &rarr; YES &rarr; <strong>Direct Function Calling</strong>
+    &rarr; NO  &darr;
+
+  Customizing AI behavior or persona?
+    &rarr; YES &rarr; <strong>Skills / Plugins</strong>
+    &rarr; NO  &darr;
+
+  Wrapping an existing API for AI consumption?
+    &rarr; YES &rarr; <strong>MCP Server around the API</strong>
+    &rarr; NO  &darr;
+
+  Simple one-off integration?
+    &rarr; YES &rarr; <strong>Direct API Call</strong></code></pre>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Complementary approaches</div>
+                        <p>MCP and other approaches are complementary. Many real-world setups use MCP servers for shared capabilities alongside host-specific skills for workflow customization. A production AI system might combine direct function calling for internal business logic, MCP servers for shared developer tooling, and skills for team-specific conventions.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============================================
+             SECTION 11 — ECOSYSTEM & PATTERNS
+             ============================================ -->
+
+        <section id="ecosystem" class="section">
+            <div class="section-header">
+                <div class="section-number">11</div>
+                <h2>Ecosystem &amp; Patterns</h2>
+                <p class="section-description">The growing MCP ecosystem -- popular servers, registries, agent composition patterns, and the future of the protocol.</p>
+            </div>
+            <div class="section-content">
+                <div class="subsection">
+                    <h3 class="subsection-title">Popular MCP Servers</h3>
+                    <p>The MCP ecosystem includes a growing collection of production-ready servers for common integrations. These are some of the most widely used.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Filesystem</h4>
+                            <p>Read and write files, search directories, and manage file metadata. Sandboxed to configured root directories.</p>
+                            <code>@modelcontextprotocol/server-filesystem</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>GitHub</h4>
+                            <p>Repositories, issues, pull requests, code search, and branch management via the GitHub API.</p>
+                            <code>@modelcontextprotocol/server-github</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Slack</h4>
+                            <p>Channels, messages, threads, and user lookups. Read conversations and post messages to Slack workspaces.</p>
+                            <code>@modelcontextprotocol/server-slack</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>PostgreSQL</h4>
+                            <p>Query databases, inspect schemas, list tables, and describe columns. Read-only by default for safety.</p>
+                            <code>@modelcontextprotocol/server-postgres</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Puppeteer</h4>
+                            <p>Browser automation, screenshots, page navigation, and DOM interaction via headless Chrome.</p>
+                            <code>@modelcontextprotocol/server-puppeteer</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Brave Search</h4>
+                            <p>Web search integration with Brave Search API. Returns structured results for AI consumption.</p>
+                            <code>@modelcontextprotocol/server-brave-search</code>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Server Registries</h3>
+                    <p>Finding and sharing MCP servers is supported by several registries and directories.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Registry</th>
+                                    <th>Description</th>
+                                    <th>URL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Official MCP Servers</strong></td>
+                                    <td>Reference implementations and officially maintained servers from Anthropic</td>
+                                    <td><code>github.com/modelcontextprotocol/servers</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Smithery.ai</strong></td>
+                                    <td>Community registry with search, installation guides, and server metadata</td>
+                                    <td><code>smithery.ai</code></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Community Lists</strong></td>
+                                    <td>Curated awesome-lists and community-maintained directories on GitHub</td>
+                                    <td><code>github.com/punkpeye/awesome-mcp-servers</code></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Debugging &amp; Inspector</h3>
+                    <p>The MCP Inspector is the primary debugging tool for server development. It connects to any MCP server and lets you interactively test tools, resources, and prompts.</p>
+
+                    <span class="code-label">Launch Inspector</span>
+                    <pre><code>npx @modelcontextprotocol/inspector</code></pre>
+
+                    <p>The Inspector provides a web UI where you can connect to servers via stdio or HTTP, browse capabilities, invoke tools with test arguments, and inspect the raw JSON-RPC messages.</p>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Issue</th>
+                                    <th>Symptom</th>
+                                    <th>Fix</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>Connection refused</strong></td>
+                                    <td>Client cannot connect to server</td>
+                                    <td>Verify server is running, check config path, confirm transport settings</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Tool not found</strong></td>
+                                    <td><code>tools/call</code> returns method not found</td>
+                                    <td>Check tool name matches exactly, verify server declared <code>tools</code> capability</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Schema mismatch</strong></td>
+                                    <td>Tool call rejected with validation error</td>
+                                    <td>Compare arguments against the tool's <code>inputSchema</code>, check required fields</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Timeout</strong></td>
+                                    <td>Request hangs, no response</td>
+                                    <td>Check server logs for errors, verify async handlers are awaited, check network</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <p><strong>Debug checklist:</strong></p>
+                    <pre><code><span class="comment"># 1. Verify config path is correct</span>
+cat ~/Library/Application\ Support/Claude/claude_desktop_config.json
+
+<span class="comment"># 2. Check server starts independently</span>
+python -m your_server          <span class="comment"># Should start without errors</span>
+
+<span class="comment"># 3. Test with Inspector</span>
+npx @modelcontextprotocol/inspector
+
+<span class="comment"># 4. Check capabilities negotiation</span>
+<span class="comment"># Inspector shows the initialize handshake — verify tools/resources/prompts are listed</span>
+
+<span class="comment"># 5. Check server stderr for errors (stdio transport)</span>
+<span class="comment"># Server stderr is not captured by the protocol — use it for debug logging</span></code></pre>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Logging via MCP</div>
+                        <p>Servers can send structured log messages to clients using the MCP logging capability. Call <code>ctx.info()</code>, <code>ctx.warning()</code>, or <code>ctx.error()</code> in FastMCP handlers. For stdio servers, always log to stderr -- stdout is reserved for protocol messages.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Security Best Practices</h3>
+                    <p>MCP servers expose capabilities to AI models. Security requires defense in depth -- validate inputs, limit permissions, and audit all tool invocations.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Least Privilege</h4>
+                            <p>Expose only the tools the model needs. A file server should not expose delete operations unless specifically required.</p>
+                            <code>Minimize surface area</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Input Validation</h4>
+                            <p>Always validate tool arguments server-side. Never trust that the model will send well-formed or safe inputs.</p>
+                            <code>Server-side checks</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Credential Management</h4>
+                            <p>Use environment variables for stdio servers and OAuth 2.1 for HTTP servers. Never embed credentials in tool schemas.</p>
+                            <code>env vars</code> &middot; <code>OAuth 2.1</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Rate Limiting</h4>
+                            <p>Protect against excessive tool calls. Implement per-tool and per-session rate limits to prevent runaway usage.</p>
+                            <code>Per-tool limits</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Audit Logging</h4>
+                            <p>Log all tool invocations with timestamps, arguments, and results. Essential for debugging and compliance.</p>
+                            <code>Full audit trail</code>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="alert-title">Never trust tool annotations from unverified servers</div>
+                        <p>Tool annotations like <code>readOnlyHint</code> and <code>destructiveHint</code> are self-reported by the server. A malicious server can claim a destructive tool is read-only. Host applications must enforce their own safety policies and treat annotations from unverified servers as untrusted hints, not security guarantees.</p>
+                    </div>
+                </div>
+
+                <div class="subsection">
+                    <h3 class="subsection-title">Real-World Patterns</h3>
+                    <p>Production MCP deployments often combine multiple servers and add operational layers around the protocol.</p>
+
+                    <div class="command-grid">
+                        <div class="command-card">
+                            <h4>Multi-Server Composition</h4>
+                            <p>Connect to GitHub, filesystem, and database servers simultaneously. Each maintains independent state and capabilities.</p>
+                            <code>1 host &rarr; N servers</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Gateway Pattern</h4>
+                            <p>A single MCP server that proxies requests to multiple backend services. Simplifies client configuration and centralizes auth.</p>
+                            <code>1 server &rarr; N backends</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Middleware Layers</h4>
+                            <p>Add logging, rate limiting, authentication, and metrics as middleware around tool handlers. FastMCP supports decorator patterns for this.</p>
+                            <code>Logging</code> &middot; <code>Auth</code> &middot; <code>Metrics</code>
+                        </div>
+                        <div class="command-card">
+                            <h4>Graceful Degradation</h4>
+                            <p>Handle server disconnects and capability changes at runtime. Re-fetch tool lists on reconnect, fall back when servers are unavailable.</p>
+                            <code>Resilient connections</code>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="alert-title">Composition in practice</div>
+                        <p>A typical development setup might connect Claude Desktop to a filesystem server (for code context), a GitHub server (for issues and PRs), and a database server (for schema inspection) -- all running simultaneously as separate processes. The host manages routing and the model sees a unified set of tools from all connected servers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <a href="index.html">&larr; Back to Tech Guides</a>
+        <p>MCP Tech Guide &middot; Honeycomb Design System</p>
+    </footer>
+
+    <script>
+        // Highlight active nav link on scroll
+        const sections = document.querySelectorAll('.section[id]');
+        const navLinks = document.querySelectorAll('.jump-nav a');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    navLinks.forEach(link => link.classList.remove('active'));
+                    const activeLink = document.querySelector(`.jump-nav a[href="#${entry.target.id}"]`);
+                    if (activeLink) {
+                        activeLink.classList.add('active');
+                        activeLink.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+                    }
+                }
+            });
+        }, {
+            rootMargin: '-80px 0px -60% 0px',
+            threshold: 0
+        });
+
+        sections.forEach(section => observer.observe(section));
+    </script>
+</body>
+</html>
