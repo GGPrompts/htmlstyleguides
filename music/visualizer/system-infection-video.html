@@ -515,7 +515,7 @@
                     if (timer) {
                         timer.cooldown -= dt;
                         if (timer.cooldown <= 0 && !enemy.attacking) {
-                            var moves = ['punch_r', 'punch_l', 'kick_high'];
+                            var moves = ['punch_r', 'punch_l', 'kick_high', 'haymaker', 'uppercut'];
                             if (enemy.params.swordLen > 0) {
                                 moves.push('slash', 'lunge');
                             }
@@ -626,15 +626,16 @@
             var moveName;
             if (energy > 0.7) {
                 // Power attack — guaranteed flung death if it kills
-                moveName = hero.params.swordLen > 0 ? 'lunge' : 'kick_high';
+                moveName = hero.params.swordLen > 0 ? 'lunge' :
+                    pickRandom(['kick_high', 'uppercut', 'overhead']);
                 // Boost damage for power attacks — ensure 1-hit kills on low HP enemies
                 near.fig.hp = Math.min(near.fig.hp, 30);
             } else if (energy > 0.4) {
                 moveName = hero.params.swordLen > 0 ?
                     pickRandom(['slash', 'lunge']) :
-                    pickRandom(['punch_r', 'kick_high']);
+                    pickRandom(['punch_r', 'kick_high', 'haymaker', 'uppercut']);
             } else {
-                moveName = pickRandom(['punch_r', 'punch_l']);
+                moveName = pickRandom(['punch_r', 'punch_l', 'haymaker']);
             }
 
             StickFight.attack(hero, moveName, near.fig);
@@ -746,7 +747,7 @@
             } else if (!hero.attacking && heroAttackCooldown <= 0) {
                 // In range — attack decisively between beats
                 heroState = 'attacking';
-                var moveName = pickRandom(['punch_r', 'punch_l']);
+                var moveName = pickRandom(['punch_r', 'punch_l', 'haymaker', 'uppercut']);
                 if (hero.params.swordLen > 0 && Math.random() < 0.4) {
                     moveName = 'slash';
                 }

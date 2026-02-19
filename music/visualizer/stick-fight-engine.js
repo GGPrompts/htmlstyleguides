@@ -51,8 +51,8 @@
         },
         guard: {
             bounce: -0.05, lean: 0.1,
-            armLAngle: 0.1, armRAngle: -0.3,
-            elbowLBend: 0.6, elbowRBend: 0.5,
+            armLAngle: -0.6, armRAngle: -0.7,
+            elbowLBend: 0.75, elbowRBend: 0.8,
             legSpread: 0.3, kneeL: -0.1, kneeR: 0
         },
         lunge: {
@@ -632,6 +632,37 @@
                 { t: 0.6,  pose: { lean: 0.4, armLAngle: -0.3, armRAngle: -0.3, elbowLBend: 0.5, elbowRBend: 0.5 } },
                 { t: 1.0,  pose: { lean: 0.1, armLAngle: 0.4, armRAngle: 0.4, elbowLBend: 0.3, elbowRBend: 0.3 } }
             ]
+        },
+        uppercut: {
+            duration: 0.28, hitAt: 0.16, hitRange: 0.20,
+            damage: 22, impulseX: 200, impulseY: -400,
+            keyframes: [
+                { t: 0.0,  pose: { bounce: -0.15, lean: 0.2, armRAngle: 0.6, elbowRBend: 0.7, legSpread: 0.3, kneeR: -0.1 } },
+                { t: 0.45, pose: { bounce: 0.1, lean: 0.15, armRAngle: -1.3, elbowRBend: 0.1, legSpread: 0.25, kneeR: 0 } },
+                { t: 0.7,  pose: { bounce: 0.1, lean: 0.1, armRAngle: -1.4, elbowRBend: 0.05, legSpread: 0.2, kneeR: 0 } },
+                { t: 1.0,  pose: { bounce: 0, lean: 0, armRAngle: 0.3, elbowRBend: 0.3, legSpread: 0.15, kneeR: 0 } }
+            ]
+        },
+        haymaker: {
+            duration: 0.32, hitAt: 0.18, hitRange: 0.22,
+            damage: 25, impulseX: 550, impulseY: -120,
+            keyframes: [
+                { t: 0.0,  pose: { bounce: 0, lean: -0.3, armRAngle: 0.8, elbowRBend: 0.2, legSpread: 0.35, kneeR: 0.1 } },
+                { t: 0.35, pose: { bounce: -0.05, lean: 0.45, armRAngle: -0.5, elbowRBend: 0.15, legSpread: 0.4, kneeL: -0.15 } },
+                { t: 0.65, pose: { bounce: -0.05, lean: 0.4, armRAngle: -0.6, elbowRBend: 0.2, legSpread: 0.35, kneeL: -0.1 } },
+                { t: 1.0,  pose: { bounce: 0, lean: 0, armRAngle: 0.3, elbowRBend: 0.3, legSpread: 0.15, kneeL: 0 } }
+            ]
+        },
+        overhead: {
+            duration: 0.34, hitAt: 0.20, hitRange: 0.22,
+            damage: 28, impulseX: 350, impulseY: -80,
+            keyframes: [
+                { t: 0.0,  pose: { bounce: 0.05, lean: -0.2, armRAngle: -1.5, armLAngle: -1.3, elbowRBend: 0.3, elbowLBend: 0.3, legSpread: 0.2 } },
+                { t: 0.25, pose: { bounce: 0.1, lean: -0.15, armRAngle: -1.6, armLAngle: -1.4, elbowRBend: 0.25, elbowLBend: 0.25, legSpread: 0.25 } },
+                { t: 0.5,  pose: { bounce: -0.15, lean: 0.5, armRAngle: 0.3, armLAngle: 0.2, elbowRBend: 0.1, elbowLBend: 0.1, legSpread: 0.35, kneeL: -0.2 } },
+                { t: 0.75, pose: { bounce: -0.15, lean: 0.45, armRAngle: 0.4, armLAngle: 0.3, elbowRBend: 0.15, elbowLBend: 0.15, legSpread: 0.3, kneeL: -0.15 } },
+                { t: 1.0,  pose: { bounce: 0, lean: 0, armRAngle: 0.3, armLAngle: 0.4, elbowRBend: 0.3, elbowLBend: 0.3, legSpread: 0.15, kneeL: 0 } }
+            ]
         }
     };
 
@@ -734,7 +765,7 @@
             var hand = aJoints.handL;
             tipX = attacker.x + hand.x + Math.cos(sAng) * sLen * attacker.facing;
             tipY = attacker.y + hand.y + Math.sin(sAng) * sLen;
-        } else if (atk.moveName === 'punch_r') {
+        } else if (atk.moveName === 'punch_r' || atk.moveName === 'uppercut' || atk.moveName === 'haymaker' || atk.moveName === 'overhead') {
             tipX = attacker.x + aJoints.handR.x;
             tipY = attacker.y + aJoints.handR.y;
         } else if (atk.moveName === 'kick_high') {
