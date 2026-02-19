@@ -64,20 +64,19 @@
         .back-link {
             display: inline-block;
             font-family: var(--font-body);
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 600;
             color: var(--gold);
             text-decoration: none;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
-            padding: 6px 14px;
+            letter-spacing: 0.1em;
+            padding: 5px 12px;
             border: 1px solid var(--gold-dark);
             background: rgba(26, 10, 46, 0.6);
             transition: all 0.3s ease;
-            position: absolute;
-            top: 8px;
-            left: 8px;
             z-index: 100;
+            flex-shrink: 0;
+            margin-right: 8px;
         }
         .back-link::before { content: '\2190  '; }
         .back-link:hover {
@@ -91,7 +90,7 @@
         .header-bar {
             background: linear-gradient(180deg, rgba(26, 10, 46, 0.95), rgba(12, 6, 18, 0.98));
             border-bottom: 2px solid var(--gold-dark);
-            padding: 10px 16px 10px 90px;
+            padding: 10px 16px;
             display: flex;
             align-items: center;
             gap: 16px;
@@ -492,6 +491,40 @@
         }
 
         /* ==================== RESPONSIVE ==================== */
+        @media (min-width: 1200px) {
+            :root {
+                --card-w: 110px;
+                --card-h: 154px;
+                --card-radius: 8px;
+                --stack-offset: 30px;
+                --stack-offset-hidden: 8px;
+            }
+            .top-row, .tableau-row { max-width: 960px; gap: 16px; }
+            .game-table { padding: 24px; }
+            .card-corner-rank { font-size: 1.1rem; }
+            .card-corner-suit { font-size: 0.9rem; }
+            .card-center-suit { font-size: 2.8rem; }
+            .card-front { padding: 6px 7px; }
+            .card-back::after { font-size: 3rem; }
+        }
+
+        @media (min-width: 1600px) {
+            :root {
+                --card-w: 130px;
+                --card-h: 182px;
+                --card-radius: 10px;
+                --stack-offset: 36px;
+                --stack-offset-hidden: 10px;
+            }
+            .top-row, .tableau-row { max-width: 1140px; gap: 20px; }
+            .game-table { padding: 32px; }
+            .card-corner-rank { font-size: 1.3rem; }
+            .card-corner-suit { font-size: 1.05rem; }
+            .card-center-suit { font-size: 3.4rem; }
+            .card-front { padding: 7px 8px; }
+            .card-back::after { font-size: 3.6rem; }
+        }
+
         @media (max-width: 768px) {
             :root {
                 --card-w: 48px;
@@ -500,7 +533,7 @@
                 --stack-offset: 16px;
                 --stack-offset-hidden: 4px;
             }
-            .header-bar { padding: 6px 10px 6px 70px; gap: 8px; }
+            .header-bar { padding: 6px 10px; gap: 8px; }
             .header-bar h1 { font-size: 1rem; }
             .stat { font-size: 0.6rem; }
             .stat-value { font-size: 0.85rem; }
@@ -511,7 +544,7 @@
             .card-corner-suit { font-size: 0.5rem; }
             .card-center-suit { font-size: 1.2rem; }
             .card-front { padding: 2px 3px; }
-            .back-link { font-size: 0.65rem; padding: 4px 8px; }
+            .back-link { font-size: 0.6rem; padding: 3px 6px; }
         }
 
         @media (max-width: 480px) {
@@ -527,9 +560,8 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">High Roller Arcade</a>
-
     <div class="header-bar">
+        <a href="index.html" class="back-link">Arcade</a>
         <h1>Solitaire</h1>
         <div class="stat-group">
             <div class="stat"><span class="stat-value" id="timer">0:00</span>Time</div>
@@ -972,9 +1004,6 @@ function updateDisplay() {
             if (i === showCount - 1) {
                 // top waste card is draggable
                 el.dataset.source = 'waste';
-                el.addEventListener('dblclick', () => {
-                    tryMoveToFoundation(card, 'waste', 0, 0);
-                });
                 makeDraggable(el, 'waste', 0, waste.length - 1);
             }
         }
@@ -1020,11 +1049,6 @@ function updateDisplay() {
                 el.dataset.sourceIdx = col;
                 el.dataset.cardIdx = i;
                 makeDraggable(el, 'tableau', col, i);
-                el.addEventListener('dblclick', () => {
-                    if (i === tableau[col].length - 1) {
-                        tryMoveToFoundation(card, 'tableau', col, i);
-                    }
-                });
             } else {
                 // face-down: click to flip if top
                 if (i === pile.length - 1) {
@@ -1050,6 +1074,8 @@ function updateDisplay() {
 
 // ==================== DRAG AND DROP ====================
 let dragState = null;
+let lastClickId = null;
+let lastClickTime = 0;
 
 function makeDraggable(el, sourceType, sourceIdx, cardIdx) {
     if (el.classList.contains('face-down')) return;
@@ -1115,6 +1141,25 @@ function startDrag(e, el, sourceType, sourceIdx, cardIdx) {
         dragCards.forEach(c => c.classList.remove('dragging'));
 
         if (!dragState.moved) {
+            // Detect double-click via timing (dblclick event unreliable with drag preventDefault)
+            const now = Date.now();
+            const clickedId = dragState.el.dataset.id;
+            if (clickedId === lastClickId && now - lastClickTime < 400) {
+                // Double-click: try auto-move to foundation
+                const { sourceType, sourceIdx, cardIdx } = dragState;
+                let card;
+                if (sourceType === 'waste') card = waste[waste.length - 1];
+                else if (sourceType === 'tableau' && cardIdx === tableau[sourceIdx].length - 1) card = tableau[sourceIdx][cardIdx];
+                if (card) {
+                    dragState = null;
+                    clearDropHighlights();
+                    tryMoveToFoundation(card, sourceType, sourceIdx, cardIdx);
+                    lastClickId = null;
+                    return;
+                }
+            }
+            lastClickId = clickedId;
+            lastClickTime = now;
             dragState = null;
             clearDropHighlights();
             return;
