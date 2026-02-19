@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voyage of the Paper Lantern — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background: #060810;
+            color: #fff;
+            font-family: 'Noto Serif', serif;
+        }
+        #viz-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: block;
+            cursor: pointer;
+        }
+        .play-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            background: rgba(6,8,16,0.92);
+            cursor: pointer;
+            transition: opacity 0.5s;
+        }
+        .play-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .play-title {
+            font-size: clamp(18px, 4.5vw, 44px);
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #ffb347;
+            text-shadow: 0 0 30px rgba(255,179,71,0.6), 0 0 60px rgba(255,140,0,0.3);
+            margin-bottom: 12px;
+        }
+        .play-sub {
+            font-size: clamp(11px, 2vw, 16px);
+            color: rgba(255,255,255,0.45);
+            font-style: italic;
+            margin-bottom: 40px;
+        }
+        .play-btn {
+            width: 80px; height: 80px;
+            border: 3px solid #ffb347;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        .play-btn::after {
+            content: '';
+            display: block;
+            width: 0; height: 0;
+            border-style: solid;
+            border-width: 18px 0 18px 30px;
+            border-color: transparent transparent transparent #ffb347;
+            margin-left: 6px;
+        }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,179,71,0.4); }
+            50% { box-shadow: 0 0 0 20px rgba(255,179,71,0); }
+        }
+        .back-link {
+            position: fixed;
+            top: 12px; left: 12px;
+            z-index: 30;
+            color: rgba(255,255,255,0.4);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: rgba(0,0,0,0.4);
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: rgba(255,255,255,0.8); }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-link">&larr; Visualizer</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">Voyage of the Paper Lantern</div>
+        <div class="play-sub">a river journey in light and water</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script>
+    // -- Voyage of the Paper Lantern Video Renderer --
+    window.Renderers['voyage-paper-lantern-video'] = (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // -- Palette --
+        var LANTERN_CORE = '#ffb347';
+        var LANTERN_GLOW = '#ff8c00';
+        var BAMBOO_GREEN = '#2d5a27';
+        var BAMBOO_LIGHT = '#4a8c3f';
+        var WATER_DEEP = '#0a2a4a';
+        var WATER_MID = '#1a4a6a';
+        var WATER_LIGHT = '#3a7aaa';
+        var NIGHT_RED = '#cc3333';
+        var NIGHT_YELLOW = '#ffdd44';
+        var NIGHT_PINK = '#ff6699';
+        var NIGHT_CYAN = '#44ddcc';
+        var MOON_SILVER = '#c8d8e8';
+        var SKY_DARK = '#060810';
+
+        // -- State --
+        var waterY = 0;
+        var lastBeat = -1;
+        var beatPulse = 0;
+        var lastSeqIndex = -1;
+        var scene = 'adrift';  // adrift, bamboo, rapids, waterfall, stillpool, nightmarket, rivermouth, sea
+        var sceneProgress = 0;
+        var scrollX = 0;
+
+        // Lantern
+        var lanternX = 0;
+        var lanternY = 0;
+        var lanternBob = 0;
+        var lanternFlicker = 0;
+        var lanternGlowRadius = 0;
+
+        // Particles
+        var fireflies = [];
+        var waterSpray = [];
+        var marketLights = [];
+        var stars = [];
+        var waterfallDrops = [];
+
+        // Bamboo
+        var bambooStalks = [];
+
+        // Night market lanterns
+        var hangingLanterns = [];
+
+        // Scene transition
+        var fadeAlpha = 0;
+        var fadeTarget = 0;
+
+        // Title
+        var titleAlpha = 0;
+        var titleTarget = 0;
+
+        // -- Helpers --
+        function lerp(a, b, t) { return a + (b - a) * t; }
+        function lerpExp(current, target, speed, dt) {
+            return current + (target - current) * (1 - Math.exp(-speed * dt));
+        }
+        function rand(min, max) { return min + Math.random() * (max - min); }
+        function hexToRgb(hex) {
+            var r = parseInt(hex.slice(1,3), 16);
+            var g = parseInt(hex.slice(3,5), 16);
+            var b = parseInt(hex.slice(5,7), 16);
+            return [r, g, b];
+        }
+
+        // -- Section mapping based on song sequence --
+        // 0-1: Setting Adrift A (intro)
+        // 2-3: Setting Adrift B
+        // 4-8: Bamboo Grove
+        // 9-14: Rapids + Peak
+        // 15-16: Waterfall Plunge
+        // 17-18: Still Pool
+        // 19-23: Night Market
+        // 24-31: River Mouth
+        // 32-36: Moonlit Sea
+        function mapScene(seqIdx) {
+            if (seqIdx <= 3) return 'adrift';
+            if (seqIdx <= 8) return 'bamboo';
+            if (seqIdx <= 14) return 'rapids';
+            if (seqIdx <= 16) return 'waterfall';
+            if (seqIdx <= 18) return 'stillpool';
+            if (seqIdx <= 23) return 'nightmarket';
+            if (seqIdx <= 31) return 'rivermouth';
+            return 'sea';
+        }
+
+        // -- Init particles --
+        function initFireflies() {
+            fireflies = [];
+            for (var i = 0; i < 40; i++) {
+                fireflies.push({
+                    x: rand(0, W), y: rand(0, waterY),
+                    vx: rand(-15, 15), vy: rand(-10, 10),
+                    phase: rand(0, Math.PI * 2),
+                    size: rand(1.5, 3.5),
+                    brightness: rand(0.3, 1)
+                });
+            }
+        }
+
+        function initWaterSpray() {
+            waterSpray = [];
+            for (var i = 0; i < 60; i++) {
+                waterSpray.push({
+                    x: rand(0, W), y: rand(waterY - 40, waterY + 20),
+                    vx: rand(-60, 60), vy: rand(-120, -30),
+                    life: rand(0, 1), maxLife: rand(0.5, 1.5),
+                    size: rand(1, 4)
+                });
+            }
+        }
+
+        function initMarketLights() {
+            marketLights = [];
+            for (var i = 0; i < 25; i++) {
+                var colors = [NIGHT_RED, NIGHT_YELLOW, NIGHT_PINK, NIGHT_CYAN, LANTERN_CORE];
+                marketLights.push({
+                    x: rand(0, W * 2), y: rand(waterY - 30, waterY + 50),
+                    color: colors[Math.floor(rand(0, colors.length))],
+                    size: rand(3, 8),
+                    phase: rand(0, Math.PI * 2),
+                    speed: rand(0.5, 2)
+                });
+            }
+        }
+
+        function initStars() {
+            stars = [];
+            for (var i = 0; i < 120; i++) {
+                stars.push({
+                    x: rand(0, W), y: rand(0, waterY * 0.6),
+                    size: rand(0.5, 2.5),
+                    brightness: rand(0.2, 1),
+                    twinklePhase: rand(0, Math.PI * 2),
+                    twinkleSpeed: rand(1, 4)
+                });
+            }
+        }
+
+        function initBamboo() {
+            bambooStalks = [];
+            for (var i = 0; i < 30; i++) {
+                var x = rand(-W * 0.3, W * 1.8);
+                var height = rand(H * 0.3, H * 0.8);
+                var segments = Math.floor(height / 40);
+                bambooStalks.push({
+                    x: x,
+                    height: height,
+                    segments: segments,
+                    thickness: rand(4, 10),
+                    sway: rand(-0.02, 0.02),
+                    depth: rand(0.3, 1) // 0 = far, 1 = near
+                });
+            }
+            bambooStalks.sort(function(a, b) { return a.depth - b.depth; });
+        }
+
+        function initHangingLanterns() {
+            hangingLanterns = [];
+            var colors = [NIGHT_RED, NIGHT_YELLOW, NIGHT_PINK, '#ff9944', LANTERN_CORE];
+            for (var i = 0; i < 15; i++) {
+                hangingLanterns.push({
+                    x: rand(0, W * 2),
+                    y: rand(H * 0.1, waterY * 0.5),
+                    color: colors[Math.floor(rand(0, colors.length))],
+                    size: rand(12, 28),
+                    swing: rand(-0.3, 0.3),
+                    swingSpeed: rand(0.8, 2),
+                    phase: rand(0, Math.PI * 2)
+                });
+            }
+        }
+
+        function initWaterfallDrops() {
+            waterfallDrops = [];
+            for (var i = 0; i < 80; i++) {
+                waterfallDrops.push({
+                    x: rand(W * 0.2, W * 0.8),
+                    y: rand(-H * 0.2, H),
+                    vy: rand(100, 400),
+                    size: rand(1, 3),
+                    alpha: rand(0.2, 0.7)
+                });
+            }
+        }
+
+        // -- Sky gradients per scene --
+        function drawSky(ctx, sc, energy, elapsed) {
+            var grad;
+            switch (sc) {
+                case 'adrift':
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#0c1025');
+                    grad.addColorStop(0.5, '#1a1535');
+                    grad.addColorStop(1, '#1a2a45');
+                    break;
+                case 'bamboo':
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#0a1a10');
+                    grad.addColorStop(0.4, '#0d2518');
+                    grad.addColorStop(1, '#0a2a30');
+                    break;
+                case 'rapids':
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#0a0f1a');
+                    grad.addColorStop(0.5, '#15253a');
+                    grad.addColorStop(1, '#1a3550');
+                    break;
+                case 'waterfall':
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#0a0f1a');
+                    grad.addColorStop(0.3, '#15253a');
+                    grad.addColorStop(1, '#2a4a6a');
+                    break;
+                case 'stillpool':
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#050810');
+                    grad.addColorStop(0.5, '#0a1020');
+                    grad.addColorStop(1, '#0f1a30');
+                    break;
+                case 'nightmarket':
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#0a0810');
+                    grad.addColorStop(0.4, '#1a1020');
+                    grad.addColorStop(1, '#1a1530');
+                    break;
+                case 'rivermouth':
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#0a0f18');
+                    grad.addColorStop(0.4, '#101828');
+                    grad.addColorStop(1, '#152a40');
+                    break;
+                case 'sea':
+                default:
+                    grad = ctx.createLinearGradient(0, 0, 0, waterY);
+                    grad.addColorStop(0, '#050810');
+                    grad.addColorStop(0.3, '#0a1020');
+                    grad.addColorStop(1, '#0f1a35');
+                    break;
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, waterY);
+        }
+
+        // -- Water surface --
+        function drawWater(ctx, sc, energy, elapsed, beat) {
+            var choppiness = 0;
+            var waterColor1, waterColor2, waterColor3;
+
+            switch (sc) {
+                case 'adrift':
+                case 'stillpool':
+                    choppiness = 2 + energy * 3;
+                    waterColor1 = '#0a2a4a'; waterColor2 = '#0f3050'; waterColor3 = '#060818';
+                    break;
+                case 'bamboo':
+                    choppiness = 3 + energy * 5;
+                    waterColor1 = '#0a2a3a'; waterColor2 = '#0f3545'; waterColor3 = '#060a15';
+                    break;
+                case 'rapids':
+                    choppiness = 8 + energy * 12;
+                    waterColor1 = '#1a4a6a'; waterColor2 = '#2a5a7a'; waterColor3 = '#0a1a30';
+                    break;
+                case 'waterfall':
+                    choppiness = 12 + energy * 8;
+                    waterColor1 = '#1a4a6a'; waterColor2 = '#3a7aaa'; waterColor3 = '#0a2040';
+                    break;
+                case 'nightmarket':
+                    choppiness = 3 + energy * 4;
+                    waterColor1 = '#0a1a2a'; waterColor2 = '#0f2535'; waterColor3 = '#050a15';
+                    break;
+                case 'rivermouth':
+                    choppiness = 4 + energy * 6;
+                    waterColor1 = '#0a2a4a'; waterColor2 = '#1a3a5a'; waterColor3 = '#060a18';
+                    break;
+                case 'sea':
+                default:
+                    choppiness = 3 + energy * 4;
+                    waterColor1 = '#0a1a30'; waterColor2 = '#0f2540'; waterColor3 = '#050810';
+                    break;
+            }
+
+            // Water body
+            var grad = ctx.createLinearGradient(0, waterY, 0, H);
+            grad.addColorStop(0, waterColor1);
+            grad.addColorStop(0.4, waterColor2);
+            grad.addColorStop(1, waterColor3);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, waterY, W, H - waterY);
+
+            // Ripple waves
+            ctx.save();
+            ctx.globalAlpha = 0.3 + energy * 0.2;
+            ctx.strokeStyle = WATER_LIGHT;
+            ctx.lineWidth = 1;
+            for (var wave = 0; wave < 5; wave++) {
+                var waveY = waterY + 10 + wave * ((H - waterY) / 6);
+                var freq = 0.008 + wave * 0.003;
+                var amp = choppiness * (1 - wave * 0.15);
+                ctx.beginPath();
+                for (var x = 0; x <= W; x += 4) {
+                    var y = waveY + Math.sin(x * freq + elapsed * (2 + wave * 0.5) + wave) * amp
+                          + Math.sin(x * freq * 2.3 + elapsed * 1.3) * amp * 0.3;
+                    if (x === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // -- Lantern reflection on water --
+        function drawLanternReflection(ctx, lx, ly, glowR, energy) {
+            var refY = waterY + (waterY - ly) * 0.3;
+            var refH = (H - waterY) * 0.6;
+
+            // Wavy reflection column
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < 8; i++) {
+                var y = refY + i * (refH / 8);
+                var wobble = Math.sin(y * 0.05 + scrollX * 0.01) * (5 + i * 3);
+                var alpha = (0.15 - i * 0.015) * (0.5 + energy * 0.5);
+                var rad = glowR * (0.3 + i * 0.05);
+
+                var g = ctx.createRadialGradient(lx + wobble, y, 0, lx + wobble, y, rad);
+                g.addColorStop(0, 'rgba(255,179,71,' + alpha + ')');
+                g.addColorStop(0.5, 'rgba(255,140,0,' + (alpha * 0.4) + ')');
+                g.addColorStop(1, 'rgba(255,100,0,0)');
+                ctx.fillStyle = g;
+                ctx.fillRect(lx + wobble - rad, y - rad * 0.3, rad * 2, rad * 0.6);
+            }
+            ctx.restore();
+        }
+
+        // -- Central lantern --
+        function drawLantern(ctx, energy, beat) {
+            var x = lanternX;
+            var y = lanternY + lanternBob;
+
+            // Outer glow
+            var glowR = lanternGlowRadius * (1 + beatPulse * 0.3);
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var g1 = ctx.createRadialGradient(x, y, 0, x, y, glowR);
+            g1.addColorStop(0, 'rgba(255,179,71,' + (0.3 + energy * 0.2 + lanternFlicker * 0.1) + ')');
+            g1.addColorStop(0.3, 'rgba(255,140,0,' + (0.15 + energy * 0.1) + ')');
+            g1.addColorStop(0.7, 'rgba(255,100,0,' + (0.05 + energy * 0.03) + ')');
+            g1.addColorStop(1, 'rgba(255,80,0,0)');
+            ctx.fillStyle = g1;
+            ctx.beginPath();
+            ctx.arc(x, y, glowR, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Lantern body (rounded rectangle / diamond shape)
+            var lw = 14 + beatPulse * 3;
+            var lh = 20 + beatPulse * 4;
+
+            ctx.save();
+            ctx.translate(x, y);
+
+            // Paper body
+            ctx.fillStyle = LANTERN_CORE;
+            ctx.globalAlpha = 0.85 + lanternFlicker * 0.15;
+            ctx.shadowColor = LANTERN_GLOW;
+            ctx.shadowBlur = 20 + beatPulse * 15;
+            ctx.beginPath();
+            ctx.moveTo(0, -lh);
+            ctx.quadraticCurveTo(lw, -lh * 0.3, lw * 0.8, lh * 0.3);
+            ctx.quadraticCurveTo(0, lh, 0, lh);
+            ctx.quadraticCurveTo(0, lh, -lw * 0.8, lh * 0.3);
+            ctx.quadraticCurveTo(-lw, -lh * 0.3, 0, -lh);
+            ctx.fill();
+
+            // Inner bright core
+            ctx.fillStyle = '#ffe0a0';
+            ctx.globalAlpha = 0.6 + lanternFlicker * 0.3;
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.ellipse(0, 0, lw * 0.4, lh * 0.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Top wire
+            ctx.strokeStyle = 'rgba(255,200,100,0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, -lh);
+            ctx.lineTo(0, -lh - 8);
+            ctx.stroke();
+
+            ctx.restore();
+
+            // Reflection
+            drawLanternReflection(ctx, x, y, glowR, energy);
+        }
+
+        // -- Bamboo scene --
+        function drawBambooScene(ctx, energy, elapsed) {
+            for (var i = 0; i < bambooStalks.length; i++) {
+                var stalk = bambooStalks[i];
+                var sx = stalk.x - scrollX * stalk.depth * 0.3;
+                // Wrap around
+                var totalW = W * 2;
+                sx = ((sx % totalW) + totalW) % totalW - W * 0.3;
+
+                var baseY = waterY;
+                var sway = Math.sin(elapsed * 1.5 + stalk.x * 0.01) * stalk.sway * stalk.height;
+                var alpha = 0.3 + stalk.depth * 0.5;
+
+                ctx.save();
+                ctx.globalAlpha = alpha;
+
+                // Main stalk
+                var green = stalk.depth > 0.6 ? BAMBOO_LIGHT : BAMBOO_GREEN;
+                ctx.strokeStyle = green;
+                ctx.lineWidth = stalk.thickness * stalk.depth;
+                ctx.beginPath();
+                ctx.moveTo(sx, baseY);
+                var topX = sx + sway;
+                var topY = baseY - stalk.height;
+                ctx.quadraticCurveTo(sx + sway * 0.5, baseY - stalk.height * 0.5, topX, topY);
+                ctx.stroke();
+
+                // Nodes
+                ctx.fillStyle = green;
+                for (var s = 1; s < stalk.segments; s++) {
+                    var t = s / stalk.segments;
+                    var nx = lerp(sx, topX, t);
+                    var ny = lerp(baseY, topY, t);
+                    ctx.beginPath();
+                    ctx.ellipse(nx, ny, stalk.thickness * stalk.depth * 0.7, 2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Leaves at top
+                if (stalk.depth > 0.5) {
+                    ctx.fillStyle = BAMBOO_LIGHT;
+                    ctx.globalAlpha = alpha * 0.7;
+                    for (var l = 0; l < 3; l++) {
+                        var leafAngle = -0.5 + l * 0.5 + sway * 0.5;
+                        ctx.save();
+                        ctx.translate(topX, topY);
+                        ctx.rotate(leafAngle);
+                        ctx.beginPath();
+                        ctx.ellipse(15, 0, 18, 3, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // -- Fireflies --
+        function updateFireflies(dt, elapsed) {
+            for (var i = 0; i < fireflies.length; i++) {
+                var f = fireflies[i];
+                f.x += f.vx * dt;
+                f.y += f.vy * dt + Math.sin(elapsed * 2 + f.phase) * 5 * dt;
+                f.phase += dt;
+
+                if (f.x < -20) f.x = W + 20;
+                if (f.x > W + 20) f.x = -20;
+                if (f.y < -20) f.y = waterY * 0.8;
+                if (f.y > waterY - 10) f.y = 10;
+            }
+        }
+
+        function drawFireflies(ctx, elapsed) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < fireflies.length; i++) {
+                var f = fireflies[i];
+                var flicker = 0.4 + 0.6 * Math.abs(Math.sin(elapsed * f.brightness * 3 + f.phase));
+                var alpha = f.brightness * flicker;
+
+                var g = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.size * 4);
+                g.addColorStop(0, 'rgba(200,255,100,' + alpha + ')');
+                g.addColorStop(0.5, 'rgba(150,255,50,' + (alpha * 0.3) + ')');
+                g.addColorStop(1, 'rgba(100,200,50,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(f.x, f.y, f.size * 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // -- Water spray (rapids) --
+        function updateWaterSpray(dt, energy) {
+            for (var i = 0; i < waterSpray.length; i++) {
+                var p = waterSpray[i];
+                p.life += dt;
+                if (p.life > p.maxLife) {
+                    p.x = rand(0, W);
+                    p.y = waterY;
+                    p.vx = rand(-60, 60);
+                    p.vy = rand(-120, -30) * (0.5 + energy);
+                    p.life = 0;
+                    p.maxLife = rand(0.5, 1.5);
+                }
+                p.x += p.vx * dt;
+                p.y += p.vy * dt;
+                p.vy += 200 * dt; // gravity
+            }
+        }
+
+        function drawWaterSpray(ctx, energy) {
+            ctx.save();
+            ctx.fillStyle = 'rgba(180,220,255,0.6)';
+            for (var i = 0; i < waterSpray.length; i++) {
+                var p = waterSpray[i];
+                var lifeRatio = 1 - p.life / p.maxLife;
+                ctx.globalAlpha = lifeRatio * (0.3 + energy * 0.5);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * lifeRatio, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // -- Waterfall --
+        function drawWaterfall(ctx, energy, elapsed) {
+            // Vertical water columns
+            var fallWidth = W * 0.5;
+            var fallX = (W - fallWidth) / 2;
+
+            ctx.save();
+
+            // Mist behind fall
+            ctx.globalCompositeOperation = 'lighter';
+            var mist = ctx.createRadialGradient(W / 2, waterY * 0.5, 0, W / 2, waterY * 0.5, fallWidth);
+            mist.addColorStop(0, 'rgba(150,200,255,' + (0.08 + energy * 0.06) + ')');
+            mist.addColorStop(1, 'rgba(100,150,200,0)');
+            ctx.fillStyle = mist;
+            ctx.fillRect(0, 0, W, waterY);
+
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Falling water streams
+            ctx.strokeStyle = 'rgba(150,200,255,0.4)';
+            ctx.lineWidth = 2;
+            for (var i = 0; i < 20; i++) {
+                var x = fallX + rand(0, fallWidth);
+                var speed = 150 + rand(0, 200);
+                var offset = (elapsed * speed + i * 50) % (H * 1.2);
+                ctx.globalAlpha = 0.2 + energy * 0.3;
+                ctx.beginPath();
+                ctx.moveTo(x + Math.sin(elapsed * 3 + i) * 5, offset - 40);
+                ctx.lineTo(x + Math.sin(elapsed * 3 + i + 1) * 5, offset);
+                ctx.stroke();
+            }
+
+            // Waterfall drops
+            ctx.fillStyle = '#b0d8ff';
+            for (var j = 0; j < waterfallDrops.length; j++) {
+                var d = waterfallDrops[j];
+                d.y += d.vy * (1/60);
+                if (d.y > H + 10) {
+                    d.y = -rand(10, H * 0.3);
+                    d.x = fallX + rand(0, fallWidth);
+                }
+                ctx.globalAlpha = d.alpha * (0.3 + energy * 0.5);
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Splash at bottom
+            var splashY = waterY;
+            ctx.globalCompositeOperation = 'lighter';
+            var splash = ctx.createRadialGradient(W / 2, splashY, 0, W / 2, splashY, fallWidth * 0.6);
+            splash.addColorStop(0, 'rgba(200,230,255,' + (0.15 + energy * 0.15 + beatPulse * 0.1) + ')');
+            splash.addColorStop(1, 'rgba(150,200,255,0)');
+            ctx.fillStyle = splash;
+            ctx.beginPath();
+            ctx.arc(W / 2, splashY, fallWidth * 0.6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // -- Night market hanging lanterns --
+        function drawNightMarketLanterns(ctx, energy, elapsed) {
+            for (var i = 0; i < hangingLanterns.length; i++) {
+                var hl = hangingLanterns[i];
+                var x = hl.x - scrollX * 0.2;
+                // Wrap
+                x = ((x % (W * 2)) + W * 2) % (W * 2) - W * 0.3;
+
+                var swing = Math.sin(elapsed * hl.swingSpeed + hl.phase) * hl.swing;
+                var y = hl.y + Math.sin(elapsed * 0.8 + hl.phase) * 3;
+                var rgb = hexToRgb(hl.color);
+                var glowAlpha = 0.3 + energy * 0.3 + beatPulse * 0.2;
+
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(swing);
+
+                // String
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, -hl.size);
+                ctx.lineTo(0, -hl.size - 15);
+                ctx.stroke();
+
+                // Glow
+                ctx.globalCompositeOperation = 'lighter';
+                var g = ctx.createRadialGradient(0, 0, 0, 0, 0, hl.size * 2.5);
+                g.addColorStop(0, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + glowAlpha + ')');
+                g.addColorStop(0.5, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (glowAlpha * 0.2) + ')');
+                g.addColorStop(1, 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(0, 0, hl.size * 2.5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Body
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.fillStyle = hl.color;
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, hl.size * 0.6, hl.size, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            // Reflections in water
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var j = 0; j < marketLights.length; j++) {
+                var ml = marketLights[j];
+                var mx = ml.x - scrollX * 0.15;
+                mx = ((mx % (W * 2)) + W * 2) % (W * 2) - W * 0.3;
+                var my = waterY + 10 + Math.abs(Math.sin(elapsed * ml.speed + ml.phase)) * 40;
+                var wobble = Math.sin(elapsed * 2 + ml.phase) * 8;
+                var rgb2 = hexToRgb(ml.color);
+                var alpha = (0.15 + energy * 0.15) * (0.5 + 0.5 * Math.sin(elapsed * ml.speed + ml.phase));
+
+                var rg = ctx.createRadialGradient(mx + wobble, my, 0, mx + wobble, my, ml.size * 4);
+                rg.addColorStop(0, 'rgba(' + rgb2[0] + ',' + rgb2[1] + ',' + rgb2[2] + ',' + alpha + ')');
+                rg.addColorStop(1, 'rgba(' + rgb2[0] + ',' + rgb2[1] + ',' + rgb2[2] + ',0)');
+                ctx.fillStyle = rg;
+                ctx.beginPath();
+                ctx.arc(mx + wobble, my, ml.size * 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // -- Moon --
+        function drawMoon(ctx, energy, elapsed) {
+            var moonX = W * 0.75;
+            var moonY = H * 0.12;
+            var moonR = Math.min(W, H) * 0.06;
+
+            ctx.save();
+
+            // Moon glow
+            ctx.globalCompositeOperation = 'lighter';
+            var mg = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, moonR * 5);
+            mg.addColorStop(0, 'rgba(200,215,235,' + (0.15 + energy * 0.1) + ')');
+            mg.addColorStop(0.3, 'rgba(180,200,220,' + (0.06 + energy * 0.04) + ')');
+            mg.addColorStop(1, 'rgba(150,180,200,0)');
+            ctx.fillStyle = mg;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonR * 5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Moon disc
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.fillStyle = MOON_SILVER;
+            ctx.globalAlpha = 0.9;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonR, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Moon craters (subtle)
+            ctx.fillStyle = 'rgba(150,170,190,0.3)';
+            ctx.beginPath();
+            ctx.arc(moonX - moonR * 0.2, moonY - moonR * 0.1, moonR * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(moonX + moonR * 0.3, moonY + moonR * 0.2, moonR * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Moon path on water
+            ctx.globalCompositeOperation = 'lighter';
+            for (var i = 0; i < 12; i++) {
+                var pathY = waterY + 10 + i * ((H - waterY) / 14);
+                var pathW = moonR * (2 + i * 0.8);
+                var wobble = Math.sin(elapsed * 1.5 + i * 0.7) * (3 + i * 2);
+                var alpha = (0.08 - i * 0.005) * (0.5 + energy * 0.5);
+
+                var pg = ctx.createRadialGradient(moonX + wobble, pathY, 0, moonX + wobble, pathY, pathW);
+                pg.addColorStop(0, 'rgba(200,215,235,' + alpha + ')');
+                pg.addColorStop(1, 'rgba(180,200,220,0)');
+                ctx.fillStyle = pg;
+                ctx.beginPath();
+                ctx.ellipse(moonX + wobble, pathY, pathW, pathW * 0.2, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // -- Stars --
+        function drawStars(ctx, elapsed) {
+            ctx.save();
+            ctx.fillStyle = '#ffffff';
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                var twinkle = 0.3 + 0.7 * Math.abs(Math.sin(elapsed * s.twinkleSpeed + s.twinklePhase));
+                ctx.globalAlpha = s.brightness * twinkle;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // -- Title overlay --
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+
+            ctx.save();
+            var fontSize = Math.max(14, Math.min(W * 0.035, 40));
+            ctx.font = '700 ' + fontSize + 'px "Noto Serif", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.globalAlpha = titleAlpha;
+            ctx.shadowColor = LANTERN_GLOW;
+            ctx.shadowBlur = 30;
+            ctx.fillStyle = LANTERN_CORE;
+            ctx.fillText('Voyage of the Paper Lantern', W / 2, H * 0.12);
+
+            ctx.font = 'italic 400 ' + (fontSize * 0.45) + 'px "Noto Serif", serif';
+            ctx.globalAlpha = titleAlpha * 0.6;
+            ctx.shadowBlur = 15;
+            ctx.fillText(scene.replace(/([a-z])([A-Z])/g, '$1 $2'), W / 2, H * 0.12 + fontSize * 1.1);
+
+            ctx.restore();
+        }
+
+        // -- Scene label --
+        var SCENE_LABELS = {
+            adrift: 'Setting Adrift',
+            bamboo: 'Bamboo Grove',
+            rapids: 'The Rapids',
+            waterfall: 'Waterfall Plunge',
+            stillpool: 'Still Pool',
+            nightmarket: 'Night Market',
+            rivermouth: 'River Mouth',
+            sea: 'Moonlit Sea'
+        };
+        var sceneLabelAlpha = 0;
+        var sceneLabelTarget = 0;
+        var sceneLabelText = '';
+        var sceneLabelTimer = 0;
+
+        function drawSceneLabel(ctx) {
+            if (sceneLabelAlpha < 0.01) return;
+            ctx.save();
+            var fontSize = Math.max(12, Math.min(W * 0.025, 28));
+            ctx.font = 'italic 400 ' + fontSize + 'px "Noto Serif", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.globalAlpha = sceneLabelAlpha * 0.7;
+            ctx.shadowColor = 'rgba(255,179,71,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = 'rgba(255,220,180,0.9)';
+            ctx.fillText(sceneLabelText, W / 2, H * 0.06);
+            ctx.restore();
+        }
+
+        // -- Fade overlay --
+        function drawFade(ctx) {
+            if (fadeAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = fadeAlpha;
+            ctx.fillStyle = '#060810';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // -- Rapids rocks --
+        function drawRapidsRocks(ctx, elapsed) {
+            ctx.save();
+            ctx.fillStyle = '#2a3040';
+            var rockPositions = [
+                [W * 0.15, waterY - 5, 20], [W * 0.35, waterY - 8, 25],
+                [W * 0.55, waterY - 3, 15], [W * 0.7, waterY - 10, 30],
+                [W * 0.85, waterY - 6, 18], [W * 0.45, waterY - 12, 22]
+            ];
+            for (var i = 0; i < rockPositions.length; i++) {
+                var rx = rockPositions[i][0] - (scrollX * 0.1) % W;
+                var ry = rockPositions[i][1];
+                var rs = rockPositions[i][2];
+                ctx.beginPath();
+                ctx.ellipse(rx, ry, rs, rs * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // White water around rocks
+                ctx.strokeStyle = 'rgba(200,230,255,0.3)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(rx, ry, rs + 5 + Math.sin(elapsed * 4 + i) * 3, Math.PI * 0.8, Math.PI * 0.2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // == INIT ==
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+            waterY = H * 0.55;
+            lanternX = W * 0.5;
+            lanternY = waterY - 30;
+            lanternGlowRadius = Math.min(W, H) * 0.15;
+
+            lastBeat = -1;
+            beatPulse = 0;
+            lastSeqIndex = -1;
+            scene = 'adrift';
+            scrollX = 0;
+            fadeAlpha = 0;
+            titleAlpha = 0;
+            sceneLabelAlpha = 0;
+            sceneLabelTimer = 0;
+
+            initFireflies();
+            initWaterSpray();
+            initMarketLights();
+            initStars();
+            initBamboo();
+            initHangingLanterns();
+            initWaterfallDrops();
+        }
+
+        // == RESIZE ==
+        function resize(width, height) {
+            W = width; H = height;
+            waterY = H * 0.55;
+            lanternX = W * 0.5;
+            lanternY = waterY - 30;
+            lanternGlowRadius = Math.min(W, H) * 0.15;
+            initStars();
+        }
+
+        // == RENDER ==
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1/60;
+            var cursor = frameData.cursor;
+
+            // Clear
+            ctx.fillStyle = SKY_DARK;
+            ctx.fillRect(0, 0, W, H);
+
+            if (!cursor) {
+                // Idle: calm scene
+                drawSky(ctx, 'adrift', 0, 0);
+                drawStars(ctx, 0);
+                drawWater(ctx, 'adrift', 0, 0, 0);
+                lanternBob = Math.sin(Date.now() * 0.001) * 3;
+                lanternFlicker = Math.sin(Date.now() * 0.003) * 0.3;
+                drawLantern(ctx, 0.2, 0);
+                return;
+            }
+
+            var beat = cursor.beat;
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+            var elapsed = cursor.elapsed || 0;
+
+            // -- Scene transitions --
+            var newScene = mapScene(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                if (newScene !== scene) {
+                    scene = newScene;
+                    fadeAlpha = 0.8; // flash on scene change
+                    sceneLabelText = SCENE_LABELS[scene] || '';
+                    sceneLabelTimer = 3; // show label for 3 seconds
+                    sceneLabelTarget = 1;
+                }
+                lastSeqIndex = seqIdx;
+            }
+
+            // -- Beat pulse --
+            if (beat !== lastBeat) {
+                beatPulse = 1;
+                lastBeat = beat;
+            }
+            beatPulse *= Math.exp(-8 * dt);
+
+            // -- Scroll --
+            var scrollSpeed = 30;
+            if (scene === 'rapids') scrollSpeed = 120 + energy * 80;
+            else if (scene === 'waterfall') scrollSpeed = 20;
+            else if (scene === 'stillpool') scrollSpeed = 5;
+            else if (scene === 'nightmarket') scrollSpeed = 40;
+            else if (scene === 'rivermouth') scrollSpeed = 50 + energy * 30;
+            else if (scene === 'sea') scrollSpeed = 15;
+            else if (scene === 'bamboo') scrollSpeed = 50 + energy * 30;
+            scrollX += scrollSpeed * dt;
+
+            // -- Lantern animation --
+            var bobSpeed = scene === 'rapids' ? 6 : scene === 'waterfall' ? 4 : 2;
+            var bobAmp = scene === 'rapids' ? 8 + energy * 6 : scene === 'waterfall' ? 12 : 3 + energy * 3;
+            lanternBob = Math.sin(elapsed * bobSpeed) * bobAmp;
+            lanternFlicker = 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(elapsed * 7.3 + Math.sin(elapsed * 11.1) * 2));
+            lanternGlowRadius = Math.min(W, H) * (0.12 + energy * 0.08 + beatPulse * 0.05);
+
+            // Lantern horizontal sway
+            lanternX = W * 0.5 + Math.sin(elapsed * 0.7) * W * 0.03;
+            lanternY = waterY - 30 - (scene === 'waterfall' ? elapsed * 0.5 % 2 * 10 : 0);
+
+            // -- Fade decay --
+            fadeAlpha *= Math.exp(-3 * dt);
+
+            // -- Scene label timer --
+            if (sceneLabelTimer > 0) {
+                sceneLabelTimer -= dt;
+                if (sceneLabelTimer < 1) {
+                    sceneLabelTarget = 0;
+                }
+            }
+            sceneLabelAlpha = lerpExp(sceneLabelAlpha, sceneLabelTarget, 4, dt);
+
+            // -- Title: show during adrift and sea --
+            titleTarget = (scene === 'adrift' || scene === 'sea') ? 1 : 0;
+            titleAlpha = lerpExp(titleAlpha, titleTarget, 3, dt);
+
+            // ======= DRAW SCENE =======
+
+            // 1. Sky
+            drawSky(ctx, scene, energy, elapsed);
+
+            // 2. Stars (visible in most scenes)
+            if (scene !== 'bamboo') {
+                drawStars(ctx, elapsed);
+            }
+
+            // 3. Moon (sea, rivermouth, stillpool, nightmarket)
+            if (scene === 'sea' || scene === 'rivermouth' || scene === 'stillpool' || scene === 'nightmarket') {
+                drawMoon(ctx, energy, elapsed);
+            }
+
+            // 4. Scene-specific background elements
+            if (scene === 'bamboo') {
+                drawBambooScene(ctx, energy, elapsed);
+            }
+            if (scene === 'waterfall') {
+                drawWaterfall(ctx, energy, elapsed);
+            }
+            if (scene === 'nightmarket') {
+                drawNightMarketLanterns(ctx, energy, elapsed);
+            }
+
+            // 5. Water
+            drawWater(ctx, scene, energy, elapsed, beat);
+
+            // 6. Rapids rocks
+            if (scene === 'rapids') {
+                drawRapidsRocks(ctx, elapsed);
+            }
+
+            // 7. Particles
+            if (scene === 'bamboo') {
+                updateFireflies(dt, elapsed);
+                drawFireflies(ctx, elapsed);
+            }
+            if (scene === 'rapids' || scene === 'waterfall') {
+                updateWaterSpray(dt, energy);
+                drawWaterSpray(ctx, energy);
+            }
+
+            // 8. Lantern (central focal point)
+            drawLantern(ctx, energy, beat);
+
+            // 9. Title
+            drawTitle(ctx);
+
+            // 10. Scene label
+            drawSceneLabel(ctx);
+
+            // 11. Fade overlay
+            drawFade(ctx);
+        }
+
+        return {
+            name: 'Voyage of the Paper Lantern',
+            init: init,
+            render: render,
+            resize: resize
+        };
+    })();
+
+    // -- Page bootstrap --
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('voyage-paper-lantern-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/voyage-of-the-paper-lantern.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
