@@ -513,18 +513,36 @@
         }
 
         // ── Draw lighthouse beam ──
+        // The beam sweeps horizontally across the horizon, like a real
+        // lighthouse. We use beamAngle as a continuous rotation and map
+        // it to a horizontal sweep angle with a slight downward tilt
+        // toward the water. The beam fades as it sweeps toward/away
+        // from the viewer (simulating the beam pointing into/out of screen).
         function drawBeam(ctx) {
             var lhX = W * 0.17;
             var beamOriginY = H * 0.48 - H * 0.28 + H * 0.28 * 0.09;
             var beamLen = Math.max(W, H) * 1.5;
-            var beamWidth = 0.08; // radians
+            var beamWidth = 0.06; // radians (half-width of cone)
 
             ctx.save();
             ctx.globalCompositeOperation = 'lighter';
 
-            // Main beam
-            var alpha = (0.12 + beatPulse * 0.05) * introFade * outroFade;
+            // Simulate horizontal rotation: use sin of beamAngle to sweep
+            // the beam left-right. The beam is most visible when sweeping
+            // across our view (sin near ±1) and fades when pointing
+            // toward/away from viewer (sin near 0).
+            var sweep = Math.sin(beamAngle); // -1 to 1, horizontal position
+            var visibility = Math.abs(sweep); // brightest when beam crosses our view
+
+            // Base alpha modulated by visibility (beam fades as it rotates away)
+            var alpha = (0.12 + beatPulse * 0.05) * introFade * outroFade * (0.15 + visibility * 0.85);
             if (eyeProgress > 0.5) alpha *= 0.4;
+
+            // Beam aims slightly below horizontal (toward the water)
+            // sweep maps to an angular range across the horizon
+            var horizonAngle = sweep * 0.7; // -0.7 to 0.7 radians from right-horizontal
+            var tiltDown = 0.12; // slight downward tilt toward the water
+            var finalAngle = horizonAngle + tiltDown;
 
             var grad = ctx.createRadialGradient(lhX, beamOriginY, 0, lhX, beamOriginY, beamLen);
             grad.addColorStop(0, BEAM_COLOR + (alpha * 2) + ')');
@@ -535,16 +553,18 @@
             ctx.fillStyle = grad;
             ctx.beginPath();
             ctx.moveTo(lhX, beamOriginY);
-            var a1 = beamAngle - beamWidth;
-            var a2 = beamAngle + beamWidth;
+            var a1 = finalAngle - beamWidth;
+            var a2 = finalAngle + beamWidth;
             ctx.lineTo(lhX + Math.cos(a1) * beamLen, beamOriginY + Math.sin(a1) * beamLen);
             ctx.lineTo(lhX + Math.cos(a2) * beamLen, beamOriginY + Math.sin(a2) * beamLen);
             ctx.closePath();
             ctx.fill();
 
-            // Glow at source
+            // Glow at source (always visible, subtle)
+            var glowAlpha = (0.08 + beatPulse * 0.04) * introFade * outroFade;
+            if (eyeProgress > 0.5) glowAlpha *= 0.4;
             var glowGrad = ctx.createRadialGradient(lhX, beamOriginY, 0, lhX, beamOriginY, W * 0.06);
-            glowGrad.addColorStop(0, 'rgba(255,230,120,' + (alpha * 3) + ')');
+            glowGrad.addColorStop(0, 'rgba(255,230,120,' + (glowAlpha * 3) + ')');
             glowGrad.addColorStop(1, 'rgba(255,230,120,0)');
             ctx.fillStyle = glowGrad;
             ctx.fillRect(lhX - W * 0.06, beamOriginY - W * 0.06, W * 0.12, W * 0.12);
