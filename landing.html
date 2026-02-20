@@ -85,9 +85,9 @@
       background: repeating-linear-gradient(
         0deg,
         transparent,
-        transparent 1px,
-        rgba(0, 0, 0, 0.1) 1px,
-        rgba(0, 0, 0, 0.1) 2px
+        transparent 2px,
+        rgba(0, 0, 0, 0.08) 2px,
+        rgba(0, 0, 0, 0.08) 4px
       );
       pointer-events: none;
       z-index: 9999;
@@ -1923,6 +1923,7 @@
 
             <!-- Transport controls -->
             <div class="jukebox-controls">
+              <button class="jb-btn" id="jb-videos-only" title="Videos Only">&#x1F3AC;</button>
               <button class="jb-btn" id="jb-shuffle" title="Shuffle">&#x1F500;</button>
               <button class="jb-btn" id="jb-prev" title="Previous">&#x23EE;</button>
               <button class="jb-btn jb-btn-play" id="jb-play" title="Play / Pause">&#x25B6;</button>
@@ -2140,6 +2141,7 @@
   var initialized = false;
   var isPlaying = false;
   var shuffleOn = true;
+  var videosOnlyOn = false;
   var advanceTimer = null;
   var progressRAF = null;
 
@@ -2168,12 +2170,17 @@
     return "music/visualizer/" + videoStem + "-video.html";
   }
 
+  function hasVideo(manifestIdx) {
+    return getVideoUrl(manifest[manifestIdx].file) !== null;
+  }
+
   // ---- DOM refs ----
   var elTitle = document.getElementById("jb-song-title");
   var elPlay = document.getElementById("jb-play");
   var elNext = document.getElementById("jb-next");
   var elPrev = document.getElementById("jb-prev");
   var elShuffle = document.getElementById("jb-shuffle");
+  var elVideosOnly = document.getElementById("jb-videos-only");
   var elVolume = document.getElementById("jb-volume");
   var elVolIcon = document.getElementById("jb-vol-icon");
   var elStatus = document.getElementById("jb-status");
@@ -2208,6 +2215,7 @@
     var indices = [];
     var startIdx = -1;
     for (var i = 0; i < manifest.length; i++) {
+      if (videosOnlyOn && !hasVideo(i)) continue;
       if (manifest[i].file === startFile) {
         startIdx = i;
       } else {
@@ -2483,9 +2491,24 @@
       // Rebuild queue in manifest order, keeping current song
       var currentManifestIdx = queue[queuePos];
       queue = [];
-      for (var i = 0; i < manifest.length; i++) queue.push(i);
-      queuePos = currentManifestIdx;
+      for (var i = 0; i < manifest.length; i++) {
+        if (videosOnlyOn && !hasVideo(i)) continue;
+        queue.push(i);
+      }
+      queuePos = queue.indexOf(currentManifestIdx);
+      if (queuePos < 0) queuePos = 0;
     }
+  });
+
+  elVideosOnly.addEventListener("click", function () {
+    videosOnlyOn = !videosOnlyOn;
+    elVideosOnly.classList.toggle("active", videosOnlyOn);
+    // Rebuild queue preserving current song if possible
+    var currentManifestIdx = queuePos >= 0 ? queue[queuePos] : -1;
+    var currentFile = currentManifestIdx >= 0 ? manifest[currentManifestIdx].file : null;
+    buildQueue(currentFile);
+    if (shuffleOn) reshuffleRemaining();
+    updateCount();
   });
 
   elVolume.addEventListener("input", function () {
