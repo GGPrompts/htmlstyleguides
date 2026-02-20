@@ -2298,7 +2298,7 @@
     });
   }
 
-  function loadAndPlay(index) {
+  function loadAndPlay(index, skipVideo) {
     if (index < 0 || index >= manifest.length) return;
     var entry = manifest[queue[index]];
     updateTitle(entry.title);
@@ -2309,8 +2309,8 @@
     stopProgressTracking();
     elProgressBar.style.width = "0%";
 
-    // Check for music video
-    currentVideoUrl = getVideoUrl(entry.file);
+    // Check for music video (skip when launching from intro)
+    currentVideoUrl = skipVideo ? null : getVideoUrl(entry.file);
     if (currentVideoUrl) {
       elViewport.classList.add("has-video");
       elVideoFrame.src = currentVideoUrl + "?autoplay=1";
@@ -2471,7 +2471,7 @@
     updateVolumeIcon();
   });
 
-  // Expose for intro sequence: start playback with a specific song
+  // Expose for intro sequence: start playback with a specific song (audio only, no video)
   window.jukeboxStartWithSong = function (filename) {
     initAudio().then(function () {
       // Find this song in the manifest and set queue position
@@ -2484,7 +2484,7 @@
           break;
         }
       }
-      if (queuePos >= 0) loadAndPlay(queuePos);
+      if (queuePos >= 0) loadAndPlay(queuePos, true);
     });
   };
 
@@ -2547,27 +2547,27 @@
         window.jukeboxStartWithSong("oasis-of-the-forgotten-king.json");
       }
 
-      // At ~4s: light spill appears through the door crack
+      // At ~8s: light spill appears through the door crack (Thirst II building)
       setTimeout(function () {
         lightSpill.classList.add("active");
-      }, 4000);
+      }, 8000);
 
-      // At ~5s: doors swing open (2.5s CSS transition) — site revealed as music brightens
+      // At ~9s: doors swing open (2.5s CSS transition) — opens during the bridge
       setTimeout(function () {
         doorLeft.classList.add("opening");
         doorRight.classList.add("opening");
-      }, 5000);
+      }, 9000);
 
-      // At ~8s: fade out overlay (song keeps playing through jukebox)
+      // At ~12s: fade out overlay (song keeps playing through jukebox)
       setTimeout(function () {
         overlay.classList.add("fade-out");
         sessionStorage.setItem("intro-seen", "1");
-      }, 8000);
+      }, 12000);
 
-      // At ~9s: remove overlay from DOM
+      // At ~13s: remove overlay from DOM
       setTimeout(function () {
         overlay.remove();
-      }, 9000);
+      }, 13000);
     });
   })();
   </script>
