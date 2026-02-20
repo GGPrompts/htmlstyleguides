@@ -104,11 +104,17 @@
       white-space: nowrap;
       position: relative;
       z-index: 10;
+      clip-path: inset(0 100% 0 0);
+    }
+
+    .marquee-bar.revealed {
+      clip-path: none;
     }
 
     .marquee-track {
       display: inline-block;
       animation: marquee-scroll 60s linear infinite;
+      animation-play-state: paused;
       font-family: 'Press Start 2P', monospace;
       font-size: 10px;
       color: var(--gold);
@@ -116,9 +122,27 @@
       line-height: 1.5;
     }
 
+    .marquee-bar.revealed .marquee-track {
+      animation-play-state: running;
+    }
+
     @keyframes marquee-scroll {
       0% { transform: translateX(0); }
       100% { transform: translateX(-50%); }
+    }
+
+    /* Spaceship banner-pull canvas */
+    .ship-canvas-wrap {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      z-index: 11;
+      pointer-events: none;
+      overflow: visible;
+    }
+    .ship-canvas-wrap canvas {
+      display: block;
+      width: 100%;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -1810,6 +1834,11 @@
     </div>
   </div>
 
+  <!-- Spaceship banner-pull canvas -->
+  <div class="ship-canvas-wrap" id="ship-canvas-wrap">
+    <canvas id="ship-canvas"></canvas>
+  </div>
+
   <!-- ═══════════════════════════════════════════════════
        MAIN CONTAINER
        ═══════════════════════════════════════════════════ -->
@@ -2612,6 +2641,247 @@
   </script>
 
   <!-- ═══════════════════════════════════════════════════
+       SPACESHIP BANNER PULL
+       ═══════════════════════════════════════════════════ -->
+  <script>
+  (function () {
+    "use strict";
+
+    var CYAN = "#00e5ff";
+    var PINK = "#ff2d95";
+    var GOLD = "#c9a84c";
+
+    var wrap = document.getElementById("ship-canvas-wrap");
+    var canvas = document.getElementById("ship-canvas");
+    var ctx = canvas.getContext("2d");
+    var marqueeBar = document.querySelector(".marquee-bar");
+
+    // Ship state
+    var shipX = -80;       // current x in CSS pixels
+    var shipY = 0;         // set on resize
+    var phase = "waiting"; // waiting | pulling | zooming | done
+    var progress = 0;      // 0-1 during pull
+    var zoomVel = 0;
+    var elapsed = 0;
+    var wobbleT = 0;
+    var W = 0, H = 0, dpr = 1;
+
+    // Pull timing
+    var PULL_DURATION = 3.5; // seconds to cross the screen
+    var ZOOM_ACCEL = 2800;   // px/s^2 for exit burst
+
+    function resize() {
+      dpr = window.devicePixelRatio || 1;
+      var barRect = marqueeBar.getBoundingClientRect();
+      var pad = 30; // extra space above/below for ship to draw into
+      W = barRect.width;
+      H = barRect.height + pad * 2;
+      wrap.style.top = (barRect.top + window.scrollY - pad) + "px";
+      wrap.style.height = H + "px";
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.height = H + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      shipY = H * 0.5;
+    }
+
+    function drawShip(x, y, scale, boost) {
+      ctx.save();
+      ctx.translate(x, y);
+
+      var s = scale;
+
+      // Engine glow underneath
+      var glowR = 14 * s + boost * 10 * s;
+      var grad = ctx.createRadialGradient(0, 5*s, 1, 0, 5*s, glowR);
+      grad.addColorStop(0, "rgba(0,229,255,0.5)");
+      grad.addColorStop(0.5, "rgba(0,229,255,0.1)");
+      grad.addColorStop(1, "rgba(0,229,255,0)");
+      ctx.fillStyle = grad;
+      ctx.fillRect(-glowR, 5*s - glowR*0.3, glowR*2, glowR);
+
+      // Body — sleek wedge
+      ctx.fillStyle = "#1a1a2e";
+      ctx.strokeStyle = CYAN;
+      ctx.lineWidth = 1.5 * s;
+      ctx.shadowColor = CYAN;
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.moveTo(35*s, 0);
+      ctx.lineTo(22*s, -8*s);
+      ctx.lineTo(-25*s, -7*s);
+      ctx.lineTo(-32*s, 0);
+      ctx.lineTo(-25*s, 5*s);
+      ctx.lineTo(22*s, 4*s);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Neon trim line (pink)
+      ctx.strokeStyle = PINK;
+      ctx.shadowColor = PINK;
+      ctx.shadowBlur = 8;
+      ctx.lineWidth = 1 * s;
+      ctx.beginPath();
+      ctx.moveTo(33*s, 0);
+      ctx.lineTo(-28*s, -1.5*s);
+      ctx.stroke();
+
+      // Windshield
+      ctx.fillStyle = "rgba(0,229,255,0.2)";
+      ctx.strokeStyle = "rgba(0,229,255,0.5)";
+      ctx.lineWidth = 0.8 * s;
+      ctx.shadowBlur = 3;
+      ctx.beginPath();
+      ctx.moveTo(22*s, -7*s);
+      ctx.lineTo(12*s, -11*s);
+      ctx.lineTo(-2*s, -9*s);
+      ctx.lineTo(-2*s, -7*s);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Rider silhouette
+      ctx.fillStyle = "#0a0014";
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      ctx.arc(-2*s, -12*s, 4*s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(-9*s, -9*s, 12*s, 5*s);
+
+      // Exhaust flames
+      var flameLen = (15 + boost * 35) * s;
+      var fGrad = ctx.createLinearGradient(-32*s, 0, -32*s - flameLen, 0);
+      fGrad.addColorStop(0, "rgba(0,229,255,0.7)");
+      fGrad.addColorStop(0.3, "rgba(255,45,149,0.4)");
+      fGrad.addColorStop(1, "rgba(255,45,149,0)");
+      ctx.fillStyle = fGrad;
+      ctx.beginPath();
+      ctx.moveTo(-32*s, -3*s);
+      ctx.lineTo(-32*s - flameLen, 0 + (Math.random() - 0.5) * 2 * s);
+      ctx.lineTo(-32*s, 3*s);
+      ctx.closePath();
+      ctx.fill();
+
+      // Headlight beam
+      ctx.save();
+      ctx.globalCompositeOperation = "lighter";
+      var hGrad = ctx.createLinearGradient(35*s, 0, 35*s + 80*s, 0);
+      hGrad.addColorStop(0, "rgba(255,255,255,0.08)");
+      hGrad.addColorStop(1, "rgba(255,255,255,0)");
+      ctx.fillStyle = hGrad;
+      ctx.beginPath();
+      ctx.moveTo(35*s, -2*s);
+      ctx.lineTo(35*s + 80*s, -12*s);
+      ctx.lineTo(35*s + 80*s, 12*s);
+      ctx.lineTo(35*s, 2*s);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    function drawTowCable(shipX, shipY, revealX, scale) {
+      // Draw a glowing cable from the ship's tail to the marquee reveal edge
+      var tailX = shipX - 32 * scale;
+      ctx.save();
+      ctx.strokeStyle = GOLD;
+      ctx.shadowColor = GOLD;
+      ctx.shadowBlur = 4;
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.moveTo(tailX, shipY);
+      ctx.lineTo(revealX, shipY + 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Small attachment glow at the marquee edge
+      var grd = ctx.createRadialGradient(revealX, shipY, 0, revealX, shipY, 6);
+      grd.addColorStop(0, "rgba(201,168,76,0.6)");
+      grd.addColorStop(1, "rgba(201,168,76,0)");
+      ctx.fillStyle = grd;
+      ctx.beginPath();
+      ctx.arc(revealX, shipY, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    var lastTime = 0;
+    var rafId = 0;
+
+    function frame(time) {
+      if (phase === "done") return;
+      rafId = requestAnimationFrame(frame);
+
+      var dt = lastTime ? (time - lastTime) / 1000 : 0.016;
+      if (dt > 0.1) dt = 0.1;
+      lastTime = time;
+      elapsed += dt;
+      wobbleT += dt;
+
+      ctx.clearRect(0, 0, W, H);
+
+      var scale = Math.max(0.4, Math.min(W, H) / 120);
+
+      if (phase === "pulling") {
+        progress += dt / PULL_DURATION;
+        if (progress >= 1) {
+          progress = 1;
+          phase = "zooming";
+          zoomVel = W * 0.3; // initial exit speed
+        }
+
+        // Ease-in-out for smooth pull
+        var ease = progress < 0.5
+          ? 2 * progress * progress
+          : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+        shipX = -60 + (W + 100) * ease;
+        var wobble = Math.sin(wobbleT * 3) * 2;
+        var revealPct = Math.max(0, Math.min(100, ease * 100));
+
+        // Update marquee clip-path to reveal from left
+        marqueeBar.style.clipPath = "inset(0 " + (100 - revealPct) + "% 0 0)";
+
+        drawTowCable(shipX, shipY + wobble, Math.max(0, shipX - 50 * scale), scale);
+        drawShip(shipX, shipY + wobble, scale, 0.3 + progress * 0.4);
+
+      } else if (phase === "zooming") {
+        zoomVel += ZOOM_ACCEL * dt;
+        shipX += zoomVel * dt;
+
+        // Ship is off screen
+        if (shipX > W + 200) {
+          phase = "done";
+          marqueeBar.classList.add("revealed");
+          marqueeBar.style.clipPath = "";
+          wrap.style.display = "none";
+          return;
+        }
+
+        var wobble2 = Math.sin(wobbleT * 5) * 1;
+        drawShip(shipX, shipY + wobble2, scale, 1.0);
+      }
+    }
+
+    // Start the banner pull animation
+    window.startBannerPull = function () {
+      if (phase !== "waiting") return;
+      resize();
+      phase = "pulling";
+      lastTime = 0;
+      rafId = requestAnimationFrame(frame);
+    };
+
+    window.addEventListener("resize", function () {
+      if (phase !== "done" && phase !== "waiting") resize();
+    });
+  })();
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════
        INTRO SEQUENCE
        ═══════════════════════════════════════════════════ -->
   <script>
@@ -2627,6 +2897,10 @@
     // Skip intro if already seen this session
     if (sessionStorage.getItem("intro-seen")) {
       overlay.remove();
+      // Start spaceship banner pull immediately
+      setTimeout(function () {
+        if (window.startBannerPull) window.startBannerPull();
+      }, 500);
       return;
     }
 
@@ -2661,10 +2935,11 @@
         sessionStorage.setItem("intro-seen", "1");
       }, 12000);
 
-      // At ~13s: remove overlay from DOM and enable the video
+      // At ~13s: remove overlay from DOM, enable the video, launch the spaceship
       setTimeout(function () {
         overlay.remove();
         if (window.jukeboxEnableVideo) window.jukeboxEnableVideo();
+        if (window.startBannerPull) window.startBannerPull();
       }, 13000);
     });
   })();
