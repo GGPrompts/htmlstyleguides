@@ -1,0 +1,107 @@
+/* ── Shared base styles for music video pages ────────────────────────
+   Theme each video by setting CSS custom properties in :root {}:
+     --vid-bg        Background color (hex)
+     --vid-bg-rgb    Background RGB components for rgba() (e.g. 2,8,16)
+     --vid-font      Font family stack
+     --vid-accent    Accent color (hex)
+     --vid-accent-r  Accent red component (0-255)
+     --vid-accent-g  Accent green component (0-255)
+     --vid-accent-b  Accent blue component (0-255)
+   ──────────────────────────────────────────────────────────────────── */
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--vid-bg, #020810);
+    color: #fff;
+    font-family: var(--vid-font, "Cinzel", serif);
+}
+
+#viz-canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: block;
+    cursor: pointer;
+}
+
+.play-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    background: rgba(var(--vid-bg-rgb, 2,8,16), var(--vid-overlay-alpha, 0.94));
+    cursor: pointer;
+    transition: opacity 0.5s;
+}
+
+.play-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.play-title {
+    font-size: clamp(var(--vid-title-min, 20px), var(--vid-title-vw, 5vw), var(--vid-title-max, 48px));
+    font-weight: var(--vid-title-weight, 700);
+    letter-spacing: var(--vid-title-spacing, 0.12em);
+    text-transform: uppercase;
+    color: var(--vid-accent, #00e5cc);
+    text-shadow:
+        0 0 30px rgba(var(--vid-accent-r, 0), var(--vid-accent-g, 229), var(--vid-accent-b, 204), 0.6),
+        0 0 60px rgba(var(--vid-accent-r, 0), var(--vid-accent-g, 229), var(--vid-accent-b, 204), 0.3);
+    margin-bottom: 12px;
+}
+
+.play-sub {
+    font-size: clamp(var(--vid-sub-min, 12px), var(--vid-sub-vw, 2vw), var(--vid-sub-max, 18px));
+    color: rgba(255, 255, 255, var(--vid-sub-alpha, 0.45));
+    margin-bottom: 40px;
+    font-family: var(--vid-sub-font, sans-serif);
+}
+
+.play-btn {
+    width: 80px; height: 80px;
+    border: 3px solid var(--vid-accent, #00e5cc);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.play-btn::after {
+    content: '';
+    display: block;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 18px 0 18px 30px;
+    border-color: transparent transparent transparent var(--vid-accent, #00e5cc);
+    margin-left: 6px;
+}
+
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(var(--vid-accent-r, 0), var(--vid-accent-g, 229), var(--vid-accent-b, 204), 0.4); }
+    50% { box-shadow: 0 0 0 20px rgba(var(--vid-accent-r, 0), var(--vid-accent-g, 229), var(--vid-accent-b, 204), 0); }
+}
+
+.back-link {
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 30;
+    color: rgba(255, 255, 255, 0.4);
+    text-decoration: none;
+    font-size: var(--vid-back-size, 13px);
+    font-family: var(--vid-back-font, sans-serif);
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.4);
+    transition: color 0.2s;
+}
+
+.back-link:hover { color: rgba(255, 255, 255, 0.8); }
