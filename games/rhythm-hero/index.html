@@ -2253,6 +2253,13 @@
                         gameStartElapsed = 0;
                         Visualizer.play();
                     }
+                    // Show notes scrolling in during countdown so the player
+                    // can see what's coming. Compute a negative row position
+                    // that reaches 0 right when play starts.
+                    var spr = secondsPerRow || 0.125;
+                    var leadInRows = (W - cursorX) / PIXELS_PER_ROW;
+                    var countdownRowFrac = -leadInRows * Math.max(0, countdownTime / 3.5);
+                    drawNotes(ctx, countdownRowFrac);
                     drawPlayhead(ctx);
                     drawKeyLanes(ctx);
                     drawCountdown(ctx);
