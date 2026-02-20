@@ -644,3 +644,11 @@ window.Visualizer = (function () {
 
 // Global renderer registry
 if (!window.Renderers) window.Renderers = {};
+
+// Hide back-link when embedded as iframe (autoplay=1)
+(function () {
+  if (new URLSearchParams(window.location.search).get('autoplay') === '1') {
+    var link = document.querySelector('.back-link');
+    if (link) link.style.display = 'none';
+  }
+})();

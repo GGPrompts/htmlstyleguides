@@ -1333,6 +1333,21 @@
       text-shadow: 0 0 6px rgba(212, 160, 84, 0.4);
     }
 
+    .jb-btn-fullscreen {
+      margin-left: 4px;
+      font-size: 13px;
+    }
+
+    .jukebox-viewport.is-fullscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      z-index: 9999;
+      aspect-ratio: auto;
+      border: none;
+      margin: 0;
+    }
+
     .jukebox-volume {
       display: flex;
       align-items: center;
@@ -1912,6 +1927,7 @@
               <button class="jb-btn" id="jb-prev" title="Previous">&#x23EE;</button>
               <button class="jb-btn jb-btn-play" id="jb-play" title="Play / Pause">&#x25B6;</button>
               <button class="jb-btn" id="jb-next" title="Next">&#x23ED;</button>
+              <button class="jb-btn jb-btn-fullscreen" id="jb-fullscreen" title="Fullscreen" style="display:none;">&#x26F6;</button>
             </div>
 
             <!-- Volume -->
@@ -2168,6 +2184,7 @@
   var elProgressBar = document.getElementById("jb-progress-bar");
   var elViewport = document.getElementById("jb-viewport");
   var elVideoFrame = document.getElementById("jukebox-video-frame");
+  var elFullscreen = document.getElementById("jb-fullscreen");
 
   // ---- Duration calculation ----
   function getSongDuration(song) {
@@ -2319,9 +2336,11 @@
     if (currentVideoUrl) {
       elViewport.classList.add("has-video");
       elVideoFrame.src = currentVideoUrl + "?autoplay=1";
+      elFullscreen.style.display = "";
     } else {
       elViewport.classList.remove("has-video");
       elVideoFrame.src = "";
+      elFullscreen.style.display = "none";
     }
 
     var url = "music/audio-tracker/songs/" + entry.file;
@@ -2475,6 +2494,25 @@
     if (initialized && !currentVideoUrl) Visualizer.setVolume(val);
     updateVolumeIcon();
   });
+
+  elFullscreen.addEventListener("click", function () {
+    if (!currentVideoUrl) return;
+    var el = elViewport;
+    if (document.fullscreenElement === el || document.webkitFullscreenElement === el) {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    } else {
+      (el.requestFullscreen || el.webkitRequestFullscreen).call(el);
+    }
+  });
+
+  function onFullscreenChange() {
+    var isFs = document.fullscreenElement === elViewport || document.webkitFullscreenElement === elViewport;
+    elViewport.classList.toggle("is-fullscreen", isFs);
+    elFullscreen.innerHTML = isFs ? "&#x2716;" : "&#x26F6;";
+    elFullscreen.title = isFs ? "Exit Fullscreen" : "Fullscreen";
+  }
+  document.addEventListener("fullscreenchange", onFullscreenChange);
+  document.addEventListener("webkitfullscreenchange", onFullscreenChange);
 
   // Expose for intro sequence: start playback with a specific song (audio only, no video)
   window.jukeboxStartWithSong = function (filename) {
