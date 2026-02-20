@@ -2376,11 +2376,15 @@
 
         if (initialized) {
           Visualizer.stop();
-          // Only play audio through jukebox if no video (video has its own audio)
-          if (!currentVideoUrl) {
-            Visualizer.loadSong(songJSON);
-            Visualizer.play();
+          Visualizer.loadSong(songJSON);
+          if (currentVideoUrl) {
+            // Mute Visualizer audio — video iframe provides sound.
+            // Still play so the render loop drives the background starfield.
+            Visualizer.setVolume(0);
+          } else {
+            Visualizer.setVolume(parseInt(elVolume.value, 10) / 100);
           }
+          Visualizer.play();
           isPlaying = true;
           updatePlayButton();
           updateUnmuteButton();
@@ -2402,7 +2406,7 @@
   function advanceToNext() {
     if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
     stopProgressTracking();
-    if (!currentVideoUrl) Visualizer.stop();
+    Visualizer.stop();
     elVideoFrame.src = "";
     queuePos++;
     if (queuePos >= queue.length) {
@@ -2415,7 +2419,7 @@
   function goToPrev() {
     if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
     stopProgressTracking();
-    if (!currentVideoUrl) Visualizer.stop();
+    Visualizer.stop();
     elVideoFrame.src = "";
     queuePos--;
     if (queuePos < 0) queuePos = queue.length - 1;
@@ -2428,9 +2432,8 @@
       if (currentVideoUrl) {
         // Blank the iframe to stop its audio
         elVideoFrame.src = "";
-      } else {
-        Visualizer.stop();
       }
+      Visualizer.stop();
       isPlaying = false;
       if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
       stopProgressTracking();
@@ -2439,9 +2442,11 @@
       if (currentVideoUrl) {
         // Reload the video
         elVideoFrame.src = currentVideoUrl + "?autoplay=1";
+        Visualizer.setVolume(0);
       } else {
-        Visualizer.play();
+        Visualizer.setVolume(parseInt(elVolume.value, 10) / 100);
       }
+      Visualizer.play();
       isPlaying = true;
       updateStatus("Now Playing");
       var elapsed = (Date.now() - playStartTime) / 1000;
@@ -2509,7 +2514,8 @@
 
   elVolume.addEventListener("input", function () {
     var val = parseInt(this.value, 10) / 100;
-    if (initialized) Visualizer.setVolume(val);
+    // Only set audio volume when not playing a video (video has its own audio)
+    if (initialized && !currentVideoUrl) Visualizer.setVolume(val);
     updateVolumeIcon();
   });
 
