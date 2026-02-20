@@ -1097,7 +1097,7 @@
       --jb-border-inner: #2a2318;
       --jb-glow: rgba(212, 160, 84, 0.3);
       width: 100%;
-      max-width: 440px;
+      max-width: 100%;
       margin: 0 auto;
       font-family: 'Cormorant Garamond', Georgia, serif;
       color: var(--jb-text);
@@ -1230,27 +1230,52 @@
       100% { transform: translateX(-50%); }
     }
 
-    .jukebox-canvas-wrap {
+    .jukebox-viewport {
       background: var(--jb-bg-surface);
       border: 1px solid var(--jb-border-inner);
       margin-bottom: 10px;
       overflow: hidden;
       position: relative;
+      aspect-ratio: 16 / 9;
+      width: 100%;
     }
 
-    .jukebox-canvas-wrap::after {
+    .jukebox-viewport::after {
       content: '';
       position: absolute;
       inset: 0;
       border: 1px solid rgba(212, 160, 84, 0.06);
       pointer-events: none;
+      z-index: 1;
+    }
+
+    #jukebox-video-frame {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: #08070e;
     }
 
     #jukebox-viz-canvas {
       display: block;
       width: 100%;
-      height: 80px;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
       background: #08070e;
+    }
+
+    /* Hide canvas when video is showing */
+    .jukebox-viewport.has-video #jukebox-viz-canvas {
+      display: none;
+    }
+    .jukebox-viewport.has-video #jukebox-video-frame {
+      display: block;
+    }
+    .jukebox-viewport:not(.has-video) #jukebox-video-frame {
+      display: none;
     }
 
     .jukebox-controls {
@@ -1526,9 +1551,6 @@
         gap: 0.5rem;
       }
 
-      .jukebox {
-        max-width: 100%;
-      }
       .jukebox-inner {
         padding: 12px 12px 10px;
       }
@@ -1649,9 +1671,10 @@
               <span class="jukebox-song-title" id="jb-song-title">Awaiting invocation&hellip;</span>
             </div>
 
-            <!-- Visualizer canvas -->
-            <div class="jukebox-canvas-wrap">
-              <canvas id="jukebox-viz-canvas" width="400" height="80"></canvas>
+            <!-- Video / Visualizer viewport -->
+            <div class="jukebox-viewport" id="jb-viewport">
+              <iframe id="jukebox-video-frame" allowfullscreen></iframe>
+              <canvas id="jukebox-viz-canvas"></canvas>
             </div>
 
             <!-- Progress bar -->
@@ -1925,6 +1948,31 @@
   var advanceTimer = null;
   var progressRAF = null;
 
+  // ---- Video file mapping (song file stem -> video file stem) ----
+  // Most map directly; these are the exceptions with shortened names
+  var VIDEO_NAME_MAP = {
+    "monastery-of-the-morning-mist": "monastery-morning-mist",
+    "voyage-of-the-paper-lantern": "voyage-paper-lantern",
+    "oasis-of-the-forgotten-king": "oasis-forgotten-king",
+    "tidepool-at-the-edge-of-the-world": "tidepool-edge",
+    "survivors-cyberpunk": "survivors-neon-district",
+    "wireless-access-protocol": "wap"
+  };
+
+  // Songs with no video at all — fall back to visualizer canvas
+  var NO_VIDEO = [
+    "ode-to-joy", "fur-elise", "greensleeves", "canon-in-d",
+    "boss-battle", "midnight-rain", "crystal-caves",
+    "crystal-caves-the-deep", "neon-highway"
+  ];
+
+  function getVideoUrl(songFile) {
+    var stem = songFile.replace(".json", "");
+    if (NO_VIDEO.indexOf(stem) >= 0) return null;
+    var videoStem = VIDEO_NAME_MAP[stem] || stem;
+    return "music/visualizer/" + videoStem + "-video.html";
+  }
+
   // ---- DOM refs ----
   var elTitle = document.getElementById("jb-song-title");
   var elPlay = document.getElementById("jb-play");
@@ -1939,6 +1987,8 @@
   var elUnmuteText = document.getElementById("jb-unmute-text");
   var elCanvas = document.getElementById("jukebox-viz-canvas");
   var elProgressBar = document.getElementById("jb-progress-bar");
+  var elViewport = document.getElementById("jb-viewport");
+  var elVideoFrame = document.getElementById("jukebox-video-frame");
 
   // ---- Duration calculation ----
   function getSongDuration(song) {
@@ -2081,6 +2131,16 @@
     if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
     stopProgressTracking();
     elProgressBar.style.width = "0%";
+
+    // Check for music video
+    var videoUrl = getVideoUrl(entry.file);
+    if (videoUrl) {
+      elViewport.classList.add("has-video");
+      elVideoFrame.src = videoUrl;
+    } else {
+      elViewport.classList.remove("has-video");
+      elVideoFrame.src = "";
+    }
 
     var url = "music/audio-tracker/songs/" + entry.file;
     fetch(url)
