@@ -428,7 +428,13 @@
             ctx.save();
             ctx.translate(bossX + screenShakeX * 0.3, bossY + screenShakeY * 0.3);
 
-            var s = bossScale * (H * 0.003);
+            // Scale relative to available space above ground, so the boss
+            // fits on portrait mobile screens (not just landscape desktops).
+            // The boss extends ~160*s pixels above groundY (body+head+horns+spikes),
+            // so cap s so that maxExtent stays within the visible sky area.
+            var availH = groundY;
+            var maxS = availH / (160 * bossScale) * 0.85; // leave 15% headroom
+            var s = bossScale * Math.min(H * 0.003, maxS);
             var stompOff = Math.sin(bossStompPhase) * 5 * energy;
             var breathSwell = Math.sin(bossBreathTimer * 2) * 3;
 

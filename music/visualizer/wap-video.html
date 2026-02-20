@@ -772,11 +772,21 @@
 
         function initCrowd() {
             crowd = [];
+            var crowdSpace = H - floorY;
+            // Scale crowd size to screen so they don't overwhelm mobile
+            var baseSize = Math.min(50, crowdSpace * 0.35);
+            var sizeRange = Math.min(70, crowdSpace * 0.45);
             for (var i = 0; i < 40; i++) {
+                var isForeground = i >= 28; // last 30% drawn in front
+                // Push foreground crowd to the very bottom so they
+                // only peek up, not block the dancers
+                var yOffset = isForeground
+                    ? crowdSpace * 0.55 + Math.random() * crowdSpace * 0.45
+                    : 20 + Math.random() * crowdSpace;
                 crowd.push({
                     x: Math.random() * W,
-                    y: floorY + 20 + Math.random() * (H - floorY),
-                    size: 50 + Math.random() * 70,
+                    y: floorY + yOffset,
+                    size: baseSize + Math.random() * sizeRange,
                     phase: Math.random() * Math.PI * 2,
                     side: Math.random() > 0.5 ? 1 : -1
                 });
