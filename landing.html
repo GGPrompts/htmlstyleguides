@@ -1654,12 +1654,32 @@
       pointer-events: none;
     }
 
+    /* Door shake before opening */
+    @keyframes door-shake {
+      0%, 100% { transform: translateX(0); }
+      10% { transform: translateX(-3px) rotate(-0.2deg); }
+      20% { transform: translateX(4px) rotate(0.3deg); }
+      30% { transform: translateX(-5px) rotate(-0.15deg); }
+      40% { transform: translateX(3px) rotate(0.2deg); }
+      50% { transform: translateX(-4px) rotate(-0.25deg); }
+      60% { transform: translateX(5px) rotate(0.1deg); }
+      70% { transform: translateX(-3px) rotate(-0.3deg); }
+      80% { transform: translateX(4px) rotate(0.15deg); }
+      90% { transform: translateX(-2px) rotate(-0.1deg); }
+    }
+
+    .intro-door.shaking {
+      animation: door-shake 0.15s ease-in-out infinite;
+    }
+
     /* Door opening animation */
     .intro-door-left.opening {
+      animation: none;
       transform: rotateY(90deg);
     }
 
     .intro-door-right.opening {
+      animation: none;
       transform: rotateY(-90deg);
     }
 
@@ -2918,29 +2938,35 @@
         window.jukeboxStartWithSong("oasis-of-the-forgotten-king.json");
       }
 
-      // At ~8s: light spill appears through the door crack (Thirst II building)
+      // Immediately: doors shake/rumble so it doesn't look frozen
+      doorLeft.classList.add("shaking");
+      doorRight.classList.add("shaking");
+
+      // At ~1s: light spill appears through the door crack
       setTimeout(function () {
         lightSpill.classList.add("active");
-      }, 8000);
+      }, 1000);
 
-      // At ~9s: doors swing open (2.5s CSS transition) — opens during the bridge
+      // At ~1.5s: doors swing open (2.5s CSS transition)
       setTimeout(function () {
+        doorLeft.classList.remove("shaking");
+        doorRight.classList.remove("shaking");
         doorLeft.classList.add("opening");
         doorRight.classList.add("opening");
-      }, 9000);
+      }, 1500);
 
-      // At ~12s: fade out overlay (song keeps playing through jukebox)
+      // At ~4s: fade out overlay (song keeps playing through jukebox)
       setTimeout(function () {
         overlay.classList.add("fade-out");
         sessionStorage.setItem("intro-seen", "1");
-      }, 12000);
+      }, 4000);
 
-      // At ~13s: remove overlay from DOM, enable the video, launch the spaceship
+      // At ~5s: remove overlay from DOM, enable the video, launch the spaceship
       setTimeout(function () {
         overlay.remove();
         if (window.jukeboxEnableVideo) window.jukeboxEnableVideo();
         if (window.startBannerPull) window.startBannerPull();
-      }, 13000);
+      }, 5000);
     });
   })();
   </script>
