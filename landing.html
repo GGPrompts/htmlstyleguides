@@ -2531,6 +2531,21 @@
     });
   };
 
+  // Expose for intro sequence: enable video for the currently playing song after doors open
+  window.jukeboxEnableVideo = function () {
+    if (queuePos < 0 || !isPlaying) return;
+    var entry = manifest[queue[queuePos]];
+    var videoUrl = getVideoUrl(entry.file);
+    if (videoUrl) {
+      currentVideoUrl = videoUrl;
+      elViewport.classList.add("has-video");
+      elVideoFrame.src = videoUrl + "?autoplay=1";
+      elFullscreen.style.display = "";
+      Visualizer.setVolume(0);
+      updateUnmuteButton();
+    }
+  };
+
   // ---- Initialize ----
   fetch("music/audio-tracker/songs/index.json")
     .then(function (r) { return r.json(); })
@@ -2607,9 +2622,10 @@
         sessionStorage.setItem("intro-seen", "1");
       }, 12000);
 
-      // At ~13s: remove overlay from DOM
+      // At ~13s: remove overlay from DOM and enable the video
       setTimeout(function () {
         overlay.remove();
+        if (window.jukeboxEnableVideo) window.jukeboxEnableVideo();
       }, 13000);
     });
   })();
