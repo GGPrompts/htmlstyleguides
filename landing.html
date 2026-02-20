@@ -1942,6 +1942,7 @@
   var queuePos = -1;
   var currentSongData = null;
   var currentDuration = 0;
+  var currentVideoUrl = null;
   var playStartTime = 0;
   var initialized = false;
   var isPlaying = false;
@@ -2133,10 +2134,10 @@
     elProgressBar.style.width = "0%";
 
     // Check for music video
-    var videoUrl = getVideoUrl(entry.file);
-    if (videoUrl) {
+    currentVideoUrl = getVideoUrl(entry.file);
+    if (currentVideoUrl) {
       elViewport.classList.add("has-video");
-      elVideoFrame.src = videoUrl;
+      elVideoFrame.src = currentVideoUrl;
     } else {
       elViewport.classList.remove("has-video");
       elVideoFrame.src = "";
@@ -2151,8 +2152,11 @@
 
         if (initialized) {
           Visualizer.stop();
-          Visualizer.loadSong(songJSON);
-          Visualizer.play();
+          // Only play audio through jukebox if no video (video has its own audio)
+          if (!videoUrl) {
+            Visualizer.loadSong(songJSON);
+            Visualizer.play();
+          }
           isPlaying = true;
           updatePlayButton();
           updateUnmuteButton();
@@ -2174,6 +2178,8 @@
   function advanceToNext() {
     if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
     stopProgressTracking();
+    if (!currentVideoUrl) Visualizer.stop();
+    elVideoFrame.src = "";
     queuePos++;
     if (queuePos >= queue.length) {
       reshuffleRemaining();
@@ -2185,6 +2191,8 @@
   function goToPrev() {
     if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
     stopProgressTracking();
+    if (!currentVideoUrl) Visualizer.stop();
+    elVideoFrame.src = "";
     queuePos--;
     if (queuePos < 0) queuePos = queue.length - 1;
     loadAndPlay(queuePos);
@@ -2193,13 +2201,23 @@
   function togglePlay() {
     if (!initialized || !currentSongData) return;
     if (isPlaying) {
-      Visualizer.stop();
+      if (currentVideoUrl) {
+        // Blank the iframe to stop its audio
+        elVideoFrame.src = "";
+      } else {
+        Visualizer.stop();
+      }
       isPlaying = false;
       if (advanceTimer) { clearTimeout(advanceTimer); advanceTimer = null; }
       stopProgressTracking();
       updateStatus("Paused");
     } else {
-      Visualizer.play();
+      if (currentVideoUrl) {
+        // Reload the video
+        elVideoFrame.src = currentVideoUrl;
+      } else {
+        Visualizer.play();
+      }
       isPlaying = true;
       updateStatus("Now Playing");
       var elapsed = (Date.now() - playStartTime) / 1000;
