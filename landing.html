@@ -2471,6 +2471,23 @@
     updateVolumeIcon();
   });
 
+  // Expose for intro sequence: start playback with a specific song
+  window.jukeboxStartWithSong = function (filename) {
+    initAudio().then(function () {
+      // Find this song in the manifest and set queue position
+      for (var i = 0; i < manifest.length; i++) {
+        if (manifest[i].file === filename) {
+          // Find where this manifest index appears in the queue
+          for (var q = 0; q < queue.length; q++) {
+            if (queue[q] === i) { queuePos = q; break; }
+          }
+          break;
+        }
+      }
+      if (queuePos >= 0) loadAndPlay(queuePos);
+    });
+  };
+
   // ---- Initialize ----
   fetch("music/audio-tracker/songs/index.json")
     .then(function (r) { return r.json(); })
@@ -2525,51 +2542,32 @@
       // Hide button
       enterBtn.classList.add("hidden");
 
-      // Load and play the fanfare
-      ChipPlayer.init();
-      ChipPlayer.setVolume(0.6);
+      // Start the oasis song through the jukebox — it continues playing after the intro
+      if (window.jukeboxStartWithSong) {
+        window.jukeboxStartWithSong("oasis-of-the-forgotten-king.json");
+      }
 
-      fetch("music/audio-tracker/songs/compendium-fanfare.json")
-        .then(function (r) { return r.json(); })
-        .then(function (songJSON) {
-          ChipPlayer.load(songJSON);
-          ChipPlayer.play();
+      // At ~4s: light spill appears through the door crack
+      setTimeout(function () {
+        lightSpill.classList.add("active");
+      }, 4000);
 
-          // At ~2s: light spill appears through the door crack
-          setTimeout(function () {
-            lightSpill.classList.add("active");
-          }, 2000);
+      // At ~5s: doors swing open (2.5s CSS transition) — site revealed as music brightens
+      setTimeout(function () {
+        doorLeft.classList.add("opening");
+        doorRight.classList.add("opening");
+      }, 5000);
 
-          // At ~2.5s: doors swing open (2.5s CSS transition) revealing the site
-          setTimeout(function () {
-            doorLeft.classList.add("opening");
-            doorRight.classList.add("opening");
-          }, 2500);
+      // At ~8s: fade out overlay (song keeps playing through jukebox)
+      setTimeout(function () {
+        overlay.classList.add("fade-out");
+        sessionStorage.setItem("intro-seen", "1");
+      }, 8000);
 
-          // At ~5.5s: fade out overlay, stop fanfare
-          setTimeout(function () {
-            overlay.classList.add("fade-out");
-            ChipPlayer.stop();
-            sessionStorage.setItem("intro-seen", "1");
-          }, 5500);
-
-          // At ~6.5s: remove overlay from DOM
-          setTimeout(function () {
-            overlay.remove();
-          }, 6500);
-        })
-        .catch(function (err) {
-          console.error("Intro: failed to load fanfare", err);
-          // Fallback: just open the doors without music
-          doorLeft.classList.add("opening");
-          doorRight.classList.add("opening");
-          lightSpill.classList.add("active");
-          setTimeout(function () {
-            overlay.classList.add("fade-out");
-            sessionStorage.setItem("intro-seen", "1");
-          }, 3000);
-          setTimeout(function () { overlay.remove(); }, 4000);
-        });
+      // At ~9s: remove overlay from DOM
+      setTimeout(function () {
+        overlay.remove();
+      }, 9000);
     });
   })();
   </script>
