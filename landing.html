@@ -2805,25 +2805,29 @@
     function drawTowCable(shipX, shipY, revealX, scale) {
       // Draw a glowing cable from the ship's tail to the marquee reveal edge
       var tailX = shipX - 32 * scale;
+      var cableLen = tailX - revealX;
+      // Sag increases with cable length for a natural catenary look
+      var sag = Math.min(cableLen * 0.08, 14);
+
       ctx.save();
       ctx.strokeStyle = GOLD;
       ctx.shadowColor = GOLD;
-      ctx.shadowBlur = 4;
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 3]);
+      ctx.shadowBlur = 6;
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(tailX, shipY);
-      ctx.lineTo(revealX, shipY + 2);
+      // Quadratic curve sags downward at the midpoint
+      var midX = (tailX + revealX) / 2;
+      ctx.quadraticCurveTo(midX, shipY + sag, revealX, shipY + 2);
       ctx.stroke();
-      ctx.setLineDash([]);
 
       // Small attachment glow at the marquee edge
-      var grd = ctx.createRadialGradient(revealX, shipY, 0, revealX, shipY, 6);
-      grd.addColorStop(0, "rgba(201,168,76,0.6)");
+      var grd = ctx.createRadialGradient(revealX, shipY + 2, 0, revealX, shipY + 2, 8);
+      grd.addColorStop(0, "rgba(201,168,76,0.7)");
       grd.addColorStop(1, "rgba(201,168,76,0)");
       ctx.fillStyle = grd;
       ctx.beginPath();
-      ctx.arc(revealX, shipY, 6, 0, Math.PI * 2);
+      ctx.arc(revealX, shipY + 2, 8, 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
     }
@@ -2860,12 +2864,16 @@
 
         shipX = -60 + (W + 100) * ease;
         var wobble = Math.sin(wobbleT * 3) * 2;
-        var revealPct = Math.max(0, Math.min(100, ease * 100));
+        // Banner trails behind the ship — ship leads by ~15% of viewport
+        var bannerEase = Math.max(0, ease - 0.15) / 0.85;
+        var revealPct = Math.max(0, Math.min(100, bannerEase * 100));
 
         // Update marquee clip-path to reveal from left
         marqueeBar.style.clipPath = "inset(0 " + (100 - revealPct) + "% 0 0)";
 
-        drawTowCable(shipX, shipY + wobble, Math.max(0, shipX - 50 * scale), scale);
+        // Cable connects ship tail to the banner's actual revealed edge
+        var bannerEdgeX = W * bannerEase;
+        drawTowCable(shipX, shipY + wobble, Math.max(0, bannerEdgeX), scale);
         drawShip(shipX, shipY + wobble, scale, 0.3 + progress * 0.4);
 
       } else if (phase === "zooming") {
