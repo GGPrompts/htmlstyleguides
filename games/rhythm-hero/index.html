@@ -77,12 +77,45 @@
             letter-spacing: 0.02em;
         }
 
+        .mode-toggle {
+            display: flex;
+            gap: 0;
+            margin-bottom: 16px;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .mode-btn {
+            padding: 8px 20px;
+            background: var(--surface);
+            color: var(--text-dim);
+            border: none;
+            font-family: var(--font-heading);
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mode-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+        }
+
+        .mode-btn.active {
+            background: var(--gold);
+            color: var(--bg);
+        }
+
         .key-legend {
             display: flex;
-            gap: 16px;
+            gap: 12px;
             margin-bottom: 28px;
             flex-wrap: wrap;
             justify-content: center;
+            align-items: center;
         }
 
         .key-legend .key {
@@ -90,20 +123,33 @@
             align-items: center;
             gap: 6px;
             font-family: var(--font-body);
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-dim);
         }
 
-        .key-legend .key span {
+        .key-legend kbd {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px; height: 28px;
-            border: 1px solid var(--border);
+            min-width: 28px; height: 28px;
+            padding: 0 7px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-bottom: 3px solid rgba(0,0,0,0.4);
             border-radius: 4px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08);
             font-family: var(--font-heading);
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .key-legend .sep {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+            margin: 0 4px;
         }
 
         .song-grid {
@@ -393,12 +439,11 @@
             <h1>Rhythm Hero</h1>
             <p>Hit the keys as notes cross the playhead. Choose a song to begin.</p>
         </div>
-        <div class="key-legend">
-            <div class="key"><span style="color:var(--gold)">D</span> Gold</div>
-            <div class="key"><span style="color:var(--rose)">F</span> Rose</div>
-            <div class="key"><span style="color:var(--purple)">J</span> Purple</div>
-            <div class="key"><span style="color:var(--silver)">K</span> Silver</div>
+        <div class="mode-toggle" id="mode-toggle">
+            <button class="mode-btn active" data-mode="casual">Casual</button>
+            <button class="mode-btn" data-mode="competitive">Competitive</button>
         </div>
+        <div class="key-legend" id="key-legend"></div>
         <div class="song-grid" id="song-grid"></div>
     </div>
 
@@ -461,8 +506,48 @@
             'rgba(155,122,184,0.6)', 'rgba(204,204,204,0.6)'
         ];
 
-        var KEY_MAP = { 'd': 0, 'f': 1, 'j': 2, 'k': 3 };
-        var KEY_NAMES = ['D', 'F', 'J', 'K'];
+        var KEY_MAP = { 'arrowleft': 0, 'arrowdown': 1, 'arrowright': 2 };
+        var KEY_NAMES = ['\u2190', '\u2193', '\u2192'];
+
+        var gameMode = 'casual'; // 'casual' (3 lanes, arrows) or 'competitive' (4 lanes, DFJK)
+        var activeLaneCount = 3;
+
+        function applyMode(mode) {
+            gameMode = mode;
+            if (mode === 'casual') {
+                KEY_MAP = { 'arrowleft': 0, 'arrowdown': 1, 'arrowright': 2 };
+                KEY_NAMES = ['\u2190', '\u2193', '\u2192'];
+                activeLaneCount = 3;
+            } else {
+                KEY_MAP = { 'd': 0, 'f': 1, 'j': 2, ' ': 3 };
+                KEY_NAMES = ['D', 'F', 'J', '\u2423'];
+                activeLaneCount = 4;
+            }
+            updateKeyLegend();
+            updateModeToggle();
+        }
+
+        function updateKeyLegend() {
+            var el = document.getElementById('key-legend');
+            if (!el) return;
+            var colors = ['var(--gold)', 'var(--rose)', 'var(--purple)', 'var(--silver)'];
+            var labels = ['Gold', 'Rose', 'Purple', 'Silver'];
+            var legendNames = gameMode === 'competitive' ? ['D', 'F', 'J', 'Space'] : ['\u2190', '\u2193', '\u2192'];
+            var html = '';
+            for (var i = 0; i < activeLaneCount; i++) {
+                html += '<div class="key"><kbd style="color:' + colors[i] + ';border-color:' + colors[i] + '">' + legendNames[i] + '</kbd> ' + labels[i] + '</div>';
+            }
+            html += '<div class="sep"></div>';
+            html += '<div class="key"><kbd>Esc</kbd> Pause</div>';
+            el.innerHTML = html;
+        }
+
+        function updateModeToggle() {
+            var btns = document.querySelectorAll('.mode-toggle .mode-btn');
+            btns.forEach(function (btn) {
+                btn.classList.toggle('active', btn.dataset.mode === gameMode);
+            });
+        }
 
         var BG_COLOR = '#110e18';
         var STAFF_LINE_COLOR = 'rgba(216,207,192,0.25)';
@@ -877,7 +962,17 @@
             noteTimeline.sort(function (a, b) {
                 return a.row - b.row || a.channel - b.channel;
             });
-            totalNotes = noteTimeline.length;
+            // Mark ghost notes (channels beyond active lanes) and exclude from total
+            var activeCount = 0;
+            for (var gi = 0; gi < noteTimeline.length; gi++) {
+                if (noteTimeline[gi].channel >= activeLaneCount) {
+                    noteTimeline[gi].ghost = true;
+                } else {
+                    noteTimeline[gi].ghost = false;
+                    activeCount++;
+                }
+            }
+            totalNotes = activeCount;
         }
 
         function pushGameNote(row, midi, channel, duration) {
@@ -899,7 +994,11 @@
 
         function getNoteY(note) {
             if (activeVideoRenderer) {
-                return computeLaneYs()[note.channel % 4];
+                var laneYs = computeLaneYs();
+                var idx = note.channel;
+                // Ghost notes get the ghost lane position (last entry beyond active lanes)
+                if (idx >= activeLaneCount) idx = Math.min(idx, laneYs.length - 1);
+                return laneYs[idx];
             }
             return staffPosToY(note.staffPos);
         }
@@ -933,6 +1032,7 @@
 
         function tryHit(channel, currentRowFrac) {
             if (gameState !== 'playing') return;
+            if (channel >= activeLaneCount) return;
             var hitWindowRows = WINDOW_GOOD / secondsPerRow;
             var bestIdx = -1;
             var bestDist = Infinity;
@@ -980,6 +1080,7 @@
             for (var i = 0; i < noteTimeline.length; i++) {
                 var note = noteTimeline[i];
                 if (note.hit || note.missed) continue;
+                if (note.ghost) continue; // Ghost notes don't count as misses
                 // Note has passed beyond the hit window
                 if (currentRowFrac - note.row > missThresholdRows) {
                     note.missed = true;
@@ -1359,7 +1460,7 @@
 
         function drawLaneGuides(ctx) {
             var laneYs = computeLaneYs();
-            for (var ch = 0; ch < 4; ch++) {
+            for (var ch = 0; ch < activeLaneCount; ch++) {
                 ctx.strokeStyle = CHANNEL_COLORS_DIM[ch];
                 ctx.lineWidth = 1;
                 ctx.setLineDash([8, 12]);
@@ -1421,6 +1522,27 @@
                 var x = cursorX + (note.row - currentRowFrac) * PIXELS_PER_ROW;
                 var y = getNoteY(note);
                 var ch = note.channel % 4;
+                var isGhost = note.ghost;
+
+                // Ghost notes: faint decorative rendering, skip hit/miss coloring
+                if (isGhost) {
+                    ctx.save();
+                    ctx.globalAlpha = 0.15;
+                    ctx.fillStyle = CHANNEL_COLORS[ch];
+                    if (isVideo) {
+                        var gNoteW = note.duration * PIXELS_PER_ROW;
+                        ctx.fillRect(x + 7, y - 3, Math.max(1, gNoteW - 7), 6);
+                        ctx.beginPath();
+                        ctx.arc(x, y, 7, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else {
+                        ctx.beginPath();
+                        ctx.ellipse(x, y, NOTE_HEAD_RX, NOTE_HEAD_RY, -0.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                    continue;
+                }
 
                 var noteColor;
                 if (note.hit) {
@@ -1518,7 +1640,7 @@
             var laneYs = computeLaneYs();
 
             // Detect key releases for ripple effects
-            for (var rch = 0; rch < 4; rch++) {
+            for (var rch = 0; rch < activeLaneCount; rch++) {
                 if (prevKeysDown[rch] && !keysDown[rch]) {
                     laneRipples.push({ channel: rch, t: 0, maxT: 0.35 });
                 }
@@ -1533,7 +1655,7 @@
                 earlyBoost = 1 - (gameStartElapsed / 5);
             }
 
-            for (var ch = 0; ch < 4; ch++) {
+            for (var ch = 0; ch < activeLaneCount; ch++) {
                 var y = laneYs[ch];
                 var isDown = keysDown[ch];
 
@@ -1581,11 +1703,20 @@
 
         function computeLaneYs() {
             if (activeVideoRenderer) {
-                // Video mode: 4 evenly-spaced lanes in the lower-center area
+                // Video mode: evenly-spaced lanes in the lower-center area
                 var top = H * 0.30;
                 var bottom = H * 0.78;
-                var gap = (bottom - top) / 3;
-                return [top, top + gap, top + gap * 2, bottom];
+                var lanes = [];
+                var divs = activeLaneCount - 1;
+                var gap = divs > 0 ? (bottom - top) / divs : 0;
+                for (var li = 0; li < activeLaneCount; li++) {
+                    lanes.push(top + gap * li);
+                }
+                // Ghost lane position for 4th channel in casual mode
+                if (activeLaneCount < 4) {
+                    lanes.push(bottom + gap * 0.6);
+                }
+                return lanes;
             }
             // Staff mode: lanes at treble/bass staff positions
             var trebleMid = staffTop + LINE_SPACING * 2;
@@ -2292,7 +2423,7 @@
 
                 // Process key presses for hit detection (skip during pause)
                 if (fd.cursor && gameState === 'playing' && !songEnded) {
-                    for (var ch = 0; ch < 4; ch++) {
+                    for (var ch = 0; ch < activeLaneCount; ch++) {
                         if (keyJustPressed[ch]) {
                             tryHit(ch, currentRowFrac);
                         }
@@ -2349,7 +2480,7 @@
             if ((gameState === 'playing' || gameState === 'countdown') && KEY_MAP.hasOwnProperty(key)) {
                 e.preventDefault();
                 var ch = KEY_MAP[key];
-                if (!keysDown[ch]) {
+                if (ch < activeLaneCount && !keysDown[ch]) {
                     keysDown[ch] = true;
                     keyJustPressed[ch] = true;
                 }
@@ -2377,6 +2508,7 @@
                 keysDown[KEY_MAP[key]] = false;
             }
         });
+
 
         // Lose focus -> release all keys
         window.addEventListener('blur', function () {
@@ -2412,6 +2544,13 @@
 
         document.getElementById('btn-back-select').addEventListener('click', function () {
             showSongSelect();
+        });
+
+        // Mode toggle
+        document.getElementById('mode-toggle').addEventListener('click', function (e) {
+            var btn = e.target.closest('.mode-btn');
+            if (!btn || !btn.dataset.mode) return;
+            applyMode(btn.dataset.mode);
         });
 
         // ================================================================
@@ -2478,6 +2617,7 @@
         // INIT
         // ================================================================
 
+        updateKeyLegend();
         loadManifest();
 
     })();
