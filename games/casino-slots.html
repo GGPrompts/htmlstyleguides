@@ -828,6 +828,7 @@
     </div>
 </div>
 
+<script src="casino-audio-engine.js"></script>
 <script>
 (function() {
     'use strict';
@@ -886,70 +887,37 @@
     const paylineCenter = $('paylineCenter');
     const paylineBottom = $('paylineBottom');
 
-    // ==================== AUDIO ====================
-    let audioCtx;
-    function getAudio() {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        return audioCtx;
-    }
-
-    function playTone(freq, duration, type, volume, detune) {
-        try {
-            const ctx = getAudio();
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = type || 'square';
-            osc.frequency.value = freq;
-            if (detune) osc.detune.value = detune;
-            gain.gain.value = volume || 0.08;
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-            osc.start(ctx.currentTime);
-            osc.stop(ctx.currentTime + duration);
-        } catch(e) {}
-    }
-
-    function playClick() {
-        playTone(800 + Math.random() * 400, 0.03, 'square', 0.04);
-    }
-
-    function playStop() {
-        playTone(200, 0.08, 'triangle', 0.12);
-        setTimeout(() => playTone(150, 0.06, 'triangle', 0.08), 20);
-    }
-
-    function playWin() {
-        const notes = [523, 659, 784, 1047];
-        notes.forEach((n, i) => {
-            setTimeout(() => playTone(n, 0.2, 'square', 0.07), i * 100);
+    // ==================== GAME-SPECIFIC SOUNDS ====================
+    CasinoAudio.register('stop', function(t, osc) {
+        osc(200, 'triangle', t, 0.08, 0.12);
+        osc(150, 'triangle', t + 0.02, 0.06, 0.08);
+    });
+    // Override win with slots square-wave version
+    CasinoAudio.register('win', function(t, osc) {
+        [523, 659, 784, 1047].forEach(function(n, i) {
+            osc(n, 'square', t + i * 0.1, 0.2, 0.07);
         });
-    }
-
-    function playBigWin() {
-        const notes = [523, 659, 784, 1047, 1319, 1568];
-        notes.forEach((n, i) => {
-            setTimeout(() => {
-                playTone(n, 0.3, 'square', 0.06);
-                playTone(n * 1.5, 0.3, 'sawtooth', 0.03);
-            }, i * 120);
+    });
+    CasinoAudio.register('bigWin', function(t, osc) {
+        [523, 659, 784, 1047, 1319, 1568].forEach(function(n, i) {
+            osc(n, 'square', t + i * 0.12, 0.3, 0.06);
+            osc(n * 1.5, 'sawtooth', t + i * 0.12, 0.3, 0.03);
         });
-    }
-
-    function playJackpot() {
-        const melody = [523, 659, 784, 1047, 784, 1047, 1319, 1568, 1319, 1568, 2093];
-        melody.forEach((n, i) => {
-            setTimeout(() => {
-                playTone(n, 0.35, 'square', 0.06);
-                playTone(n * 0.5, 0.35, 'triangle', 0.04);
-                playTone(n * 2, 0.15, 'sawtooth', 0.02);
-            }, i * 100);
+    });
+    CasinoAudio.register('jackpot', function(t, osc) {
+        [523, 659, 784, 1047, 784, 1047, 1319, 1568, 1319, 1568, 2093].forEach(function(n, i) {
+            osc(n, 'square', t + i * 0.1, 0.35, 0.06);
+            osc(n * 0.5, 'triangle', t + i * 0.1, 0.35, 0.04);
+            osc(n * 2, 'sawtooth', t + i * 0.1, 0.15, 0.02);
         });
-    }
+    });
 
-    function playButtonClick() {
-        playTone(1200, 0.04, 'square', 0.05);
-    }
+    function playClick() { CasinoAudio.play('click'); }
+    function playStop() { CasinoAudio.play('stop'); }
+    function playWin() { CasinoAudio.play('win'); }
+    function playBigWin() { CasinoAudio.play('bigWin'); }
+    function playJackpot() { CasinoAudio.play('jackpot'); }
+    function playButtonClick() { CasinoAudio.play('buttonClick'); }
 
     // ==================== BUILD STRIPS ====================
     function buildStrips() {

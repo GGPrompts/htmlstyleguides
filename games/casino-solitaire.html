@@ -600,6 +600,7 @@
         </div>
     </div>
 
+<script src="casino-audio-engine.js"></script>
 <script>
 /* ================================================================
    CASINO SOLITAIRE — Klondike
@@ -656,80 +657,40 @@ function updateCSSCache() {
 }
 window.addEventListener('resize', updateCSSCache);
 
-// ==================== AUDIO ====================
-let audioCtx = null;
-
-function getAudioCtx() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    return audioCtx;
-}
+// ==================== GAME-SPECIFIC SOUNDS ====================
+// Override flip with solitaire's frequency-ramp version
+CasinoAudio.register('flip', function(t, osc, noise, ctx) {
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.type = 'sine';
+    o.frequency.setValueAtTime(800, t);
+    o.frequency.exponentialRampToValueAtTime(1200, t + 0.04);
+    g.gain.setValueAtTime(0.08, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+    o.connect(g).connect(ctx.destination);
+    o.start(t); o.stop(t + 0.06);
+});
+// Override place with solitaire's triangle-ramp version
+CasinoAudio.register('place', function(t, osc, noise, ctx) {
+    var o = ctx.createOscillator();
+    var g = ctx.createGain();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(300, t);
+    o.frequency.exponentialRampToValueAtTime(200, t + 0.05);
+    g.gain.setValueAtTime(0.1, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+    o.connect(g).connect(ctx.destination);
+    o.start(t); o.stop(t + 0.08);
+});
+// Shuffle — rapid staccato bursts
+CasinoAudio.register('shuffle', function(t, osc) {
+    for (var i = 0; i < 6; i++) {
+        osc(200 + Math.random() * 400, 'square', t + i * 0.03, 0.04, 0.03);
+    }
+});
 
 function playSound(type) {
-    try {
-        const ctx = getAudioCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-        const now = ctx.currentTime;
-
-        if (type === 'flip') {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, now);
-            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.04);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-            osc.connect(gain).connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.06);
-        } else if (type === 'place') {
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(300, now);
-            osc.frequency.exponentialRampToValueAtTime(200, now + 0.05);
-            gain.gain.setValueAtTime(0.1, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-            osc.connect(gain).connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.08);
-        } else if (type === 'shuffle') {
-            for (let i = 0; i < 6; i++) {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                const noise = ctx.createOscillator();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(200 + Math.random() * 400, now + i * 0.03);
-                gain.gain.setValueAtTime(0.03, now + i * 0.03);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.03 + 0.04);
-                osc.connect(gain).connect(ctx.destination);
-                osc.start(now + i * 0.03);
-                osc.stop(now + i * 0.03 + 0.04);
-            }
-        } else if (type === 'fanfare') {
-            const notes = [523, 659, 784, 1047];
-            notes.forEach((freq, i) => {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(freq, now + i * 0.15);
-                gain.gain.setValueAtTime(0.08, now + i * 0.15);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.4);
-                osc.connect(gain).connect(ctx.destination);
-                osc.start(now + i * 0.15);
-                osc.stop(now + i * 0.15 + 0.4);
-
-                const osc2 = ctx.createOscillator();
-                const gain2 = ctx.createGain();
-                osc2.type = 'sine';
-                osc2.frequency.setValueAtTime(freq, now + i * 0.15);
-                gain2.gain.setValueAtTime(0.06, now + i * 0.15);
-                gain2.gain.exponentialRampToValueAtTime(0.001, now + i * 0.15 + 0.5);
-                osc2.connect(gain2).connect(ctx.destination);
-                osc2.start(now + i * 0.15);
-                osc2.stop(now + i * 0.15 + 0.5);
-            });
-        }
-    } catch (e) { /* audio not available */ }
+    CasinoAudio.play(type);
 }
 
 // ==================== CARD HELPERS ====================

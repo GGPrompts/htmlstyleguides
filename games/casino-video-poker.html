@@ -736,70 +736,39 @@
     </div>
 </div>
 
+<script src="casino-audio-engine.js"></script>
 <script>
 (function() {
     'use strict';
 
-    // ==================== AUDIO ENGINE ====================
-    const AudioEngine = {
-        ctx: null,
-        init() {
-            if (this.ctx) return;
-            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        },
-        play(type) {
-            if (!this.ctx) return;
-            const now = this.ctx.currentTime;
-            switch (type) {
-                case 'deal': this._cardSnap(now); break;
-                case 'hold': this._holdClick(now); break;
-                case 'win': this._winJingle(now); break;
-                case 'lose': this._loseBuzz(now); break;
-                case 'coin': this._coinDing(now); break;
-                case 'betclick': this._betClick(now); break;
-                case 'flip': this._cardFlip(now); break;
-                case 'double-win': this._doubleWin(now); break;
-                case 'double-lose': this._doubleLose(now); break;
-            }
-        },
-        _osc(freq, type, start, dur, gain) {
-            const o = this.ctx.createOscillator();
-            const g = this.ctx.createGain();
-            o.type = type;
-            o.frequency.setValueAtTime(freq, start);
-            g.gain.setValueAtTime(gain, start);
-            g.gain.exponentialRampToValueAtTime(0.001, start + dur);
-            o.connect(g); g.connect(this.ctx.destination);
-            o.start(start); o.stop(start + dur);
-        },
-        _noise(start, dur, gain) {
-            const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * dur, this.ctx.sampleRate);
-            const data = buf.getChannelData(0);
-            for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.5;
-            const src = this.ctx.createBufferSource();
-            const g = this.ctx.createGain();
-            src.buffer = buf;
-            g.gain.setValueAtTime(gain, start);
-            g.gain.exponentialRampToValueAtTime(0.001, start + dur);
-            src.connect(g); g.connect(this.ctx.destination);
-            src.start(start); src.stop(start + dur);
-        },
-        _cardSnap(t) { this._noise(t, 0.06, 0.15); },
-        _cardFlip(t) { this._noise(t, 0.08, 0.1); this._osc(600, 'sine', t, 0.04, 0.05); },
-        _holdClick(t) { this._osc(1200, 'square', t, 0.04, 0.08); this._osc(900, 'square', t + 0.04, 0.03, 0.05); },
-        _betClick(t) { this._osc(800, 'sine', t, 0.05, 0.1); },
-        _coinDing(t) { this._osc(2200, 'sine', t, 0.1, 0.08); this._osc(2800, 'sine', t + 0.06, 0.12, 0.06); },
-        _winJingle(t) {
-            [523, 659, 784, 1047].forEach((f, i) => {
-                this._osc(f, 'sine', t + i * 0.12, 0.2, 0.1);
-                this._osc(f * 1.5, 'triangle', t + i * 0.12, 0.15, 0.04);
-            });
-            for (let i = 0; i < 6; i++) this._coinDing(t + 0.6 + i * 0.08);
-        },
-        _loseBuzz(t) { this._osc(180, 'sawtooth', t, 0.3, 0.06); this._osc(140, 'sawtooth', t + 0.1, 0.25, 0.04); },
-        _doubleWin(t) { this._osc(660, 'sine', t, 0.15, 0.1); this._osc(880, 'sine', t + 0.12, 0.2, 0.12); this._coinDing(t + 0.3); },
-        _doubleLose(t) { this._osc(300, 'sawtooth', t, 0.2, 0.08); this._osc(200, 'sawtooth', t + 0.15, 0.3, 0.06); }
-    };
+    // ==================== GAME-SPECIFIC SOUNDS ====================
+    CasinoAudio.register('hold', function(t, osc) {
+        osc(1200, 'square', t, 0.04, 0.08); osc(900, 'square', t + 0.04, 0.03, 0.05);
+    });
+    CasinoAudio.register('betclick', function(t, osc) {
+        osc(800, 'sine', t, 0.05, 0.1);
+    });
+    // Override win with video-poker version (adds coin dings)
+    CasinoAudio.register('win', function(t, osc) {
+        [523, 659, 784, 1047].forEach(function(f, i) {
+            osc(f, 'sine', t + i * 0.12, 0.2, 0.1);
+            osc(f * 1.5, 'triangle', t + i * 0.12, 0.15, 0.04);
+        });
+        for (var i = 0; i < 6; i++) {
+            osc(2200, 'sine', t + 0.6 + i * 0.08, 0.1, 0.08);
+            osc(2800, 'sine', t + 0.6 + i * 0.08 + 0.06, 0.12, 0.06);
+        }
+    });
+    CasinoAudio.register('lose', function(t, osc) {
+        osc(180, 'sawtooth', t, 0.3, 0.06); osc(140, 'sawtooth', t + 0.1, 0.25, 0.04);
+    });
+    CasinoAudio.register('double-win', function(t, osc) {
+        osc(660, 'sine', t, 0.15, 0.1); osc(880, 'sine', t + 0.12, 0.2, 0.12);
+        osc(2200, 'sine', t + 0.3, 0.1, 0.08); osc(2800, 'sine', t + 0.36, 0.12, 0.06);
+    });
+    CasinoAudio.register('double-lose', function(t, osc) {
+        osc(300, 'sawtooth', t, 0.2, 0.08); osc(200, 'sawtooth', t + 0.15, 0.3, 0.06);
+    });
 
     // ==================== DECK ====================
     const SUITS = ['spades', 'hearts', 'diamonds', 'clubs'];
@@ -961,7 +930,7 @@
                 const face = slot.querySelector('.card-face');
                 renderCardFace(face, card);
                 inner.classList.add('flipped');
-                AudioEngine.play('flip');
+                CasinoAudio.play('flip');
                 setTimeout(resolve, 500);
             }, delay);
         });
@@ -972,7 +941,7 @@
             setTimeout(() => {
                 const inner = cardSlots[index].querySelector('.card-inner');
                 inner.classList.remove('flipped');
-                AudioEngine.play('flip');
+                CasinoAudio.play('flip');
                 setTimeout(resolve, 500);
             }, delay);
         });
@@ -990,19 +959,19 @@
     cardSlots.forEach(slot => {
         slot.addEventListener('click', () => {
             if (phase !== 'dealt') return;
-            AudioEngine.init();
+            CasinoAudio.init();
             const idx = parseInt(slot.dataset.index);
             held[idx] = !held[idx];
             slot.classList.toggle('held', held[idx]);
-            AudioEngine.play('hold');
+            CasinoAudio.play('hold');
         });
     });
 
     // ==================== BET ====================
     window.betOne = function() {
         if (phase !== 'idle' && phase !== 'result') return;
-        AudioEngine.init();
-        AudioEngine.play('betclick');
+        CasinoAudio.init();
+        CasinoAudio.play('betclick');
         bet = bet >= 5 ? 1 : bet + 1;
         if (bet > credits) bet = Math.min(credits, 1);
         updateDisplays();
@@ -1010,8 +979,8 @@
 
     window.betMax = function() {
         if (phase !== 'idle' && phase !== 'result') return;
-        AudioEngine.init();
-        AudioEngine.play('betclick');
+        CasinoAudio.init();
+        CasinoAudio.play('betclick');
         bet = Math.min(5, credits);
         updateDisplays();
         // Auto-deal on bet max
@@ -1020,7 +989,7 @@
 
     // ==================== DEAL / DRAW ====================
     window.dealDraw = async function() {
-        AudioEngine.init();
+        CasinoAudio.init();
 
         if (phase === 'gameover') return;
 
@@ -1050,7 +1019,7 @@
             // Flip cards one by one
             for (let i = 0; i < 5; i++) {
                 await flipCard(i, hand[i], i * 120);
-                AudioEngine.play('deal');
+                CasinoAudio.play('deal');
             }
 
             phase = 'dealt';
@@ -1079,7 +1048,7 @@
             for (const idx of toReplace) {
                 hand[idx] = deck.splice(0, 1)[0];
                 await flipCard(idx, hand[idx], 0);
-                AudioEngine.play('deal');
+                CasinoAudio.play('deal');
                 await new Promise(r => setTimeout(r, 100));
             }
 
@@ -1092,7 +1061,7 @@
                 winDisplay.textContent = result.name + '!';
                 winDisplay.classList.add('visible');
                 highlightWinningRow(result.key);
-                AudioEngine.play('win');
+                CasinoAudio.play('win');
 
                 // Animate credit roll-up
                 await animateCredits(currentWin);
@@ -1107,10 +1076,10 @@
                 winDisplay.textContent = '';
                 winDisplay.classList.remove('visible');
                 if (credits <= 0) {
-                    AudioEngine.play('lose');
+                    CasinoAudio.play('lose');
                     showGameOver();
                 } else {
-                    AudioEngine.play('lose');
+                    CasinoAudio.play('lose');
                     dealBtn.textContent = 'Deal';
                     dealBtn.disabled = false;
                     betOneBtn.disabled = false;
@@ -1131,7 +1100,7 @@
             if (i === steps - 1) {
                 credits = credits - Math.round(added) + amount;
             }
-            AudioEngine.play('coin');
+            CasinoAudio.play('coin');
             updateDisplays();
             await new Promise(r => setTimeout(r, 60));
         }
@@ -1162,7 +1131,7 @@
         renderDoubleCard(dealerFace, dealerCard);
         setTimeout(() => {
             document.getElementById('dealerCardInner').classList.add('flipped');
-            AudioEngine.play('flip');
+            CasinoAudio.play('flip');
         }, 300);
     }
 
@@ -1186,7 +1155,7 @@
 
         await new Promise(r => setTimeout(r, 300));
         document.getElementById('playerPickInner').classList.add('flipped');
-        AudioEngine.play('flip');
+        CasinoAudio.play('flip');
         await new Promise(r => setTimeout(r, 600));
 
         const dealerVal = rankValue(doubleOverlay._dealerCard.rank);
@@ -1198,7 +1167,7 @@
             // Tie = push, keep winnings
             resultEl.textContent = 'Push! Credits kept.';
             resultEl.style.color = '#ffe234';
-            AudioEngine.play('coin');
+            CasinoAudio.play('coin');
         } else if (guess === 'hi' && playerVal > dealerVal) {
             won = true;
         } else if (guess === 'lo' && playerVal < dealerVal) {
@@ -1212,7 +1181,7 @@
             updateDisplays();
             resultEl.textContent = 'You win! ' + doubleAmount + ' credits!';
             resultEl.style.color = '#39ff14';
-            AudioEngine.play('double-win');
+            CasinoAudio.play('double-win');
 
             // Allow another double
             await new Promise(r => setTimeout(r, 1200));
@@ -1227,7 +1196,7 @@
             renderDoubleCard(document.getElementById('dealerCardFace'), newDealer);
             setTimeout(() => {
                 document.getElementById('dealerCardInner').classList.add('flipped');
-                AudioEngine.play('flip');
+                CasinoAudio.play('flip');
                 document.getElementById('doubleButtons').style.display = 'flex';
             }, 300);
         } else if (playerVal !== dealerVal) {
@@ -1238,7 +1207,7 @@
             updateDisplays();
             resultEl.textContent = 'You lose!';
             resultEl.style.color = '#ff2d7b';
-            AudioEngine.play('double-lose');
+            CasinoAudio.play('double-lose');
             await new Promise(r => setTimeout(r, 1500));
             closeDouble();
         } else {
@@ -1249,7 +1218,7 @@
     };
 
     window.collectDouble = function() {
-        AudioEngine.play('coin');
+        CasinoAudio.play('coin');
         closeDouble();
     };
 
@@ -1297,13 +1266,13 @@
 
     // ==================== KEYBOARD ====================
     document.addEventListener('keydown', (e) => {
-        AudioEngine.init();
+        CasinoAudio.init();
         if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); dealDraw(); }
         if (e.key >= '1' && e.key <= '5' && phase === 'dealt') {
             const idx = parseInt(e.key) - 1;
             held[idx] = !held[idx];
             cardSlots[idx].classList.toggle('held', held[idx]);
-            AudioEngine.play('hold');
+            CasinoAudio.play('hold');
         }
     });
 
