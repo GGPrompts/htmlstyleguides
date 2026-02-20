@@ -65,7 +65,7 @@
         var floorY = 0;
         var poleH = 0;
         var poleX1 = 0, poleX2 = 0;
-        var beatPulse = 0;
+        var beatPulse = 0, beatChanged = false;
         var flashAlpha = 0;
         var spotlightPhase = 0;
         var titleAlpha = 0;
@@ -408,7 +408,7 @@
             fig.orbitAngle += fig.orbitSpeed * energy * speedMult * dt;
 
             // Slide target changes on beats
-            if (frameData.beatChanged) {
+            if (beatChanged) {
                 if (sectionMood === 'hook' || sectionMood === 'build') {
                     fig.slideTarget = 0.2 + Math.random() * 0.6;
                     fig.hangMode = Math.random() > 0.5;
@@ -501,7 +501,7 @@
 
         // ── Floor dancer compute & draw ──
         function updateFloorDancer(fig, dt, beat, energy) {
-            if (frameData.beatChanged) {
+            if (beatChanged) {
                 fig.moveBeatCounter++;
 
                 // Splits snap-back: hold 4 beats then SNAP up in 1
@@ -928,6 +928,7 @@
             var dt = frameData.dt || 1/60;
             var cursor = frameData.cursor;
             beatPulse = frameData.beatPulse;
+            beatChanged = frameData.beatChanged;
 
             // Background
             ctx.fillStyle = BG;

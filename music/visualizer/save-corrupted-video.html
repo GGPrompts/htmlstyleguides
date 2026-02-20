@@ -645,6 +645,165 @@
             ctx.restore();
         }
 
+        // ── Note visualization: data recovery streams ──
+        var CHANNEL_COLORS = ['#00ff88', '#00ccff', '#ff6644', '#ffcc00'];
+        var CHANNEL_LABELS = ['CH0', 'CH1', 'CH2', 'CH3'];
+        var channelGlow = [0, 0, 0, 0];
+        var channelLastMidi = [0, 0, 0, 0];
+        var noteTrails = []; // {x, y, alpha, color, ch}
+
+        function drawNoteStreams(ctx, currentNotes, cursor, energy, dt) {
+            if (!currentNotes) return;
+
+            var streamW = Math.max(60, W * 0.06);
+            var streamH = H * 0.55;
+            var streamY = H * 0.12;
+            var gap = Math.max(8, W * 0.015);
+            var totalW = 4 * streamW + 3 * gap;
+            var startX = (W - totalW) / 2;
+
+            // Background panel
+            ctx.save();
+            ctx.globalAlpha = 0.35 + glitchIntensity * 0.15;
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            var panelPad = 8;
+            ctx.fillRect(startX - panelPad, streamY - panelPad - 18, totalW + panelPad * 2, streamH + panelPad * 2 + 18);
+            ctx.restore();
+
+            for (var ch = 0; ch < 4; ch++) {
+                var note = currentNotes[ch];
+                var x = startX + ch * (streamW + gap);
+
+                // Update glow
+                if (note && note.midi > 0) {
+                    channelGlow[ch] = 1.0;
+                    channelLastMidi[ch] = note.midi;
+
+                    // Spawn trail particle
+                    if (noteTrails.length < 120) {
+                        var ny = note.normalized || 0.5;
+                        noteTrails.push({
+                            x: x + streamW * 0.5 + (Math.random() - 0.5) * streamW * 0.6,
+                            y: streamY + streamH * (1 - ny),
+                            alpha: 1,
+                            color: CHANNEL_COLORS[ch],
+                            vx: (Math.random() - 0.5) * 20,
+                            vy: -10 - Math.random() * 30
+                        });
+                    }
+                }
+
+                var glow = channelGlow[ch];
+                var col = CHANNEL_COLORS[ch];
+
+                // Channel label
+                ctx.save();
+                ctx.font = '700 10px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillStyle = glow > 0.3 ? col : 'rgba(255,255,255,0.25)';
+                ctx.globalAlpha = 0.5 + glow * 0.5;
+                ctx.fillText(CHANNEL_LABELS[ch], x + streamW / 2, streamY - 6);
+                ctx.restore();
+
+                // Stream background
+                ctx.save();
+                ctx.globalAlpha = 0.15 + glow * 0.15;
+                ctx.strokeStyle = col;
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, streamY, streamW, streamH);
+                ctx.restore();
+
+                // Pitch bar: horizontal bar at note height
+                if (glow > 0.05) {
+                    var midi = channelLastMidi[ch];
+                    var norm = (analysis && analysis.pitchRange)
+                        ? clamp01((midi - analysis.pitchRange.min) / Math.max(1, analysis.pitchRange.max - analysis.pitchRange.min))
+                        : 0.5;
+                    var barY = streamY + streamH * (1 - norm);
+                    var barH = Math.max(3, streamH * 0.02 + glow * 6);
+
+                    // Glow
+                    ctx.save();
+                    ctx.globalAlpha = glow * 0.6;
+                    ctx.shadowColor = col;
+                    ctx.shadowBlur = 15 * glow;
+                    ctx.fillStyle = col;
+                    ctx.fillRect(x + 2, barY - barH / 2, streamW - 4, barH);
+                    ctx.restore();
+
+                    // Bright core
+                    ctx.save();
+                    ctx.globalAlpha = glow * 0.9;
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(x + 4, barY - 1, streamW - 8, 2);
+                    ctx.restore();
+
+                    // Hex readout
+                    if (glow > 0.2) {
+                        var hexStr = midi.toString(16).toUpperCase();
+                        var hexVal = '0x' + (hexStr.length < 2 ? '0' + hexStr : hexStr);
+                        if (glitchIntensity > 0.4 && Math.random() < glitchIntensity * 0.5) {
+                            hexVal = '0x' + HEX[randInt(0,15)] + HEX[randInt(0,15)];
+                        }
+                        ctx.save();
+                        ctx.font = '700 9px "JetBrains Mono", monospace';
+                        ctx.textAlign = 'center';
+                        ctx.globalAlpha = glow * 0.7;
+                        ctx.fillStyle = col;
+                        ctx.fillText(hexVal, x + streamW / 2, barY + barH / 2 + 12);
+                        ctx.restore();
+                    }
+                }
+
+                // Faint grid lines inside stream
+                ctx.save();
+                ctx.globalAlpha = 0.06;
+                ctx.strokeStyle = col;
+                ctx.lineWidth = 0.5;
+                for (var gy = 0; gy < 8; gy++) {
+                    var ly = streamY + (streamH / 8) * gy;
+                    ctx.beginPath();
+                    ctx.moveTo(x, ly);
+                    ctx.lineTo(x + streamW, ly);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // Glitch displacement on stream
+                if (glitchIntensity > 0.3 && Math.random() < glitchIntensity * 0.2) {
+                    ctx.save();
+                    var tearOff = (Math.random() - 0.5) * 10 * glitchIntensity;
+                    ctx.globalAlpha = 0.3;
+                    ctx.fillStyle = col;
+                    var tearY2 = streamY + Math.random() * streamH;
+                    ctx.fillRect(x + tearOff, tearY2, streamW, 2);
+                    ctx.restore();
+                }
+            }
+
+            // Draw & update trail particles
+            for (var ti = noteTrails.length - 1; ti >= 0; ti--) {
+                var t = noteTrails[ti];
+                ctx.save();
+                ctx.globalAlpha = t.alpha * 0.6;
+                ctx.fillStyle = t.color;
+                var sz = 2 + t.alpha * 2;
+                ctx.fillRect(t.x - sz/2, t.y - sz/2, sz, sz);
+                ctx.restore();
+
+                t.x += t.vx * dt;
+                t.y += t.vy * dt;
+                t.alpha -= 2.5 * dt;
+                if (t.alpha <= 0) noteTrails.splice(ti, 1);
+            }
+
+            // Decay glows
+            var decayDt = dt;
+            for (var di = 0; di < 4; di++) {
+                channelGlow[di] *= Math.exp(-8 * decayDt);
+            }
+        }
+
         function drawScanlines(ctx) {
             ctx.save();
             ctx.globalAlpha = 0.04 + glitchIntensity * 0.06;
@@ -688,6 +847,9 @@
             PX = Math.max(4, Math.floor(Math.min(W, H) / 80));
             initGrids();
             beatPulse = 0;
+            channelGlow = [0, 0, 0, 0];
+            channelLastMidi = [0, 0, 0, 0];
+            noteTrails = [];
             recoveryPercent = 0;
             recoveryTarget = 0;
             glitchIntensity = 1.0;
@@ -889,6 +1051,7 @@
             drawNoiseBlocks(ctx);
             drawGarbledText(ctx);
             drawScreenTear(ctx);
+            drawNoteStreams(ctx, frameData.currentNotes, cursor, energy, dt);
             drawScanlines(ctx);
             drawTitle(ctx);
             drawRecoveryBar(ctx);
