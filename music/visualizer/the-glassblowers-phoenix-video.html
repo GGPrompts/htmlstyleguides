@@ -346,9 +346,9 @@
         // ── Draw Background ──
         function drawBackground(ctx) {
             var topColor, botColor;
-            // Base: forge warm
-            topColor = COL_BG_FORGE;
-            botColor = '#220a00';
+            // Base: forge warm — use bgBrightness to lighten
+            topColor = lerpColor('#0a0400', '#2a1200', bgBrightness);
+            botColor = lerpColor('#0a0400', '#3a1a04', bgBrightness);
             // Blend toward night sky (phoenix / begin)
             if (skyOpenT > 0.01) {
                 var nightTop = '#040216';
@@ -379,23 +379,35 @@
 
         function drawWorkshopWalls(ctx, alpha) {
             ctx.save();
-            ctx.globalAlpha = alpha * bgBrightness * 0.35;
+            ctx.globalAlpha = alpha * bgBrightness * 0.5;
             // Left wall
-            ctx.fillStyle = '#1a0a00';
+            ctx.fillStyle = '#2a1200';
             ctx.fillRect(0, 0, W * 0.08, H);
             // Right wall
             ctx.fillRect(W * 0.92, 0, W * 0.08, H);
             // Ceiling beams
-            ctx.globalAlpha = alpha * bgBrightness * 0.25;
-            ctx.fillStyle = '#110700';
+            ctx.globalAlpha = alpha * bgBrightness * 0.35;
+            ctx.fillStyle = '#1a0a00';
             ctx.fillRect(0, 0, W, H * 0.08);
-            // Subtle wall highlight from forge glow
-            var wg = ctx.createLinearGradient(0, H * 0.5, W * 0.2, H * 0.5);
-            wg.addColorStop(0, rgba(COL_MOLTEN, 0.08 * bgBrightness));
-            wg.addColorStop(1, rgba(COL_MOLTEN, 0));
+            // Wall highlight from forge glow — radiates from forge center
+            var wgL = ctx.createLinearGradient(W * 0.3, H * 0.7, 0, H * 0.5);
+            wgL.addColorStop(0, rgba(COL_MOLTEN, 0.15 * bgBrightness));
+            wgL.addColorStop(1, rgba(COL_MOLTEN, 0));
             ctx.globalAlpha = 1;
-            ctx.fillStyle = wg;
-            ctx.fillRect(0, 0, W * 0.2, H);
+            ctx.fillStyle = wgL;
+            ctx.fillRect(0, 0, W * 0.35, H);
+            // Right wall glow
+            var wgR = ctx.createLinearGradient(W * 0.7, H * 0.7, W, H * 0.5);
+            wgR.addColorStop(0, rgba(COL_MOLTEN, 0.12 * bgBrightness));
+            wgR.addColorStop(1, rgba(COL_MOLTEN, 0));
+            ctx.fillStyle = wgR;
+            ctx.fillRect(W * 0.65, 0, W * 0.35, H);
+            // Floor glow from forge
+            var wgF = ctx.createLinearGradient(W * 0.5, H * 0.85, W * 0.5, H * 0.6);
+            wgF.addColorStop(0, rgba(COL_MOLTEN, 0.2 * bgBrightness));
+            wgF.addColorStop(1, rgba(COL_MOLTEN, 0));
+            ctx.fillStyle = wgF;
+            ctx.fillRect(W * 0.15, H * 0.6, W * 0.7, H * 0.4);
             ctx.restore();
         }
 
@@ -439,8 +451,8 @@
             // Glow beneath forge — radius expands with beatPulse
             var glowRadius = forgeW * (1.8 + bp * 0.8);
             var gg = ctx.createRadialGradient(W * 0.5, forgeY + forgeH * 0.5, 0, W * 0.5, forgeY + forgeH * 0.5, glowRadius);
-            gg.addColorStop(0, rgba(COL_MOLTEN, forgeBright * pulse * 0.5));
-            gg.addColorStop(0.4, rgba('#ff3300', forgeBright * pulse * 0.2));
+            gg.addColorStop(0, rgba(COL_MOLTEN, forgeBright * pulse * 0.7));
+            gg.addColorStop(0.4, rgba('#ff3300', forgeBright * pulse * 0.35));
             gg.addColorStop(1, rgba(COL_MOLTEN, 0));
             ctx.fillStyle = gg;
             ctx.fillRect(forgeX - forgeW * 1.5, forgeY - forgeH, forgeW * 5, forgeH * 6);
@@ -491,8 +503,9 @@
 
             ctx.save();
             ctx.globalAlpha = figureVisible;
-            ctx.fillStyle = '#0a0400';
-            ctx.strokeStyle = '#0a0400';
+            var figCol = (scene === 'grief') ? '#181018' : '#2a1608';
+            ctx.fillStyle = figCol;
+            ctx.strokeStyle = figCol;
             ctx.lineCap = 'round';
 
             var headR = figH * 0.08;
@@ -576,6 +589,22 @@
                     ctx.lineTo(orbX, orbY);
                     ctx.stroke();
                 }
+            }
+
+            // Rim light from forge — orange edge glow on figure
+            if (bgBrightness > 0.2 && scene !== 'grief') {
+                ctx.globalAlpha = figureVisible * bgBrightness * 0.5;
+                ctx.strokeStyle = rgba(COL_MOLTEN, 0.6);
+                ctx.lineWidth = figH * 0.025;
+                // Right edge of torso (facing forge)
+                ctx.beginPath();
+                ctx.moveTo(neckX + figH * 0.02, neckY + headR);
+                ctx.lineTo(hipX + figH * 0.02, hipY);
+                ctx.stroke();
+                // Head rim
+                ctx.beginPath();
+                ctx.arc(headX, headY, headR + 1, -0.5, 1.2);
+                ctx.stroke();
             }
 
             ctx.restore();
@@ -1097,11 +1126,11 @@
 
             // ── Scene-specific targets ──
             if (scene === 'forge') {
-                bgBrightness        = lerpExp(bgBrightness, 0.25 + elapsed * 0.03, 1.5, dt);
+                bgBrightness        = lerpExp(bgBrightness, 0.45 + elapsed * 0.05, 1.5, dt);
                 glassOrbRTarget     = 0;
                 glassColorTTarget   = 0;
-                bgColdTTarget       = lerpExp(bgColdTTarget, 0, 2, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, 0, 2, dt);
+                bgColdTTarget       = 0;
+                skyOpenTTarget      = 0;
                 starAlphaTarget     = 0;
                 titleTarget         = elapsed > 1.5 ? 0.8 : 0;
                 subtitleTarget      = elapsed > 2 ? 0.5 : 0;
@@ -1111,15 +1140,15 @@
                 figureLeanTarget    = 0.5;
                 rayAlphaTarget      = 0;
                 ghostAlphaTarget    = 0;
-                vignetteIntensity   = lerpExp(vignetteIntensity, 0.85, 2, dt);
+                vignetteIntensity   = lerpExp(vignetteIntensity, 0.55, 2, dt);
                 phoenixAlphaTarget  = 0;
 
             } else if (scene === 'gather') {
-                bgBrightness        = lerpExp(bgBrightness, 0.55, 1.5, dt);
+                bgBrightness        = lerpExp(bgBrightness, 0.7, 1.5, dt);
                 glassOrbRTarget     = H * 0.055 + energySmooth * H * 0.02;
                 glassColorTTarget   = 0.15;
-                bgColdTTarget       = lerpExp(bgColdTTarget, 0, 2, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, 0, 2, dt);
+                bgColdTTarget       = 0;
+                skyOpenTTarget      = 0;
                 starAlphaTarget     = 0;
                 titleTarget         = 0.7;
                 subtitleTarget      = 0.6;
@@ -1129,17 +1158,17 @@
                 figureLeanTarget    = 0.7;
                 rayAlphaTarget      = 0;
                 ghostAlphaTarget    = 0;
-                vignetteIntensity   = lerpExp(vignetteIntensity, 0.7, 2, dt);
+                vignetteIntensity   = lerpExp(vignetteIntensity, 0.5, 2, dt);
                 phoenixAlphaTarget  = 0;
 
             } else if (scene === 'shape') {
-                bgBrightness        = lerpExp(bgBrightness, 0.75 + energySmooth * 0.2, 1.5, dt);
+                bgBrightness        = lerpExp(bgBrightness, 0.85 + energySmooth * 0.15, 1.5, dt);
                 var seqInPhase = seqIdx - 8;
                 var phaseT = seqInPhase / 5;
                 glassOrbRTarget     = H * (0.07 + phaseT * 0.06) + energySmooth * H * 0.03;
                 glassColorTTarget   = 0.3 + phaseT * 0.4;
-                bgColdTTarget       = lerpExp(bgColdTTarget, 0, 2, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, 0, 2, dt);
+                bgColdTTarget       = 0;
+                skyOpenTTarget      = 0;
                 starAlphaTarget     = 0;
                 titleTarget         = 0.5;
                 subtitleTarget      = 0.7;
@@ -1149,7 +1178,7 @@
                 figureLeanTarget    = 0.8;
                 rayAlphaTarget      = 0.15 + energySmooth * 0.25;
                 ghostAlphaTarget    = 0;
-                vignetteIntensity   = lerpExp(vignetteIntensity, 0.55, 2, dt);
+                vignetteIntensity   = lerpExp(vignetteIntensity, 0.4, 2, dt);
                 phoenixAlphaTarget  = 0;
 
                 // Occasional glass embers
@@ -1162,8 +1191,8 @@
                 bgBrightness        = lerpExp(bgBrightness, 0.95, 2, dt);
                 glassOrbRTarget     = H * 0.145 + energySmooth * H * 0.04;
                 glassColorTTarget   = 0.75 + energySmooth * 0.2;
-                bgColdTTarget       = lerpExp(bgColdTTarget, 0, 2, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, 0, 2, dt);
+                bgColdTTarget       = 0;
+                skyOpenTTarget      = 0;
                 starAlphaTarget     = 0;
                 titleTarget         = 0.4;
                 subtitleTarget      = 0.9;
@@ -1183,8 +1212,8 @@
                 bgBrightness        = lerpExp(bgBrightness, shatterTriggered ? 0.05 : 0.95, shatterTriggered ? 3 : 2, dt);
                 glassOrbRTarget     = shatterTriggered ? 0 : H * 0.15;
                 glassColorTTarget   = 0.8;
-                bgColdTTarget       = lerpExp(bgColdTTarget, shatterTriggered ? 0.35 : 0, 2, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, 0, 2, dt);
+                bgColdTTarget       = shatterTriggered ? 0.35 : 0;
+                skyOpenTTarget      = 0;
                 starAlphaTarget     = 0;
                 titleTarget         = 0;
                 subtitleTarget      = shatterTriggered ? 0.5 : 0;
@@ -1203,8 +1232,8 @@
                 bgBrightness        = lerpExp(bgBrightness, 0.08, 1, dt);
                 glassOrbRTarget     = 0;
                 glassColorTTarget   = 0.5;
-                bgColdTTarget       = lerpExp(bgColdTTarget, 0.8, 1, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, 0, 2, dt);
+                bgColdTTarget       = 0.8;
+                skyOpenTTarget      = 0;
                 starAlphaTarget     = 0;
                 titleTarget         = 0;
                 subtitleTarget      = 0.4;
@@ -1224,12 +1253,12 @@
                 glassOrbRTarget     = H * (0.025 + beginT * 0.1) + energySmooth * H * 0.025;
                 glassColorTTarget   = 0.5 + beginT * 0.4;
                 bgColdTTarget       = lerpExp(bgColdTTarget, 0, 1.5, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, beginT * 0.3, 1, dt);
+                skyOpenTTarget      = beginT * 0.3;
                 starAlphaTarget     = beginT * 0.2;
                 titleTarget         = 0.3;
                 subtitleTarget      = 0.7;
                 subtitleText        = SCENE_TEXTS['begin'];
-                figureHunchTarget   = lerpExp(figureHunchTarget, 0, 1, dt);
+                figureHunchTarget   = 0;
                 figureVisibleTarget = 1;
                 figureLeanTarget    = 0.6;
                 rayAlphaTarget      = beginT * 0.3 + energySmooth * 0.2;
@@ -1243,8 +1272,8 @@
                 var phxT = Math.min(1, sceneAge / 30);
                 glassOrbRTarget     = 0;
                 glassColorTTarget   = 1;
-                bgColdTTarget       = lerpExp(bgColdTTarget, 0, 2, dt);
-                skyOpenTTarget      = lerpExp(skyOpenTTarget, phxT, 1, dt);
+                bgColdTTarget       = 0;
+                skyOpenTTarget      = phxT;
                 starAlphaTarget     = 0.3 + phxT * 0.7;
                 titleTarget         = 0.6;
                 subtitleTarget      = 0.8;
@@ -1302,8 +1331,8 @@
             flashAlpha          = lerpExp(flashAlpha, 0, 7, dt);
             glassOrbR           = lerpExp(glassOrbR, glassOrbRTarget, 3, dt);
             glassColorT         = lerpExp(glassColorT, glassColorTTarget, 2, dt);
-            bgColdT             = bgColdTTarget; // already lerped per-scene
-            skyOpenT            = skyOpenTTarget; // already lerped per-scene
+            bgColdT             = lerpExp(bgColdT, bgColdTTarget, 2, dt);
+            skyOpenT            = lerpExp(skyOpenT, skyOpenTTarget, 1.5, dt);
             starAlpha           = lerpExp(starAlpha, starAlphaTarget, 2, dt);
             titleAlpha          = lerpExp(titleAlpha, titleTarget, 2.5, dt);
             subtitleAlpha       = lerpExp(subtitleAlpha, subtitleTarget, 3, dt);
