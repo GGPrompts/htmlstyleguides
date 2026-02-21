@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Cartographer of Drowned Cities — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="video-base-styles.css">
+    <style>
+        :root {
+            --vid-bg: #020810;
+            --vid-bg-rgb: 2,8,16;
+            --vid-font: 'Cinzel', serif;
+            --vid-accent: #00e5cc;
+            --vid-accent-r: 0;
+            --vid-accent-g: 229;
+            --vid-accent-b: 204;
+            --vid-overlay-alpha: 0.94;
+            --vid-title-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+    <a href="music-videos/index.html" class="back-link">&larr; Music Videos</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">The Cartographer of Drowned Cities</div>
+        <div class="play-sub">mapping the drowned world below</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script src="video-utils.js"></script>
+    <script src="base-renderer.js"></script>
+    <script>
+    // ── The Cartographer of Drowned Cities Video Renderer ──────────────
+    (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Color Palettes ──
+        var COL_DEEP_BG      = '#020810';
+        var COL_OCEAN_MID     = '#0a2a3a';
+        var COL_OCEAN_TEAL    = '#1a6a7e';
+        var COL_ACCENT        = '#00e5cc';
+        var COL_MARKET_GOLD   = '#d4a24e';
+        var COL_MARKET_LIGHT  = '#f5d98a';
+        var COL_CHILD_GREEN   = '#7ab87a';
+        var COL_TEMPLE_PURPLE = '#6a3d8a';
+        var COL_TEMPLE_LIGHT  = '#9a6abf';
+        var COL_KNOW_CYAN     = '#00ffee';
+        var COL_DAWN_AMBER    = '#ff9900';
+        var COL_DAWN_GOLD     = '#ffcc44';
+        var COL_DAWN_SKY      = '#87ceeb';
+
+        // ── State ──
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var globalTime = 0;
+        var lastSeqIndex = -1;
+
+        // Scene state
+        var scene = 'surface';  // surface, descent, market, children, temple, library, climax, surfacing, mapComplete
+        var sceneBlend = 0;     // 0-1 crossfade between scenes
+        var prevScene = 'surface';
+
+        // Diver position (normalized 0-1, 0=surface, 1=deepest)
+        var diverDepth = 0;
+        var diverDepthTarget = 0;
+        var diverX = 0.5;
+        var diverBob = 0;
+        var diverLampGlow = 0;
+
+        // Depth gauge
+        var depthGaugeValue = 0;
+
+        // Architecture layers (parallax)
+        var archLayers = [];
+        var NUM_ARCH_LAYERS = 4;
+
+        // Particles (bioluminescent motes)
+        var particles = [];
+        var MAX_PARTICLES = 200;
+
+        // Map lines
+        var mapLines = [];
+        var mapLineTimer = 0;
+
+        // Caustic state
+        var causticPhases = [];
+
+        // Memory overlay alpha
+        var memoryAlpha = 0;
+        var memoryAlphaTarget = 0;
+        var memoryColor = COL_MARKET_GOLD;
+
+        // Rising glyphs (for Knowledge Rising)
+        var glyphs = [];
+        var GLYPH_CHARS = [
+            '\u2234', '\u2235', '\u2206', '\u2207', '\u221E', '\u2295',
+            '\u2299', '\u2300', '\u2302', '\u2318', '\u2325', '\u2387',
+            '\u23DA', '\u23E3', '\u2609', '\u263F', '\u2640', '\u2642',
+            '\u2660', '\u2663', '\u2665', '\u2666', '\u03A9', '\u03A8',
+            '\u03A6', '\u03B1', '\u03B2', '\u03B3', '\u03B4', '\u03C0'
+        ];
+
+        // Dawn blend
+        var dawnProgress = 0;
+        var dawnTarget = 0;
+
+        // Title
+        var titleAlpha = 0;
+        var titleTarget = 0;
+        var subtitleText = '';
+
+        // Shimmer transition flash
+        var shimmerAlpha = 0;
+
+        // Sonar ping rings
+        var sonarRings = [];
+
+        // Memory scene silhouettes
+        var marketStalls = [];
+        var childFigures = [];
+        var templeColumns = [];
+
+        // ── Architecture Generation ──
+        function generateArchitecture() {
+            archLayers = [];
+            for (var layer = 0; layer < NUM_ARCH_LAYERS; layer++) {
+                var buildings = [];
+                var numBuildings = 6 + layer * 3;
+                var depth = (layer + 1) / NUM_ARCH_LAYERS;
+                for (var i = 0; i < numBuildings; i++) {
+                    buildings.push({
+                        x: (i / numBuildings) * W + rand(-30, 30),
+                        baseY: H * (0.45 + depth * 0.15),
+                        width: rand(30, 80) * (1.2 - depth * 0.4),
+                        height: rand(60, 180) * (1.2 - depth * 0.3),
+                        hasArch: Math.random() > 0.5,
+                        hasColumn: Math.random() > 0.4,
+                        columnCount: randInt(2, 5),
+                        roofStyle: randInt(0, 2)  // 0=flat, 1=pointed, 2=dome
+                    });
+                }
+                archLayers.push({
+                    buildings: buildings,
+                    depth: depth,
+                    scrollSpeed: 0.3 + (1 - depth) * 0.7,
+                    alpha: 0.15 + (1 - depth) * 0.25,
+                    offset: 0
+                });
+            }
+        }
+
+        // ── Memory Silhouette Generation ──
+        function generateMemoryElements() {
+            marketStalls = [];
+            for (var ms = 0; ms < 8; ms++) {
+                marketStalls.push({
+                    x: W * (0.1 + ms * 0.1),
+                    y: H * 0.55,
+                    width: rand(40, 70),
+                    height: rand(30, 50),
+                    awningAngle: rand(-0.2, 0.2)
+                });
+            }
+
+            childFigures = [];
+            for (var cf = 0; cf < 6; cf++) {
+                childFigures.push({
+                    x: W * (0.2 + cf * 0.12),
+                    y: H * 0.65,
+                    size: rand(15, 25),
+                    phase: rand(0, Math.PI * 2),
+                    jumpHeight: rand(5, 15)
+                });
+            }
+
+            templeColumns = [];
+            for (var tc = 0; tc < 10; tc++) {
+                templeColumns.push({
+                    x: W * (0.1 + tc * 0.08),
+                    y: H * 0.4,
+                    width: rand(12, 20),
+                    height: rand(120, 200)
+                });
+            }
+        }
+
+        // ── Particle Creation ──
+        function createParticle(forceX, forceY) {
+            return {
+                x: forceX !== undefined ? forceX : rand(0, W),
+                y: forceY !== undefined ? forceY : rand(0, H),
+                vx: rand(-8, 8),
+                vy: rand(-12, -3),
+                size: rand(1, 3.5),
+                alpha: rand(0.2, 0.7),
+                life: rand(0.5, 1),
+                pulsePhase: rand(0, Math.PI * 2),
+                color: COL_ACCENT
+            };
+        }
+
+        // ── Glyph Creation ──
+        function createGlyph() {
+            return {
+                x: rand(W * 0.15, W * 0.85),
+                y: H + 20,
+                vy: rand(-40, -80),
+                char: pickRandom(GLYPH_CHARS),
+                size: rand(14, 32),
+                alpha: rand(0.3, 0.8),
+                life: 1,
+                wobble: rand(-0.5, 0.5),
+                wobblePhase: rand(0, Math.PI * 2)
+            };
+        }
+
+        // ── Sonar Ring Creation ──
+        function createSonarRing() {
+            return {
+                x: diverX * W,
+                y: H * (0.15 + diverDepth * 0.55),
+                radius: 5,
+                maxRadius: rand(80, 200),
+                alpha: 0.6,
+                speed: rand(60, 120)
+            };
+        }
+
+        // ── Map Line Creation ──
+        function createMapLine() {
+            var startX = rand(W * 0.05, W * 0.95);
+            var startY = rand(H * 0.1, H * 0.9);
+            var angle = rand(0, Math.PI * 2);
+            var length = rand(30, 120);
+            return {
+                x1: startX,
+                y1: startY,
+                x2: startX + Math.cos(angle) * length,
+                y2: startY + Math.sin(angle) * length,
+                progress: 0,
+                alpha: rand(0.1, 0.3)
+            };
+        }
+
+        // ── Caustic Initialization ──
+        function initCaustics() {
+            causticPhases = [];
+            for (var i = 0; i < 16; i++) {
+                causticPhases.push(rand(0, Math.PI * 2));
+            }
+        }
+
+        // ── Section Mapping ──
+        function mapScene(seqIndex) {
+            if (seqIndex <= 3)  return 'surface';
+            if (seqIndex <= 7)  return 'descent';
+            if (seqIndex <= 11) return 'market';
+            if (seqIndex <= 15) return 'children';
+            if (seqIndex <= 19) return 'temple';
+            if (seqIndex <= 23) return 'library';
+            if (seqIndex <= 27) return 'climax';
+            if (seqIndex <= 31) return 'surfacing';
+            return 'mapComplete';
+        }
+
+        function getDepthTarget(seqIndex) {
+            if (seqIndex <= 3)  return 0.05;
+            if (seqIndex <= 7)  return 0.3;
+            if (seqIndex <= 11) return 0.5;
+            if (seqIndex <= 15) return 0.6;
+            if (seqIndex <= 19) return 0.75;
+            if (seqIndex <= 23) return 0.95;
+            if (seqIndex <= 27) return 0.7;
+            if (seqIndex <= 31) return 0.15;
+            return 0.0;
+        }
+
+        function getSceneColor(s) {
+            if (s === 'market')    return COL_MARKET_GOLD;
+            if (s === 'children')  return COL_CHILD_GREEN;
+            if (s === 'temple')    return COL_TEMPLE_PURPLE;
+            if (s === 'library')   return COL_OCEAN_TEAL;
+            if (s === 'climax')    return COL_KNOW_CYAN;
+            if (s === 'surfacing') return COL_DAWN_AMBER;
+            return COL_ACCENT;
+        }
+
+        // ── Background Drawing ──
+        function drawOceanBackground(ctx, energy, dt) {
+            var topR, topG, topB, botR, botG, botB;
+
+            if (dawnProgress > 0.01) {
+                // Dawn blend
+                var dp = dawnProgress;
+                topR = lerp(2, 60 + dp * 120, dp);
+                topG = lerp(8, 30 + dp * 80, dp);
+                topB = lerp(16, 20 + dp * 40, dp);
+                botR = lerp(10, 20 + dp * 60, dp);
+                botG = lerp(42, 50 + dp * 80, dp);
+                botB = lerp(58, 70 + dp * 60, dp);
+            } else {
+                // Depth-based blue gradient
+                var d = diverDepth;
+                topR = lerp(2, 1, d);
+                topG = lerp(8 + energy * 10, 4, d);
+                topB = lerp(16 + energy * 10, 8, d);
+                botR = lerp(10, 5, d);
+                botG = lerp(42, 15, d);
+                botB = lerp(58, 25, d);
+            }
+
+            var grad = ctx.createLinearGradient(0, 0, 0, H);
+            grad.addColorStop(0, 'rgb(' + Math.floor(topR) + ',' + Math.floor(topG) + ',' + Math.floor(topB) + ')');
+            grad.addColorStop(1, 'rgb(' + Math.floor(botR) + ',' + Math.floor(botG) + ',' + Math.floor(botB) + ')');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Water surface shimmer (only near surface)
+            if (diverDepth < 0.3) {
+                var surfaceAlpha = (1 - diverDepth / 0.3) * 0.08;
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (var r = 0; r < 6; r++) {
+                    var ry = 10 + r * 12 + Math.sin(globalTime * 0.8 + r * 1.1) * 5;
+                    var rw = W * (0.5 + Math.sin(globalTime * 0.3 + r * 0.7) * 0.3);
+                    var rx = (W - rw) / 2 + Math.sin(globalTime * 0.5 + r) * 30;
+                    ctx.fillStyle = rgba(COL_DAWN_SKY, surfaceAlpha * (1 - r * 0.12));
+                    ctx.fillRect(rx, ry, rw, 2);
+                }
+                ctx.restore();
+            }
+        }
+
+        // ── Water Caustics ──
+        function drawCaustics(ctx, energy) {
+            if (diverDepth < 0.05) return;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var intensity = 0.015 + energy * 0.03;
+            intensity *= Math.min(1, diverDepth * 3);
+
+            for (var i = 0; i < causticPhases.length; i++) {
+                var phase = causticPhases[i] + globalTime * (0.2 + i * 0.05);
+                var x1 = W * (0.5 + Math.sin(phase) * 0.45);
+                var y1 = 0;
+                var x2 = W * (0.5 + Math.sin(phase + 1.8) * 0.5);
+                var y2 = H;
+                var cx = W * (0.5 + Math.cos(phase * 0.6) * 0.35);
+                var cy = H * (0.3 + Math.sin(phase * 0.4) * 0.2);
+
+                var col = i % 3 === 0 ? COL_ACCENT : (i % 3 === 1 ? COL_OCEAN_TEAL : '#0a4a6a');
+                ctx.strokeStyle = rgba(col, intensity);
+                ctx.lineWidth = 1.5 + energy * 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.quadraticCurveTo(cx, cy, x2, y2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Architecture Drawing ──
+        function drawArchitecture(ctx, energy) {
+            if (diverDepth < 0.1) return;
+            var archAlpha = Math.min(1, (diverDepth - 0.1) * 2);
+
+            for (var li = 0; li < archLayers.length; li++) {
+                var layer = archLayers[li];
+                var layerAlpha = layer.alpha * archAlpha;
+                var scrollX = layer.offset;
+
+                ctx.save();
+
+                // Memory tint
+                if (memoryAlpha > 0.01) {
+                    var memRgb = hexToRgb(memoryColor);
+                    var tintR = lerp(10, memRgb.r, memoryAlpha * 0.3);
+                    var tintG = lerp(30, memRgb.g, memoryAlpha * 0.3);
+                    var tintB = lerp(50, memRgb.b, memoryAlpha * 0.3);
+                    ctx.strokeStyle = 'rgba(' + Math.floor(tintR) + ',' + Math.floor(tintG) + ',' + Math.floor(tintB) + ',' + layerAlpha + ')';
+                } else {
+                    ctx.strokeStyle = rgba(COL_OCEAN_TEAL, layerAlpha);
+                }
+                ctx.lineWidth = 1 + (1 - layer.depth) * 1.5;
+
+                for (var bi = 0; bi < layer.buildings.length; bi++) {
+                    var b = layer.buildings[bi];
+                    var bx = ((b.x + scrollX) % (W + 100)) - 50;
+                    var by = b.baseY;
+                    var bw = b.width;
+                    var bh = b.height;
+
+                    // Building outline
+                    ctx.beginPath();
+                    ctx.moveTo(bx, by);
+                    ctx.lineTo(bx, by - bh);
+
+                    // Roof
+                    if (b.roofStyle === 1) {
+                        ctx.lineTo(bx + bw / 2, by - bh - 20);
+                        ctx.lineTo(bx + bw, by - bh);
+                    } else if (b.roofStyle === 2) {
+                        ctx.quadraticCurveTo(bx + bw / 2, by - bh - 25, bx + bw, by - bh);
+                    } else {
+                        ctx.lineTo(bx + bw, by - bh);
+                    }
+
+                    ctx.lineTo(bx + bw, by);
+                    ctx.stroke();
+
+                    // Columns
+                    if (b.hasColumn) {
+                        for (var ci = 0; ci < b.columnCount; ci++) {
+                            var cx = bx + (ci + 0.5) * (bw / b.columnCount);
+                            ctx.beginPath();
+                            ctx.moveTo(cx, by);
+                            ctx.lineTo(cx, by - bh * 0.85);
+                            ctx.stroke();
+                        }
+                    }
+
+                    // Arch windows
+                    if (b.hasArch) {
+                        var archY = by - bh * 0.5;
+                        var archW = bw * 0.25;
+                        ctx.beginPath();
+                        ctx.arc(bx + bw * 0.5, archY, archW, Math.PI, 0);
+                        ctx.lineTo(bx + bw * 0.5 + archW, archY + archW * 1.5);
+                        ctx.lineTo(bx + bw * 0.5 - archW, archY + archW * 1.5);
+                        ctx.closePath();
+                        ctx.stroke();
+                    }
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // ── Diver Drawing ──
+        function drawDiver(ctx, energy) {
+            var dx = diverX * W;
+            var dy = H * (0.15 + diverDepth * 0.55) + Math.sin(diverBob) * 6;
+
+            ctx.save();
+            ctx.translate(dx, dy);
+
+            // Lamp glow
+            var lampRadius = 30 + energy * 20 + beatPulse * 15;
+            var lampGrad = ctx.createRadialGradient(5, -8, 0, 5, -8, lampRadius);
+            lampGrad.addColorStop(0, rgba(COL_ACCENT, 0.2 + diverLampGlow * 0.15));
+            lampGrad.addColorStop(0.4, rgba(COL_ACCENT, 0.05 + diverLampGlow * 0.05));
+            lampGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = lampGrad;
+            ctx.fillRect(-lampRadius + 5, -lampRadius - 8, lampRadius * 2, lampRadius * 2);
+
+            // Body (geometric diver silhouette)
+            ctx.fillStyle = rgba(COL_ACCENT, 0.8);
+            ctx.strokeStyle = rgba(COL_ACCENT, 0.9);
+            ctx.lineWidth = 2;
+
+            // Helmet (circle)
+            ctx.beginPath();
+            ctx.arc(0, -12, 7, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Visor glow
+            ctx.fillStyle = rgba('#ffffff', 0.6 + beatPulse * 0.3);
+            ctx.beginPath();
+            ctx.arc(2, -13, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Torso
+            ctx.fillStyle = rgba(COL_ACCENT, 0.7);
+            ctx.beginPath();
+            ctx.moveTo(-5, -5);
+            ctx.lineTo(5, -5);
+            ctx.lineTo(4, 10);
+            ctx.lineTo(-4, 10);
+            ctx.closePath();
+            ctx.fill();
+
+            // Arms (angled outward slightly for swimming pose)
+            var armAngle = Math.sin(globalTime * 2) * 0.3;
+            ctx.strokeStyle = rgba(COL_ACCENT, 0.7);
+            ctx.lineWidth = 2.5;
+            // Left arm
+            ctx.beginPath();
+            ctx.moveTo(-5, -2);
+            ctx.lineTo(-12 + Math.sin(armAngle) * 3, 4 + Math.cos(armAngle) * 2);
+            ctx.stroke();
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(5, -2);
+            ctx.lineTo(12 - Math.sin(armAngle) * 3, 4 - Math.cos(armAngle) * 2);
+            ctx.stroke();
+
+            // Legs
+            ctx.beginPath();
+            ctx.moveTo(-3, 10);
+            ctx.lineTo(-5 + Math.sin(globalTime * 3) * 2, 20);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(3, 10);
+            ctx.lineTo(5 - Math.sin(globalTime * 3) * 2, 20);
+            ctx.stroke();
+
+            // Flippers
+            ctx.fillStyle = rgba(COL_ACCENT, 0.5);
+            ctx.beginPath();
+            var flipperKick = Math.sin(globalTime * 3) * 3;
+            ctx.ellipse(-5 + flipperKick, 22, 6, 2, flipperKick * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(5 - flipperKick, 22, 6, 2, -flipperKick * 0.1, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Bubble trail
+            for (var bb = 0; bb < 3; bb++) {
+                var bubbleY = -20 - bb * 8 - Math.sin(globalTime * 3 + bb) * 4;
+                var bubbleX = 2 + Math.sin(globalTime * 2 + bb * 1.5) * 4;
+                var bubbleR = 1.5 + bb * 0.5;
+                ctx.strokeStyle = rgba(COL_ACCENT, 0.3 - bb * 0.07);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(bubbleX, bubbleY, bubbleR, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Depth Gauge ──
+        function drawDepthGauge(ctx) {
+            var gaugeX = W - 25;
+            var gaugeTop = H * 0.1;
+            var gaugeBot = H * 0.9;
+            var gaugeH = gaugeBot - gaugeTop;
+
+            ctx.save();
+
+            // Track
+            ctx.strokeStyle = rgba(COL_OCEAN_TEAL, 0.2);
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(gaugeX, gaugeTop);
+            ctx.lineTo(gaugeX, gaugeBot);
+            ctx.stroke();
+
+            // Depth marks
+            for (var dm = 0; dm <= 10; dm++) {
+                var markY = gaugeTop + (dm / 10) * gaugeH;
+                ctx.strokeStyle = rgba(COL_OCEAN_TEAL, 0.15);
+                ctx.beginPath();
+                ctx.moveTo(gaugeX - 4, markY);
+                ctx.lineTo(gaugeX + 4, markY);
+                ctx.stroke();
+            }
+
+            // Indicator
+            var indY = gaugeTop + depthGaugeValue * gaugeH;
+            ctx.fillStyle = rgba(COL_ACCENT, 0.8);
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = COL_ACCENT;
+            ctx.beginPath();
+            ctx.arc(gaugeX, indY, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Depth label
+            var depthMeters = Math.floor(depthGaugeValue * 200);
+            ctx.font = '10px sans-serif';
+            ctx.fillStyle = rgba(COL_ACCENT, 0.5);
+            ctx.textAlign = 'right';
+            ctx.shadowBlur = 0;
+            ctx.fillText(depthMeters + 'm', gaugeX - 8, indY + 4);
+
+            ctx.restore();
+        }
+
+        // ── Bioluminescent Particles ──
+        function drawParticles(ctx, energy) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (var i = 0; i < particles.length; i++) {
+                var p = particles[i];
+                var pAlpha = p.alpha * p.life;
+                var pulse = 0.6 + Math.sin(p.pulsePhase) * 0.3 + beatPulse * 0.2;
+                var pSize = p.size * (0.7 + pulse * 0.5);
+
+                ctx.fillStyle = rgba(p.color, pAlpha * pulse);
+                ctx.shadowBlur = 4 + energy * 8;
+                ctx.shadowColor = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, pSize, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Sonar Rings ──
+        function drawSonarRings(ctx) {
+            ctx.save();
+            for (var i = sonarRings.length - 1; i >= 0; i--) {
+                var ring = sonarRings[i];
+                ctx.strokeStyle = rgba(COL_ACCENT, ring.alpha);
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.arc(ring.x, ring.y, ring.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Map Lines Overlay ──
+        function drawMapLines(ctx) {
+            if (mapLines.length === 0) return;
+
+            ctx.save();
+            for (var i = 0; i < mapLines.length; i++) {
+                var ml = mapLines[i];
+                var prog = Math.min(1, ml.progress);
+                var ex = lerp(ml.x1, ml.x2, prog);
+                var ey = lerp(ml.y1, ml.y2, prog);
+
+                ctx.strokeStyle = rgba(COL_ACCENT, ml.alpha * 0.5);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(ml.x1, ml.y1);
+                ctx.lineTo(ex, ey);
+                ctx.stroke();
+
+                // Node at end
+                if (prog >= 1) {
+                    ctx.fillStyle = rgba(COL_ACCENT, ml.alpha * 0.4);
+                    ctx.beginPath();
+                    ctx.arc(ml.x2, ml.y2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+            ctx.restore();
+        }
+
+        // ── Memory Overlay: Market ──
+        function drawMarketMemory(ctx, alpha) {
+            if (alpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = alpha * 0.6;
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Market stalls
+            for (var i = 0; i < marketStalls.length; i++) {
+                var stall = marketStalls[i];
+                var sway = Math.sin(globalTime * 1.5 + i * 0.8) * 3;
+
+                // Awning
+                ctx.fillStyle = rgba(COL_MARKET_GOLD, 0.25);
+                ctx.beginPath();
+                ctx.moveTo(stall.x - stall.width / 2, stall.y - stall.height);
+                ctx.lineTo(stall.x + stall.width / 2, stall.y - stall.height);
+                ctx.lineTo(stall.x + stall.width / 2 + 8, stall.y - stall.height + 12);
+                ctx.lineTo(stall.x - stall.width / 2 - 8, stall.y - stall.height + 12);
+                ctx.closePath();
+                ctx.fill();
+
+                // Counter
+                ctx.fillStyle = rgba(COL_MARKET_LIGHT, 0.15);
+                ctx.fillRect(stall.x - stall.width / 2, stall.y - stall.height + 12, stall.width, stall.height - 12);
+
+                // Ghostly figure behind stall
+                ctx.fillStyle = rgba(COL_MARKET_GOLD, 0.2);
+                ctx.beginPath();
+                ctx.arc(stall.x + sway, stall.y - stall.height - 15, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(stall.x - 4 + sway, stall.y - stall.height - 7, 8, 18);
+            }
+
+            // Floating goods particles
+            for (var fg = 0; fg < 12; fg++) {
+                var fgx = W * (0.1 + fg * 0.07) + Math.sin(globalTime + fg) * 10;
+                var fgy = H * 0.45 + Math.cos(globalTime * 0.8 + fg * 1.2) * 15;
+                ctx.fillStyle = rgba(COL_MARKET_LIGHT, 0.15 + Math.sin(globalTime * 2 + fg) * 0.05);
+                ctx.beginPath();
+                ctx.arc(fgx, fgy, 3 + Math.sin(globalTime + fg) * 1, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Memory Overlay: Children ──
+        function drawChildrenMemory(ctx, alpha) {
+            if (alpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = alpha * 0.6;
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (var i = 0; i < childFigures.length; i++) {
+                var child = childFigures[i];
+                var jumpOffset = Math.abs(Math.sin(child.phase + globalTime * 2.5)) * child.jumpHeight;
+                var cx = child.x + Math.sin(globalTime * 1.2 + i * 2) * 12;
+                var cy = child.y - jumpOffset;
+
+                // Head
+                ctx.fillStyle = rgba(COL_CHILD_GREEN, 0.3);
+                ctx.beginPath();
+                ctx.arc(cx, cy - child.size, child.size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Body
+                ctx.fillStyle = rgba(COL_CHILD_GREEN, 0.2);
+                ctx.beginPath();
+                ctx.moveTo(cx - child.size * 0.25, cy - child.size * 0.65);
+                ctx.lineTo(cx + child.size * 0.25, cy - child.size * 0.65);
+                ctx.lineTo(cx + child.size * 0.15, cy);
+                ctx.lineTo(cx - child.size * 0.15, cy);
+                ctx.closePath();
+                ctx.fill();
+
+                // Arms (waving)
+                var armWave = Math.sin(globalTime * 3 + i * 1.5) * 0.6;
+                ctx.strokeStyle = rgba(COL_CHILD_GREEN, 0.25);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(cx - child.size * 0.25, cy - child.size * 0.5);
+                ctx.lineTo(cx - child.size * 0.5 + armWave * 5, cy - child.size * 0.3 - Math.abs(armWave) * 8);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cx + child.size * 0.25, cy - child.size * 0.5);
+                ctx.lineTo(cx + child.size * 0.5 - armWave * 5, cy - child.size * 0.3 - Math.abs(armWave) * 8);
+                ctx.stroke();
+            }
+
+            // Play sparkles
+            for (var sp = 0; sp < 8; sp++) {
+                var spx = W * (0.15 + sp * 0.1) + Math.sin(globalTime * 2 + sp) * 20;
+                var spy = H * 0.55 + Math.cos(globalTime * 1.5 + sp * 0.9) * 25;
+                var spAlpha = 0.1 + Math.sin(globalTime * 3 + sp * 1.3) * 0.08;
+                ctx.fillStyle = rgba(COL_CHILD_GREEN, spAlpha);
+                ctx.beginPath();
+                ctx.arc(spx, spy, 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Memory Overlay: Temple ──
+        function drawTempleMemory(ctx, alpha) {
+            if (alpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = alpha * 0.5;
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Columns
+            for (var i = 0; i < templeColumns.length; i++) {
+                var col = templeColumns[i];
+                ctx.fillStyle = rgba(COL_TEMPLE_PURPLE, 0.15);
+                ctx.fillRect(col.x - col.width / 2, col.y, col.width, col.height);
+
+                // Capital decoration
+                ctx.fillStyle = rgba(COL_TEMPLE_LIGHT, 0.12);
+                ctx.beginPath();
+                ctx.moveTo(col.x - col.width, col.y);
+                ctx.lineTo(col.x + col.width, col.y);
+                ctx.lineTo(col.x + col.width * 0.6, col.y + 10);
+                ctx.lineTo(col.x - col.width * 0.6, col.y + 10);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            // Altar glow (center)
+            var altarX = W * 0.5;
+            var altarY = H * 0.55;
+            var altarPulse = 0.5 + Math.sin(globalTime * 1.5) * 0.3 + beatPulse * 0.2;
+            var altarGrad = ctx.createRadialGradient(altarX, altarY, 0, altarX, altarY, 60);
+            altarGrad.addColorStop(0, rgba(COL_TEMPLE_LIGHT, 0.15 * altarPulse));
+            altarGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = altarGrad;
+            ctx.fillRect(altarX - 60, altarY - 60, 120, 120);
+
+            // Ceremonial figures (standing in rows)
+            for (var cf = 0; cf < 5; cf++) {
+                var cfx = W * (0.3 + cf * 0.1);
+                var cfy = H * 0.6;
+                var sway = Math.sin(globalTime * 0.8 + cf * 0.6) * 2;
+                ctx.fillStyle = rgba(COL_TEMPLE_PURPLE, 0.18);
+                ctx.beginPath();
+                ctx.arc(cfx + sway, cfy - 18, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillRect(cfx - 4 + sway, cfy - 12, 8, 20);
+                // Raised arms
+                ctx.strokeStyle = rgba(COL_TEMPLE_LIGHT, 0.12);
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(cfx - 4 + sway, cfy - 8);
+                ctx.lineTo(cfx - 10 + sway, cfy - 18 - Math.sin(globalTime + cf) * 5);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(cfx + 4 + sway, cfy - 8);
+                ctx.lineTo(cfx + 10 + sway, cfy - 18 - Math.sin(globalTime + cf + 1) * 5);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Rising Glyphs (Knowledge Rising) ──
+        function drawGlyphs(ctx) {
+            if (glyphs.length === 0) return;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            for (var i = 0; i < glyphs.length; i++) {
+                var g = glyphs[i];
+                var wobbleX = Math.sin(g.wobblePhase + globalTime * 2) * 15 * g.wobble;
+                ctx.font = Math.floor(g.size) + 'px "Cinzel", serif';
+                ctx.fillStyle = rgba(COL_KNOW_CYAN, g.alpha * g.life);
+                ctx.shadowBlur = 12 + g.life * 8;
+                ctx.shadowColor = COL_KNOW_CYAN;
+                ctx.fillText(g.char, g.x + wobbleX, g.y);
+            }
+
+            ctx.restore();
+        }
+
+        // ── Shimmer Transition ──
+        function drawShimmer(ctx) {
+            if (shimmerAlpha < 0.005) return;
+            ctx.save();
+            var grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.5);
+            grad.addColorStop(0, rgba(memoryColor, shimmerAlpha * 0.4));
+            grad.addColorStop(0.5, rgba(memoryColor, shimmerAlpha * 0.15));
+            grad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Flash Overlay ──
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.005) return;
+            ctx.save();
+            ctx.fillStyle = rgba('#ffffff', flashAlpha * 0.15);
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Title/Section Text ──
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.globalAlpha = titleAlpha;
+
+            // Main title
+            var fontSize = Math.max(16, Math.min(W * 0.035, 42));
+            ctx.font = '700 ' + fontSize + 'px "Cinzel", serif';
+            ctx.fillStyle = COL_ACCENT;
+            ctx.shadowColor = COL_ACCENT;
+            ctx.shadowBlur = 30;
+            ctx.fillText('THE CARTOGRAPHER OF DROWNED CITIES', W / 2, H * 0.08);
+
+            // Subtitle
+            if (subtitleText) {
+                ctx.font = '400 ' + Math.floor(fontSize * 0.45) + 'px sans-serif';
+                ctx.fillStyle = rgba('#ffffff', 0.5);
+                ctx.shadowBlur = 0;
+                ctx.fillText(subtitleText, W / 2, H * 0.08 + fontSize * 0.8);
+            }
+
+            ctx.restore();
+        }
+
+        // ── Dawn Overlay ──
+        function drawDawnOverlay(ctx) {
+            if (dawnProgress < 0.01) return;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Warm amber glow from top
+            var dawnGrad = ctx.createLinearGradient(0, 0, 0, H * 0.6);
+            dawnGrad.addColorStop(0, rgba(COL_DAWN_AMBER, dawnProgress * 0.12));
+            dawnGrad.addColorStop(0.5, rgba(COL_DAWN_GOLD, dawnProgress * 0.06));
+            dawnGrad.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = dawnGrad;
+            ctx.fillRect(0, 0, W, H * 0.6);
+
+            // Sun disc (only if near surface)
+            if (diverDepth < 0.3 && dawnProgress > 0.3) {
+                var sunY = H * 0.05;
+                var sunR = 30 + dawnProgress * 40;
+                var sunGrad = ctx.createRadialGradient(W * 0.5, sunY, 0, W * 0.5, sunY, sunR);
+                sunGrad.addColorStop(0, rgba(COL_DAWN_GOLD, dawnProgress * 0.5));
+                sunGrad.addColorStop(0.5, rgba(COL_DAWN_AMBER, dawnProgress * 0.2));
+                sunGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = sunGrad;
+                ctx.fillRect(W * 0.5 - sunR, sunY - sunR, sunR * 2, sunR * 2);
+            }
+
+            ctx.restore();
+        }
+
+        // ── Map Complete Overlay ──
+        function drawMapCompleteOverlay(ctx, alpha) {
+            if (alpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = alpha;
+
+            // Draw a glowing map outline over the whole screen
+            ctx.strokeStyle = rgba(COL_ACCENT, 0.3);
+            ctx.lineWidth = 1;
+            ctx.shadowBlur = 6;
+            ctx.shadowColor = COL_ACCENT;
+
+            // Grid
+            var gridSize = 40;
+            for (var gx = 0; gx < W; gx += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(gx, 0);
+                ctx.lineTo(gx, H);
+                ctx.stroke();
+            }
+            for (var gy = 0; gy < H; gy += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, gy);
+                ctx.lineTo(W, gy);
+                ctx.stroke();
+            }
+
+            // Compass rose
+            var crx = W * 0.9;
+            var cry = H * 0.15;
+            ctx.strokeStyle = rgba(COL_ACCENT, 0.5);
+            ctx.lineWidth = 1.5;
+            var crSize = 20;
+            // N
+            ctx.beginPath();
+            ctx.moveTo(crx, cry - crSize);
+            ctx.lineTo(crx, cry + crSize);
+            ctx.stroke();
+            // E
+            ctx.beginPath();
+            ctx.moveTo(crx - crSize, cry);
+            ctx.lineTo(crx + crSize, cry);
+            ctx.stroke();
+            // Diagonals
+            ctx.strokeStyle = rgba(COL_ACCENT, 0.3);
+            ctx.beginPath();
+            ctx.moveTo(crx - crSize * 0.7, cry - crSize * 0.7);
+            ctx.lineTo(crx + crSize * 0.7, cry + crSize * 0.7);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(crx + crSize * 0.7, cry - crSize * 0.7);
+            ctx.lineTo(crx - crSize * 0.7, cry + crSize * 0.7);
+            ctx.stroke();
+
+            // N label
+            ctx.font = '12px "Cinzel", serif';
+            ctx.fillStyle = rgba(COL_ACCENT, 0.6);
+            ctx.textAlign = 'center';
+            ctx.fillText('N', crx, cry - crSize - 6);
+
+            ctx.restore();
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width;
+            H = height;
+            analysis = anal;
+            globalTime = 0;
+            beatPulse = 0;
+            flashAlpha = 0;
+            lastSeqIndex = -1;
+            scene = 'surface';
+            prevScene = 'surface';
+            sceneBlend = 0;
+            diverDepth = 0;
+            diverDepthTarget = 0;
+            diverX = 0.5;
+            diverBob = 0;
+            diverLampGlow = 0.5;
+            depthGaugeValue = 0;
+            memoryAlpha = 0;
+            memoryAlphaTarget = 0;
+            dawnProgress = 0;
+            dawnTarget = 0;
+            titleAlpha = 0;
+            titleTarget = 0;
+            subtitleText = '';
+            shimmerAlpha = 0;
+
+            particles = [];
+            for (var i = 0; i < 80; i++) {
+                particles.push(createParticle());
+            }
+
+            mapLines = [];
+            sonarRings = [];
+            glyphs = [];
+
+            generateArchitecture();
+            generateMemoryElements();
+            initCaustics();
+        }
+
+        // ── Resize ──
+        function resize(width, height) {
+            W = width;
+            H = height;
+            generateArchitecture();
+            generateMemoryElements();
+        }
+
+        // ── Main Render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+            beatPulse = frameData.beatPulse;
+
+            globalTime += dt;
+
+            // ── Idle State ──
+            if (!cursor) {
+                drawOceanBackground(ctx, 0, dt);
+                // A few idle particles
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (var ip = 0; ip < 20; ip++) {
+                    var p = particles[ip];
+                    if (!p) break;
+                    p.pulsePhase += dt * 2;
+                    p.y -= 5 * dt;
+                    p.x += Math.sin(p.pulsePhase * 0.5) * 3 * dt;
+                    if (p.y < -10) { p.y = H + 10; p.x = rand(0, W); }
+                    var idleAlpha = 0.15 + Math.sin(p.pulsePhase) * 0.08;
+                    ctx.fillStyle = rgba(COL_ACCENT, idleAlpha);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+                return;
+            }
+
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // ── Section Transition Detection ──
+            if (seqIdx !== lastSeqIndex) {
+                var newScene = mapScene(seqIdx);
+                if (newScene !== scene) {
+                    prevScene = scene;
+                    scene = newScene;
+                    sceneBlend = 0;
+
+                    // Trigger shimmer on memory entries
+                    if (scene === 'market' || scene === 'children' || scene === 'temple') {
+                        shimmerAlpha = 0.8;
+                        memoryColor = getSceneColor(scene);
+                    }
+
+                    // Flash on climax entry
+                    if (scene === 'climax') {
+                        flashAlpha = 1.0;
+                    }
+                }
+
+                // Update targets per scene
+                diverDepthTarget = getDepthTarget(seqIdx);
+
+                // Memory overlay targets
+                if (scene === 'market' || scene === 'children' || scene === 'temple') {
+                    memoryAlphaTarget = 1;
+                    memoryColor = getSceneColor(scene);
+                } else {
+                    memoryAlphaTarget = 0;
+                }
+
+                // Dawn targets
+                if (scene === 'surfacing' || scene === 'mapComplete') {
+                    dawnTarget = scene === 'mapComplete' ? 0.8 : 0.5;
+                } else {
+                    dawnTarget = 0;
+                }
+
+                // Title targets
+                if (scene === 'surface' && seqIdx <= 1) {
+                    titleTarget = 1;
+                    subtitleText = 'Surface Preparation';
+                } else if (scene === 'mapComplete') {
+                    titleTarget = 1;
+                    subtitleText = 'The Map Is Complete';
+                } else {
+                    titleTarget = 0;
+                }
+
+                lastSeqIndex = seqIdx;
+            }
+
+            // ── Beat Events ──
+            if (frameData.beatChanged) {
+                // Sonar pings in surface/descent
+                if (scene === 'surface' || scene === 'descent') {
+                    if (Math.random() > 0.6) {
+                        sonarRings.push(createSonarRing());
+                    }
+                }
+
+                // Particle burst on beats
+                if (energy > 0.25) {
+                    var burstCount = Math.floor(energy * 6);
+                    for (var bc = 0; bc < burstCount; bc++) {
+                        if (particles.length < MAX_PARTICLES) {
+                            var np = createParticle(
+                                diverX * W + rand(-50, 50),
+                                H * (0.15 + diverDepth * 0.55) + rand(-30, 30)
+                            );
+                            np.color = getSceneColor(scene);
+                            particles.push(np);
+                        }
+                    }
+                }
+
+                // Map line growth on beats
+                mapLineTimer++;
+                if (mapLineTimer % 3 === 0 && mapLines.length < 60) {
+                    mapLines.push(createMapLine());
+                }
+
+                // Glyph spawning during climax
+                if (scene === 'climax') {
+                    var glyphCount = Math.floor(2 + energy * 4);
+                    for (var gc = 0; gc < glyphCount; gc++) {
+                        if (glyphs.length < 40) {
+                            glyphs.push(createGlyph());
+                        }
+                    }
+                }
+
+                // Library scene: slower glyph drip
+                if (scene === 'library' && Math.random() > 0.5) {
+                    if (glyphs.length < 15) {
+                        glyphs.push(createGlyph());
+                    }
+                }
+
+                // Bloom flash on strong beats
+                if (energy > 0.5) {
+                    flashAlpha = Math.max(flashAlpha, energy * 0.4);
+                }
+
+                // Diver lamp pulse
+                diverLampGlow = 0.8 + energy * 0.2;
+            }
+
+            // ── Smooth State Updates ──
+            diverDepth = lerpExp(diverDepth, diverDepthTarget, 1.5, dt);
+            depthGaugeValue = lerpExp(depthGaugeValue, diverDepthTarget, 2, dt);
+            memoryAlpha = lerpExp(memoryAlpha, memoryAlphaTarget, 3, dt);
+            dawnProgress = lerpExp(dawnProgress, dawnTarget, 2, dt);
+            titleAlpha = lerpExp(titleAlpha, titleTarget, 3, dt);
+            shimmerAlpha *= Math.exp(-3 * dt);
+            flashAlpha *= Math.exp(-5 * dt);
+            sceneBlend = Math.min(1, sceneBlend + dt * 2);
+            diverLampGlow = lerpExp(diverLampGlow, 0.5 + energy * 0.3, 4, dt);
+
+            // Diver bob
+            diverBob += dt * 2;
+
+            // Diver lateral drift
+            var driftSpeed = 0.05;
+            diverX += Math.sin(globalTime * 0.3) * driftSpeed * dt;
+            diverX = Math.max(0.25, Math.min(0.75, diverX));
+
+            // ── Update Particles ──
+            for (var up = particles.length - 1; up >= 0; up--) {
+                var part = particles[up];
+                part.x += part.vx * dt;
+                part.y += part.vy * dt;
+                part.vx += (Math.random() - 0.5) * 15 * dt;
+                part.vy += (Math.random() - 0.5) * 10 * dt;
+                part.vx *= 0.98;
+                part.vy *= 0.98;
+                part.pulsePhase += dt * 2.5;
+                part.life -= dt * 0.08;
+
+                if (part.life <= 0 || part.x < -20 || part.x > W + 20 || part.y < -20 || part.y > H + 20) {
+                    if (particles.length > 60) {
+                        particles.splice(up, 1);
+                    } else {
+                        particles[up] = createParticle();
+                        particles[up].color = getSceneColor(scene);
+                    }
+                }
+            }
+
+            // ── Update Sonar Rings ──
+            for (var sr = sonarRings.length - 1; sr >= 0; sr--) {
+                var ring = sonarRings[sr];
+                ring.radius += ring.speed * dt;
+                ring.alpha *= Math.exp(-1.5 * dt);
+                if (ring.alpha < 0.01 || ring.radius > ring.maxRadius) {
+                    sonarRings.splice(sr, 1);
+                }
+            }
+
+            // ── Update Map Lines ──
+            for (var ml = 0; ml < mapLines.length; ml++) {
+                if (mapLines[ml].progress < 1) {
+                    mapLines[ml].progress += dt * 0.8;
+                }
+            }
+
+            // ── Update Glyphs ──
+            for (var ug = glyphs.length - 1; ug >= 0; ug--) {
+                var g = glyphs[ug];
+                g.y += g.vy * dt;
+                g.wobblePhase += dt;
+                g.life -= dt * 0.2;
+                if (g.life <= 0 || g.y < -30) {
+                    glyphs.splice(ug, 1);
+                }
+            }
+
+            // ── Update Architecture Scroll ──
+            for (var al = 0; al < archLayers.length; al++) {
+                var aLayer = archLayers[al];
+                var scrollDir = (scene === 'surfacing' || scene === 'mapComplete') ? -1 : 1;
+                aLayer.offset += scrollDir * aLayer.scrollSpeed * 8 * dt * (0.3 + energy * 0.7);
+            }
+
+            // ═══════════════════════════════════════════════════════════
+            // ══════════════════ DRAW ORDER ═════════════════════════════
+            // ═══════════════════════════════════════════════════════════
+
+            // Layer 1: Ocean background
+            drawOceanBackground(ctx, energy, dt);
+
+            // Layer 2: Dawn overlay (warm light from above)
+            drawDawnOverlay(ctx);
+
+            // Layer 3: Water caustics
+            drawCaustics(ctx, energy);
+
+            // Layer 4: Architecture (sunken city)
+            drawArchitecture(ctx, energy);
+
+            // Layer 5: Memory overlays
+            if (scene === 'market' || (prevScene === 'market' && memoryAlpha > 0.01)) {
+                drawMarketMemory(ctx, memoryAlpha);
+            }
+            if (scene === 'children' || (prevScene === 'children' && memoryAlpha > 0.01)) {
+                drawChildrenMemory(ctx, memoryAlpha);
+            }
+            if (scene === 'temple' || (prevScene === 'temple' && memoryAlpha > 0.01)) {
+                drawTempleMemory(ctx, memoryAlpha);
+            }
+
+            // Layer 6: Map lines overlay
+            drawMapLines(ctx);
+
+            // Layer 7: Bioluminescent particles
+            drawParticles(ctx, energy);
+
+            // Layer 8: Rising glyphs
+            drawGlyphs(ctx);
+
+            // Layer 9: Sonar rings
+            drawSonarRings(ctx);
+
+            // Layer 10: Diver
+            drawDiver(ctx, energy);
+
+            // Layer 11: Depth gauge
+            drawDepthGauge(ctx);
+
+            // Layer 12: Shimmer transition
+            drawShimmer(ctx);
+
+            // Layer 13: Flash overlay
+            drawFlash(ctx);
+
+            // Layer 14: Map complete grid
+            if (scene === 'mapComplete') {
+                var mapAlpha = clamp01((seqIdx - 32) * 0.5 + (cursor.rowIndex / 32));
+                drawMapCompleteOverlay(ctx, mapAlpha * 0.15);
+            }
+
+            // Layer 15: Title
+            drawTitle(ctx);
+
+            // Layer 16: Intro/outro fade
+            if (scene === 'surface' && seqIdx <= 1) {
+                var introFadeVal = Math.max(0, 1 - cursor.elapsed * 0.5);
+                if (introFadeVal > 0.01) {
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(2,8,16,' + introFadeVal + ')';
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.restore();
+                }
+            }
+
+            if (scene === 'mapComplete') {
+                var outroStart = 33;
+                if (seqIdx >= outroStart) {
+                    var outroFadeVal = Math.min(0.9, (seqIdx - outroStart + cursor.rowIndex / 32) * 0.3);
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(2,8,16,' + outroFadeVal + ')';
+                    ctx.fillRect(0, 0, W, H);
+                    ctx.restore();
+                }
+            }
+        }
+
+        BaseRenderer('cartographer-drowned-cities-video', 'The Cartographer of Drowned Cities', {
+            beatDecay: 6,
+            init: init,
+            render: render,
+            resize: resize
+        });
+    })();
+
+    // ── Page bootstrap ─────────────────────────────────────────────────
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('cartographer-drowned-cities-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/the-cartographer-of-drowned-cities.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        if (new URLSearchParams(window.location.search).get('autoplay') === '1') {
+            overlay.click();
+        }
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>

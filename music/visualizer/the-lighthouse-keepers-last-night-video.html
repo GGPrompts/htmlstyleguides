@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Lighthouse Keeper's Last Night — Music Video</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="video-base-styles.css">
+    <style>
+        :root {
+            --vid-bg: #0a1628;
+            --vid-bg-rgb: 10,22,40;
+            --vid-font: 'Playfair Display', serif;
+            --vid-accent: #ffd54f;
+            --vid-accent-r: 255;
+            --vid-accent-g: 213;
+            --vid-accent-b: 79;
+            --vid-overlay-alpha: 0.92;
+            --vid-title-min: 20px;
+            --vid-title-max: 48px;
+            --vid-title-spacing: 0.06em;
+        }
+        .play-sub { letter-spacing: 0.08em; }
+    </style>
+</head>
+<body>
+    <a href="music-videos/index.html" class="back-link">&larr; Music Videos</a>
+    <canvas id="viz-canvas"></canvas>
+    <div class="play-overlay" id="play-overlay">
+        <div class="play-title">The Lighthouse Keeper's Last Night</div>
+        <div class="play-sub">a keeper's final watch</div>
+        <div class="play-btn"></div>
+    </div>
+
+    <script src="../audio-tracker/playback-engine.js"></script>
+    <script src="engine.js"></script>
+    <script src="video-utils.js"></script>
+    <script src="base-renderer.js"></script>
+    <script>
+    // ── The Lighthouse Keeper's Last Night — Video Renderer ─────────────
+    (function() {
+        "use strict";
+
+        var W = 0, H = 0;
+        var analysis = null;
+
+        // ── Color palette (RGB arrays) ──
+        var NIGHT_SKY_TOP = [8, 14, 32];
+        var NIGHT_SKY_BOT = [13, 43, 62];
+        var STORM_SKY_TOP = [16, 18, 38];
+        var STORM_SKY_BOT = [44, 62, 80];
+        var DAWN_SKY_TOP = [60, 35, 50];
+        var DAWN_SKY_BOT = [255, 143, 0];
+        var DARK_SKY_TOP = [4, 6, 14];
+        var DARK_SKY_BOT = [8, 12, 24];
+        var INTERIOR_TOP = [30, 22, 14];
+        var INTERIOR_BOT = [50, 36, 20];
+
+        var SEA_CALM = [8, 22, 42];
+        var SEA_STORM = [18, 36, 60];
+        var SEA_DAWN = [50, 80, 100];
+
+        var BEAM_GOLD = [255, 213, 79];
+        var BEAM_WHITE = [255, 248, 225];
+        var LANTERN_WARM = [192, 128, 64];
+        var GEAR_COLOR = [140, 120, 90];
+
+        // ── State ──
+        var beatPulse = 0;
+        var flashAlpha = 0;
+        var lastSeqIndex = -1;
+        var scene = 'foghorn'; // current scene key
+
+        // Smooth transition values
+        var stormIntensity = 0, stormTarget = 0;
+        var dawnProgress = 0, dawnTarget = 0;
+        var beamOn = 1, beamOnTarget = 1;
+        var beamAngle = 0, beamSpeed = 0.35;
+        var interiorBlend = 0, interiorTarget = 0;
+        var darknessOverlay = 0, darknessTarget = 0;
+        var reignitionFlash = 0;
+        var titleAlpha = 0, titleTarget = 0;
+        var subtitleText = '';
+        var outroFade = 1;
+        var waveTime = 0;
+        var waveAmplitude = 0, waveTarget = 0.3;
+        var keeperVisible = 0, keeperTarget = 0;
+        var keeperX = 0, keeperY = 0;
+        var keeperWalking = false;
+        var keeperWalkProgress = 0;
+        var climbProgress = 0, climbTarget = 0;
+        var gearRotation = 0;
+        var gearVisible = 0, gearTarget = 0;
+        var automationProgress = 0, automationTarget = 0;
+        var starAlpha = 1, starTarget = 1;
+
+        // Particles
+        var raindrops = [];
+        var MAX_RAIN = 350;
+        var stars = [];
+        var NUM_STARS = 150;
+        var lightningBolts = [];
+        var ships = [];
+
+        // ── Local color helpers (RGB arrays, not hex) ──
+        function lc(c1, c2, t) {
+            return [
+                Math.round(lerp(c1[0], c2[0], t)),
+                Math.round(lerp(c1[1], c2[1], t)),
+                Math.round(lerp(c1[2], c2[2], t))
+            ];
+        }
+        function rgb(c) { return 'rgb(' + c[0] + ',' + c[1] + ',' + c[2] + ')'; }
+        function rgbaC(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+
+        // ── Scene mapping (37 entries, 0-36) ──
+        function mapScene(seqIndex) {
+            if (seqIndex <= 1) return 'foghorn';
+            if (seqIndex <= 4) return 'watch';
+            if (seqIndex <= 8) return 'ships';
+            if (seqIndex <= 11) return 'stormGathering';
+            if (seqIndex <= 16) return 'tempest';
+            if (seqIndex <= 18) return 'lightFails';
+            if (seqIndex <= 20) return 'climb';
+            if (seqIndex <= 23) return 'repairs';
+            if (seqIndex <= 27) return 'reignition';
+            if (seqIndex <= 30) return 'dawn';
+            if (seqIndex <= 33) return 'lastDescent';
+            return 'automation';
+        }
+
+        // ── Init ──
+        function init(ctx, width, height, anal) {
+            W = width; H = height;
+            analysis = anal;
+
+            beatPulse = 0; flashAlpha = 0;
+            lastSeqIndex = -1;
+            scene = 'foghorn';
+            stormIntensity = 0; stormTarget = 0;
+            dawnProgress = 0; dawnTarget = 0;
+            beamOn = 1; beamOnTarget = 1;
+            beamAngle = 0; beamSpeed = 0.35;
+            interiorBlend = 0; interiorTarget = 0;
+            darknessOverlay = 0; darknessTarget = 0;
+            reignitionFlash = 0;
+            titleAlpha = 0; titleTarget = 0;
+            subtitleText = '';
+            outroFade = 1;
+            waveTime = 0;
+            waveAmplitude = 0; waveTarget = 0.3;
+            keeperVisible = 0; keeperTarget = 0;
+            keeperWalking = false; keeperWalkProgress = 0;
+            climbProgress = 0; climbTarget = 0;
+            gearRotation = 0;
+            gearVisible = 0; gearTarget = 0;
+            automationProgress = 0; automationTarget = 0;
+            starAlpha = 1; starTarget = 1;
+            lightningBolts = [];
+
+            initRain();
+            initStars();
+            initShips();
+        }
+
+        function initRain() {
+            raindrops = [];
+            for (var i = 0; i < MAX_RAIN; i++) {
+                raindrops.push({
+                    x: Math.random() * W * 1.3 - W * 0.15,
+                    y: Math.random() * H,
+                    speed: 350 + Math.random() * 500,
+                    len: 10 + Math.random() * 22,
+                    alpha: 0.1 + Math.random() * 0.4,
+                    wind: -0.15 - Math.random() * 0.2
+                });
+            }
+        }
+
+        function initStars() {
+            stars = [];
+            for (var i = 0; i < NUM_STARS; i++) {
+                stars.push({
+                    x: Math.random(),
+                    y: Math.random() * 0.45,
+                    size: 0.4 + Math.random() * 2,
+                    twinkle: Math.random() * Math.PI * 2,
+                    speed: 1 + Math.random() * 3
+                });
+            }
+        }
+
+        function initShips() {
+            ships = [
+                { x: 0.62, y: 0, size: 1.0, bob: Math.random() * Math.PI * 2, visible: 0 },
+                { x: 0.78, y: 0, size: 0.7, bob: Math.random() * Math.PI * 2, visible: 0 },
+                { x: 0.88, y: 0, size: 0.5, bob: Math.random() * Math.PI * 2, visible: 0 }
+            ];
+        }
+
+        function resize(width, height) {
+            W = width; H = height;
+        }
+
+        // ── Drawing functions ──
+
+        function drawSky(ctx) {
+            var skyTop, skyBot;
+            var iT = interiorBlend;
+
+            if (iT > 0.5) {
+                // Interior scene
+                skyTop = lc(NIGHT_SKY_TOP, INTERIOR_TOP, (iT - 0.5) * 2);
+                skyBot = lc(NIGHT_SKY_BOT, INTERIOR_BOT, (iT - 0.5) * 2);
+            } else if (dawnProgress > 0) {
+                skyTop = lc(NIGHT_SKY_TOP, DAWN_SKY_TOP, dawnProgress);
+                skyBot = lc(NIGHT_SKY_BOT, DAWN_SKY_BOT, dawnProgress);
+            } else if (darknessOverlay > 0.5) {
+                skyTop = lc(STORM_SKY_TOP, DARK_SKY_TOP, (darknessOverlay - 0.5) * 2);
+                skyBot = lc(STORM_SKY_BOT, DARK_SKY_BOT, (darknessOverlay - 0.5) * 2);
+            } else if (stormIntensity > 0) {
+                skyTop = lc(NIGHT_SKY_TOP, STORM_SKY_TOP, stormIntensity);
+                skyBot = lc(NIGHT_SKY_BOT, STORM_SKY_BOT, stormIntensity);
+            } else {
+                skyTop = NIGHT_SKY_TOP;
+                skyBot = NIGHT_SKY_BOT;
+            }
+
+            var grad = ctx.createLinearGradient(0, 0, 0, H * 0.6);
+            grad.addColorStop(0, rgb(skyTop));
+            grad.addColorStop(1, rgb(skyBot));
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+        }
+
+        function drawStars(ctx, dt) {
+            var alpha = starAlpha * (1 - stormIntensity) * (1 - interiorBlend) * (1 - darknessOverlay * 0.7);
+            if (alpha < 0.01) return;
+            ctx.save();
+            for (var i = 0; i < stars.length; i++) {
+                var s = stars[i];
+                s.twinkle += s.speed * dt;
+                var tw = 0.3 + Math.sin(s.twinkle) * 0.7;
+                ctx.globalAlpha = alpha * tw * 0.7;
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(s.x * W, s.y * H, s.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        function drawOcean(ctx, dt) {
+            if (interiorBlend > 0.8) return;
+            var seaY = H * 0.58;
+            waveTime += dt;
+
+            var seaColor;
+            if (dawnProgress > 0) {
+                seaColor = lc(SEA_STORM, SEA_DAWN, dawnProgress);
+            } else {
+                seaColor = lc(SEA_CALM, SEA_STORM, stormIntensity);
+            }
+
+            var oceanAlpha = 1 - interiorBlend;
+
+            // Back wave layer
+            ctx.save();
+            ctx.globalAlpha = oceanAlpha;
+            ctx.fillStyle = rgbaC(seaColor, 0.85);
+            ctx.beginPath();
+            ctx.moveTo(0, H);
+            for (var x = 0; x <= W; x += 4) {
+                var t = x / W;
+                var wH = waveAmplitude * H * 0.08;
+                var y = seaY + Math.sin(t * Math.PI * 3 + waveTime * 0.7) * wH
+                    + Math.sin(t * Math.PI * 7 + waveTime * 1.2) * wH * 0.3
+                    + Math.sin(t * Math.PI * 1.5 + waveTime * 0.35) * wH * 0.5;
+                ctx.lineTo(x, y);
+            }
+            ctx.lineTo(W, H);
+            ctx.closePath();
+            ctx.fill();
+
+            // Mid wave layer
+            ctx.fillStyle = rgbaC(lc(seaColor, [35, 55, 80], 0.2), 0.9);
+            ctx.beginPath();
+            ctx.moveTo(0, H);
+            for (var x2 = 0; x2 <= W; x2 += 4) {
+                var t2 = x2 / W;
+                var wH2 = waveAmplitude * H * 0.06;
+                var y2 = seaY + H * 0.04
+                    + Math.sin(t2 * Math.PI * 4 + waveTime * 1.0 + 1) * wH2
+                    + Math.sin(t2 * Math.PI * 9 + waveTime * 1.6) * wH2 * 0.25;
+                ctx.lineTo(x2, y2);
+            }
+            ctx.lineTo(W, H);
+            ctx.closePath();
+            ctx.fill();
+
+            // Front wave layer
+            ctx.fillStyle = rgbaC(lc(seaColor, [55, 85, 110], 0.15), 1);
+            ctx.beginPath();
+            ctx.moveTo(0, H);
+            for (var x3 = 0; x3 <= W; x3 += 3) {
+                var t3 = x3 / W;
+                var wH3 = waveAmplitude * H * 0.04;
+                var y3 = seaY + H * 0.1
+                    + Math.sin(t3 * Math.PI * 5 + waveTime * 1.4 + 2) * wH3
+                    + Math.sin(t3 * Math.PI * 11 + waveTime * 2.0) * wH3 * 0.2;
+                ctx.lineTo(x3, y3);
+            }
+            ctx.lineTo(W, H);
+            ctx.closePath();
+            ctx.fill();
+
+            // Wave foam during storms
+            if (stormIntensity > 0.3) {
+                ctx.strokeStyle = 'rgba(200,220,240,' + (stormIntensity * 0.12) + ')';
+                ctx.lineWidth = 1.5;
+                for (var x4 = 0; x4 < W; x4 += 3) {
+                    var t4 = x4 / W;
+                    var wH4 = waveAmplitude * H * 0.08;
+                    var slope = Math.cos(t4 * Math.PI * 3 + waveTime * 0.7);
+                    if (slope > 0.5) {
+                        var fy = seaY + Math.sin(t4 * Math.PI * 3 + waveTime * 0.7) * wH4;
+                        ctx.globalAlpha = (slope - 0.5) * 2 * stormIntensity * 0.25 * oceanAlpha;
+                        ctx.beginPath();
+                        ctx.moveTo(x4, fy);
+                        ctx.lineTo(x4 + 3, fy + Math.random() * 2);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.restore();
+        }
+
+        function drawRockyIsland(ctx) {
+            if (interiorBlend > 0.8) return;
+            var baseY = H * 0.54;
+            var rockX = W * 0.18;
+            var rockW = W * 0.2;
+            var alpha = 1 - interiorBlend;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = '#121a2e';
+            ctx.beginPath();
+            ctx.moveTo(rockX - rockW * 0.45, H);
+            ctx.lineTo(rockX - rockW * 0.38, baseY + H * 0.1);
+            ctx.lineTo(rockX - rockW * 0.2, baseY + H * 0.03);
+            ctx.lineTo(rockX - rockW * 0.05, baseY - H * 0.02);
+            ctx.lineTo(rockX + rockW * 0.08, baseY - H * 0.04);
+            ctx.lineTo(rockX + rockW * 0.18, baseY - H * 0.02);
+            ctx.lineTo(rockX + rockW * 0.28, baseY + H * 0.01);
+            ctx.lineTo(rockX + rockW * 0.38, baseY + H * 0.08);
+            ctx.lineTo(rockX + rockW * 0.48, H);
+            ctx.closePath();
+            ctx.fill();
+
+            // Rock edge highlight
+            ctx.strokeStyle = 'rgba(50,60,90,0.3)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(rockX - rockW * 0.38, baseY + H * 0.1);
+            ctx.lineTo(rockX - rockW * 0.2, baseY + H * 0.03);
+            ctx.lineTo(rockX - rockW * 0.05, baseY - H * 0.02);
+            ctx.lineTo(rockX + rockW * 0.08, baseY - H * 0.04);
+            ctx.lineTo(rockX + rockW * 0.18, baseY - H * 0.02);
+            ctx.lineTo(rockX + rockW * 0.28, baseY + H * 0.01);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawLighthouse(ctx) {
+            if (interiorBlend > 0.8) return;
+            var baseY = H * 0.50;
+            var lhX = W * 0.20;
+            var lhW = W * 0.026;
+            var lhH = H * 0.30;
+            var topY = baseY - lhH;
+            var alpha = 1 - interiorBlend * 0.5;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+
+            // Tower body - slight taper
+            var taperTop = lhW * 0.72;
+            ctx.fillStyle = '#c0c0cc';
+            ctx.beginPath();
+            ctx.moveTo(lhX - lhW, baseY);
+            ctx.lineTo(lhX - taperTop, topY + lhH * 0.15);
+            ctx.lineTo(lhX + taperTop, topY + lhH * 0.15);
+            ctx.lineTo(lhX + lhW, baseY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Red stripes
+            ctx.fillStyle = '#8b2525';
+            var s1y1 = baseY - lhH * 0.42;
+            var s1y2 = baseY - lhH * 0.52;
+            var w1 = lhW * lerp(1, 0.72, 0.42);
+            ctx.fillRect(lhX - w1, s1y2, w1 * 2, s1y1 - s1y2);
+
+            var s2y1 = baseY - lhH * 0.68;
+            var s2y2 = baseY - lhH * 0.78;
+            var w2 = lhW * lerp(1, 0.72, 0.68);
+            ctx.fillRect(lhX - w2, s2y2, w2 * 2, s2y1 - s2y2);
+
+            // Lantern room
+            var lanternY = topY + lhH * 0.15;
+            var lanternH = lhH * 0.12;
+            var lanternW = taperTop * 1.35;
+
+            // Lantern housing
+            ctx.fillStyle = '#252535';
+            ctx.fillRect(lhX - lanternW, lanternY - lanternH, lanternW * 2, lanternH);
+
+            // Glass (glows when beam is on)
+            var glassGlow = beamOn * 0.6 + beatPulse * 0.15 * beamOn;
+            ctx.fillStyle = rgbaC(BEAM_GOLD, 0.2 + glassGlow * 0.5);
+            ctx.fillRect(lhX - lanternW * 0.88, lanternY - lanternH * 0.92, lanternW * 1.76, lanternH * 0.84);
+
+            // Dome
+            ctx.fillStyle = '#1a1a2a';
+            var capY = lanternY - lanternH;
+            ctx.beginPath();
+            ctx.moveTo(lhX - lanternW, capY);
+            ctx.quadraticCurveTo(lhX, capY - lanternH * 0.8, lhX + lanternW, capY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Finial
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(lhX, capY - lanternH * 0.4);
+            ctx.lineTo(lhX, capY - lanternH * 1.2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawBeam(ctx) {
+            if (beamOn < 0.01 && reignitionFlash < 0.01) return;
+            if (interiorBlend > 0.8) return;
+
+            var lhX = W * 0.20;
+            var beamOriginY = H * 0.50 - H * 0.30 + H * 0.30 * 0.09;
+            var beamLen = Math.max(W, H) * 1.6;
+            var beamWidth = 0.055;
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            var sweep = Math.sin(beamAngle);
+            var visibility = Math.abs(sweep);
+
+            var alpha = (0.10 + beatPulse * 0.04) * beamOn * (0.15 + visibility * 0.85) * outroFade;
+            alpha *= (1 - interiorBlend);
+
+            // During reignition, massive boost
+            if (reignitionFlash > 0) {
+                alpha += reignitionFlash * 0.5 * visibility;
+            }
+
+            var horizonAngle = sweep * 0.65;
+            var tiltDown = 0.1;
+            var finalAngle = horizonAngle + tiltDown;
+
+            var beamColor = reignitionFlash > 0.3 ? BEAM_WHITE : BEAM_GOLD;
+            var grad = ctx.createRadialGradient(lhX, beamOriginY, 0, lhX, beamOriginY, beamLen);
+            grad.addColorStop(0, rgbaC(beamColor, alpha * 2.5));
+            grad.addColorStop(0.08, rgbaC(beamColor, alpha * 1.2));
+            grad.addColorStop(0.4, rgbaC(beamColor, alpha * 0.3));
+            grad.addColorStop(1, rgbaC(beamColor, 0));
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(lhX, beamOriginY);
+            var a1 = finalAngle - beamWidth;
+            var a2 = finalAngle + beamWidth;
+            ctx.lineTo(lhX + Math.cos(a1) * beamLen, beamOriginY + Math.sin(a1) * beamLen);
+            ctx.lineTo(lhX + Math.cos(a2) * beamLen, beamOriginY + Math.sin(a2) * beamLen);
+            ctx.closePath();
+            ctx.fill();
+
+            // Glow at source
+            var glowAlpha = (0.06 + beatPulse * 0.03) * beamOn * outroFade * (1 - interiorBlend);
+            if (reignitionFlash > 0) glowAlpha += reignitionFlash * 0.3;
+            var glowGrad = ctx.createRadialGradient(lhX, beamOriginY, 0, lhX, beamOriginY, W * 0.07);
+            glowGrad.addColorStop(0, rgbaC(BEAM_WHITE, glowAlpha * 3));
+            glowGrad.addColorStop(1, rgbaC(BEAM_GOLD, 0));
+            ctx.fillStyle = glowGrad;
+            ctx.fillRect(lhX - W * 0.07, beamOriginY - W * 0.07, W * 0.14, W * 0.14);
+
+            ctx.restore();
+        }
+
+        function drawShips(ctx, dt) {
+            if (interiorBlend > 0.5) return;
+            var seaY = H * 0.57;
+            ctx.save();
+            for (var i = 0; i < ships.length; i++) {
+                var s = ships[i];
+                s.bob += dt * (1.5 + stormIntensity * 2);
+                if (s.visible < 0.01) continue;
+
+                var sx = s.x * W;
+                var bobAmt = (2 + stormIntensity * 8) * s.size;
+                var sy = seaY - 2 + Math.sin(s.bob) * bobAmt;
+                var sc = s.size * 0.7;
+                var pitch = Math.sin(s.bob * 0.7) * stormIntensity * 0.15;
+
+                ctx.globalAlpha = s.visible * (1 - interiorBlend) * 0.7;
+                ctx.save();
+                ctx.translate(sx, sy);
+                ctx.rotate(pitch);
+
+                // Hull
+                ctx.fillStyle = '#1a1a30';
+                ctx.beginPath();
+                ctx.moveTo(-18 * sc, 0);
+                ctx.lineTo(22 * sc, 0);
+                ctx.lineTo(16 * sc, 6 * sc);
+                ctx.lineTo(-14 * sc, 6 * sc);
+                ctx.closePath();
+                ctx.fill();
+
+                // Mast
+                ctx.fillStyle = '#1a1a30';
+                ctx.fillRect(-1 * sc, -22 * sc, 2 * sc, 22 * sc);
+
+                // Sail
+                ctx.fillStyle = 'rgba(50,50,70,' + (0.5 * s.visible) + ')';
+                ctx.beginPath();
+                ctx.moveTo(1 * sc, -20 * sc);
+                ctx.lineTo(12 * sc, -8 * sc);
+                ctx.lineTo(1 * sc, -4 * sc);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        function drawRain(ctx, dt) {
+            var activeCount = Math.floor(MAX_RAIN * stormIntensity);
+            if (activeCount < 3) return;
+            if (interiorBlend > 0.7) return;
+
+            ctx.save();
+            ctx.lineWidth = 1;
+            var windAngle = -0.15 - stormIntensity * 0.3;
+
+            for (var i = 0; i < activeCount && i < raindrops.length; i++) {
+                var r = raindrops[i];
+                r.y += r.speed * (0.5 + stormIntensity) * dt;
+                r.x += r.speed * windAngle * dt;
+
+                if (r.y > H + 20) {
+                    r.y = -20 - Math.random() * 100;
+                    r.x = Math.random() * W * 1.3 - W * 0.15;
+                }
+                if (r.x < -50) {
+                    r.x = W + 20;
+                    r.y = Math.random() * H * 0.5;
+                }
+
+                var len = r.len * (0.5 + stormIntensity * 0.8);
+                ctx.globalAlpha = r.alpha * stormIntensity * (1 - interiorBlend);
+                ctx.strokeStyle = 'rgba(180,200,220,1)';
+                ctx.beginPath();
+                ctx.moveTo(r.x, r.y);
+                ctx.lineTo(r.x + windAngle * len, r.y + len);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function spawnLightning() {
+            var startX = W * 0.3 + Math.random() * W * 0.6;
+            var endY = H * 0.35 + Math.random() * H * 0.2;
+            var segments = 8 + Math.floor(Math.random() * 6);
+            var points = [{ x: startX, y: 0 }];
+            var cx = startX, cy = 0;
+            for (var s = 1; s <= segments; s++) {
+                var t = s / segments;
+                cx += (Math.random() - 0.5) * W * 0.08;
+                cy = lerp(0, endY, t);
+                points.push({ x: cx, y: cy });
+            }
+            lightningBolts.push({
+                points: points,
+                life: 0.15 + Math.random() * 0.1,
+                thickness: 1 + Math.random() * 2
+            });
+            flashAlpha = Math.max(flashAlpha, 0.2 + Math.random() * 0.3);
+        }
+
+        function drawLightning(ctx, dt) {
+            for (var i = lightningBolts.length - 1; i >= 0; i--) {
+                lightningBolts[i].life -= dt;
+                if (lightningBolts[i].life <= 0) lightningBolts.splice(i, 1);
+            }
+            if (lightningBolts.length === 0) return;
+
+            ctx.save();
+            for (var b = 0; b < lightningBolts.length; b++) {
+                var bolt = lightningBolts[b];
+                var alpha = Math.min(1, bolt.life / 0.05);
+
+                ctx.strokeStyle = 'rgba(255,255,255,' + alpha + ')';
+                ctx.lineWidth = 2 + bolt.thickness;
+                ctx.shadowColor = 'rgba(200,200,255,0.8)';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.moveTo(bolt.points[0].x, bolt.points[0].y);
+                for (var p = 1; p < bolt.points.length; p++) {
+                    ctx.lineTo(bolt.points[p].x, bolt.points[p].y);
+                }
+                ctx.stroke();
+
+                ctx.strokeStyle = 'rgba(220,220,255,' + (alpha * 0.5) + ')';
+                ctx.lineWidth = 1;
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.moveTo(bolt.points[0].x, bolt.points[0].y);
+                for (var p2 = 1; p2 < bolt.points.length; p2++) {
+                    ctx.lineTo(bolt.points[p2].x, bolt.points[p2].y);
+                }
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function drawFoghornPulse(ctx, dt) {
+            if (scene !== 'foghorn') return;
+            // Concentric rings emanating from lighthouse
+            var lhX = W * 0.20;
+            var lhY = H * 0.20;
+            var pulse = (waveTime * 0.5) % 1;
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (var ring = 0; ring < 3; ring++) {
+                var rp = (pulse + ring * 0.33) % 1;
+                var radius = rp * W * 0.35;
+                var alpha = (1 - rp) * 0.06 * (1 + beatPulse * 0.5);
+                ctx.strokeStyle = rgbaC(BEAM_GOLD, alpha);
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(lhX, lhY, radius, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // ── Interior scenes (Watch, Repairs) ──
+        function drawInterior(ctx, dt, energy) {
+            if (interiorBlend < 0.01) return;
+
+            ctx.save();
+            ctx.globalAlpha = interiorBlend;
+
+            // Interior background overlay
+            var intGrad = ctx.createLinearGradient(0, 0, 0, H);
+            intGrad.addColorStop(0, rgb(INTERIOR_TOP));
+            intGrad.addColorStop(1, rgb(INTERIOR_BOT));
+            ctx.fillStyle = intGrad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Lantern glow center
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var glowR = W * 0.3;
+            var glowGrad = ctx.createRadialGradient(W * 0.5, H * 0.35, 0, W * 0.5, H * 0.35, glowR);
+            glowGrad.addColorStop(0, rgbaC(LANTERN_WARM, 0.12 + beatPulse * 0.04));
+            glowGrad.addColorStop(0.5, rgbaC(LANTERN_WARM, 0.04));
+            glowGrad.addColorStop(1, rgbaC(LANTERN_WARM, 0));
+            ctx.fillStyle = glowGrad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+
+            // Clockwork gears (visible during watch and repairs)
+            if (gearVisible > 0.01) {
+                drawGears(ctx, dt, energy);
+            }
+
+            // Window frame (looking out from interior)
+            ctx.fillStyle = '#1a140e';
+            // Left wall
+            ctx.fillRect(0, 0, W * 0.15, H);
+            // Right wall
+            ctx.fillRect(W * 0.85, 0, W * 0.15, H);
+            // Top
+            ctx.fillRect(0, 0, W, H * 0.08);
+            // Bottom shelf
+            ctx.fillRect(0, H * 0.85, W, H * 0.15);
+
+            // Window arch
+            ctx.strokeStyle = '#2a2018';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(W * 0.15, H * 0.85);
+            ctx.lineTo(W * 0.15, H * 0.15);
+            ctx.quadraticCurveTo(W * 0.5, H * 0.02, W * 0.85, H * 0.15);
+            ctx.lineTo(W * 0.85, H * 0.85);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        function drawGears(ctx, dt, energy) {
+            var gA = gearVisible;
+            gearRotation += dt * (0.3 + energy * 0.4 + beatPulse * 0.2);
+
+            var gears = [
+                { x: W * 0.35, y: H * 0.45, r: W * 0.08, teeth: 12, dir: 1 },
+                { x: W * 0.52, y: H * 0.38, r: W * 0.06, teeth: 9, dir: -1 },
+                { x: W * 0.65, y: H * 0.48, r: W * 0.07, teeth: 10, dir: 1 },
+                { x: W * 0.42, y: H * 0.62, r: W * 0.05, teeth: 8, dir: -1 },
+                { x: W * 0.58, y: H * 0.58, r: W * 0.045, teeth: 7, dir: 1 }
+            ];
+
+            ctx.save();
+            ctx.globalAlpha = gA * 0.6;
+            for (var i = 0; i < gears.length; i++) {
+                var g = gears[i];
+                var rot = gearRotation * g.dir * (12 / g.teeth);
+                ctx.save();
+                ctx.translate(g.x, g.y);
+                ctx.rotate(rot);
+
+                // Gear outline
+                ctx.strokeStyle = rgbaC(GEAR_COLOR, 0.7);
+                ctx.lineWidth = 2;
+
+                // Draw gear shape
+                ctx.beginPath();
+                var toothH = g.r * 0.15;
+                for (var t = 0; t < g.teeth; t++) {
+                    var a = (t / g.teeth) * Math.PI * 2;
+                    var a2 = ((t + 0.3) / g.teeth) * Math.PI * 2;
+                    var a3 = ((t + 0.7) / g.teeth) * Math.PI * 2;
+                    var a4 = ((t + 1) / g.teeth) * Math.PI * 2;
+                    var ri = g.r - toothH;
+                    var ro = g.r + toothH;
+                    if (t === 0) {
+                        ctx.moveTo(Math.cos(a) * ri, Math.sin(a) * ri);
+                    }
+                    ctx.lineTo(Math.cos(a2) * ro, Math.sin(a2) * ro);
+                    ctx.lineTo(Math.cos(a3) * ro, Math.sin(a3) * ro);
+                    ctx.lineTo(Math.cos(a4) * ri, Math.sin(a4) * ri);
+                }
+                ctx.closePath();
+                ctx.stroke();
+
+                // Center hub
+                ctx.beginPath();
+                ctx.arc(0, 0, g.r * 0.2, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Spokes
+                for (var sp = 0; sp < 4; sp++) {
+                    var sa = (sp / 4) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(sa) * g.r * 0.2, Math.sin(sa) * g.r * 0.2);
+                    ctx.lineTo(Math.cos(sa) * g.r * 0.75, Math.sin(sa) * g.r * 0.75);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        // ── Spiral stairwell (The Climb) ──
+        function drawStairwell(ctx, dt) {
+            if (climbProgress < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = climbProgress;
+
+            // Dark background
+            ctx.fillStyle = '#0a0808';
+            ctx.fillRect(0, 0, W, H);
+
+            var centerX = W * 0.5;
+            var centerY = H * 0.5;
+            var maxR = Math.min(W, H) * 0.42;
+
+            // Spiral arcs creating upward-looking perspective
+            var spiralTime = waveTime * 1.5;
+            for (var ring = 0; ring < 12; ring++) {
+                var rFrac = (ring + (spiralTime % 1)) / 12;
+                var r = maxR * (0.15 + rFrac * 0.85);
+                var alpha = (1 - rFrac) * 0.5;
+                var startAngle = ring * 0.5 + spiralTime * 0.8;
+
+                ctx.strokeStyle = rgbaC(LANTERN_WARM, alpha * (0.4 + beatPulse * 0.3));
+                ctx.lineWidth = 2 + (1 - rFrac) * 3;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, r, startAngle, startAngle + Math.PI * 1.3);
+                ctx.stroke();
+
+                // Railing lines (inner edge)
+                if (ring % 2 === 0) {
+                    ctx.strokeStyle = rgbaC([60, 50, 40], alpha * 0.6);
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, r * 0.92, startAngle, startAngle + Math.PI * 1.3);
+                    ctx.stroke();
+                }
+            }
+
+            // Center vanishing point glow (looking up)
+            var vpGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxR * 0.2);
+            vpGrad.addColorStop(0, rgbaC(BEAM_GOLD, 0.15 + beatPulse * 0.1));
+            vpGrad.addColorStop(1, rgbaC(BEAM_GOLD, 0));
+            ctx.fillStyle = vpGrad;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, maxR * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Vertical urgency lines
+            for (var v = 0; v < 8; v++) {
+                var va = (v / 8) * Math.PI * 2;
+                var vx1 = centerX + Math.cos(va) * maxR * 0.15;
+                var vy1 = centerY + Math.sin(va) * maxR * 0.15;
+                var vx2 = centerX + Math.cos(va) * maxR;
+                var vy2 = centerY + Math.sin(va) * maxR;
+                ctx.strokeStyle = rgbaC([40, 35, 30], 0.3);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(vx1, vy1);
+                ctx.lineTo(vx2, vy2);
+                ctx.stroke();
+            }
+
+            ctx.restore();
+        }
+
+        // ── Keeper silhouette ──
+        function drawKeeper(ctx, dt) {
+            if (keeperVisible < 0.01) return;
+
+            ctx.save();
+            ctx.globalAlpha = keeperVisible;
+
+            var kX = keeperX;
+            var kY = keeperY;
+            var kH = H * 0.08;
+
+            // Walking animation
+            var walkCycle = keeperWalking ? Math.sin(waveTime * 4) * 0.2 : 0;
+
+            ctx.fillStyle = '#0a0a14';
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(kX, kY - kH * 0.85, kH * 0.12, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Body
+            ctx.beginPath();
+            ctx.moveTo(kX - kH * 0.12, kY - kH * 0.7);
+            ctx.lineTo(kX + kH * 0.12, kY - kH * 0.7);
+            ctx.lineTo(kX + kH * 0.1, kY - kH * 0.3);
+            ctx.lineTo(kX - kH * 0.1, kY - kH * 0.3);
+            ctx.closePath();
+            ctx.fill();
+
+            // Legs
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#0a0a14';
+            // Left leg
+            ctx.beginPath();
+            ctx.moveTo(kX - kH * 0.05, kY - kH * 0.3);
+            ctx.lineTo(kX - kH * 0.08 + walkCycle * kH * 0.15, kY);
+            ctx.stroke();
+            // Right leg
+            ctx.beginPath();
+            ctx.moveTo(kX + kH * 0.05, kY - kH * 0.3);
+            ctx.lineTo(kX + kH * 0.08 - walkCycle * kH * 0.15, kY);
+            ctx.stroke();
+
+            // Arms
+            ctx.lineWidth = 2;
+            // Left arm
+            ctx.beginPath();
+            ctx.moveTo(kX - kH * 0.12, kY - kH * 0.65);
+            ctx.lineTo(kX - kH * 0.2 - walkCycle * kH * 0.1, kY - kH * 0.45);
+            ctx.stroke();
+            // Right arm
+            ctx.beginPath();
+            ctx.moveTo(kX + kH * 0.12, kY - kH * 0.65);
+            ctx.lineTo(kX + kH * 0.2 + walkCycle * kH * 0.1, kY - kH * 0.45);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Dawn glow ──
+        function drawDawnGlow(ctx) {
+            if (dawnProgress < 0.05) return;
+
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            var glowX = W * 0.72;
+            var glowY = H * 0.56;
+            var glowR = W * 0.45 * dawnProgress;
+            var alpha = dawnProgress * 0.25;
+
+            var grad = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, glowR);
+            grad.addColorStop(0, rgbaC([255, 180, 60], alpha));
+            grad.addColorStop(0.3, rgbaC([255, 143, 50], alpha * 0.5));
+            grad.addColorStop(0.6, rgbaC([255, 171, 145], alpha * 0.2));
+            grad.addColorStop(1, rgbaC([255, 100, 60], 0));
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+
+            // Sun disc
+            if (dawnProgress > 0.4) {
+                var sunAlpha = (dawnProgress - 0.4) * 1.3;
+                var sunR = W * 0.02 + dawnProgress * W * 0.025;
+                var sunGrad = ctx.createRadialGradient(glowX, glowY, 0, glowX, glowY, sunR);
+                sunGrad.addColorStop(0, rgbaC([255, 243, 224], sunAlpha));
+                sunGrad.addColorStop(0.5, rgbaC([255, 200, 100], sunAlpha * 0.5));
+                sunGrad.addColorStop(1, rgbaC([255, 180, 60], 0));
+                ctx.fillStyle = sunGrad;
+                ctx.beginPath();
+                ctx.arc(glowX, glowY, sunR, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Reignition flash effect ──
+        function drawReignitionFlash(ctx) {
+            if (reignitionFlash < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = reignitionFlash;
+            var grad = ctx.createRadialGradient(W * 0.20, H * 0.20, 0, W * 0.20, H * 0.20, Math.max(W, H));
+            grad.addColorStop(0, rgbaC(BEAM_WHITE, 1));
+            grad.addColorStop(0.2, rgbaC(BEAM_GOLD, 0.8));
+            grad.addColorStop(0.5, rgbaC(BEAM_GOLD, 0.3));
+            grad.addColorStop(1, rgbaC(BEAM_GOLD, 0));
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Automation mechanism ──
+        function drawAutomation(ctx, dt) {
+            if (automationProgress < 0.01) return;
+            // Mechanical arm / automated mechanism near lighthouse top
+            var lhX = W * 0.20;
+            var mechY = H * 0.22;
+
+            ctx.save();
+            ctx.globalAlpha = automationProgress * 0.6;
+
+            // Rotating mechanical arm
+            var armAngle = waveTime * 0.8;
+            var armLen = W * 0.03;
+            ctx.strokeStyle = rgbaC(GEAR_COLOR, 0.8);
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(lhX, mechY);
+            ctx.lineTo(lhX + Math.cos(armAngle) * armLen, mechY + Math.sin(armAngle) * armLen);
+            ctx.stroke();
+
+            // Small gear at joint
+            ctx.beginPath();
+            ctx.arc(lhX, mechY, W * 0.008, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        // ── Path from lighthouse (for Last Descent / Automation) ──
+        function drawPath(ctx) {
+            if (scene !== 'lastDescent' && scene !== 'automation') return;
+            if (interiorBlend > 0.3) return;
+
+            ctx.save();
+            var pathAlpha = 0.3;
+            ctx.strokeStyle = rgbaC([80, 75, 65], pathAlpha);
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            // Winding path from lighthouse base to right side
+            ctx.moveTo(W * 0.22, H * 0.72);
+            ctx.quadraticCurveTo(W * 0.35, H * 0.74, W * 0.45, H * 0.76);
+            ctx.quadraticCurveTo(W * 0.55, H * 0.78, W * 0.65, H * 0.77);
+            ctx.quadraticCurveTo(W * 0.75, H * 0.76, W * 0.85, H * 0.78);
+            ctx.lineTo(W * 1.05, H * 0.80);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // ── Spray at rocks ──
+        function drawSpray(ctx) {
+            if (stormIntensity < 0.2 || interiorBlend > 0.5) return;
+            ctx.save();
+            var sprayAlpha = (stormIntensity - 0.2) * 0.35 * (1 - interiorBlend);
+            var rockX = W * 0.20;
+            var rockY = H * 0.57;
+
+            ctx.globalAlpha = sprayAlpha;
+            var pulseSize = 1 + Math.sin(waveTime * 2) * 0.3 * stormIntensity;
+            var grad = ctx.createRadialGradient(rockX + W * 0.04, rockY, 0, rockX + W * 0.04, rockY, W * 0.07 * stormIntensity);
+            grad.addColorStop(0, 'rgba(180,200,220,0.3)');
+            grad.addColorStop(1, 'rgba(180,200,220,0)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(rockX + W * 0.04, rockY, W * 0.06 * pulseSize, H * 0.035 * pulseSize, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // ── Storm clouds ──
+        function drawClouds(ctx) {
+            if (stormIntensity < 0.1 || interiorBlend > 0.5) return;
+            ctx.save();
+            ctx.globalAlpha = stormIntensity * 0.2 * (1 - interiorBlend);
+            var cloudY = H * 0.07;
+            for (var i = 0; i < 6; i++) {
+                var cx = ((waveTime * 12 + i * W * 0.22) % (W * 1.4)) - W * 0.2;
+                var cy = cloudY + Math.sin(i * 2.3) * H * 0.04;
+                var cw = W * 0.14 + i * W * 0.025;
+                ctx.fillStyle = rgbaC([45, 50, 70], stormIntensity * 0.35);
+                ctx.beginPath();
+                ctx.ellipse(cx, cy, cw, H * 0.025, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        // ── Title and subtitle ──
+        function drawTitle(ctx) {
+            if (titleAlpha < 0.01) return;
+            ctx.save();
+            var fontSize = Math.max(14, Math.min(W * 0.032, 44));
+            ctx.font = '700 ' + fontSize + 'px "Playfair Display", serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = rgbaC(BEAM_GOLD, titleAlpha);
+            ctx.shadowColor = rgbaC(BEAM_GOLD, 0.5);
+            ctx.shadowBlur = 30;
+            ctx.fillText("The Lighthouse Keeper's Last Night", W * 0.5, H * 0.10);
+
+            if (subtitleText) {
+                ctx.font = '400 ' + Math.floor(fontSize * 0.42) + 'px "Playfair Display", serif';
+                ctx.fillStyle = 'rgba(255,220,160,' + (titleAlpha * 0.7) + ')';
+                ctx.shadowBlur = 15;
+                ctx.fillText(subtitleText, W * 0.5, H * 0.10 + fontSize * 0.75);
+            }
+            ctx.restore();
+        }
+
+        // ── Flash overlay ──
+        function drawFlash(ctx) {
+            if (flashAlpha < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = flashAlpha;
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Darkness overlay (Light Fails) ──
+        function drawDarkness(ctx) {
+            if (darknessOverlay < 0.01) return;
+            ctx.save();
+            ctx.globalAlpha = darknessOverlay * 0.85;
+            ctx.fillStyle = '#020408';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Vignette ──
+        function drawVignette(ctx) {
+            ctx.save();
+            var vigR = Math.max(W, H) * 0.72;
+            var vig = ctx.createRadialGradient(W * 0.5, H * 0.5, vigR * 0.35, W * 0.5, H * 0.5, vigR);
+            vig.addColorStop(0, 'rgba(0,0,0,0)');
+            vig.addColorStop(1, 'rgba(0,0,0,' + (0.35 + darknessOverlay * 0.3 - dawnProgress * 0.15) + ')');
+            ctx.fillStyle = vig;
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Fade to black (Automation ending) ──
+        function drawOutroFade(ctx) {
+            if (outroFade > 0.99) return;
+            ctx.save();
+            ctx.globalAlpha = 1 - outroFade;
+            ctx.fillStyle = '#050a14';
+            ctx.fillRect(0, 0, W, H);
+            ctx.restore();
+        }
+
+        // ── Main render ──
+        function render(frameData) {
+            var ctx = frameData.ctx;
+            var dt = frameData.dt || 1 / 60;
+            var cursor = frameData.cursor;
+            beatPulse = frameData.beatPulse;
+
+            // ── Idle state ──
+            if (!cursor) {
+                waveTime += dt;
+                beamAngle += beamSpeed * dt;
+                stormIntensity = lerpExp(stormIntensity, 0, 2, dt);
+                dawnProgress = lerpExp(dawnProgress, 0, 2, dt);
+                darknessOverlay = lerpExp(darknessOverlay, 0, 2, dt);
+                interiorBlend = lerpExp(interiorBlend, 0, 2, dt);
+                waveAmplitude = lerpExp(waveAmplitude, 0.25, 2, dt);
+                beamOn = lerpExp(beamOn, 1, 3, dt);
+                starAlpha = 1;
+
+                drawSky(ctx);
+                drawStars(ctx, dt);
+                drawDawnGlow(ctx);
+                drawBeam(ctx);
+                drawOcean(ctx, dt);
+                drawRockyIsland(ctx);
+                drawLighthouse(ctx);
+                drawVignette(ctx);
+                return;
+            }
+
+            var seqIdx = cursor.seqIndex;
+            var energy = analysis ? (analysis.energy[cursor.timelineIndex] || 0) : 0;
+
+            // ── Scene transitions ──
+            var newScene = mapScene(seqIdx);
+            if (seqIdx !== lastSeqIndex) {
+                scene = newScene;
+                lastSeqIndex = seqIdx;
+
+                // One-shot triggers on section entry
+                if (scene === 'reignition' && seqIdx === 24) {
+                    reignitionFlash = 1.0;
+                    flashAlpha = 0.8;
+                    beamOnTarget = 1;
+                }
+            }
+
+            // ── Scene-driven targets ──
+            switch (scene) {
+                case 'foghorn':
+                    stormTarget = 0;
+                    dawnTarget = 0;
+                    waveTarget = 0.25;
+                    beamOnTarget = 0.8;
+                    beamSpeed = 0.3;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    titleTarget = 1;
+                    subtitleText = 'foghorn dawn';
+                    keeperTarget = 0;
+                    climbTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 1;
+                    for (var si = 0; si < ships.length; si++) ships[si].visible = lerpExp(ships[si].visible, 0, 3, dt);
+                    break;
+
+                case 'watch':
+                    stormTarget = 0;
+                    dawnTarget = 0;
+                    waveTarget = 0.2;
+                    beamOnTarget = 0.9;
+                    beamSpeed = 0.35;
+                    interiorTarget = 0.85;
+                    darknessTarget = 0;
+                    titleTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = 0.8;
+                    keeperX = lerpExp(keeperX, W * 0.5, 2, dt);
+                    keeperY = lerpExp(keeperY, H * 0.7, 2, dt);
+                    keeperWalking = false;
+                    climbTarget = 0;
+                    gearTarget = 0.7;
+                    automationTarget = 0;
+                    starTarget = 0;
+                    break;
+
+                case 'ships':
+                    stormTarget = 0.05;
+                    dawnTarget = 0;
+                    waveTarget = 0.3;
+                    beamOnTarget = 1;
+                    beamSpeed = 0.5;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    titleTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = 0;
+                    climbTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 0.6;
+                    for (var si2 = 0; si2 < ships.length; si2++) ships[si2].visible = lerpExp(ships[si2].visible, 0.8, 2, dt);
+                    break;
+
+                case 'stormGathering':
+                    stormTarget = 0.3 + energy * 0.3;
+                    dawnTarget = 0;
+                    waveTarget = 0.5 + energy * 0.2;
+                    beamOnTarget = 0.9;
+                    beamSpeed = 0.4;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    titleTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = 0;
+                    climbTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 0.2;
+                    for (var si3 = 0; si3 < ships.length; si3++) ships[si3].visible = lerpExp(ships[si3].visible, 0.5, 2, dt);
+                    break;
+
+                case 'tempest':
+                    stormTarget = 0.7 + energy * 0.3;
+                    dawnTarget = 0;
+                    waveTarget = 0.8 + energy * 0.2;
+                    beamOnTarget = 0.6 + energy * 0.2;
+                    beamSpeed = 0.45;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    titleTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = 0;
+                    climbTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 0;
+                    for (var si4 = 0; si4 < ships.length; si4++) ships[si4].visible = lerpExp(ships[si4].visible, 0.4, 2, dt);
+                    // Beam struggles - flicker
+                    if (seqIdx >= 16) {
+                        beamOnTarget = 0.15 + Math.random() * 0.2;
+                    }
+                    break;
+
+                case 'lightFails':
+                    stormTarget = 0.5;
+                    dawnTarget = 0;
+                    waveTarget = 0.6;
+                    beamOnTarget = 0;
+                    beamSpeed = 0;
+                    interiorTarget = 0;
+                    darknessTarget = 0.9;
+                    titleTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = 0;
+                    climbTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 0;
+                    for (var si5 = 0; si5 < ships.length; si5++) ships[si5].visible = lerpExp(ships[si5].visible, 0.15, 2, dt);
+                    break;
+
+                case 'climb':
+                    stormTarget = 0.3;
+                    dawnTarget = 0;
+                    waveTarget = 0.4;
+                    beamOnTarget = 0;
+                    beamSpeed = 0;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    climbTarget = 1;
+                    titleTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 0;
+                    break;
+
+                case 'repairs':
+                    stormTarget = 0.2;
+                    dawnTarget = 0;
+                    waveTarget = 0.3;
+                    beamOnTarget = 0;
+                    beamSpeed = 0;
+                    interiorTarget = 0.9;
+                    darknessTarget = 0;
+                    climbTarget = 0;
+                    titleTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = 0.7;
+                    keeperX = lerpExp(keeperX, W * 0.48, 2, dt);
+                    keeperY = lerpExp(keeperY, H * 0.68, 2, dt);
+                    keeperWalking = false;
+                    gearTarget = 1;
+                    automationTarget = 0;
+                    starTarget = 0;
+                    break;
+
+                case 'reignition':
+                    stormTarget = lerpExp(stormTarget, 0.1, 1.5, dt);
+                    dawnTarget = 0;
+                    waveTarget = 0.35;
+                    beamOnTarget = 1;
+                    beamSpeed = 0.6;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    climbTarget = 0;
+                    titleTarget = 0.7;
+                    subtitleText = 'the light returns';
+                    keeperTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 0.3;
+                    for (var si6 = 0; si6 < ships.length; si6++) ships[si6].visible = lerpExp(ships[si6].visible, 1.0, 2, dt);
+                    break;
+
+                case 'dawn':
+                    stormTarget = 0;
+                    dawnTarget = Math.min(1, 0.3 + (seqIdx - 28) * 0.25);
+                    waveTarget = 0.2;
+                    beamOnTarget = 0.8;
+                    beamSpeed = 0.3;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    climbTarget = 0;
+                    titleTarget = 0.6;
+                    subtitleText = 'dawn breaks';
+                    keeperTarget = 0;
+                    gearTarget = 0;
+                    automationTarget = 0;
+                    starTarget = 0.1;
+                    for (var si7 = 0; si7 < ships.length; si7++) ships[si7].visible = lerpExp(ships[si7].visible, 0.6, 2, dt);
+                    break;
+
+                case 'lastDescent':
+                    stormTarget = 0;
+                    dawnTarget = 0.8;
+                    waveTarget = 0.2;
+                    beamOnTarget = 0.7;
+                    beamSpeed = 0.25;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    climbTarget = 0;
+                    titleTarget = 0.4;
+                    subtitleText = 'the last descent';
+                    keeperTarget = 1;
+                    keeperWalking = true;
+                    // Keeper walks from lighthouse to the right
+                    keeperWalkProgress = Math.min(1, keeperWalkProgress + dt * 0.08);
+                    keeperX = lerp(W * 0.25, W * 0.55, keeperWalkProgress);
+                    keeperY = lerp(H * 0.72, H * 0.76, keeperWalkProgress * 0.5);
+                    gearTarget = 0;
+                    automationTarget = 0.3;
+                    starTarget = 0.15;
+                    break;
+
+                case 'automation':
+                    stormTarget = 0;
+                    dawnTarget = 0.9;
+                    waveTarget = 0.15;
+                    beamOnTarget = 0.9;
+                    beamSpeed = 0.35;
+                    interiorTarget = 0;
+                    darknessTarget = 0;
+                    climbTarget = 0;
+                    subtitleText = '';
+                    keeperTarget = Math.max(0, 1 - (seqIdx - 34) * 0.3);
+                    keeperWalking = true;
+                    keeperWalkProgress = Math.min(1, keeperWalkProgress + dt * 0.06);
+                    keeperX = lerp(W * 0.55, W * 0.9, clamp01((keeperWalkProgress - 0.3) / 0.7));
+                    keeperY = lerp(H * 0.76, H * 0.78, clamp01((keeperWalkProgress - 0.3) / 0.7));
+                    gearTarget = 0;
+                    automationTarget = 1;
+                    starTarget = 0.2;
+                    // Fade out
+                    if (seqIdx >= 35) {
+                        titleTarget = 0.5;
+                        subtitleText = 'the light endures';
+                        outroFade = Math.max(0.15, outroFade - dt * 0.12);
+                    } else {
+                        titleTarget = 0.3;
+                        subtitleText = '';
+                    }
+                    break;
+            }
+
+            // ── Smooth transitions ──
+            var tSpeed = 1.8;
+            stormIntensity = lerpExp(stormIntensity, stormTarget, tSpeed, dt);
+            dawnProgress = lerpExp(dawnProgress, dawnTarget, tSpeed, dt);
+            waveAmplitude = lerpExp(waveAmplitude, waveTarget, tSpeed, dt);
+            beamOn = lerpExp(beamOn, beamOnTarget, 4, dt);
+            interiorBlend = lerpExp(interiorBlend, interiorTarget, 2.5, dt);
+            darknessOverlay = lerpExp(darknessOverlay, darknessTarget, 2, dt);
+            keeperVisible = lerpExp(keeperVisible, keeperTarget, 3, dt);
+            climbProgress = lerpExp(climbProgress, climbTarget, 2.5, dt);
+            gearVisible = lerpExp(gearVisible, gearTarget, 3, dt);
+            automationProgress = lerpExp(automationProgress, automationTarget, 2, dt);
+            titleAlpha = lerpExp(titleAlpha, titleTarget, 3, dt);
+            starAlpha = lerpExp(starAlpha, starTarget, 2, dt);
+            reignitionFlash *= Math.exp(-3 * dt);
+            flashAlpha *= Math.exp(-6 * dt);
+
+            // ── Beat effects ──
+            if (frameData.beatChanged) {
+                // Lightning during tempest and light fails
+                if (scene === 'tempest' && energy > 0.4) {
+                    if (Math.random() < energy * 0.45) spawnLightning();
+                }
+                if (scene === 'lightFails') {
+                    // Rare, faint lightning — only illumination
+                    if (Math.random() < 0.12) spawnLightning();
+                }
+                if (scene === 'stormGathering' && energy > 0.6) {
+                    if (Math.random() < 0.2) spawnLightning();
+                }
+
+                // Reignition beat flash
+                if (scene === 'reignition') {
+                    flashAlpha = Math.max(flashAlpha, 0.05 + energy * 0.1);
+                }
+            }
+
+            // ── Beam rotation ──
+            beamAngle += beamSpeed * dt;
+            waveTime += dt;
+
+            // ── Draw scene (back to front) ──
+
+            // 1. Sky
+            drawSky(ctx);
+
+            // 2. Stars
+            drawStars(ctx, dt);
+
+            // 3. Clouds
+            drawClouds(ctx);
+
+            // 4. Dawn glow
+            drawDawnGlow(ctx);
+
+            // 5. Lightning
+            drawLightning(ctx, dt);
+
+            // 6. Foghorn pulse rings
+            drawFoghornPulse(ctx, dt);
+
+            // 7. Beam (behind ocean)
+            drawBeam(ctx);
+
+            // 8. Ships
+            drawShips(ctx, dt);
+
+            // 9. Ocean
+            drawOcean(ctx, dt);
+
+            // 10. Spray
+            drawSpray(ctx);
+
+            // 11. Rocky island
+            drawRockyIsland(ctx);
+
+            // 12. Path
+            drawPath(ctx);
+
+            // 13. Lighthouse
+            drawLighthouse(ctx);
+
+            // 14. Automation mechanism
+            drawAutomation(ctx, dt);
+
+            // 15. Interior overlay (gears, walls)
+            drawInterior(ctx, dt, energy);
+
+            // 16. Spiral stairwell (Climb)
+            drawStairwell(ctx, dt);
+
+            // 17. Keeper
+            drawKeeper(ctx, dt);
+
+            // 18. Rain
+            drawRain(ctx, dt);
+
+            // 19. Darkness overlay (Light Fails)
+            drawDarkness(ctx);
+
+            // 20. Reignition flash
+            drawReignitionFlash(ctx);
+
+            // 21. Lightning flash
+            drawFlash(ctx);
+
+            // 22. Vignette
+            drawVignette(ctx);
+
+            // 23. Title
+            drawTitle(ctx);
+
+            // 24. Outro fade
+            drawOutroFade(ctx);
+        }
+
+        BaseRenderer('the-lighthouse-keepers-last-night-video', "The Lighthouse Keeper's Last Night", {
+            beatDecay: 8,
+            init: init,
+            render: render,
+            resize: resize
+        });
+    })();
+
+    // ── Page bootstrap ──────────────────────────────────────────────────
+    (function() {
+        var canvas = document.getElementById('viz-canvas');
+        var overlay = document.getElementById('play-overlay');
+
+        Visualizer.init(canvas);
+        Visualizer.setRenderer('the-lighthouse-keepers-last-night-video');
+
+        function loadAndPlay(json) {
+            Visualizer.loadSong(json);
+            Visualizer.play();
+        }
+
+        function fetchSong() {
+            var url = '../audio-tracker/songs/the-lighthouse-keepers-last-night.json';
+            if (window.fetch && location.protocol !== 'file:') {
+                return fetch(url).then(function(r) { return r.json(); });
+            }
+            return new Promise(function(resolve, reject) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.onload = function() {
+                    if (xhr.status === 200 || xhr.status === 0) {
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error('XHR failed: ' + xhr.status));
+                    }
+                };
+                xhr.onerror = function() { reject(new Error('XHR error')); };
+                xhr.send();
+            });
+        }
+
+        overlay.addEventListener('click', function() {
+            overlay.classList.add('hidden');
+            fetchSong().then(loadAndPlay).catch(function(err) {
+                console.error('Failed to load song:', err);
+                overlay.classList.remove('hidden');
+            });
+        });
+
+        if (new URLSearchParams(window.location.search).get('autoplay') === '1') {
+            overlay.click();
+        }
+
+        canvas.addEventListener('click', function() {
+            if (overlay.classList.contains('hidden')) {
+                if (Visualizer.isPlaying()) {
+                    Visualizer.stop();
+                } else {
+                    Visualizer.play();
+                }
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
