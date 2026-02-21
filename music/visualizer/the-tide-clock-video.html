@@ -912,16 +912,53 @@
 
         // ── Granddaughter and old clockmaker figures ──
         function drawFigures(ctx, dt) {
-            var baseY = waterLevel * H - H * 0.04;
+            var seaY = waterLevel * H;
+            var pierTop = seaY - H * 0.035;
+            var pierLeft = W * 0.38;
+            var pierRight = W * 0.62;
+            var pierH = H * 0.018;
+            var showPier = Math.max(oldFigureAlpha, grandVisible);
+
+            // Stone pier / jetty for figures to stand on
+            if (showPier > 0.01) {
+                ctx.save();
+                ctx.globalAlpha = showPier * 0.9;
+
+                // Pier surface
+                ctx.fillStyle = rgbaC([45, 42, 38], 1);
+                ctx.beginPath();
+                ctx.moveTo(pierLeft, pierTop);
+                ctx.lineTo(pierRight, pierTop);
+                ctx.lineTo(pierRight + H * 0.005, pierTop + pierH);
+                ctx.lineTo(pierLeft - H * 0.005, pierTop + pierH);
+                ctx.closePath();
+                ctx.fill();
+
+                // Stone edge highlight
+                ctx.strokeStyle = rgbaC([70, 65, 55], 0.6);
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(pierLeft, pierTop);
+                ctx.lineTo(pierRight, pierTop);
+                ctx.stroke();
+
+                // Support posts into water
+                ctx.fillStyle = rgbaC([35, 32, 28], 0.8);
+                var postW = H * 0.006;
+                ctx.fillRect(pierLeft + (pierRight - pierLeft) * 0.15 - postW / 2, pierTop + pierH, postW, H * 0.025);
+                ctx.fillRect(pierLeft + (pierRight - pierLeft) * 0.85 - postW / 2, pierTop + pierH, postW, H * 0.025);
+
+                ctx.restore();
+            }
 
             // Old clockmaker
             if (oldFigureAlpha > 0.01) {
-                drawSilhouetteFigure(ctx, W * 0.44, baseY, H * 0.09, oldFigureAlpha, true);
+                drawSilhouetteFigure(ctx, W * 0.44, pierTop, H * 0.09, oldFigureAlpha, true);
             }
 
             // Granddaughter
             if (grandVisible > 0.01) {
-                drawSilhouetteFigure(ctx, W * 0.56, baseY, H * 0.065, grandVisible, false);
+                drawSilhouetteFigure(ctx, W * 0.56, pierTop, H * 0.065, grandVisible, false);
             }
         }
 
